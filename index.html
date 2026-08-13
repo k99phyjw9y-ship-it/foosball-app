@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FoosManager – Foosball Tournament App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            foos: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .table-row:hover { background-color: rgba(34, 197, 94, 0.08); }
+    .bracket-line { border-color: #4ade80; }
+    .score-input::-webkit-outer-spin-button,
+    .score-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .score-input { -moz-appearance: textfield; }
+    .toast {
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .card-glow:hover {
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3), 0 8px 24px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+  <!-- Toast container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+  <!-- App Root -->
+  <div id="app" class="max-w-6xl mx-auto px-3 sm:px-6 py-4 pb-24">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-6 sticky top-0 bg-gray-950/95 backdrop-blur z-40 py-3 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-foos-500 to-foos-700 flex items-center justify-center text-xl font-bold shadow-lg shadow-foos-900/40">⚽</div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">FoosManager</h1>
+          <p class="text-xs text-gray-500">Singles · Doubles · DYP · Monster DYP</p>
+        </div>
+      </div>
+      <div class="flex gap-2 flex-wrap justify-end">
+        <button onclick="showView('stats')" class="px-3 py-1.5 text-sm rounded-lg bg-gray-800 hover:bg-gray-700 transition">Stats</button>
+        <button onclick="showView('players')" class="px-3 py-1.5 text-sm rounded-lg bg-gray-800 hover:bg-gray-700 transition">Players</button>
+        <button onclick="showView('home')" class="px-3 py-1.5 text-sm rounded-lg bg-foos-600 hover:bg-foos-500 font-medium transition">Tournaments</button>
+      </div>
+    </header>
+
+    <!-- HOME / TOURNAMENT LIST -->
+    <div id="view-home" class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold">Tournaments</h2>
+        <button onclick="startCreateTournament()" class="px-4 py-2 bg-foos-600 hover:bg-foos-500 rounded-xl font-semibold shadow-lg shadow-foos-900/30 transition flex items-center gap-2">
+          <span>+</span> New Tournament
+        </button>
+      </div>
+
+      <div id="tournament-list" class="grid gap-4 sm:grid-cols-2">
+        <!-- filled by JS -->
+      </div>
+
+      <div id="empty-tournaments" class="text-center py-16 text-gray-500 hidden">
+        <div class="text-5xl mb-4">🏆</div>
+        <p class="text-lg">No tournaments yet</p>
+        <p class="text-sm mt-1">Create your first Singles, Doubles or DYP event</p>
+      </div>
+    </div>
+
+    <!-- PLAYERS VIEW -->
+    <div id="view-players" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold">Players</h2>
+        <button onclick="openPlayerModal()" class="px-4 py-2 bg-foos-600 hover:bg-foos-500 rounded-xl font-semibold transition">+ Add Player</button>
+      </div>
+
+      <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-800/80 text-gray-400">
+            <tr>
+              <th class="text-left px-4 py-3">Name</th>
+              <th class="text-left px-4 py-3 hidden sm:table-cell">Skill</th>
+              <th class="text-right px-4 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="players-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STATS / WEEK-OVER-WEEK VIEW -->
+    <div id="view-stats" class="hidden space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-2xl font-bold">Player Stats</h2>
+          <p class="text-sm text-gray-500">Week-over-week performance across all tournaments</p>
+        </div>
+        <div class="flex gap-2 items-center">
+          <label class="text-sm text-gray-400">Week of</label>
+          <select id="stats-week-select" onchange="renderStats()" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-foos-500"></select>
+        </div>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="stats-summary-cards">
+        <!-- filled by JS -->
+      </div>
+
+      <!-- WoW table -->
+      <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+          <h3 class="font-semibold text-gray-300">Week-over-Week Comparison</h3>
+          <span class="text-xs text-gray-500" id="stats-week-label"></span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-800/80 text-gray-400">
+              <tr>
+                <th class="text-left px-3 py-3 sticky left-0 bg-gray-800/90">Player</th>
+                <th class="text-center px-2 py-3" title="This week played">P</th>
+                <th class="text-center px-2 py-3" title="This week wins">W</th>
+                <th class="text-center px-2 py-3" title="This week win rate">WR%</th>
+                <th class="text-center px-2 py-3" title="This week points">Pts</th>
+                <th class="text-center px-2 py-3" title="This week goal difference">GD</th>
+                <th class="text-center px-2 py-3" title="Change vs previous week">Δ Pts</th>
+                <th class="text-center px-2 py-3" title="Change in win rate">Δ WR</th>
+                <th class="text-center px-2 py-3 hidden sm:table-cell" title="Previous week points">Prev Pts</th>
+                <th class="text-center px-2 py-3 hidden md:table-cell" title="All-time points">Career</th>
+              </tr>
+            </thead>
+            <tbody id="stats-wow-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Career leaderboard -->
+      <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-800">
+          <h3 class="font-semibold text-gray-300">Career Leaderboard</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-800/80 text-gray-400">
+              <tr>
+                <th class="text-left px-3 py-3">#</th>
+                <th class="text-left px-3 py-3">Player</th>
+                <th class="text-center px-2 py-3">Events</th>
+                <th class="text-center px-2 py-3">P</th>
+                <th class="text-center px-2 py-3">W</th>
+                <th class="text-center px-2 py-3">L</th>
+                <th class="text-center px-2 py-3">WR%</th>
+                <th class="text-center px-2 py-3">GD</th>
+                <th class="text-center px-2 py-3">Pts</th>
+              </tr>
+            </thead>
+            <tbody id="stats-career-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="text-xs text-gray-500">
+        Weeks are ISO weeks (Mon–Sun). Stats are aggregated from every completed match in tournaments that started in that week.
+        Δ columns compare the selected week against the immediately previous week that had activity.
+      </p>
+    </div>
+
+    <!-- CREATE / EDIT TOURNAMENT -->
+    <div id="view-create" class="hidden space-y-6">
+      <div class="flex items-center gap-3">
+        <button onclick="showView('home')" class="text-gray-400 hover:text-white">← Back</button>
+        <h2 class="text-2xl font-bold" id="create-title">New Tournament</h2>
+      </div>
+
+      <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5 space-y-5">
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">Tournament Name</label>
+          <input id="t-name" type="text" placeholder="Friday Night Monster DYP" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-400 mb-2">Event Type</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="type-selector">
+            <button data-type="singles" onclick="selectType(this)" class="type-btn p-4 rounded-xl border-2 border-gray-700 bg-gray-800 hover:border-foos-500 transition text-center">
+              <div class="text-2xl mb-1">👤</div>
+              <div class="font-semibold">Singles</div>
+              <div class="text-xs text-gray-500 mt-1">1v1</div>
+            </button>
+            <button data-type="doubles" onclick="selectType(this)" class="type-btn p-4 rounded-xl border-2 border-gray-700 bg-gray-800 hover:border-foos-500 transition text-center">
+              <div class="text-2xl mb-1">👥</div>
+              <div class="font-semibold">Doubles</div>
+              <div class="text-xs text-gray-500 mt-1">BYP – fixed pairs</div>
+            </button>
+            <button data-type="dyp" onclick="selectType(this)" class="type-btn p-4 rounded-xl border-2 border-gray-700 bg-gray-800 hover:border-foos-500 transition text-center">
+              <div class="text-2xl mb-1">🎲</div>
+              <div class="font-semibold">DYP</div>
+              <div class="text-xs text-gray-500 mt-1">Draw once</div>
+            </button>
+            <button data-type="monster" onclick="selectType(this)" class="type-btn p-4 rounded-xl border-2 border-gray-700 bg-gray-800 hover:border-foos-500 transition text-center">
+              <div class="text-2xl mb-1">👹</div>
+              <div class="font-semibold">Monster DYP</div>
+              <div class="text-xs text-gray-500 mt-1">New partners every round</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Format</label>
+            <select id="t-format" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500">
+              <option value="swiss">Swiss / Ranking Rounds</option>
+              <option value="roundrobin">Round Robin</option>
+              <option value="single-elim">Single Elimination</option>
+              <option value="double-elim">Double Elimination</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Race to (goals)</label>
+            <select id="t-race" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500">
+              <option value="5">5</option>
+              <option value="7" selected>7</option>
+              <option value="9">9</option>
+              <option value="11">11</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Best of (sets)</label>
+            <select id="t-bestof" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500">
+              <option value="1" selected>1 (single game)</option>
+              <option value="3">Best of 3</option>
+              <option value="5">Best of 5</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">Number of Tables</label>
+            <input id="t-tables" type="number" min="1" max="20" value="2" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500" />
+          </div>
+        </div>
+
+        <div id="draw-options" class="hidden">
+          <label class="block text-sm text-gray-400 mb-2">Partner Draw Style (DYP / Monster)</label>
+          <div class="flex gap-3">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="draw-style" value="random" checked class="accent-foos-500" />
+              <span>Fully Random</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="draw-style" value="highlow" class="accent-foos-500" />
+              <span>High-Low (balanced)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <button onclick="saveTournament()" class="w-full py-3 bg-foos-600 hover:bg-foos-500 rounded-xl font-bold text-lg transition shadow-lg shadow-foos-900/30">
+            Create Tournament
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOURNAMENT DETAIL -->
+    <div id="view-tournament" class="hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <button onclick="showView('home')" class="text-gray-400 hover:text-white">←</button>
+          <div>
+            <h2 class="text-xl font-bold" id="td-name">Tournament</h2>
+            <p class="text-sm text-gray-500" id="td-meta"></p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button onclick="exportStandings()" class="px-3 py-1.5 text-sm rounded-lg bg-gray-800 hover:bg-gray-700">Export</button>
+          <button onclick="confirmDeleteTournament()" class="px-3 py-1.5 text-sm rounded-lg bg-red-900/50 hover:bg-red-800 text-red-300">Delete</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-1 overflow-x-auto border-b border-gray-800 pb-px">
+        <button data-tab="players" onclick="switchTab(this)" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">Players / Teams</button>
+        <button data-tab="matches" onclick="switchTab(this)" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">Matches</button>
+        <button data-tab="standings" onclick="switchTab(this)" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">Standings</button>
+        <button data-tab="bracket" onclick="switchTab(this)" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">Bracket</button>
+      </div>
+
+      <!-- Tab: Players / Teams -->
+      <div id="tab-players" class="tab-content space-y-4">
+        <div class="flex flex-wrap gap-2 items-center">
+          <select id="add-player-select" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm flex-1 min-w-[140px]"></select>
+          <button onclick="addPlayerToTournament()" class="px-3 py-2 bg-foos-600 hover:bg-foos-500 rounded-lg text-sm font-medium">Add</button>
+          <button onclick="openPlayerModal(true)" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm">Quick Add</button>
+        </div>
+
+        <div id="teams-section" class="hidden">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-300">Teams</h3>
+            <button id="draw-partners-btn" onclick="drawPartners()" class="px-3 py-1.5 text-sm bg-amber-600 hover:bg-amber-500 rounded-lg font-medium">🎲 Draw Partners</button>
+          </div>
+          <div id="teams-list" class="space-y-2"></div>
+        </div>
+
+        <div id="tournament-players-list" class="space-y-2"></div>
+
+        <div class="pt-4 border-t border-gray-800">
+          <button id="generate-round-btn" onclick="generateRound()" class="w-full py-3 bg-foos-600 hover:bg-foos-500 rounded-xl font-bold transition disabled:opacity-40 disabled:cursor-not-allowed">
+            Generate Next Round
+          </button>
+          <p id="round-hint" class="text-xs text-gray-500 mt-2 text-center"></p>
+        </div>
+      </div>
+
+      <!-- Tab: Matches -->
+      <div id="tab-matches" class="tab-content hidden space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold">Current Round: <span id="current-round-label">0</span></h3>
+          <button onclick="generateRound()" class="px-3 py-1.5 text-sm bg-foos-600 hover:bg-foos-500 rounded-lg">+ New Round</button>
+        </div>
+        <div id="matches-list" class="space-y-3"></div>
+        <div id="no-matches" class="text-center py-10 text-gray-500 hidden">
+          <p>No matches yet. Go to Players tab and generate a round.</p>
+        </div>
+      </div>
+
+      <!-- Tab: Standings -->
+      <div id="tab-standings" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-800/80 text-gray-400">
+              <tr>
+                <th class="text-left px-3 py-3 w-10">#</th>
+                <th class="text-left px-3 py-3">Player / Team</th>
+                <th class="text-center px-2 py-3">P</th>
+                <th class="text-center px-2 py-3">W</th>
+                <th class="text-center px-2 py-3">L</th>
+                <th class="text-center px-2 py-3">GD</th>
+                <th class="text-center px-2 py-3">Pts</th>
+              </tr>
+            </thead>
+            <tbody id="standings-body"></tbody>
+          </table>
+        </div>
+        <p class="text-xs text-gray-500 mt-3">P = Played · W = Wins · L = Losses · GD = Goal Difference · Pts = Points (2 per win)</p>
+      </div>
+
+      <!-- Tab: Bracket -->
+      <div id="tab-bracket" class="tab-content hidden">
+        <div class="flex gap-2 mb-4">
+          <button onclick="startPlayoffs()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg font-medium text-sm">Start Playoffs (Top 8 / 4 / 2)</button>
+        </div>
+        <div id="bracket-container" class="overflow-x-auto pb-4">
+          <p class="text-gray-500 text-center py-8">Generate ranking rounds first, then start playoffs.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Modal -->
+  <div id="player-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-md p-5 space-y-4">
+      <h3 class="text-lg font-bold" id="player-modal-title">Add Player</h3>
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Name</label>
+        <input id="player-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500" placeholder="Player name" />
+      </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Skill Level (optional, for high-low draws)</label>
+        <select id="player-skill" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5">
+          <option value="3">Average</option>
+          <option value="5">Pro / Advanced</option>
+          <option value="4">Intermediate+</option>
+          <option value="2">Beginner+</option>
+          <option value="1">Beginner</option>
+        </select>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closePlayerModal()" class="flex-1 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-xl">Cancel</button>
+        <button onclick="savePlayer()" class="flex-1 py-2.5 bg-foos-600 hover:bg-foos-500 rounded-xl font-semibold">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Score Modal -->
+  <div id="score-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-sm p-5 space-y-4">
+      <h3 class="text-lg font-bold text-center" id="score-modal-title">Enter Score</h3>
+      <div class="flex items-center justify-center gap-4 text-center">
+        <div class="flex-1">
+          <div class="text-sm text-gray-400 mb-2" id="score-team-a"></div>
+          <input id="score-a" type="number" min="0" max="30" value="0" class="score-input w-20 text-3xl font-bold text-center bg-gray-800 border border-gray-600 rounded-xl py-2 focus:outline-none focus:ring-2 focus:ring-foos-500" />
+        </div>
+        <div class="text-2xl text-gray-600">–</div>
+        <div class="flex-1">
+          <div class="text-sm text-gray-400 mb-2" id="score-team-b"></div>
+          <input id="score-b" type="number" min="0" max="30" value="0" class="score-input w-20 text-3xl font-bold text-center bg-gray-800 border border-gray-600 rounded-xl py-2 focus:outline-none focus:ring-2 focus:ring-foos-500" />
+        </div>
+      </div>
+      <div class="flex gap-2 justify-center text-xs text-gray-500">
+        <button onclick="setScore(7,0)" class="px-2 py-1 bg-gray-800 rounded">7-0</button>
+        <button onclick="setScore(7,1)" class="px-2 py-1 bg-gray-800 rounded">7-1</button>
+        <button onclick="setScore(7,2)" class="px-2 py-1 bg-gray-800 rounded">7-2</button>
+        <button onclick="setScore(7,3)" class="px-2 py-1 bg-gray-800 rounded">7-3</button>
+        <button onclick="setScore(7,4)" class="px-2 py-1 bg-gray-800 rounded">7-4</button>
+        <button onclick="setScore(7,5)" class="px-2 py-1 bg-gray-800 rounded">7-5</button>
+        <button onclick="setScore(7,6)" class="px-2 py-1 bg-gray-800 rounded">7-6</button>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="closeScoreModal()" class="flex-1 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-xl">Cancel</button>
+        <button onclick="submitScore()" class="flex-1 py-2.5 bg-foos-600 hover:bg-foos-500 rounded-xl font-semibold">Save Score</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== DATA LAYER ====================
+    const STORAGE_KEY = 'foosmanager_v1';
+
+    let state = {
+      players: [],
+      tournaments: [],
+      currentTournamentId: null,
+      currentTab: 'players',
+      editingPlayerId: null,
+      quickAddMode: false,
+      selectedType: null,
+      scoreMatchId: null
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const data = JSON.parse(raw);
+          state.players = data.players || [];
+          state.tournaments = data.tournaments || [];
+        }
+      } catch (e) {
+        console.error('Failed to load state', e);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        players: state.players,
+        tournaments: state.tournaments
+      }));
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function toast(msg, type = 'info') {
+      const el = document.createElement('div');
+      el.className = `toast px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg ${
+        type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-foos-600' : 'bg-gray-700'
+      }`;
+      el.textContent = msg;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    }
+
+    // ==================== PLAYERS ====================
+    function openPlayerModal(quick = false) {
+      state.quickAddMode = quick;
+      state.editingPlayerId = null;
+      document.getElementById('player-modal-title').textContent = 'Add Player';
+      document.getElementById('player-name').value = '';
+      document.getElementById('player-skill').value = '3';
+      document.getElementById('player-modal').classList.remove('hidden');
+      document.getElementById('player-name').focus();
+    }
+
+    function closePlayerModal() {
+      document.getElementById('player-modal').classList.add('hidden');
+    }
+
+    function savePlayer() {
+      const name = document.getElementById('player-name').value.trim();
+      if (!name) {
+        toast('Name is required', 'error');
+        return;
+      }
+      const skill = parseInt(document.getElementById('player-skill').value, 10);
+
+      if (state.editingPlayerId) {
+        const p = state.players.find(x => x.id === state.editingPlayerId);
+        if (p) {
+          p.name = name;
+          p.skill = skill;
+        }
+      } else {
+        const player = { id: uid(), name, skill };
+        state.players.push(player);
+        if (state.quickAddMode && state.currentTournamentId) {
+          const t = getCurrentTournament();
+          if (t && !t.playerIds.includes(player.id)) {
+            t.playerIds.push(player.id);
+          }
+        }
+      }
+      saveState();
+      closePlayerModal();
+      renderPlayers();
+      if (state.currentTournamentId) renderTournament();
+      toast('Player saved', 'success');
+    }
+
+    function editPlayer(id) {
+      const p = state.players.find(x => x.id === id);
+      if (!p) return;
+      state.editingPlayerId = id;
+      state.quickAddMode = false;
+      document.getElementById('player-modal-title').textContent = 'Edit Player';
+      document.getElementById('player-name').value = p.name;
+      document.getElementById('player-skill').value = p.skill || 3;
+      document.getElementById('player-modal').classList.remove('hidden');
+    }
+
+    function deletePlayer(id) {
+      if (!confirm('Delete this player? They will be removed from all tournaments.')) return;
+      state.players = state.players.filter(p => p.id !== id);
+      state.tournaments.forEach(t => {
+        t.playerIds = t.playerIds.filter(pid => pid !== id);
+        if (t.teams) {
+          t.teams = t.teams.filter(team => !team.playerIds.includes(id));
+        }
+      });
+      saveState();
+      renderPlayers();
+      if (state.currentTournamentId) renderTournament();
+      toast('Player deleted');
+    }
+
+    function renderPlayers() {
+      const tbody = document.getElementById('players-table-body');
+      if (state.players.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">No players yet. Add some!</td></tr>';
+        return;
+      }
+      const skillLabel = {1:'Beginner',2:'Beginner+',3:'Average',4:'Intermediate+',5:'Pro'};
+      tbody.innerHTML = state.players.map(p => `
+        <tr class="border-t border-gray-800 table-row">
+          <td class="px-4 py-3 font-medium">${escapeHtml(p.name)}</td>
+          <td class="px-4 py-3 text-gray-400 hidden sm:table-cell">${skillLabel[p.skill] || 'Average'}</td>
+          <td class="px-4 py-3 text-right space-x-2">
+            <button onclick="editPlayer('${p.id}')" class="text-foos-400 hover:text-foos-300 text-sm">Edit</button>
+            <button onclick="deletePlayer('${p.id}')" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // ==================== TOURNAMENTS ====================
+    function startCreateTournament() {
+      state.selectedType = null;
+      document.getElementById('t-name').value = '';
+      document.getElementById('t-format').value = 'swiss';
+      document.getElementById('t-race').value = '7';
+      document.getElementById('t-bestof').value = '1';
+      document.getElementById('t-tables').value = '2';
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('border-foos-500', 'bg-foos-900/30'));
+      document.getElementById('draw-options').classList.add('hidden');
+      document.getElementById('create-title').textContent = 'New Tournament';
+      showView('create');
+    }
+
+    function selectType(btn) {
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('border-foos-500', 'bg-foos-900/30'));
+      btn.classList.add('border-foos-500', 'bg-foos-900/30');
+      state.selectedType = btn.dataset.type;
+      const drawOpts = document.getElementById('draw-options');
+      if (state.selectedType === 'dyp' || state.selectedType === 'monster') {
+        drawOpts.classList.remove('hidden');
+      } else {
+        drawOpts.classList.add('hidden');
+      }
+    }
+
+    function saveTournament() {
+      const name = document.getElementById('t-name').value.trim() || 'Untitled Tournament';
+      if (!state.selectedType) {
+        toast('Please select an event type', 'error');
+        return;
+      }
+      const format = document.getElementById('t-format').value;
+      const raceTo = parseInt(document.getElementById('t-race').value, 10);
+      const bestOf = parseInt(document.getElementById('t-bestof').value, 10);
+      const tables = parseInt(document.getElementById('t-tables').value, 10) || 1;
+      const drawStyle = document.querySelector('input[name="draw-style"]:checked')?.value || 'random';
+
+      const tournament = {
+        id: uid(),
+        name,
+        type: state.selectedType, // singles | doubles | dyp | monster
+        format,
+        raceTo,
+        bestOf,
+        tables,
+        drawStyle,
+        playerIds: [],
+        teams: [],           // for doubles / dyp: [{id, playerIds: [a,b], name}]
+        rounds: [],          // [{number, matches: [{id, teamA, teamB, scoreA, scoreB, table, status}]}]
+        currentRound: 0,
+        playoffs: null,      // single-elim bracket structure
+        createdAt: Date.now(),
+        status: 'setup'      // setup | active | finished
+      };
+
+      state.tournaments.unshift(tournament);
+      saveState();
+      openTournament(tournament.id);
+      toast('Tournament created!', 'success');
+    }
+
+    function getCurrentTournament() {
+      return state.tournaments.find(t => t.id === state.currentTournamentId);
+    }
+
+    function openTournament(id) {
+      state.currentTournamentId = id;
+      state.currentTab = 'players';
+      showView('tournament');
+      renderTournament();
+    }
+
+    function confirmDeleteTournament() {
+      if (!confirm('Delete this tournament permanently?')) return;
+      state.tournaments = state.tournaments.filter(t => t.id !== state.currentTournamentId);
+      state.currentTournamentId = null;
+      saveState();
+      showView('home');
+      toast('Tournament deleted');
+    }
+
+    function renderHome() {
+      const list = document.getElementById('tournament-list');
+      const empty = document.getElementById('empty-tournaments');
+      if (state.tournaments.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      const typeLabel = {singles:'Singles', doubles:'Doubles (BYP)', dyp:'DYP', monster:'Monster DYP'};
+      list.innerHTML = state.tournaments.map(t => `
+        <div onclick="openTournament('${t.id}')" class="card-glow bg-gray-900 border border-gray-800 rounded-2xl p-5 cursor-pointer transition hover:border-foos-600/50">
+          <div class="flex items-start justify-between">
+            <div>
+              <h3 class="font-bold text-lg">${escapeHtml(t.name)}</h3>
+              <p class="text-sm text-gray-400 mt-1">${typeLabel[t.type] || t.type} · ${t.format} · Race to ${t.raceTo}</p>
+            </div>
+            <span class="text-xs px-2 py-1 rounded-full ${t.status === 'finished' ? 'bg-gray-700' : 'bg-foos-900/50 text-foos-300'}">${t.status}</span>
+          </div>
+          <div class="mt-4 flex items-center gap-4 text-xs text-gray-500">
+            <span>${t.playerIds.length} players</span>
+            <span>Round ${t.currentRound}</span>
+            <span>${new Date(t.createdAt).toLocaleDateString()}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ==================== TOURNAMENT DETAIL ====================
+    function renderTournament() {
+      const t = getCurrentTournament();
+      if (!t) return;
+
+      document.getElementById('td-name').textContent = t.name;
+      const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
+      document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · ${t.tables} table${t.tables>1?'s':''}`;
+
+      // Show/hide teams section
+      const teamsSection = document.getElementById('teams-section');
+      const drawBtn = document.getElementById('draw-partners-btn');
+      if (t.type === 'doubles' || t.type === 'dyp' || t.type === 'monster') {
+        teamsSection.classList.remove('hidden');
+        if (t.type === 'monster') {
+          drawBtn.textContent = '🎲 Draw New Partners (this round)';
+          drawBtn.classList.remove('hidden');
+        } else if (t.type === 'dyp') {
+          drawBtn.textContent = t.teams.length ? '🔄 Re-draw Partners' : '🎲 Draw Partners';
+          drawBtn.classList.remove('hidden');
+        } else {
+          drawBtn.classList.add('hidden'); // doubles = manual/fixed
+        }
+      } else {
+        teamsSection.classList.add('hidden');
+      }
+
+      renderTournamentPlayers(t);
+      renderTeams(t);
+      renderMatches(t);
+      renderStandings(t);
+      renderBracket(t);
+      updateAddPlayerSelect(t);
+
+      // Tab highlighting
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.dataset.tab === state.currentTab) {
+          btn.classList.add('border-foos-500', 'text-foos-400');
+          btn.classList.remove('border-transparent', 'text-gray-400');
+        } else {
+          btn.classList.remove('border-foos-500', 'text-foos-400');
+          btn.classList.add('border-transparent', 'text-gray-400');
+        }
+      });
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+      document.getElementById('tab-' + state.currentTab).classList.remove('hidden');
+    }
+
+    function switchTab(btn) {
+      state.currentTab = btn.dataset.tab;
+      renderTournament();
+    }
+
+    function updateAddPlayerSelect(t) {
+      const select = document.getElementById('add-player-select');
+      const available = state.players.filter(p => !t.playerIds.includes(p.id));
+      select.innerHTML = available.length
+        ? available.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
+        : '<option value="">No more players</option>';
+    }
+
+    function addPlayerToTournament() {
+      const t = getCurrentTournament();
+      const select = document.getElementById('add-player-select');
+      const pid = select.value;
+      if (!pid) return;
+      if (!t.playerIds.includes(pid)) {
+        t.playerIds.push(pid);
+        saveState();
+        renderTournament();
+        toast('Player added');
+      }
+    }
+
+    function removePlayerFromTournament(pid) {
+      const t = getCurrentTournament();
+      t.playerIds = t.playerIds.filter(id => id !== pid);
+      if (t.teams) {
+        t.teams = t.teams.filter(team => !team.playerIds.includes(pid));
+      }
+      saveState();
+      renderTournament();
+    }
+
+    function renderTournamentPlayers(t) {
+      const container = document.getElementById('tournament-players-list');
+      if (t.playerIds.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-sm py-4">Add players to get started.</p>';
+        return;
+      }
+      container.innerHTML = t.playerIds.map(pid => {
+        const p = state.players.find(x => x.id === pid);
+        if (!p) return '';
+        return `
+          <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5">
+            <span class="font-medium">${escapeHtml(p.name)}</span>
+            <button onclick="removePlayerFromTournament('${pid}')" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTeams(t) {
+      const list = document.getElementById('teams-list');
+      if (!t.teams || t.teams.length === 0) {
+        list.innerHTML = '<p class="text-gray-500 text-sm">No teams yet. Draw partners or create manually.</p>';
+        return;
+      }
+      list.innerHTML = t.teams.map(team => {
+        const names = team.playerIds.map(id => {
+          const p = state.players.find(x => x.id === id);
+          return p ? p.name : '?';
+        }).join(' + ');
+        return `
+          <div class="flex items-center justify-between bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5">
+            <span class="font-medium">${escapeHtml(names)}</span>
+            <span class="text-xs text-gray-500">Team</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== DRAW PARTNERS ====================
+    function drawPartners() {
+      const t = getCurrentTournament();
+      const players = t.playerIds.map(id => state.players.find(p => p.id === id)).filter(Boolean);
+      if (players.length < 4) {
+        toast('Need at least 4 players for doubles/DYP', 'error');
+        return;
+      }
+      if (players.length % 2 !== 0) {
+        toast('Odd number of players – one will sit out this draw', 'error');
+      }
+
+      let ordered = [...players];
+      if (t.drawStyle === 'highlow') {
+        ordered.sort((a, b) => (b.skill || 3) - (a.skill || 3));
+        // pair highest with lowest
+        const pairs = [];
+        const half = Math.floor(ordered.length / 2);
+        for (let i = 0; i < half; i++) {
+          pairs.push([ordered[i], ordered[ordered.length - 1 - i]]);
+        }
+        if (ordered.length % 2 === 1) {
+          // last middle player sits out or pair randomly later
+        }
+        t.teams = pairs.map(pair => ({
+          id: uid(),
+          playerIds: pair.map(p => p.id),
+          name: pair.map(p => p.name).join(' + ')
+        }));
+      } else {
+        // fully random
+        shuffle(ordered);
+        const pairs = [];
+        for (let i = 0; i < ordered.length - 1; i += 2) {
+          pairs.push([ordered[i], ordered[i + 1]]);
+        }
+        t.teams = pairs.map(pair => ({
+          id: uid(),
+          playerIds: pair.map(p => p.id),
+          name: pair.map(p => p.name).join(' + ')
+        }));
+      }
+
+      // For pure doubles we also allow manual, but draw is convenient
+      saveState();
+      renderTournament();
+      toast(`Drew ${t.teams.length} teams`, 'success');
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // ==================== GENERATE ROUND ====================
+    function generateRound() {
+      const t = getCurrentTournament();
+      if (t.playerIds.length < 2) {
+        toast('Need at least 2 players', 'error');
+        return;
+      }
+
+      // For monster / dyp we need teams
+      if ((t.type === 'dyp' || t.type === 'monster' || t.type === 'doubles') && (!t.teams || t.teams.length < 2)) {
+        if (t.type === 'monster' || t.type === 'dyp') {
+          drawPartners();
+          // re-fetch after draw
+        }
+        if (!t.teams || t.teams.length < 2) {
+          toast('Draw partners first', 'error');
+          return;
+        }
+      }
+
+      // For Monster DYP: always redraw partners for the new round
+      if (t.type === 'monster') {
+        drawPartners();
+      }
+
+      const entities = getMatchEntities(t); // either players or teams
+      if (entities.length < 2) {
+        toast('Not enough teams/players', 'error');
+        return;
+      }
+
+      // Simple Swiss-inspired pairing: sort by current points, pair adjacent
+      const standings = computeStandings(t);
+      const ranked = entities.slice().sort((a, b) => {
+        const sa = standings.find(s => s.id === a.id) || { pts: 0, gd: 0 };
+        const sb = standings.find(s => s.id === b.id) || { pts: 0, gd: 0 };
+        if (sb.pts !== sa.pts) return sb.pts - sa.pts;
+        return sb.gd - sa.gd;
+      });
+
+      // Pair 1vs2, 3vs4 ... with some randomness for first round
+      if (t.currentRound === 0) shuffle(ranked);
+
+      const matches = [];
+      const used = new Set();
+      for (let i = 0; i < ranked.length - 1; i++) {
+        if (used.has(ranked[i].id)) continue;
+        // find next available opponent
+        let opponent = null;
+        for (let j = i + 1; j < ranked.length; j++) {
+          if (!used.has(ranked[j].id)) {
+            opponent = ranked[j];
+            break;
+          }
+        }
+        if (!opponent) break;
+        used.add(ranked[i].id);
+        used.add(opponent.id);
+
+        const tableNum = (matches.length % t.tables) + 1;
+        matches.push({
+          id: uid(),
+          entityA: ranked[i],
+          entityB: opponent,
+          scoreA: null,
+          scoreB: null,
+          table: tableNum,
+          status: 'pending' // pending | done
+        });
+      }
+
+      t.currentRound += 1;
+      t.rounds.push({
+        number: t.currentRound,
+        matches
+      });
+      t.status = 'active';
+      saveState();
+      state.currentTab = 'matches';
+      renderTournament();
+      toast(`Round ${t.currentRound} generated – ${matches.length} matches`, 'success');
+    }
+
+    function getMatchEntities(t) {
+      if (t.type === 'singles') {
+        return t.playerIds.map(id => {
+          const p = state.players.find(x => x.id === id);
+          return p ? { id: p.id, name: p.name, type: 'player' } : null;
+        }).filter(Boolean);
+      }
+      // doubles / dyp / monster → teams
+      return (t.teams || []).map(team => ({
+        id: team.id,
+        name: team.name || team.playerIds.map(pid => {
+          const p = state.players.find(x => x.id === pid);
+          return p ? p.name : '?';
+        }).join(' + '),
+        type: 'team',
+        playerIds: team.playerIds
+      }));
+    }
+
+    // ==================== MATCHES & SCORES ====================
+    function renderMatches(t) {
+      const container = document.getElementById('matches-list');
+      const noMatches = document.getElementById('no-matches');
+      document.getElementById('current-round-label').textContent = t.currentRound;
+
+      if (!t.rounds || t.rounds.length === 0) {
+        container.innerHTML = '';
+        noMatches.classList.remove('hidden');
+        return;
+      }
+      noMatches.classList.add('hidden');
+
+      // Show latest round first, then previous
+      const roundsHtml = t.rounds.slice().reverse().map(round => {
+        const matchesHtml = round.matches.map(m => {
+          const done = m.status === 'done';
+          const scoreText = done ? `${m.scoreA} – ${m.scoreB}` : 'vs';
+          const winnerA = done && m.scoreA > m.scoreB;
+          const winnerB = done && m.scoreB > m.scoreA;
+          return `
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 ${done ? 'opacity-80' : ''}">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs text-gray-500">Table ${m.table}</span>
+                <span class="text-xs ${done ? 'text-foos-400' : 'text-amber-400'}">${done ? 'Finished' : 'Pending'}</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex-1 text-right ${winnerA ? 'text-foos-400 font-semibold' : ''}">${escapeHtml(m.entityA.name)}</div>
+                <div class="px-3 py-1 bg-gray-800 rounded-lg font-mono text-lg min-w-[70px] text-center">${scoreText}</div>
+                <div class="flex-1 ${winnerB ? 'text-foos-400 font-semibold' : ''}">${escapeHtml(m.entityB.name)}</div>
+              </div>
+              ${!done ? `
+                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-2 bg-foos-700/40 hover:bg-foos-600/50 rounded-lg text-sm font-medium transition">
+                  Enter Score
+                </button>
+              ` : `
+                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-1.5 text-xs text-gray-500 hover:text-gray-300">Edit score</button>
+              `}
+            </div>
+          `;
+        }).join('');
+        return `
+          <div class="space-y-3">
+            <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Round ${round.number}</h4>
+            ${matchesHtml}
+          </div>
+        `;
+      }).join('<div class="border-t border-gray-800 my-4"></div>');
+
+      container.innerHTML = roundsHtml;
+    }
+
+    function openScoreModal(roundNum, matchId) {
+      const t = getCurrentTournament();
+      const round = t.rounds.find(r => r.number === parseInt(roundNum, 10));
+      const match = round?.matches.find(m => m.id === matchId);
+      if (!match) return;
+
+      state.scoreMatchId = { roundNum: parseInt(roundNum, 10), matchId };
+      document.getElementById('score-team-a').textContent = match.entityA.name;
+      document.getElementById('score-team-b').textContent = match.entityB.name;
+      document.getElementById('score-a').value = match.scoreA ?? 0;
+      document.getElementById('score-b').value = match.scoreB ?? 0;
+      document.getElementById('score-modal').classList.remove('hidden');
+      document.getElementById('score-a').focus();
+    }
+
+    function closeScoreModal() {
+      document.getElementById('score-modal').classList.add('hidden');
+      state.scoreMatchId = null;
+    }
+
+    function setScore(a, b) {
+      document.getElementById('score-a').value = a;
+      document.getElementById('score-b').value = b;
+    }
+
+    function submitScore() {
+      const t = getCurrentTournament();
+      if (!state.scoreMatchId) return;
+      const { roundNum, matchId } = state.scoreMatchId;
+      const round = t.rounds.find(r => r.number === roundNum);
+      const match = round?.matches.find(m => m.id === matchId);
+      if (!match) return;
+
+      const scoreA = parseInt(document.getElementById('score-a').value, 10);
+      const scoreB = parseInt(document.getElementById('score-b').value, 10);
+      if (isNaN(scoreA) || isNaN(scoreB) || scoreA < 0 || scoreB < 0) {
+        toast('Invalid scores', 'error');
+        return;
+      }
+      if (scoreA === scoreB) {
+        toast('Foosball matches cannot end in a draw (or adjust rules)', 'error');
+        return;
+      }
+
+      match.scoreA = scoreA;
+      match.scoreB = scoreB;
+      match.status = 'done';
+      saveState();
+      closeScoreModal();
+      renderTournament();
+      toast('Score saved', 'success');
+    }
+
+    // ==================== STANDINGS ====================
+    function computeStandings(t) {
+      const entities = getMatchEntities(t);
+      const map = {};
+      entities.forEach(e => {
+        map[e.id] = {
+          id: e.id,
+          name: e.name,
+          played: 0,
+          wins: 0,
+          losses: 0,
+          gf: 0,
+          ga: 0,
+          gd: 0,
+          pts: 0
+        };
+      });
+
+      // For Monster DYP we also want individual player stats
+      // but primary ranking is still by the entity that played (team for that round)
+      // For simplicity we accumulate on the entity that was used in the match.
+      // For true individual Monster ranking we would attribute the result to both players.
+      // Let's do individual for monster & singles, team for fixed doubles/dyp.
+
+      if (t.type === 'monster' || t.type === 'singles') {
+        // Individual ranking: each player gets the result of the team they were on
+        const playerMap = {};
+        t.playerIds.forEach(pid => {
+          const p = state.players.find(x => x.id === pid);
+          if (p) playerMap[pid] = { id: pid, name: p.name, played: 0, wins: 0, losses: 0, gf: 0, ga: 0, gd: 0, pts: 0 };
+        });
+
+        t.rounds.forEach(round => {
+          round.matches.forEach(m => {
+            if (m.status !== 'done') return;
+            const aPlayers = m.entityA.playerIds || [m.entityA.id];
+            const bPlayers = m.entityB.playerIds || [m.entityB.id];
+            const aWin = m.scoreA > m.scoreB;
+
+            aPlayers.forEach(pid => {
+              if (!playerMap[pid]) return;
+              playerMap[pid].played++;
+              playerMap[pid].gf += m.scoreA;
+              playerMap[pid].ga += m.scoreB;
+              if (aWin) { playerMap[pid].wins++; playerMap[pid].pts += 2; }
+              else { playerMap[pid].losses++; }
+            });
+            bPlayers.forEach(pid => {
+              if (!playerMap[pid]) return;
+              playerMap[pid].played++;
+              playerMap[pid].gf += m.scoreB;
+              playerMap[pid].ga += m.scoreA;
+              if (!aWin) { playerMap[pid].wins++; playerMap[pid].pts += 2; }
+              else { playerMap[pid].losses++; }
+            });
+          });
+        });
+
+        return Object.values(playerMap).map(s => {
+          s.gd = s.gf - s.ga;
+          return s;
+        }).sort((a, b) => {
+          if (b.pts !== a.pts) return b.pts - a.pts;
+          if (b.gd !== a.gd) return b.gd - a.gd;
+          if (b.gf !== a.gf) return b.gf - a.gf;
+          return a.name.localeCompare(b.name);
+        });
+      }
+
+      // Team ranking for doubles / fixed DYP
+      t.rounds.forEach(round => {
+        round.matches.forEach(m => {
+          if (m.status !== 'done') return;
+          const a = map[m.entityA.id];
+          const b = map[m.entityB.id];
+          if (!a || !b) return;
+          a.played++; b.played++;
+          a.gf += m.scoreA; a.ga += m.scoreB;
+          b.gf += m.scoreB; b.ga += m.scoreA;
+          if (m.scoreA > m.scoreB) {
+            a.wins++; a.pts += 2;
+            b.losses++;
+          } else {
+            b.wins++; b.pts += 2;
+            a.losses++;
+          }
+        });
+      });
+
+      return Object.values(map).map(s => {
+        s.gd = s.gf - s.ga;
+        return s;
+      }).sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.gd !== a.gd) return b.gd - a.gd;
+        if (b.gf !== a.gf) return b.gf - a.gf;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function renderStandings(t) {
+      const body = document.getElementById('standings-body');
+      const standings = computeStandings(t);
+      if (standings.length === 0) {
+        body.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No results yet</td></tr>';
+        return;
+      }
+      body.innerHTML = standings.map((s, i) => `
+        <tr class="border-t border-gray-800 table-row">
+          <td class="px-3 py-2.5 text-gray-500">${i + 1}</td>
+          <td class="px-3 py-2.5 font-medium">${escapeHtml(s.name)}</td>
+          <td class="px-2 py-2.5 text-center">${s.played}</td>
+          <td class="px-2 py-2.5 text-center text-foos-400">${s.wins}</td>
+          <td class="px-2 py-2.5 text-center text-red-400">${s.losses}</td>
+          <td class="px-2 py-2.5 text-center">${s.gd > 0 ? '+' : ''}${s.gd}</td>
+          <td class="px-2 py-2.5 text-center font-bold">${s.pts}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ==================== PLAYOFFS / BRACKET ====================
+    function startPlayoffs() {
+      const t = getCurrentTournament();
+      const standings = computeStandings(t);
+      if (standings.length < 2) {
+        toast('Need results first', 'error');
+        return;
+      }
+      let n = 8;
+      if (standings.length < 8) n = 4;
+      if (standings.length < 4) n = 2;
+      const qualified = standings.slice(0, n);
+
+      // Simple single-elim bracket
+      const bracket = {
+        size: n,
+        rounds: []
+      };
+
+      // Seed: 1vs n, 2vs n-1 ...
+      let current = qualified.map((s, i) => ({
+        seed: i + 1,
+        entity: { id: s.id, name: s.name },
+        score: null
+      }));
+
+      // Pad to power of 2
+      while (current.length < n) {
+        current.push({ seed: current.length + 1, entity: null, score: null }); // bye
+      }
+
+      let roundNum = 1;
+      while (current.length >= 2) {
+        const matches = [];
+        for (let i = 0; i < current.length; i += 2) {
+          matches.push({
+            id: uid(),
+            a: current[i],
+            b: current[i + 1] || { entity: null },
+            winner: null,
+            scoreA: null,
+            scoreB: null
+          });
+        }
+        bracket.rounds.push({ number: roundNum, matches });
+        // next round placeholders
+        current = matches.map(m => ({ seed: 0, entity: null, score: null, fromMatch: m.id }));
+        roundNum++;
+        if (matches.length === 1) break;
+      }
+
+      t.playoffs = bracket;
+      saveState();
+      state.currentTab = 'bracket';
+      renderTournament();
+      toast(`Playoffs started with top ${n}`, 'success');
+    }
+
+    function renderBracket(t) {
+      const container = document.getElementById('bracket-container');
+      if (!t.playoffs) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8">Generate ranking rounds first, then start playoffs.</p>';
+        return;
+      }
+      const b = t.playoffs;
+      let html = '<div class="flex gap-6 min-w-max">';
+      b.rounds.forEach((round, ri) => {
+        html += `<div class="flex flex-col justify-around gap-4 min-w-[200px]">
+          <div class="text-xs text-gray-500 font-semibold uppercase text-center mb-2">Round ${round.number}${ri === b.rounds.length-1 ? ' (Final)' : ''}</div>`;
+        round.matches.forEach(m => {
+          const nameA = m.a?.entity?.name || (m.a?.entity === null ? 'BYE' : 'TBD');
+          const nameB = m.b?.entity?.name || (m.b?.entity === null ? 'BYE' : 'TBD');
+          const score = (m.scoreA != null) ? `${m.scoreA}–${m.scoreB}` : '';
+          html += `
+            <div class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm">
+              <div class="flex justify-between items-center py-1 ${m.winner === 'a' ? 'text-foos-400 font-semibold' : ''}">
+                <span>${escapeHtml(nameA)}</span>
+              </div>
+              <div class="border-t border-gray-700 my-1"></div>
+              <div class="flex justify-between items-center py-1 ${m.winner === 'b' ? 'text-foos-400 font-semibold' : ''}">
+                <span>${escapeHtml(nameB)}</span>
+              </div>
+              ${score ? `<div class="text-center text-xs text-gray-500 mt-1">${score}</div>` : ''}
+              ${!m.winner && m.a?.entity && m.b?.entity ? `
+                <button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-1 text-xs bg-foos-800/40 hover:bg-foos-700/50 rounded">Enter Score</button>
+              ` : ''}
+            </div>
+          `;
+        });
+        html += '</div>';
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function openPlayoffScore(matchId) {
+      // Simplified: reuse score modal logic or prompt
+      const t = getCurrentTournament();
+      let match = null;
+      for (const r of t.playoffs.rounds) {
+        match = r.matches.find(m => m.id === matchId);
+        if (match) break;
+      }
+      if (!match || !match.a?.entity || !match.b?.entity) return;
+
+      const scoreA = prompt(`Score for ${match.a.entity.name}:`, '7');
+      const scoreB = prompt(`Score for ${match.b.entity.name}:`, '0');
+      if (scoreA === null || scoreB === null) return;
+      const a = parseInt(scoreA, 10);
+      const b = parseInt(scoreB, 10);
+      if (isNaN(a) || isNaN(b) || a === b) {
+        toast('Invalid or draw score', 'error');
+        return;
+      }
+      match.scoreA = a;
+      match.scoreB = b;
+      match.winner = a > b ? 'a' : 'b';
+
+      // Advance winner
+      const winnerEntity = match.winner === 'a' ? match.a.entity : match.b.entity;
+      // Find next match that references this
+      for (const r of t.playoffs.rounds) {
+        for (const m of r.matches) {
+          if (m.a?.fromMatch === matchId) {
+            m.a.entity = winnerEntity;
+          }
+          if (m.b?.fromMatch === matchId) {
+            m.b.entity = winnerEntity;
+          }
+        }
+      }
+      saveState();
+      renderTournament();
+      toast('Playoff result saved', 'success');
+    }
+
+    // ==================== EXPORT ====================
+    function exportStandings() {
+      const t = getCurrentTournament();
+      const standings = computeStandings(t);
+      let csv = 'Rank,Name,Played,Wins,Losses,GD,Points\n';
+      standings.forEach((s, i) => {
+        csv += `${i+1},"${s.name}",${s.played},${s.wins},${s.losses},${s.gd},${s.pts}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${t.name.replace(/\s+/g, '_')}_standings.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Standings exported', 'success');
+    }
+
+    // ==================== WEEK-OVER-WEEK STATS ====================
+    function getISOWeekKey(date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      // Thursday in current week decides the year
+      d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+      const week1 = new Date(d.getFullYear(), 0, 4);
+      const weekNo = 1 + Math.round(((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+      return `${d.getFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+    }
+
+    function weekKeyLabel(key) {
+      // key = YYYY-Www
+      const [y, w] = key.split('-W');
+      return `${y} Week ${parseInt(w, 10)}`;
+    }
+
+    function emptyPlayerStat() {
+      return { played: 0, wins: 0, losses: 0, gf: 0, ga: 0, gd: 0, pts: 0, events: new Set() };
+    }
+
+    /**
+     * Aggregate every completed match into per-player per-week and career stats.
+     * Returns { byWeek: { weekKey: { playerId: stats } }, career: { playerId: stats }, weeks: sortedKeys }
+     */
+    function computeAllPlayerStats() {
+      const byWeek = {};
+      const career = {};
+
+      state.players.forEach(p => {
+        career[p.id] = emptyPlayerStat();
+      });
+
+      state.tournaments.forEach(t => {
+        const weekKey = getISOWeekKey(t.createdAt || Date.now());
+        if (!byWeek[weekKey]) byWeek[weekKey] = {};
+
+        (t.rounds || []).forEach(round => {
+          (round.matches || []).forEach(m => {
+            if (m.status !== 'done' || m.scoreA == null || m.scoreB == null) return;
+
+            // Resolve player IDs on each side
+            let aIds = [];
+            let bIds = [];
+            if (m.entityA) {
+              aIds = m.entityA.playerIds || (m.entityA.type === 'player' ? [m.entityA.id] : []);
+              // fallback: if entity is a player id string from older data
+              if (!aIds.length && m.entityA.id && !m.entityA.playerIds) aIds = [m.entityA.id];
+            }
+            if (m.entityB) {
+              bIds = m.entityB.playerIds || (m.entityB.type === 'player' ? [m.entityB.id] : []);
+              if (!bIds.length && m.entityB.id && !m.entityB.playerIds) bIds = [m.entityB.id];
+            }
+
+            const aWin = m.scoreA > m.scoreB;
+
+            const apply = (ids, gf, ga, win) => {
+              ids.forEach(pid => {
+                if (!career[pid]) career[pid] = emptyPlayerStat();
+                if (!byWeek[weekKey][pid]) byWeek[weekKey][pid] = emptyPlayerStat();
+
+                [career[pid], byWeek[weekKey][pid]].forEach(s => {
+                  s.played++;
+                  s.gf += gf;
+                  s.ga += ga;
+                  s.gd = s.gf - s.ga;
+                  if (win) { s.wins++; s.pts += 2; }
+                  else { s.losses++; }
+                  s.events.add(t.id);
+                });
+              });
+            };
+
+            apply(aIds, m.scoreA, m.scoreB, aWin);
+            apply(bIds, m.scoreB, m.scoreA, !aWin);
+          });
+        });
+      });
+
+      // Convert Sets to counts for easier use
+      Object.values(career).forEach(s => { s.eventCount = s.events.size; delete s.events; });
+      Object.values(byWeek).forEach(weekMap => {
+        Object.values(weekMap).forEach(s => { s.eventCount = s.events.size; delete s.events; });
+      });
+
+      const weeks = Object.keys(byWeek).sort().reverse(); // newest first
+      return { byWeek, career, weeks };
+    }
+
+    function winRate(s) {
+      if (!s || s.played === 0) return 0;
+      return Math.round((s.wins / s.played) * 1000) / 10; // one decimal
+    }
+
+    function deltaBadge(delta, suffix = '') {
+      if (delta === 0 || delta == null) return `<span class="text-gray-500">–</span>`;
+      const pos = delta > 0;
+      const cls = pos ? 'text-foos-400' : 'text-red-400';
+      const sign = pos ? '+' : '';
+      return `<span class="${cls} font-medium">${sign}${delta}${suffix}</span>`;
+    }
+
+    function renderStats() {
+      const { byWeek, career, weeks } = computeAllPlayerStats();
+      const select = document.getElementById('stats-week-select');
+      const prevValue = select.value;
+
+      // Populate week selector
+      if (weeks.length === 0) {
+        select.innerHTML = '<option value="">No data yet</option>';
+      } else {
+        select.innerHTML = weeks.map(w => `<option value="${w}">${weekKeyLabel(w)}</option>`).join('');
+        if (prevValue && weeks.includes(prevValue)) select.value = prevValue;
+      }
+
+      const selectedWeek = select.value || weeks[0];
+      document.getElementById('stats-week-label').textContent = selectedWeek ? weekKeyLabel(selectedWeek) : '';
+
+      // Find previous week that has data
+      const selectedIdx = weeks.indexOf(selectedWeek);
+      const prevWeek = selectedIdx >= 0 && selectedIdx < weeks.length - 1 ? weeks[selectedIdx + 1] : null;
+
+      const thisWeekMap = byWeek[selectedWeek] || {};
+      const prevWeekMap = prevWeek ? (byWeek[prevWeek] || {}) : {};
+
+      // Summary cards
+      const allThis = Object.values(thisWeekMap);
+      const totalMatches = Math.round(allThis.reduce((s, p) => s + p.played, 0) / 2); // each match counted twice
+      const totalPlayers = allThis.length;
+      const avgWR = totalPlayers ? Math.round(allThis.reduce((s, p) => s + winRate(p), 0) / totalPlayers) : 0;
+      let topName = '–';
+      let topPts = -1;
+      Object.entries(thisWeekMap).forEach(([pid, s]) => {
+        if (s.pts > topPts) {
+          topPts = s.pts;
+          const pl = state.players.find(p => p.id === pid);
+          topName = pl ? pl.name : '–';
+        }
+      });
+
+      document.getElementById('stats-summary-cards').innerHTML = `
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+          <div class="text-2xl font-bold text-foos-400">${totalPlayers}</div>
+          <div class="text-xs text-gray-500 mt-1">Active Players</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+          <div class="text-2xl font-bold">${totalMatches}</div>
+          <div class="text-xs text-gray-500 mt-1">Matches</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+          <div class="text-2xl font-bold">${avgWR}%</div>
+          <div class="text-xs text-gray-500 mt-1">Avg Win Rate</div>
+        </div>
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
+          <div class="text-lg font-bold truncate">${escapeHtml(topName)}</div>
+          <div class="text-xs text-gray-500 mt-1">Top (pts)</div>
+        </div>
+      `;
+
+      // WoW table – all players who appeared this week or last week
+      const playerIds = new Set([...Object.keys(thisWeekMap), ...Object.keys(prevWeekMap)]);
+      const rows = [...playerIds].map(pid => {
+        const p = state.players.find(x => x.id === pid);
+        const name = p ? p.name : 'Unknown';
+        const cur = thisWeekMap[pid] || emptyPlayerStat();
+        const prev = prevWeekMap[pid] || emptyPlayerStat();
+        const dPts = (cur.pts || 0) - (prev.pts || 0);
+        const dWR = Math.round((winRate(cur) - winRate(prev)) * 10) / 10;
+        return { pid, name, cur, prev, dPts, dWR };
+      }).sort((a, b) => b.cur.pts - a.cur.pts || b.dPts - a.dPts);
+
+      const body = document.getElementById('stats-wow-body');
+      if (rows.length === 0) {
+        body.innerHTML = `<tr><td colspan="10" class="px-4 py-10 text-center text-gray-500">No match data for this week yet. Play some tournaments!</td></tr>`;
+      } else {
+        body.innerHTML = rows.map(r => `
+          <tr class="border-t border-gray-800 table-row">
+            <td class="px-3 py-2.5 font-medium sticky left-0 bg-gray-900/95">${escapeHtml(r.name)}</td>
+            <td class="px-2 py-2.5 text-center">${r.cur.played || '–'}</td>
+            <td class="px-2 py-2.5 text-center text-foos-400">${r.cur.wins || '–'}</td>
+            <td class="px-2 py-2.5 text-center">${r.cur.played ? winRate(r.cur) + '%' : '–'}</td>
+            <td class="px-2 py-2.5 text-center font-semibold">${r.cur.pts || '–'}</td>
+            <td class="px-2 py-2.5 text-center">${r.cur.played ? (r.cur.gd > 0 ? '+' : '') + r.cur.gd : '–'}</td>
+            <td class="px-2 py-2.5 text-center">${deltaBadge(r.dPts)}</td>
+            <td class="px-2 py-2.5 text-center">${deltaBadge(r.dWR, '%')}</td>
+            <td class="px-2 py-2.5 text-center text-gray-500 hidden sm:table-cell">${r.prev.pts || '–'}</td>
+            <td class="px-2 py-2.5 text-center text-gray-400 hidden md:table-cell">${career[r.pid]?.pts ?? 0}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Career leaderboard
+      const careerRows = state.players.map(p => {
+        const s = career[p.id] || emptyPlayerStat();
+        return { name: p.name, ...s, wr: winRate(s) };
+      }).filter(r => r.played > 0)
+        .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.wr - a.wr);
+
+      const careerBody = document.getElementById('stats-career-body');
+      if (careerRows.length === 0) {
+        careerBody.innerHTML = `<tr><td colspan="9" class="px-4 py-10 text-center text-gray-500">No career data yet</td></tr>`;
+      } else {
+        careerBody.innerHTML = careerRows.map((r, i) => `
+          <tr class="border-t border-gray-800 table-row">
+            <td class="px-3 py-2.5 text-gray-500">${i + 1}</td>
+            <td class="px-3 py-2.5 font-medium">${escapeHtml(r.name)}</td>
+            <td class="px-2 py-2.5 text-center">${r.eventCount || 0}</td>
+            <td class="px-2 py-2.5 text-center">${r.played}</td>
+            <td class="px-2 py-2.5 text-center text-foos-400">${r.wins}</td>
+            <td class="px-2 py-2.5 text-center text-red-400">${r.losses}</td>
+            <td class="px-2 py-2.5 text-center">${r.wr}%</td>
+            <td class="px-2 py-2.5 text-center">${r.gd > 0 ? '+' : ''}${r.gd}</td>
+            <td class="px-2 py-2.5 text-center font-bold">${r.pts}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // ==================== UTIL & NAV ====================
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function showView(name) {
+      ['home', 'players', 'create', 'tournament', 'stats'].forEach(v => {
+        const el = document.getElementById('view-' + v);
+        if (el) el.classList.toggle('hidden', v !== name);
+      });
+      if (name === 'home') renderHome();
+      if (name === 'players') renderPlayers();
+      if (name === 'tournament') renderTournament();
+      if (name === 'stats') renderStats();
+    }
+
+    // ==================== INIT ====================
+    loadState();
+    showView('home');
+    renderPlayers();
+
+    // Keyboard: Enter in player modal
+    document.getElementById('player-name')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') savePlayer();
+    });
+  </script>
+</body>
+</html>
