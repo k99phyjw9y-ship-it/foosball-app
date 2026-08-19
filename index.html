@@ -1274,16 +1274,73 @@
       return match;
     }
 
+    /** True permanent bye: no player and no feeder from another match */
+    function isPermanentBye(side) {
+      return !side?.entity && !side?.fromMatch;
+    }
+
+    /** Pending slot: waiting for a previous match result */
+    function isPendingFeed(side) {
+      return !side?.entity && !!side?.fromMatch;
+    }
+
+    /**
+     * Only auto-resolve when a side is a real BYE (not "TBD from earlier match").
+     * Pending feeds must wait for scores — never treat them as byes.
+     */
     function resolveBye(match) {
+      if (!match || match.winner) return;
       const aE = match.a?.entity;
       const bE = match.b?.entity;
-      if (aE && !bE) {
+      const aBye = isPermanentBye(match.a);
+      const bBye = isPermanentBye(match.b);
+
+      // Still waiting on a previous result — do not decide a winner
+      if (isPendingFeed(match.a) || isPendingFeed(match.b)) return;
+
+      if (aE && bBye) {
         match.winner = 'a'; match.loser = 'b'; match.scoreA = 0; match.scoreB = 0;
-      } else if (!aE && bE) {
+      } else if (bE && aBye) {
         match.winner = 'b'; match.loser = 'a'; match.scoreA = 0; match.scoreB = 0;
-      } else if (!aE && !bE) {
-        match.winner = 'a'; match.loser = 'b';
+      } else if (aBye && bBye) {
+        match.winner = 'a'; match.loser = 'b'; match.scoreA = 0; match.scoreB = 0;
       }
+      // Both have entities → real match, wait for score entry
+    }
+
+    /** Fix brackets saved with the old bug (TBD treated as bye). */
+    function sanitizeBracketMatches(b) {
+      if (!b) return;
+      const fix = (m) => {
+        if (!m || !m.winner) return;
+        const aE = m.a?.entity;
+        const bE = m.b?.entity;
+        // Auto 0–0 “bye” win but opponent was actually a pending feed or real player still missing
+        const bogus =
+          (m.scoreA === 0 && m.scoreB === 0) &&
+          (
+            isPendingFeed(m.a) || isPendingFeed(m.b) ||
+            (aE && !bE && m.b?.fromMatch) ||
+            (bE && !aE && m.a?.fromMatch) ||
+            (!aE && !bE && (m.a?.fromMatch || m.b?.fromMatch))
+          );
+        // Winner set but one side still TBD from a feeder
+        const incomplete =
+          m.winner && ((m.winner === 'a' && !aE) || (m.winner === 'b' && !bE) ||
+            (aE && !bE && isPendingFeed(m.b)) || (bE && !aE && isPendingFeed(m.a)));
+        if (bogus || incomplete) {
+          m.winner = null;
+          m.loser = null;
+          m.scoreA = null;
+          m.scoreB = null;
+        }
+      };
+      const walk = (rounds) => (rounds || []).forEach(r => (r.matches || []).forEach(fix));
+      walk(b.winnersRounds || b.rounds);
+      walk(b.losersRounds);
+      fix(b.bronze);
+      fix(b.grandFinal);
+      fix(b.grandFinal2);
     }
 
     function winnerSideFromMatch(m) {
@@ -1855,10 +1912,13 @@
 
     function propagateBracketResult(t, matchId, winnerEntity, loserEntity) {
       const b = t.playoffs;
+      const touched = [];
       const applyToMatch = (m) => {
         if (!m) return;
-        if (m.a?.fromMatch === matchId) feedEntity(m.a, winnerEntity, loserEntity);
-        if (m.b?.fromMatch === matchId) feedEntity(m.b, winnerEntity, loserEntity);
+        let hit = false;
+        if (m.a?.fromMatch === matchId) { feedEntity(m.a, winnerEntity, loserEntity); hit = true; }
+        if (m.b?.fromMatch === matchId) { feedEntity(m.b, winnerEntity, loserEntity); hit = true; }
+        if (hit) touched.push(m);
       };
 
       for (const r of allBracketRoundLists(b)) {
@@ -1868,16 +1928,26 @@
       applyToMatch(b.grandFinal);
       applyToMatch(b.grandFinal2);
 
+      // Only auto-advance true byes (never pending TBD slots)
+      touched.forEach(m => {
+        if (!m.winner) resolveBye(m);
+        // If this match just auto-resolved via a real bye, propagate further
+        if (m.winner && m.scoreA === 0 && m.scoreB === 0) {
+          const w = m.winner === 'a' ? m.a.entity : m.b.entity;
+          const l = m.winner === 'a' ? m.b.entity : m.a.entity;
+          if (w) propagateBracketResult(t, m.id, w, l);
+        }
+      });
+
       // Double-elim: if first GF won by LB side (usually side b), activate reset
       if (b.type === 'double-elim' && b.grandFinal && matchId === b.grandFinal.id) {
         const gf = b.grandFinal;
-        // Side a is WB champ, side b is LB champ by construction
         if (gf.winner === 'b') {
           b.gfResetRequired = true;
           b.gfResetActive = true;
           if (b.grandFinal2) {
-            b.grandFinal2.a.entity = winnerEntity; // LB champ
-            b.grandFinal2.b.entity = loserEntity;  // WB champ
+            b.grandFinal2.a.entity = winnerEntity;
+            b.grandFinal2.b.entity = loserEntity;
           }
         } else {
           b.gfResetRequired = false;
@@ -1934,6 +2004,7 @@
       const actions = document.getElementById('bracket-actions');
       const isElim = t.format === 'single-elim' || t.format === 'double-elim';
       const b = t.playoffs;
+      if (b) sanitizeBracketMatches(b);
       const isDE = b?.type === 'double-elim' || t.format === 'double-elim';
 
       if (actions) {
