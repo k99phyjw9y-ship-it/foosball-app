@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a0b" />
   <title>FoosManager – Foosball Tournament App</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -11,100 +12,268 @@
       theme: {
         extend: {
           colors: {
+            surface: {
+              DEFAULT: '#0a0a0b',
+              raised: '#121214',
+              overlay: '#1a1a1e',
+              border: '#27272a',
+              muted: '#3f3f46'
+            },
             foos: {
-              50: '#f0fdf4',
-              100: '#dcfce7',
-              200: '#bbf7d0',
-              300: '#86efac',
-              400: '#4ade80',
-              500: '#22c55e',
-              600: '#16a34a',
-              700: '#15803d',
-              800: '#166534',
-              900: '#14532d',
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
             }
+          },
+          fontFamily: {
+            sans: ['"DM Sans"', 'Inter', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            'glow': '0 0 24px -4px rgba(16, 185, 129, 0.25)',
+            'card': '0 1px 0 0 rgba(255,255,255,0.03) inset, 0 8px 24px -8px rgba(0,0,0,0.5)',
           }
         }
       }
     }
   </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-    body { font-family: 'Inter', system-ui, sans-serif; }
-    .table-row:hover { background-color: rgba(34, 197, 94, 0.08); }
-    .bracket-line { border-color: #4ade80; }
+    :root {
+      --bg: #0a0a0b;
+      --raised: #121214;
+      --overlay: #1a1a1e;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.1);
+      --accent: #10b981;
+      --accent-dim: rgba(16, 185, 129, 0.15);
+    }
+    * { -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'DM Sans', Inter, system-ui, sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(16, 185, 129, 0.05), transparent);
+      min-height: 100dvh;
+    }
+    .glass {
+      background: rgba(18, 18, 20, 0.75);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border: 1px solid var(--border);
+    }
+    .glass-strong {
+      background: rgba(26, 26, 30, 0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-strong);
+    }
+    .surface-card {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 0 0 rgba(255,255,255,0.03) inset, 0 4px 16px -4px rgba(0,0,0,0.4);
+    }
+    .btn-primary {
+      background: linear-gradient(180deg, #14b8a6 0%, #059669 100%);
+      box-shadow: 0 1px 0 0 rgba(255,255,255,0.15) inset, 0 4px 12px -2px rgba(16, 185, 129, 0.4);
+      transition: all 0.2s ease;
+    }
+    .btn-primary:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 1px 0 0 rgba(255,255,255,0.2) inset, 0 6px 16px -2px rgba(16, 185, 129, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); filter: brightness(0.95); }
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      transition: all 0.15s ease;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: var(--border-strong);
+    }
+    .nav-item {
+      transition: all 0.2s ease;
+      color: #71717a;
+    }
+    .nav-item.active, .nav-item:hover {
+      color: #34d399;
+    }
+    .nav-item.active {
+      background: var(--accent-dim);
+    }
+    .table-row { transition: background 0.15s ease; }
+    .table-row:hover { background-color: rgba(16, 185, 129, 0.06); }
     .score-input::-webkit-outer-spin-button,
     .score-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .score-input { -moz-appearance: textfield; }
     .toast {
-      animation: slideIn 0.3s ease-out;
+      animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(12px);
     }
-    @keyframes slideIn {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    @keyframes toastIn {
+      from { transform: translateY(12px) scale(0.96); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
     }
-    .card-glow:hover {
-      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3), 0 8px 24px rgba(0,0,0,0.4);
+    .card-interactive {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    .card-interactive:hover {
+      border-color: rgba(16, 185, 129, 0.35);
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.15), 0 12px 32px -8px rgba(0,0,0,0.5);
+      transform: translateY(-2px);
+    }
+    .type-btn {
+      transition: all 0.2s ease;
+    }
+    .type-btn.selected {
+      border-color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.12) !important;
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+    }
+    .tab-btn {
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .tab-btn.active-tab {
+      color: #34d399;
+    }
+    .tab-btn.active-tab::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #10b981, transparent);
+      border-radius: 2px;
+    }
+    .input-field {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      transition: all 0.15s ease;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: rgba(16, 185, 129, 0.5);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+    }
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
   </style>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen">
+<body class="text-zinc-100 antialiased">
   <!-- Toast container -->
-  <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+  <div id="toast-container" class="fixed bottom-24 sm:bottom-6 right-4 z-50 space-y-2 max-w-sm"></div>
 
   <!-- App Root -->
-  <div id="app" class="max-w-6xl mx-auto px-3 sm:px-6 py-4 pb-24">
+  <div id="app" class="max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6 pt-5 pb-28 sm:pb-10">
 
-    <!-- Header -->
-    <header class="flex items-center justify-between mb-6 sticky top-0 bg-gray-950/95 backdrop-blur z-40 py-3 border-b border-gray-800">
+    <!-- Top Header (brand only on mobile, full on desktop) -->
+    <header class="flex items-center justify-between mb-8">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-foos-500 to-foos-700 flex items-center justify-center text-xl font-bold shadow-lg shadow-foos-900/40">⚽</div>
+        <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center shadow-glow">
+          <span class="text-xl">⚽</span>
+          <div class="absolute inset-0 rounded-2xl ring-1 ring-white/20"></div>
+        </div>
         <div>
-          <h1 class="text-xl font-bold tracking-tight">FoosManager</h1>
-          <p class="text-xs text-gray-500">Singles · Doubles · DYP · Monster DYP</p>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">FoosManager</h1>
+          <p class="text-[11px] text-zinc-500 font-medium tracking-wide">Tournament OS</p>
         </div>
       </div>
-      <div class="flex gap-2 flex-wrap justify-end">
-        <button onclick="showView('stats')" class="px-3 py-1.5 text-sm rounded-lg bg-gray-800 hover:bg-gray-700 transition">Stats</button>
-        <button onclick="showView('players')" class="px-3 py-1.5 text-sm rounded-lg bg-gray-800 hover:bg-gray-700 transition">Players</button>
-        <button onclick="showView('home')" class="px-3 py-1.5 text-sm rounded-lg bg-foos-600 hover:bg-foos-500 font-medium transition">Tournaments</button>
-      </div>
+      <!-- Desktop nav -->
+      <nav class="hidden sm:flex items-center gap-1 p-1 rounded-2xl glass">
+        <button onclick="showView('home')" data-nav="home" class="nav-item px-4 py-2 rounded-xl text-sm font-medium">Tournaments</button>
+        <button onclick="showView('players')" data-nav="players" class="nav-item px-4 py-2 rounded-xl text-sm font-medium">Players</button>
+        <button onclick="showView('stats')" data-nav="stats" class="nav-item px-4 py-2 rounded-xl text-sm font-medium">Stats</button>
+      </nav>
     </header>
+
+    <!-- Mobile bottom nav -->
+    <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-white/5 safe-bottom">
+      <div class="flex items-center justify-around px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <button onclick="showView('home')" data-nav="home" class="nav-item flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl min-w-[72px]">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <span class="text-[10px] font-semibold">Events</span>
+        </button>
+        <button onclick="showView('players')" data-nav="players" class="nav-item flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl min-w-[72px]">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <span class="text-[10px] font-semibold">Players</span>
+        </button>
+        <button onclick="showView('stats')" data-nav="stats" class="nav-item flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl min-w-[72px]">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          <span class="text-[10px] font-semibold">Stats</span>
+        </button>
+      </div>
+    </nav>
 
     <!-- HOME / TOURNAMENT LIST -->
     <div id="view-home" class="space-y-6">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold">Tournaments</h2>
-        <button onclick="startCreateTournament()" class="px-4 py-2 bg-foos-600 hover:bg-foos-500 rounded-xl font-semibold shadow-lg shadow-foos-900/30 transition flex items-center gap-2">
-          <span>+</span> New Tournament
+      <div class="flex items-end justify-between gap-4">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Tournaments</h2>
+          <p class="text-sm text-zinc-500 mt-1">Singles · Doubles · DYP · Monster DYP</p>
+        </div>
+        <button onclick="startCreateTournament()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2 shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          New
         </button>
       </div>
 
-      <div id="tournament-list" class="grid gap-4 sm:grid-cols-2">
+      <div id="tournament-list" class="grid gap-3 sm:grid-cols-2">
         <!-- filled by JS -->
       </div>
 
-      <div id="empty-tournaments" class="text-center py-16 text-gray-500 hidden">
-        <div class="text-5xl mb-4">🏆</div>
-        <p class="text-lg">No tournaments yet</p>
-        <p class="text-sm mt-1">Create your first Singles, Doubles or DYP event</p>
+      <div id="empty-tournaments" class="hidden">
+        <div class="surface-card rounded-3xl p-12 text-center">
+          <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-3xl">🏆</div>
+          <p class="text-lg font-semibold text-white">No tournaments yet</p>
+          <p class="text-sm text-zinc-500 mt-2 max-w-xs mx-auto">Create your first Singles, Doubles or DYP event and start tracking matches.</p>
+          <button onclick="startCreateTournament()" class="btn-primary mt-6 px-5 py-2.5 rounded-xl font-semibold text-sm text-white inline-flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Create tournament
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- PLAYERS VIEW -->
     <div id="view-players" class="hidden space-y-6">
-      <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold">Players</h2>
-        <button onclick="openPlayerModal()" class="px-4 py-2 bg-foos-600 hover:bg-foos-500 rounded-xl font-semibold transition">+ Add Player</button>
+      <div class="flex items-end justify-between gap-4">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Players</h2>
+          <p class="text-sm text-zinc-500 mt-1">Your roster for draws and rankings</p>
+        </div>
+        <button onclick="openPlayerModal()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2 shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          Add
+        </button>
       </div>
 
-      <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+      <div class="surface-card rounded-2xl overflow-hidden">
         <table class="w-full text-sm">
-          <thead class="bg-gray-800/80 text-gray-400">
-            <tr>
-              <th class="text-left px-4 py-3">Name</th>
-              <th class="text-left px-4 py-3 hidden sm:table-cell">Skill</th>
-              <th class="text-right px-4 py-3">Actions</th>
+          <thead>
+            <tr class="border-b border-white/5">
+              <th class="text-left px-4 py-3.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Name</th>
+              <th class="text-left px-4 py-3.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden sm:table-cell">Skill</th>
+              <th class="text-right px-4 py-3.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody id="players-table-body"></tbody>
@@ -114,42 +283,38 @@
 
     <!-- STATS / WEEK-OVER-WEEK VIEW -->
     <div id="view-stats" class="hidden space-y-6">
-      <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 class="text-2xl font-bold">Player Stats</h2>
-          <p class="text-sm text-gray-500">Week-over-week performance across all tournaments</p>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Player Stats</h2>
+          <p class="text-sm text-zinc-500 mt-1">Week-over-week performance</p>
         </div>
-        <div class="flex gap-2 items-center">
-          <label class="text-sm text-gray-400">Week of</label>
-          <select id="stats-week-select" onchange="renderStats()" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-foos-500"></select>
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Week</label>
+          <select id="stats-week-select" onchange="renderStats()" class="input-field rounded-xl px-3 py-2 text-sm text-zinc-200"></select>
         </div>
       </div>
 
-      <!-- Summary cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="stats-summary-cards">
-        <!-- filled by JS -->
-      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="stats-summary-cards"></div>
 
-      <!-- WoW table -->
-      <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
-        <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
-          <h3 class="font-semibold text-gray-300">Week-over-Week Comparison</h3>
-          <span class="text-xs text-gray-500" id="stats-week-label"></span>
+      <div class="surface-card rounded-2xl overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-white/5 flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-zinc-200">Week-over-Week</h3>
+          <span class="text-xs text-zinc-500 font-medium" id="stats-week-label"></span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
-            <thead class="bg-gray-800/80 text-gray-400">
-              <tr>
-                <th class="text-left px-3 py-3 sticky left-0 bg-gray-800/90">Player</th>
-                <th class="text-center px-2 py-3" title="This week played">P</th>
-                <th class="text-center px-2 py-3" title="This week wins">W</th>
-                <th class="text-center px-2 py-3" title="This week win rate">WR%</th>
-                <th class="text-center px-2 py-3" title="This week points">Pts</th>
-                <th class="text-center px-2 py-3" title="This week goal difference">GD</th>
-                <th class="text-center px-2 py-3" title="Change vs previous week">Δ Pts</th>
-                <th class="text-center px-2 py-3" title="Change in win rate">Δ WR</th>
-                <th class="text-center px-2 py-3 hidden sm:table-cell" title="Previous week points">Prev Pts</th>
-                <th class="text-center px-2 py-3 hidden md:table-cell" title="All-time points">Career</th>
+            <thead>
+              <tr class="border-b border-white/5">
+                <th class="text-left px-3 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider sticky left-0 bg-[#121214]">Player</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Played">P</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Wins">W</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Win rate">WR%</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Points">Pts</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Goal difference">GD</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Δ Points">Δ Pts</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Δ Win rate">Δ WR</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden sm:table-cell">Prev</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden md:table-cell">Career</th>
               </tr>
             </thead>
             <tbody id="stats-wow-body"></tbody>
@@ -157,24 +322,23 @@
         </div>
       </div>
 
-      <!-- Career leaderboard -->
-      <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
-        <div class="px-4 py-3 border-b border-gray-800">
-          <h3 class="font-semibold text-gray-300">Career Leaderboard</h3>
+      <div class="surface-card rounded-2xl overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-white/5">
+          <h3 class="text-sm font-semibold text-zinc-200">Career Leaderboard</h3>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
-            <thead class="bg-gray-800/80 text-gray-400">
-              <tr>
-                <th class="text-left px-3 py-3">#</th>
-                <th class="text-left px-3 py-3">Player</th>
-                <th class="text-center px-2 py-3">Events</th>
-                <th class="text-center px-2 py-3">P</th>
-                <th class="text-center px-2 py-3">W</th>
-                <th class="text-center px-2 py-3">L</th>
-                <th class="text-center px-2 py-3">WR%</th>
-                <th class="text-center px-2 py-3">GD</th>
-                <th class="text-center px-2 py-3">Pts</th>
+            <thead>
+              <tr class="border-b border-white/5">
+                <th class="text-left px-3 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">#</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Player</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Events</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">P</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">W</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">L</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">WR%</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">GD</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Pts</th>
               </tr>
             </thead>
             <tbody id="stats-career-body"></tbody>
@@ -182,55 +346,56 @@
         </div>
       </div>
 
-      <p class="text-xs text-gray-500">
-        Weeks are ISO weeks (Mon–Sun). Stats are aggregated from every completed match in tournaments that started in that week.
-        Δ columns compare the selected week against the immediately previous week that had activity.
+      <p class="text-xs text-zinc-600 leading-relaxed">
+        ISO weeks (Mon–Sun). Stats aggregate completed matches from tournaments that started in that week. Δ compares against the previous active week.
       </p>
     </div>
 
     <!-- CREATE / EDIT TOURNAMENT -->
     <div id="view-create" class="hidden space-y-6">
       <div class="flex items-center gap-3">
-        <button onclick="showView('home')" class="text-gray-400 hover:text-white">← Back</button>
-        <h2 class="text-2xl font-bold" id="create-title">New Tournament</h2>
+        <button onclick="showView('home')" class="btn-ghost w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <h2 class="text-2xl font-bold tracking-tight text-white" id="create-title">New Tournament</h2>
       </div>
 
-      <div class="bg-gray-900 rounded-2xl border border-gray-800 p-5 space-y-5">
+      <div class="surface-card rounded-2xl p-5 sm:p-6 space-y-6">
         <div>
-          <label class="block text-sm text-gray-400 mb-1">Tournament Name</label>
-          <input id="t-name" type="text" placeholder="Friday Night Monster DYP" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500" />
+          <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Tournament Name</label>
+          <input id="t-name" type="text" placeholder="Friday Night Monster DYP" class="input-field w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600" />
         </div>
 
         <div>
-          <label class="block text-sm text-gray-400 mb-2">Event Type</label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="type-selector">
-            <button data-type="singles" onclick="selectType(this)" class="type-btn p-4 rounded-xl border-2 border-gray-700 bg-gray-800 hover:border-foos-500 transition text-center">
-              <div class="text-2xl mb-1">👤</div>
-              <div class="font-semibold">Singles</div>
-              <div class="text-xs text-gray-500 mt-1">1v1</div>
+          <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Event Type</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="type-selector">
+            <button data-type="singles" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-white/10 bg-black/20 hover:border-emerald-500/40 text-center">
+              <div class="text-2xl mb-1.5">👤</div>
+              <div class="font-semibold text-sm text-white">Singles</div>
+              <div class="text-[11px] text-zinc-500 mt-0.5">1v1</div>
             </button>
-            <button data-type="doubles" onclick="selectType(this)" class="type-btn p-4 rounded-xl border-2 border-gray-700 bg-gray-800 hover:border-foos-500 transition text-center">
-              <div class="text-2xl mb-1">👥</div>
-              <div class="font-semibold">Doubles</div>
-              <div class="text-xs text-gray-500 mt-1">BYP – fixed pairs</div>
+            <button data-type="doubles" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-white/10 bg-black/20 hover:border-emerald-500/40 text-center">
+              <div class="text-2xl mb-1.5">👥</div>
+              <div class="font-semibold text-sm text-white">Doubles</div>
+              <div class="text-[11px] text-zinc-500 mt-0.5">BYP fixed</div>
             </button>
-            <button data-type="dyp" onclick="selectType(this)" class="type-btn p-4 rounded-xl border-2 border-gray-700 bg-gray-800 hover:border-foos-500 transition text-center">
-              <div class="text-2xl mb-1">🎲</div>
-              <div class="font-semibold">DYP</div>
-              <div class="text-xs text-gray-500 mt-1">Draw once</div>
+            <button data-type="dyp" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-white/10 bg-black/20 hover:border-emerald-500/40 text-center">
+              <div class="text-2xl mb-1.5">🎲</div>
+              <div class="font-semibold text-sm text-white">DYP</div>
+              <div class="text-[11px] text-zinc-500 mt-0.5">Draw once</div>
             </button>
-            <button data-type="monster" onclick="selectType(this)" class="type-btn p-4 rounded-xl border-2 border-gray-700 bg-gray-800 hover:border-foos-500 transition text-center">
-              <div class="text-2xl mb-1">👹</div>
-              <div class="font-semibold">Monster DYP</div>
-              <div class="text-xs text-gray-500 mt-1">New partners every round</div>
+            <button data-type="monster" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-white/10 bg-black/20 hover:border-emerald-500/40 text-center">
+              <div class="text-2xl mb-1.5">👹</div>
+              <div class="font-semibold text-sm text-white">Monster</div>
+              <div class="text-[11px] text-zinc-500 mt-0.5">New each round</div>
             </button>
           </div>
         </div>
 
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm text-gray-400 mb-1">Format</label>
-            <select id="t-format" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500">
+            <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Format</label>
+            <select id="t-format" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200">
               <option value="swiss">Swiss / Ranking Rounds</option>
               <option value="roundrobin">Round Robin</option>
               <option value="single-elim">Single Elimination</option>
@@ -238,159 +403,164 @@
             </select>
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-1">Race to (goals)</label>
-            <select id="t-race" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500">
-              <option value="5">5</option>
-              <option value="7" selected>7</option>
-              <option value="9">9</option>
-              <option value="11">11</option>
+            <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Race to</label>
+            <select id="t-race" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200">
+              <option value="5">5 goals</option>
+              <option value="7" selected>7 goals</option>
+              <option value="9">9 goals</option>
+              <option value="11">11 goals</option>
             </select>
           </div>
         </div>
 
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm text-gray-400 mb-1">Best of (sets)</label>
-            <select id="t-bestof" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500">
+            <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Best of</label>
+            <select id="t-bestof" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200">
               <option value="1" selected>1 (single game)</option>
               <option value="3">Best of 3</option>
               <option value="5">Best of 5</option>
             </select>
           </div>
           <div>
-            <label class="block text-sm text-gray-400 mb-1">Number of Tables</label>
-            <input id="t-tables" type="number" min="1" max="20" value="2" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500" />
+            <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Tables</label>
+            <input id="t-tables" type="number" min="1" max="20" value="2" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200" />
           </div>
         </div>
 
         <div id="draw-options" class="hidden">
-          <label class="block text-sm text-gray-400 mb-2">Partner Draw Style (DYP / Monster)</label>
-          <div class="flex gap-3">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="draw-style" value="random" checked class="accent-foos-500" />
-              <span>Fully Random</span>
+          <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Partner Draw</label>
+          <div class="flex flex-wrap gap-3">
+            <label class="flex items-center gap-2.5 cursor-pointer px-4 py-2.5 rounded-xl btn-ghost">
+              <input type="radio" name="draw-style" value="random" checked class="accent-emerald-500" />
+              <span class="text-sm text-zinc-300">Fully Random</span>
             </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="draw-style" value="highlow" class="accent-foos-500" />
-              <span>High-Low (balanced)</span>
+            <label class="flex items-center gap-2.5 cursor-pointer px-4 py-2.5 rounded-xl btn-ghost">
+              <input type="radio" name="draw-style" value="highlow" class="accent-emerald-500" />
+              <span class="text-sm text-zinc-300">High-Low</span>
             </label>
           </div>
         </div>
 
-        <div class="pt-2">
-          <button onclick="saveTournament()" class="w-full py-3 bg-foos-600 hover:bg-foos-500 rounded-xl font-bold text-lg transition shadow-lg shadow-foos-900/30">
-            Create Tournament
-          </button>
-        </div>
+        <button onclick="saveTournament()" class="btn-primary w-full py-3.5 rounded-xl font-bold text-base text-white">
+          Create Tournament
+        </button>
       </div>
     </div>
 
     <!-- TOURNAMENT DETAIL -->
     <div id="view-tournament" class="hidden space-y-5">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <button onclick="showView('home')" class="text-gray-400 hover:text-white">←</button>
-          <div>
-            <h2 class="text-xl font-bold" id="td-name">Tournament</h2>
-            <p class="text-sm text-gray-500" id="td-meta"></p>
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <button onclick="showView('home')" class="btn-ghost w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div class="min-w-0">
+            <h2 class="text-xl font-bold tracking-tight text-white truncate" id="td-name">Tournament</h2>
+            <p class="text-xs text-zinc-500 mt-0.5 truncate" id="td-meta"></p>
           </div>
         </div>
-        <div class="flex gap-2 flex-wrap">
-          <button onclick="exportStandings()" class="px-3 py-1.5 text-sm rounded-lg bg-gray-800 hover:bg-gray-700">Export</button>
-          <button onclick="confirmDeleteTournament()" class="px-3 py-1.5 text-sm rounded-lg bg-red-900/50 hover:bg-red-800 text-red-300">Delete</button>
+        <div class="flex gap-2">
+          <button onclick="exportStandings()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-zinc-300">Export</button>
+          <button onclick="confirmDeleteTournament()" class="px-3 py-1.5 text-sm rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition">Delete</button>
         </div>
       </div>
 
-      <!-- Tabs -->
-      <div class="flex gap-1 overflow-x-auto border-b border-gray-800 pb-px">
-        <button data-tab="players" onclick="switchTab(this)" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">Players / Teams</button>
-        <button data-tab="matches" onclick="switchTab(this)" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">Matches</button>
-        <button data-tab="standings" onclick="switchTab(this)" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">Standings</button>
-        <button data-tab="bracket" onclick="switchTab(this)" class="tab-btn px-4 py-2 text-sm font-medium rounded-t-lg border-b-2 border-transparent text-gray-400 hover:text-white whitespace-nowrap">Bracket</button>
+      <div class="flex gap-1 overflow-x-auto border-b border-white/5 -mx-1 px-1">
+        <button data-tab="players" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-zinc-200 whitespace-nowrap">Players</button>
+        <button data-tab="matches" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-zinc-200 whitespace-nowrap">Matches</button>
+        <button data-tab="standings" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-zinc-200 whitespace-nowrap">Standings</button>
+        <button data-tab="bracket" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-zinc-200 whitespace-nowrap">Bracket</button>
       </div>
 
-      <!-- Tab: Players / Teams -->
       <div id="tab-players" class="tab-content space-y-4">
         <div class="flex flex-wrap gap-2 items-center">
-          <select id="add-player-select" class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm flex-1 min-w-[140px]"></select>
-          <button onclick="addPlayerToTournament()" class="px-3 py-2 bg-foos-600 hover:bg-foos-500 rounded-lg text-sm font-medium">Add</button>
-          <button onclick="openPlayerModal(true)" class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm">Quick Add</button>
+          <select id="add-player-select" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[140px] text-zinc-200"></select>
+          <button onclick="addPlayerToTournament()" class="btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold text-white">Add</button>
+          <button onclick="openPlayerModal(true)" class="btn-ghost px-3 py-2.5 rounded-xl text-sm text-zinc-300">Quick Add</button>
         </div>
-
         <div id="teams-section" class="hidden">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="font-semibold text-gray-300">Teams</h3>
-            <button id="draw-partners-btn" onclick="drawPartners()" class="px-3 py-1.5 text-sm bg-amber-600 hover:bg-amber-500 rounded-lg font-medium">🎲 Draw Partners</button>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold text-zinc-300">Teams</h3>
+            <div class="flex gap-2">
+              <button id="draw-partners-btn" onclick="drawPartners()" class="px-3 py-1.5 text-sm rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400 hover:bg-amber-500/25 font-medium transition">🎲 Draw Partners</button>
+              <button id="clear-teams-btn" onclick="clearTeams()" class="px-3 py-1.5 text-sm rounded-xl btn-ghost text-zinc-400 hidden">Clear teams</button>
+            </div>
           </div>
+
+          <!-- Manual BYP team builder -->
+          <div id="manual-team-builder" class="hidden surface-card rounded-2xl p-4 mb-3 space-y-3">
+            <p class="text-xs text-zinc-500 font-medium">Pick two players to form a fixed pair (BYP)</p>
+            <div class="flex flex-wrap gap-2 items-center">
+              <select id="team-player-a" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[120px] text-zinc-200"></select>
+              <span class="text-zinc-600 text-sm font-medium">+</span>
+              <select id="team-player-b" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[120px] text-zinc-200"></select>
+              <button onclick="formTeam()" class="btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold text-white shrink-0">Form team</button>
+            </div>
+            <p id="unpaired-hint" class="text-xs text-zinc-600"></p>
+          </div>
+
           <div id="teams-list" class="space-y-2"></div>
         </div>
-
         <div id="tournament-players-list" class="space-y-2"></div>
-
-        <div class="pt-4 border-t border-gray-800">
-          <button id="generate-round-btn" onclick="generateRound()" class="w-full py-3 bg-foos-600 hover:bg-foos-500 rounded-xl font-bold transition disabled:opacity-40 disabled:cursor-not-allowed">
-            Generate Next Round
-          </button>
-          <p id="round-hint" class="text-xs text-gray-500 mt-2 text-center"></p>
+        <div class="pt-4 border-t border-white/5">
+          <button id="generate-round-btn" onclick="generateRound()" class="btn-primary w-full py-3.5 rounded-xl font-bold text-white disabled:opacity-40">Generate Next Round</button>
+          <p id="round-hint" class="text-xs text-zinc-600 mt-2 text-center"></p>
         </div>
       </div>
 
-      <!-- Tab: Matches -->
       <div id="tab-matches" class="tab-content hidden space-y-4">
         <div class="flex items-center justify-between">
-          <h3 class="font-semibold">Current Round: <span id="current-round-label">0</span></h3>
-          <button onclick="generateRound()" class="px-3 py-1.5 text-sm bg-foos-600 hover:bg-foos-500 rounded-lg">+ New Round</button>
+          <h3 class="text-sm font-semibold text-zinc-300">Round <span id="current-round-label" class="text-emerald-400">0</span></h3>
+          <button onclick="generateRound()" class="btn-primary px-3 py-1.5 text-sm rounded-xl font-semibold text-white">+ Round</button>
         </div>
         <div id="matches-list" class="space-y-3"></div>
-        <div id="no-matches" class="text-center py-10 text-gray-500 hidden">
-          <p>No matches yet. Go to Players tab and generate a round.</p>
+        <div id="no-matches" class="surface-card rounded-2xl py-12 text-center text-zinc-500 text-sm hidden">
+          <p>No matches yet. Add players and generate a round.</p>
         </div>
       </div>
 
-      <!-- Tab: Standings -->
-      <div id="tab-standings" class="tab-content hidden">
-        <div class="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden">
+      <div id="tab-standings" class="tab-content hidden space-y-4">
+        <div id="podium-section" class="hidden"></div>
+        <div class="surface-card rounded-2xl overflow-hidden">
           <table class="w-full text-sm">
-            <thead class="bg-gray-800/80 text-gray-400">
-              <tr>
-                <th class="text-left px-3 py-3 w-10">#</th>
-                <th class="text-left px-3 py-3">Player / Team</th>
-                <th class="text-center px-2 py-3">P</th>
-                <th class="text-center px-2 py-3">W</th>
-                <th class="text-center px-2 py-3">L</th>
-                <th class="text-center px-2 py-3">GD</th>
-                <th class="text-center px-2 py-3">Pts</th>
+            <thead>
+              <tr class="border-b border-white/5">
+                <th class="text-left px-3 py-3 w-10 text-xs font-semibold text-zinc-500 uppercase tracking-wider">#</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Player / Team</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">P</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">W</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">L</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">GD</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Pts</th>
               </tr>
             </thead>
             <tbody id="standings-body"></tbody>
           </table>
         </div>
-        <p class="text-xs text-gray-500 mt-3">P = Played · W = Wins · L = Losses · GD = Goal Difference · Pts = Points (2 per win)</p>
+        <p class="text-xs text-zinc-600 mt-3">P = Played · W = Wins · L = Losses · GD = Goal Diff · Pts = 2 per win. Bracket tournaments also show 1st / 2nd / 3rd above.</p>
       </div>
 
-      <!-- Tab: Bracket -->
-      <div id="tab-bracket" class="tab-content hidden">
-        <div class="flex gap-2 mb-4">
-          <button onclick="startPlayoffs()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg font-medium text-sm">Start Playoffs (Top 8 / 4 / 2)</button>
-        </div>
+      <div id="tab-bracket" class="tab-content hidden space-y-4">
+        <div id="bracket-actions" class="flex flex-wrap gap-2"></div>
         <div id="bracket-container" class="overflow-x-auto pb-4">
-          <p class="text-gray-500 text-center py-8">Generate ranking rounds first, then start playoffs.</p>
+          <p class="text-zinc-500 text-center py-10 text-sm">Start a bracket when players/teams are ready.</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Player Modal -->
-  <div id="player-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-md p-5 space-y-4">
-      <h3 class="text-lg font-bold" id="player-modal-title">Add Player</h3>
+  <div id="player-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.65);backdrop-filter:blur(8px)">
+    <div class="surface-card rounded-3xl w-full max-w-md p-6 space-y-5 shadow-2xl">
+      <h3 class="text-lg font-bold text-white" id="player-modal-title">Add Player</h3>
       <div>
-        <label class="block text-sm text-gray-400 mb-1">Name</label>
-        <input id="player-name" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-foos-500" placeholder="Player name" />
+        <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Name</label>
+        <input id="player-name" type="text" class="input-field w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600" placeholder="Player name" />
       </div>
       <div>
-        <label class="block text-sm text-gray-400 mb-1">Skill Level (optional, for high-low draws)</label>
-        <select id="player-skill" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5">
+        <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Skill (for high-low draws)</label>
+        <select id="player-skill" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200">
           <option value="3">Average</option>
           <option value="5">Pro / Advanced</option>
           <option value="4">Intermediate+</option>
@@ -398,40 +568,40 @@
           <option value="1">Beginner</option>
         </select>
       </div>
-      <div class="flex gap-3 pt-2">
-        <button onclick="closePlayerModal()" class="flex-1 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-xl">Cancel</button>
-        <button onclick="savePlayer()" class="flex-1 py-2.5 bg-foos-600 hover:bg-foos-500 rounded-xl font-semibold">Save</button>
+      <div class="flex gap-3 pt-1">
+        <button onclick="closePlayerModal()" class="btn-ghost flex-1 py-3 rounded-xl text-zinc-300 font-medium">Cancel</button>
+        <button onclick="savePlayer()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white">Save</button>
       </div>
     </div>
   </div>
 
   <!-- Score Modal -->
-  <div id="score-modal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-sm p-5 space-y-4">
-      <h3 class="text-lg font-bold text-center" id="score-modal-title">Enter Score</h3>
+  <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.65);backdrop-filter:blur(8px)">
+    <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl">
+      <h3 class="text-lg font-bold text-center text-white" id="score-modal-title">Enter Score</h3>
       <div class="flex items-center justify-center gap-4 text-center">
         <div class="flex-1">
-          <div class="text-sm text-gray-400 mb-2" id="score-team-a"></div>
-          <input id="score-a" type="number" min="0" max="30" value="0" class="score-input w-20 text-3xl font-bold text-center bg-gray-800 border border-gray-600 rounded-xl py-2 focus:outline-none focus:ring-2 focus:ring-foos-500" />
+          <div class="text-xs font-medium text-zinc-500 mb-2 truncate px-1" id="score-team-a"></div>
+          <input id="score-a" type="number" min="0" max="30" value="0" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-white" />
         </div>
-        <div class="text-2xl text-gray-600">–</div>
+        <div class="text-2xl text-zinc-600 font-light">–</div>
         <div class="flex-1">
-          <div class="text-sm text-gray-400 mb-2" id="score-team-b"></div>
-          <input id="score-b" type="number" min="0" max="30" value="0" class="score-input w-20 text-3xl font-bold text-center bg-gray-800 border border-gray-600 rounded-xl py-2 focus:outline-none focus:ring-2 focus:ring-foos-500" />
+          <div class="text-xs font-medium text-zinc-500 mb-2 truncate px-1" id="score-team-b"></div>
+          <input id="score-b" type="number" min="0" max="30" value="0" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-white" />
         </div>
       </div>
-      <div class="flex gap-2 justify-center text-xs text-gray-500">
-        <button onclick="setScore(7,0)" class="px-2 py-1 bg-gray-800 rounded">7-0</button>
-        <button onclick="setScore(7,1)" class="px-2 py-1 bg-gray-800 rounded">7-1</button>
-        <button onclick="setScore(7,2)" class="px-2 py-1 bg-gray-800 rounded">7-2</button>
-        <button onclick="setScore(7,3)" class="px-2 py-1 bg-gray-800 rounded">7-3</button>
-        <button onclick="setScore(7,4)" class="px-2 py-1 bg-gray-800 rounded">7-4</button>
-        <button onclick="setScore(7,5)" class="px-2 py-1 bg-gray-800 rounded">7-5</button>
-        <button onclick="setScore(7,6)" class="px-2 py-1 bg-gray-800 rounded">7-6</button>
+      <div class="flex flex-wrap gap-1.5 justify-center">
+        <button onclick="setScore(7,0)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-0</button>
+        <button onclick="setScore(7,1)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-1</button>
+        <button onclick="setScore(7,2)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-2</button>
+        <button onclick="setScore(7,3)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-3</button>
+        <button onclick="setScore(7,4)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-4</button>
+        <button onclick="setScore(7,5)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-5</button>
+        <button onclick="setScore(7,6)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-6</button>
       </div>
-      <div class="flex gap-3 pt-2">
-        <button onclick="closeScoreModal()" class="flex-1 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-xl">Cancel</button>
-        <button onclick="submitScore()" class="flex-1 py-2.5 bg-foos-600 hover:bg-foos-500 rounded-xl font-semibold">Save Score</button>
+      <div class="flex gap-3">
+        <button onclick="closeScoreModal()" class="btn-ghost flex-1 py-3 rounded-xl text-zinc-300 font-medium">Cancel</button>
+        <button onclick="submitScore()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white">Save</button>
       </div>
     </div>
   </div>
@@ -477,12 +647,20 @@
 
     function toast(msg, type = 'info') {
       const el = document.createElement('div');
-      el.className = `toast px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg ${
-        type === 'error' ? 'bg-red-600' : type === 'success' ? 'bg-foos-600' : 'bg-gray-700'
+      el.className = `toast px-4 py-3 rounded-2xl text-sm font-medium shadow-xl border ${
+        type === 'error' ? 'bg-red-500/90 border-red-400/30 text-white' :
+        type === 'success' ? 'bg-emerald-500/90 border-emerald-400/30 text-white' :
+        'bg-zinc-800/95 border-white/10 text-zinc-100'
       }`;
       el.textContent = msg;
       document.getElementById('toast-container').appendChild(el);
       setTimeout(() => el.remove(), 3000);
+    }
+
+    function updateNav(active) {
+      document.querySelectorAll('[data-nav]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.nav === active);
+      });
     }
 
     // ==================== PLAYERS ====================
@@ -560,17 +738,17 @@
     function renderPlayers() {
       const tbody = document.getElementById('players-table-body');
       if (state.players.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">No players yet. Add some!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-12 text-center text-zinc-500 text-sm">No players yet. Add your roster to get started.</td></tr>';
         return;
       }
       const skillLabel = {1:'Beginner',2:'Beginner+',3:'Average',4:'Intermediate+',5:'Pro'};
       tbody.innerHTML = state.players.map(p => `
-        <tr class="border-t border-gray-800 table-row">
-          <td class="px-4 py-3 font-medium">${escapeHtml(p.name)}</td>
-          <td class="px-4 py-3 text-gray-400 hidden sm:table-cell">${skillLabel[p.skill] || 'Average'}</td>
-          <td class="px-4 py-3 text-right space-x-2">
-            <button onclick="editPlayer('${p.id}')" class="text-foos-400 hover:text-foos-300 text-sm">Edit</button>
-            <button onclick="deletePlayer('${p.id}')" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
+        <tr class="border-t border-white/5 table-row">
+          <td class="px-4 py-3.5 font-medium text-zinc-100">${escapeHtml(p.name)}</td>
+          <td class="px-4 py-3.5 text-zinc-500 hidden sm:table-cell"><span class="badge px-2 py-0.5 rounded-md bg-white/5 text-zinc-400">${skillLabel[p.skill] || 'Average'}</span></td>
+          <td class="px-4 py-3.5 text-right space-x-3">
+            <button onclick="editPlayer('${p.id}')" class="text-emerald-400/80 hover:text-emerald-300 text-sm font-medium">Edit</button>
+            <button onclick="deletePlayer('${p.id}')" class="text-red-400/70 hover:text-red-300 text-sm font-medium">Delete</button>
           </td>
         </tr>
       `).join('');
@@ -584,15 +762,15 @@
       document.getElementById('t-race').value = '7';
       document.getElementById('t-bestof').value = '1';
       document.getElementById('t-tables').value = '2';
-      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('border-foos-500', 'bg-foos-900/30'));
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
       document.getElementById('draw-options').classList.add('hidden');
       document.getElementById('create-title').textContent = 'New Tournament';
       showView('create');
     }
 
     function selectType(btn) {
-      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('border-foos-500', 'bg-foos-900/30'));
-      btn.classList.add('border-foos-500', 'bg-foos-900/30');
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
       state.selectedType = btn.dataset.type;
       const drawOpts = document.getElementById('draw-options');
       if (state.selectedType === 'dyp' || state.selectedType === 'monster') {
@@ -667,19 +845,25 @@
         return;
       }
       empty.classList.add('hidden');
-      const typeLabel = {singles:'Singles', doubles:'Doubles (BYP)', dyp:'DYP', monster:'Monster DYP'};
+      const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
+      const typeIcon = {singles:'👤', doubles:'👥', dyp:'🎲', monster:'👹'};
       list.innerHTML = state.tournaments.map(t => `
-        <div onclick="openTournament('${t.id}')" class="card-glow bg-gray-900 border border-gray-800 rounded-2xl p-5 cursor-pointer transition hover:border-foos-600/50">
-          <div class="flex items-start justify-between">
-            <div>
-              <h3 class="font-bold text-lg">${escapeHtml(t.name)}</h3>
-              <p class="text-sm text-gray-400 mt-1">${typeLabel[t.type] || t.type} · ${t.format} · Race to ${t.raceTo}</p>
+        <div onclick="openTournament('${t.id}')" class="card-interactive surface-card rounded-2xl p-5 cursor-pointer">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-lg shrink-0">${typeIcon[t.type] || '⚽'}</div>
+              <div class="min-w-0">
+                <h3 class="font-semibold text-white truncate">${escapeHtml(t.name)}</h3>
+                <p class="text-xs text-zinc-500 mt-1">${typeLabel[t.type] || t.type} · Race to ${t.raceTo}</p>
+              </div>
             </div>
-            <span class="text-xs px-2 py-1 rounded-full ${t.status === 'finished' ? 'bg-gray-700' : 'bg-foos-900/50 text-foos-300'}">${t.status}</span>
+            <span class="badge px-2 py-1 rounded-lg shrink-0 ${t.status === 'finished' ? 'bg-zinc-800 text-zinc-500' : t.status === 'active' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-zinc-400'}">${t.status}</span>
           </div>
-          <div class="mt-4 flex items-center gap-4 text-xs text-gray-500">
+          <div class="mt-4 flex items-center gap-3 text-[11px] text-zinc-600 font-medium">
             <span>${t.playerIds.length} players</span>
-            <span>Round ${t.currentRound}</span>
+            <span class="w-1 h-1 rounded-full bg-zinc-700"></span>
+            <span>R${t.currentRound}</span>
+            <span class="w-1 h-1 rounded-full bg-zinc-700"></span>
             <span>${new Date(t.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
@@ -698,17 +882,26 @@
       // Show/hide teams section
       const teamsSection = document.getElementById('teams-section');
       const drawBtn = document.getElementById('draw-partners-btn');
+      const clearBtn = document.getElementById('clear-teams-btn');
+      const manualBuilder = document.getElementById('manual-team-builder');
       if (t.type === 'doubles' || t.type === 'dyp' || t.type === 'monster') {
         teamsSection.classList.remove('hidden');
         if (t.type === 'monster') {
           drawBtn.textContent = '🎲 Draw New Partners (this round)';
           drawBtn.classList.remove('hidden');
+          manualBuilder.classList.add('hidden');
         } else if (t.type === 'dyp') {
           drawBtn.textContent = t.teams.length ? '🔄 Re-draw Partners' : '🎲 Draw Partners';
           drawBtn.classList.remove('hidden');
+          manualBuilder.classList.add('hidden');
         } else {
-          drawBtn.classList.add('hidden'); // doubles = manual/fixed
+          // doubles / BYP — manual team setup
+          drawBtn.classList.add('hidden');
+          manualBuilder.classList.remove('hidden');
+          updateTeamPlayerSelects(t);
         }
+        if (t.teams && t.teams.length) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
       } else {
         teamsSection.classList.add('hidden');
       }
@@ -718,17 +911,12 @@
       renderMatches(t);
       renderStandings(t);
       renderBracket(t);
+      renderPodium(t);
       updateAddPlayerSelect(t);
 
       // Tab highlighting
       document.querySelectorAll('.tab-btn').forEach(btn => {
-        if (btn.dataset.tab === state.currentTab) {
-          btn.classList.add('border-foos-500', 'text-foos-400');
-          btn.classList.remove('border-transparent', 'text-gray-400');
-        } else {
-          btn.classList.remove('border-foos-500', 'text-foos-400');
-          btn.classList.add('border-transparent', 'text-gray-400');
-        }
+        btn.classList.toggle('active-tab', btn.dataset.tab === state.currentTab);
       });
       document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
       document.getElementById('tab-' + state.currentTab).classList.remove('hidden');
@@ -773,36 +961,133 @@
     function renderTournamentPlayers(t) {
       const container = document.getElementById('tournament-players-list');
       if (t.playerIds.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-sm py-4">Add players to get started.</p>';
+        container.innerHTML = '<p class="text-zinc-500 text-sm py-4 text-center">Add players to get started.</p>';
         return;
       }
       container.innerHTML = t.playerIds.map(pid => {
         const p = state.players.find(x => x.id === pid);
         if (!p) return '';
         return `
-          <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5">
-            <span class="font-medium">${escapeHtml(p.name)}</span>
-            <button onclick="removePlayerFromTournament('${pid}')" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
+          <div class="flex items-center justify-between surface-card rounded-xl px-4 py-3">
+            <span class="font-medium text-zinc-100">${escapeHtml(p.name)}</span>
+            <button onclick="removePlayerFromTournament('${pid}')" class="text-red-400/70 hover:text-red-300 text-sm font-medium">Remove</button>
           </div>
         `;
       }).join('');
     }
 
+    function getUnpairedPlayerIds(t) {
+      const paired = new Set();
+      (t.teams || []).forEach(team => team.playerIds.forEach(id => paired.add(id)));
+      return t.playerIds.filter(id => !paired.has(id));
+    }
+
+    function updateTeamPlayerSelects(t) {
+      const unpaired = getUnpairedPlayerIds(t)
+        .map(id => state.players.find(p => p.id === id))
+        .filter(Boolean);
+      const opts = unpaired.length
+        ? unpaired.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
+        : '<option value="">No unpaired players</option>';
+      const a = document.getElementById('team-player-a');
+      const b = document.getElementById('team-player-b');
+      if (a) a.innerHTML = opts;
+      if (b) {
+        b.innerHTML = opts;
+        // Prefer a different default selection than A when possible
+        if (unpaired.length >= 2) b.selectedIndex = 1;
+      }
+      const hint = document.getElementById('unpaired-hint');
+      if (hint) {
+        if (unpaired.length === 0 && (t.teams || []).length) {
+          hint.textContent = 'All players are paired.';
+        } else if (unpaired.length === 1) {
+          hint.textContent = `1 player left unpaired — add another player or leave them out.`;
+        } else if (unpaired.length > 0) {
+          hint.textContent = `${unpaired.length} players not yet on a team.`;
+        } else {
+          hint.textContent = 'Add players above, then form teams of 2.';
+        }
+      }
+    }
+
+    function formTeam() {
+      const t = getCurrentTournament();
+      if (!t || t.type !== 'doubles') {
+        toast('Manual teams are for Doubles (BYP)', 'error');
+        return;
+      }
+      const idA = document.getElementById('team-player-a')?.value;
+      const idB = document.getElementById('team-player-b')?.value;
+      if (!idA || !idB) {
+        toast('Select two players', 'error');
+        return;
+      }
+      if (idA === idB) {
+        toast('Pick two different players', 'error');
+        return;
+      }
+      const unpaired = new Set(getUnpairedPlayerIds(t));
+      if (!unpaired.has(idA) || !unpaired.has(idB)) {
+        toast('One or both players are already on a team', 'error');
+        return;
+      }
+      const pA = state.players.find(p => p.id === idA);
+      const pB = state.players.find(p => p.id === idB);
+      if (!pA || !pB) return;
+
+      if (!t.teams) t.teams = [];
+      t.teams.push({
+        id: uid(),
+        playerIds: [idA, idB],
+        name: `${pA.name} + ${pB.name}`
+      });
+      saveState();
+      renderTournament();
+      toast(`Team formed: ${pA.name} + ${pB.name}`, 'success');
+    }
+
+    function removeTeam(teamId) {
+      const t = getCurrentTournament();
+      if (!t) return;
+      t.teams = (t.teams || []).filter(team => team.id !== teamId);
+      saveState();
+      renderTournament();
+      toast('Team removed');
+    }
+
+    function clearTeams() {
+      const t = getCurrentTournament();
+      if (!t) return;
+      if (!confirm('Clear all teams?')) return;
+      t.teams = [];
+      saveState();
+      renderTournament();
+      toast('Teams cleared');
+    }
+
     function renderTeams(t) {
       const list = document.getElementById('teams-list');
       if (!t.teams || t.teams.length === 0) {
-        list.innerHTML = '<p class="text-gray-500 text-sm">No teams yet. Draw partners or create manually.</p>';
+        const tip = t.type === 'doubles'
+          ? 'No teams yet. Use the form above to pair players.'
+          : 'No teams yet. Draw partners or create manually.';
+        list.innerHTML = `<p class="text-zinc-500 text-sm text-center py-2">${tip}</p>`;
         return;
       }
+      const canRemove = t.type === 'doubles' || t.type === 'dyp';
       list.innerHTML = t.teams.map(team => {
         const names = team.playerIds.map(id => {
           const p = state.players.find(x => x.id === id);
           return p ? p.name : '?';
         }).join(' + ');
         return `
-          <div class="flex items-center justify-between bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2.5">
-            <span class="font-medium">${escapeHtml(names)}</span>
-            <span class="text-xs text-gray-500">Team</span>
+          <div class="flex items-center justify-between surface-card rounded-xl px-4 py-3">
+            <span class="font-medium text-zinc-100">${escapeHtml(names)}</span>
+            <div class="flex items-center gap-2">
+              <span class="badge px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400/80">Team</span>
+              ${canRemove ? `<button onclick="removeTeam('${team.id}')" class="text-red-400/70 hover:text-red-300 text-xs font-medium">Remove</button>` : ''}
+            </div>
           </div>
         `;
       }).join('');
@@ -868,6 +1153,17 @@
     // ==================== GENERATE ROUND ====================
     function generateRound() {
       const t = getCurrentTournament();
+      // Elimination formats use the bracket flow instead of ranking rounds
+      if (t.format === 'single-elim' || t.format === 'double-elim') {
+        if (t.playoffs && (t.playoffs.winnersRounds?.length || t.playoffs.rounds?.length)) {
+          state.currentTab = 'bracket';
+          renderTournament();
+          return;
+        }
+        startBracketTournament();
+        return;
+      }
+
       if (t.playerIds.length < 2) {
         toast('Need at least 2 players', 'error');
         return;
@@ -877,10 +1173,9 @@
       if ((t.type === 'dyp' || t.type === 'monster' || t.type === 'doubles') && (!t.teams || t.teams.length < 2)) {
         if (t.type === 'monster' || t.type === 'dyp') {
           drawPartners();
-          // re-fetch after draw
         }
         if (!t.teams || t.teams.length < 2) {
-          toast('Draw partners first', 'error');
+          toast(t.type === 'doubles' ? 'Form teams first' : 'Draw partners first', 'error');
           return;
         }
       }
@@ -890,13 +1185,12 @@
         drawPartners();
       }
 
-      const entities = getMatchEntities(t); // either players or teams
+      const entities = getMatchEntities(t);
       if (entities.length < 2) {
         toast('Not enough teams/players', 'error');
         return;
       }
 
-      // Simple Swiss-inspired pairing: sort by current points, pair adjacent
       const standings = computeStandings(t);
       const ranked = entities.slice().sort((a, b) => {
         const sa = standings.find(s => s.id === a.id) || { pts: 0, gd: 0 };
@@ -905,14 +1199,12 @@
         return sb.gd - sa.gd;
       });
 
-      // Pair 1vs2, 3vs4 ... with some randomness for first round
       if (t.currentRound === 0) shuffle(ranked);
 
       const matches = [];
       const used = new Set();
       for (let i = 0; i < ranked.length - 1; i++) {
         if (used.has(ranked[i].id)) continue;
-        // find next available opponent
         let opponent = null;
         for (let j = i + 1; j < ranked.length; j++) {
           if (!used.has(ranked[j].id)) {
@@ -932,20 +1224,361 @@
           scoreA: null,
           scoreB: null,
           table: tableNum,
-          status: 'pending' // pending | done
+          status: 'pending'
         });
       }
 
       t.currentRound += 1;
-      t.rounds.push({
-        number: t.currentRound,
-        matches
-      });
+      t.rounds.push({ number: t.currentRound, matches });
       t.status = 'active';
       saveState();
       state.currentTab = 'matches';
       renderTournament();
       toast(`Round ${t.currentRound} generated – ${matches.length} matches`, 'success');
+    }
+
+    function nextPowerOfTwo(n) {
+      let p = 1;
+      while (p < n) p *= 2;
+      return p;
+    }
+
+    function prepareSeedList(entities, shuffleSeeds) {
+      const list = entities.map((e, i) => ({ id: e.id, name: e.name, seed: i + 1 }));
+      if (shuffleSeeds) shuffle(list);
+      list.forEach((e, i) => { e.seed = i + 1; });
+      return list;
+    }
+
+    function makeSide(ent) {
+      return {
+        seed: ent ? ent.seed : null,
+        entity: ent ? { id: ent.id, name: ent.name } : null,
+        score: null
+      };
+    }
+
+    function makeMatch(a, b, extra = {}) {
+      const match = {
+        id: uid(),
+        a,
+        b,
+        winner: null,
+        loser: null,
+        scoreA: null,
+        scoreB: null,
+        bracket: 'winners',
+        ...extra
+      };
+      resolveBye(match);
+      return match;
+    }
+
+    function resolveBye(match) {
+      const aE = match.a?.entity;
+      const bE = match.b?.entity;
+      if (aE && !bE) {
+        match.winner = 'a'; match.loser = 'b'; match.scoreA = 0; match.scoreB = 0;
+      } else if (!aE && bE) {
+        match.winner = 'b'; match.loser = 'a'; match.scoreA = 0; match.scoreB = 0;
+      } else if (!aE && !bE) {
+        match.winner = 'a'; match.loser = 'b';
+      }
+    }
+
+    function winnerSideFromMatch(m) {
+      return {
+        seed: 0,
+        entity: m.winner === 'a' ? m.a.entity : (m.winner === 'b' ? m.b.entity : null),
+        score: null,
+        fromMatch: m.id,
+        fromLoser: false
+      };
+    }
+
+    function loserFeed(matchId) {
+      return { seed: 0, entity: null, score: null, fromMatch: matchId, fromLoser: true };
+    }
+
+    function winnerFeed(matchId) {
+      return { seed: 0, entity: null, score: null, fromMatch: matchId, fromLoser: false };
+    }
+
+    /** Single elimination + optional 3rd place match */
+    function buildSingleElimBracket(entities, { shuffleSeeds = true } = {}) {
+      const list = prepareSeedList(entities, shuffleSeeds);
+      const size = nextPowerOfTwo(Math.max(list.length, 2));
+      const slots = new Array(size).fill(null);
+      list.forEach((e, i) => { slots[i] = e; });
+
+      const bracket = {
+        type: 'single-elim',
+        size,
+        rounds: [],
+        winnersRounds: null,
+        losersRounds: null,
+        grandFinal: null,
+        grandFinal2: null,
+        bronze: null,
+        placements: { first: null, second: null, third: null }
+      };
+
+      let current = slots.map(makeSide);
+      let roundNum = 1;
+      const totalRounds = Math.log2(size) || 1;
+
+      while (current.length >= 2) {
+        const matches = [];
+        for (let i = 0; i < current.length; i += 2) {
+          matches.push(makeMatch(current[i], current[i + 1] || makeSide(null), { bracket: 'winners' }));
+        }
+        const isFinal = matches.length === 1;
+        bracket.rounds.push({
+          number: roundNum,
+          name: isFinal ? 'Final' : (roundNum === totalRounds - 1 ? 'Semifinals' : `Round ${roundNum}`),
+          matches
+        });
+        current = matches.map(winnerSideFromMatch);
+
+        if (matches.length === 2 && !bracket.bronze) {
+          bracket.bronze = makeMatch(
+            { entity: null, fromMatch: matches[0].id, fromLoser: true },
+            { entity: null, fromMatch: matches[1].id, fromLoser: true },
+            { bracket: 'bronze', isBronze: true }
+          );
+          // don't auto-resolve bronze
+          bracket.bronze.winner = null;
+          bracket.bronze.loser = null;
+          bracket.bronze.scoreA = null;
+          bracket.bronze.scoreB = null;
+        }
+        roundNum++;
+        if (matches.length === 1) break;
+      }
+
+      // Alias for unified renderer
+      bracket.winnersRounds = bracket.rounds;
+      return bracket;
+    }
+
+    /**
+     * Full double-elimination bracket:
+     * Winners bracket → Losers bracket → Grand Final (with optional reset if LB champ wins first GF)
+     */
+    function buildDoubleElimBracket(entities, { shuffleSeeds = true } = {}) {
+      const list = prepareSeedList(entities, shuffleSeeds);
+      const size = nextPowerOfTwo(Math.max(list.length, 2));
+      const slots = new Array(size).fill(null);
+      list.forEach((e, i) => { slots[i] = e; });
+
+      // --- Winners bracket ---
+      const winnersRounds = [];
+      let current = slots.map(makeSide);
+      let roundNum = 1;
+      const totalWb = Math.log2(size) || 1;
+
+      while (current.length >= 2) {
+        const matches = [];
+        for (let i = 0; i < current.length; i += 2) {
+          matches.push(makeMatch(current[i], current[i + 1] || makeSide(null), { bracket: 'winners' }));
+        }
+        const isFinal = matches.length === 1;
+        winnersRounds.push({
+          number: roundNum,
+          name: isFinal ? 'Winners Final' : (roundNum === totalWb - 1 ? 'Winners SF' : `Winners R${roundNum}`),
+          matches
+        });
+        current = matches.map(m => ({
+          seed: 0,
+          entity: m.winner === 'a' ? m.a.entity : (m.winner === 'b' ? m.b.entity : null),
+          score: null,
+          fromMatch: m.id,
+          fromLoser: false
+        }));
+        roundNum++;
+        if (matches.length === 1) break;
+      }
+
+      // --- Losers bracket ---
+      const losersRounds = [];
+      if (size >= 4 && winnersRounds.length >= 1) {
+        // LB R1: pair losers from WB R1
+        const wb1 = winnersRounds[0].matches;
+        const lb1Matches = [];
+        for (let i = 0; i < wb1.length; i += 2) {
+          if (!wb1[i + 1]) break;
+          const m = makeMatch(loserFeed(wb1[i].id), loserFeed(wb1[i + 1].id), { bracket: 'losers' });
+          m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+          lb1Matches.push(m);
+        }
+        if (lb1Matches.length) {
+          losersRounds.push({ number: 1, name: 'Losers R1', matches: lb1Matches });
+        }
+
+        // For each subsequent WB round: drop WB losers into LB, then consolidate if needed
+        for (let wr = 1; wr < winnersRounds.length; wr++) {
+          const wbMatches = winnersRounds[wr].matches;
+          const prevLB = losersRounds[losersRounds.length - 1];
+          if (!prevLB) break;
+
+          // Align counts: take prev LB matches (may need to only use first N)
+          let lbSources = prevLB.matches.slice();
+          // Drop round: LB winners vs WB losers
+          const dropMatches = [];
+          const nDrop = Math.min(lbSources.length, wbMatches.length);
+          for (let i = 0; i < nDrop; i++) {
+            const m = makeMatch(
+              winnerFeed(lbSources[i].id),
+              loserFeed(wbMatches[i].id),
+              { bracket: 'losers' }
+            );
+            m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+            dropMatches.push(m);
+          }
+          // Extra LB winners without WB opponent play each other or auto-advance
+          if (lbSources.length > nDrop) {
+            for (let i = nDrop; i < lbSources.length; i += 2) {
+              if (lbSources[i + 1]) {
+                const m = makeMatch(winnerFeed(lbSources[i].id), winnerFeed(lbSources[i + 1].id), { bracket: 'losers' });
+                m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+                dropMatches.push(m);
+              }
+            }
+          }
+          if (dropMatches.length) {
+            losersRounds.push({
+              number: losersRounds.length + 1,
+              name: wr === winnersRounds.length - 1 ? 'Losers Final' : `Losers R${losersRounds.length + 1}`,
+              matches: dropMatches
+            });
+          }
+
+          // Consolidate if more matches than next WB loser count needs
+          const nextWbCount = wr + 1 < winnersRounds.length ? winnersRounds[wr + 1].matches.length : 1;
+          while (losersRounds.length && losersRounds[losersRounds.length - 1].matches.length > nextWbCount) {
+            const src = losersRounds[losersRounds.length - 1].matches;
+            const consol = [];
+            for (let i = 0; i < src.length; i += 2) {
+              if (!src[i + 1]) {
+                // odd one out — carry with auto path via dummy: create match vs bye
+                const m = makeMatch(winnerFeed(src[i].id), makeSide(null), { bracket: 'losers' });
+                consol.push(m);
+              } else {
+                const m = makeMatch(winnerFeed(src[i].id), winnerFeed(src[i + 1].id), { bracket: 'losers' });
+                m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+                consol.push(m);
+              }
+            }
+            if (!consol.length || consol.length >= src.length) break;
+            losersRounds.push({
+              number: losersRounds.length + 1,
+              name: `Losers R${losersRounds.length + 1}`,
+              matches: consol
+            });
+          }
+        }
+      } else if (size === 2 && winnersRounds.length) {
+        // Only 2 players: no losers bracket needed beyond GF path — loser of WB final is 2nd
+      }
+
+      // Grand Final: WB champ vs LB champ (skip separate GF when only 2 entries — WB final is enough)
+      const wbFinal = winnersRounds[winnersRounds.length - 1]?.matches?.[0];
+      const lbFinal = losersRounds.length
+        ? losersRounds[losersRounds.length - 1].matches[0]
+        : null;
+
+      let grandFinal = null;
+      let grandFinal2 = null;
+      if (size >= 4 && wbFinal && lbFinal) {
+        grandFinal = makeMatch(
+          winnerFeed(wbFinal.id),
+          winnerFeed(lbFinal.id),
+          { bracket: 'gf', isGrandFinal: true }
+        );
+        grandFinal.winner = null; grandFinal.loser = null; grandFinal.scoreA = null; grandFinal.scoreB = null;
+
+        grandFinal2 = makeMatch(
+          { entity: null, fromMatch: grandFinal.id, fromLoser: false, needsReset: true },
+          { entity: null, fromMatch: grandFinal.id, fromLoser: true, needsReset: true },
+          { bracket: 'gf2', isGrandFinal: true, isReset: true }
+        );
+        grandFinal2.winner = null; grandFinal2.loser = null; grandFinal2.scoreA = null; grandFinal2.scoreB = null;
+      }
+
+      return {
+        type: 'double-elim',
+        size,
+        rounds: winnersRounds,
+        winnersRounds,
+        losersRounds,
+        grandFinal,
+        grandFinal2,
+        bronze: null,
+        placements: { first: null, second: null, third: null },
+        gfResetRequired: false,
+        gfResetActive: false
+      };
+    }
+
+    function buildBracket(entities, format, opts) {
+      if (format === 'double-elim') return buildDoubleElimBracket(entities, opts);
+      return buildSingleElimBracket(entities, opts);
+    }
+
+    function ensureTeamsReady(t) {
+      if ((t.type === 'dyp' || t.type === 'monster' || t.type === 'doubles') && (!t.teams || t.teams.length < 2)) {
+        if (t.type === 'monster' || t.type === 'dyp') drawPartners();
+        if (!t.teams || t.teams.length < 2) {
+          toast(t.type === 'doubles' ? 'Form teams first' : 'Draw partners first', 'error');
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function startBracketTournament() {
+      const t = getCurrentTournament();
+      if (t.playoffs && (t.playoffs.rounds?.length || t.playoffs.winnersRounds?.length)) {
+        if (!confirm('A bracket already exists. Replace it and reset placements?')) return;
+      }
+      if (!ensureTeamsReady(t)) return;
+
+      const entities = getMatchEntities(t);
+      if (entities.length < 2) {
+        toast('Need at least 2 players or teams', 'error');
+        return;
+      }
+
+      const format = (t.format === 'double-elim') ? 'double-elim' : 'single-elim';
+      t.playoffs = buildBracket(entities, format, { shuffleSeeds: true });
+      t.status = 'active';
+      t.placements = t.playoffs.placements;
+      saveState();
+      state.currentTab = 'bracket';
+      renderTournament();
+      const label = format === 'double-elim' ? 'Double-elim bracket' : 'Single-elim bracket';
+      toast(`${label} started · ${entities.length} ${t.type === 'singles' ? 'players' : 'teams'}`, 'success');
+    }
+
+    function startPlayoffs() {
+      const t = getCurrentTournament();
+      const standings = computeStandings(t);
+      if (standings.length < 2) {
+        toast('Need ranking results first (play some rounds)', 'error');
+        return;
+      }
+      let n = 8;
+      if (standings.length < 8) n = 4;
+      if (standings.length < 4) n = 2;
+      const qualified = standings.slice(0, n).map(s => ({ id: s.id, name: s.name }));
+      // Playoffs from Swiss: use single-elim by default; double if tournament format is double-elim
+      const format = t.format === 'double-elim' ? 'double-elim' : 'single-elim';
+      t.playoffs = buildBracket(qualified, format, { shuffleSeeds: false });
+      t.placements = t.playoffs.placements;
+      saveState();
+      state.currentTab = 'bracket';
+      renderTournament();
+      toast(`Playoffs started with top ${n} (${format === 'double-elim' ? 'double' : 'single'} elim)`, 'success');
     }
 
     function getMatchEntities(t) {
@@ -988,33 +1621,33 @@
           const winnerA = done && m.scoreA > m.scoreB;
           const winnerB = done && m.scoreB > m.scoreA;
           return `
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 ${done ? 'opacity-80' : ''}">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs text-gray-500">Table ${m.table}</span>
-                <span class="text-xs ${done ? 'text-foos-400' : 'text-amber-400'}">${done ? 'Finished' : 'Pending'}</span>
+            <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : 'ring-1 ring-emerald-500/10'}">
+              <div class="flex items-center justify-between mb-3">
+                <span class="badge px-2 py-0.5 rounded-md bg-white/5 text-zinc-500">Table ${m.table}</span>
+                <span class="text-[11px] font-semibold ${done ? 'text-emerald-400' : 'text-amber-400'}">${done ? 'Finished' : 'Pending'}</span>
               </div>
               <div class="flex items-center justify-between gap-3">
-                <div class="flex-1 text-right ${winnerA ? 'text-foos-400 font-semibold' : ''}">${escapeHtml(m.entityA.name)}</div>
-                <div class="px-3 py-1 bg-gray-800 rounded-lg font-mono text-lg min-w-[70px] text-center">${scoreText}</div>
-                <div class="flex-1 ${winnerB ? 'text-foos-400 font-semibold' : ''}">${escapeHtml(m.entityB.name)}</div>
+                <div class="flex-1 text-right text-sm ${winnerA ? 'text-emerald-400 font-semibold' : 'text-zinc-300'}">${escapeHtml(m.entityA.name)}</div>
+                <div class="px-3 py-1.5 rounded-xl font-mono text-base min-w-[72px] text-center ${done ? 'bg-black/40 text-white' : 'bg-white/5 text-zinc-400'}">${scoreText}</div>
+                <div class="flex-1 text-sm ${winnerB ? 'text-emerald-400 font-semibold' : 'text-zinc-300'}">${escapeHtml(m.entityB.name)}</div>
               </div>
               ${!done ? `
-                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-2 bg-foos-700/40 hover:bg-foos-600/50 rounded-lg text-sm font-medium transition">
+                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-2.5 rounded-xl text-sm font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25 transition">
                   Enter Score
                 </button>
               ` : `
-                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-1.5 text-xs text-gray-500 hover:text-gray-300">Edit score</button>
+                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition">Edit score</button>
               `}
             </div>
           `;
         }).join('');
         return `
           <div class="space-y-3">
-            <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Round ${round.number}</h4>
+            <h4 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Round ${round.number}</h4>
             ${matchesHtml}
           </div>
         `;
-      }).join('<div class="border-t border-gray-800 my-4"></div>');
+      }).join('<div class="border-t border-white/5 my-5"></div>');
 
       container.innerHTML = roundsHtml;
     }
@@ -1180,152 +1813,327 @@
         return;
       }
       body.innerHTML = standings.map((s, i) => `
-        <tr class="border-t border-gray-800 table-row">
-          <td class="px-3 py-2.5 text-gray-500">${i + 1}</td>
-          <td class="px-3 py-2.5 font-medium">${escapeHtml(s.name)}</td>
-          <td class="px-2 py-2.5 text-center">${s.played}</td>
-          <td class="px-2 py-2.5 text-center text-foos-400">${s.wins}</td>
-          <td class="px-2 py-2.5 text-center text-red-400">${s.losses}</td>
-          <td class="px-2 py-2.5 text-center">${s.gd > 0 ? '+' : ''}${s.gd}</td>
-          <td class="px-2 py-2.5 text-center font-bold">${s.pts}</td>
+        <tr class="border-t border-white/5 table-row">
+          <td class="px-3 py-2.5 text-zinc-600 font-medium">${i + 1}</td>
+          <td class="px-3 py-2.5 font-medium text-zinc-100">${escapeHtml(s.name)}</td>
+          <td class="px-2 py-2.5 text-center text-zinc-400">${s.played}</td>
+          <td class="px-2 py-2.5 text-center text-emerald-400">${s.wins}</td>
+          <td class="px-2 py-2.5 text-center text-red-400/80">${s.losses}</td>
+          <td class="px-2 py-2.5 text-center text-zinc-400">${s.gd > 0 ? '+' : ''}${s.gd}</td>
+          <td class="px-2 py-2.5 text-center font-bold text-white">${s.pts}</td>
         </tr>
       `).join('');
     }
 
-    // ==================== PLAYOFFS / BRACKET ====================
-    function startPlayoffs() {
-      const t = getCurrentTournament();
-      const standings = computeStandings(t);
-      if (standings.length < 2) {
-        toast('Need results first', 'error');
-        return;
-      }
-      let n = 8;
-      if (standings.length < 8) n = 4;
-      if (standings.length < 4) n = 2;
-      const qualified = standings.slice(0, n);
+    // ==================== BRACKET UI ====================
+    function allBracketRoundLists(b) {
+      const lists = [];
+      if (b.winnersRounds?.length) lists.push(...b.winnersRounds);
+      else if (b.rounds?.length) lists.push(...b.rounds);
+      if (b.losersRounds?.length) lists.push(...b.losersRounds);
+      return lists;
+    }
 
-      // Simple single-elim bracket
-      const bracket = {
-        size: n,
-        rounds: []
+    function findBracketMatch(t, matchId) {
+      if (!t.playoffs) return null;
+      const b = t.playoffs;
+      for (const r of allBracketRoundLists(b)) {
+        const m = r.matches.find(x => x.id === matchId);
+        if (m) return { match: m, round: r };
+      }
+      if (b.bronze && b.bronze.id === matchId) return { match: b.bronze, isBronze: true };
+      if (b.grandFinal && b.grandFinal.id === matchId) return { match: b.grandFinal, isGF: true };
+      if (b.grandFinal2 && b.grandFinal2.id === matchId) return { match: b.grandFinal2, isGF2: true };
+      return null;
+    }
+
+    function feedEntity(side, winnerEntity, loserEntity) {
+      if (!side?.fromMatch) return;
+      if (side.fromLoser) side.entity = loserEntity;
+      else side.entity = winnerEntity;
+    }
+
+    function propagateBracketResult(t, matchId, winnerEntity, loserEntity) {
+      const b = t.playoffs;
+      const applyToMatch = (m) => {
+        if (!m) return;
+        if (m.a?.fromMatch === matchId) feedEntity(m.a, winnerEntity, loserEntity);
+        if (m.b?.fromMatch === matchId) feedEntity(m.b, winnerEntity, loserEntity);
       };
 
-      // Seed: 1vs n, 2vs n-1 ...
-      let current = qualified.map((s, i) => ({
-        seed: i + 1,
-        entity: { id: s.id, name: s.name },
-        score: null
-      }));
-
-      // Pad to power of 2
-      while (current.length < n) {
-        current.push({ seed: current.length + 1, entity: null, score: null }); // bye
+      for (const r of allBracketRoundLists(b)) {
+        r.matches.forEach(applyToMatch);
       }
+      applyToMatch(b.bronze);
+      applyToMatch(b.grandFinal);
+      applyToMatch(b.grandFinal2);
 
-      let roundNum = 1;
-      while (current.length >= 2) {
-        const matches = [];
-        for (let i = 0; i < current.length; i += 2) {
-          matches.push({
-            id: uid(),
-            a: current[i],
-            b: current[i + 1] || { entity: null },
-            winner: null,
-            scoreA: null,
-            scoreB: null
-          });
+      // Double-elim: if first GF won by LB side (usually side b), activate reset
+      if (b.type === 'double-elim' && b.grandFinal && matchId === b.grandFinal.id) {
+        const gf = b.grandFinal;
+        // Side a is WB champ, side b is LB champ by construction
+        if (gf.winner === 'b') {
+          b.gfResetRequired = true;
+          b.gfResetActive = true;
+          if (b.grandFinal2) {
+            b.grandFinal2.a.entity = winnerEntity; // LB champ
+            b.grandFinal2.b.entity = loserEntity;  // WB champ
+          }
+        } else {
+          b.gfResetRequired = false;
+          b.gfResetActive = false;
         }
-        bracket.rounds.push({ number: roundNum, matches });
-        // next round placeholders
-        current = matches.map(m => ({ seed: 0, entity: null, score: null, fromMatch: m.id }));
-        roundNum++;
-        if (matches.length === 1) break;
       }
+    }
 
-      t.playoffs = bracket;
-      saveState();
-      state.currentTab = 'bracket';
-      renderTournament();
-      toast(`Playoffs started with top ${n}`, 'success');
+    function matchCardHtml(m, accent = 'emerald') {
+      const nameA = m.a?.entity?.name || (m.a?.entity === null && !m.a?.fromMatch ? 'BYE' : 'TBD');
+      const nameB = m.b?.entity?.name || (m.b?.entity === null && !m.b?.fromMatch ? 'BYE' : 'TBD');
+      const hasBoth = m.a?.entity && m.b?.entity;
+      const hasBye = m.winner && (!m.a?.entity || !m.b?.entity);
+      const score = (m.winner && hasBoth && m.scoreA != null) ? `${m.scoreA}–${m.scoreB}` : (hasBye ? 'bye' : '');
+      const canScore = !m.winner && hasBoth;
+      const ring = accent === 'amber' ? 'ring-amber-500/20' : accent === 'violet' ? 'ring-violet-500/20' : 'ring-emerald-500/10';
+      const win = accent === 'amber' ? 'text-amber-400' : accent === 'violet' ? 'text-violet-300' : 'text-emerald-400';
+      const btn = accent === 'amber'
+        ? 'bg-amber-500/15 text-amber-400 border-amber-500/20 hover:bg-amber-500/25'
+        : accent === 'violet'
+          ? 'bg-violet-500/15 text-violet-300 border-violet-500/20 hover:bg-violet-500/25'
+          : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/25';
+      return `
+        <div class="surface-card rounded-xl p-3 text-sm ${m.winner ? 'opacity-90' : 'ring-1 ' + ring}">
+          <div class="flex justify-between items-center py-1 gap-2 ${m.winner === 'a' ? win + ' font-semibold' : 'text-zinc-300'}">
+            <span class="truncate">${escapeHtml(nameA)}</span>
+            ${m.winner === 'a' ? '<span class="text-[10px]">W</span>' : ''}
+          </div>
+          <div class="border-t border-white/5 my-1"></div>
+          <div class="flex justify-between items-center py-1 gap-2 ${m.winner === 'b' ? win + ' font-semibold' : 'text-zinc-300'}">
+            <span class="truncate">${escapeHtml(nameB)}</span>
+            ${m.winner === 'b' ? '<span class="text-[10px]">W</span>' : ''}
+          </div>
+          ${score ? `<div class="text-center text-xs text-zinc-500 mt-1.5 font-mono">${score}</div>` : ''}
+          ${canScore ? `<button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-1.5 text-xs font-semibold rounded-lg border transition ${btn}">Enter score</button>` : ''}
+        </div>`;
+    }
+
+    function roundsRowHtml(rounds, accent) {
+      if (!rounds?.length) return '';
+      let html = '<div class="flex gap-4 min-w-max items-stretch">';
+      rounds.forEach((round) => {
+        html += `<div class="flex flex-col justify-around gap-3 min-w-[200px]">
+          <div class="text-[11px] text-zinc-500 font-semibold uppercase tracking-wider text-center mb-1">${escapeHtml(round.name || ('R' + round.number))}</div>`;
+        round.matches.forEach(m => { html += matchCardHtml(m, accent); });
+        html += '</div>';
+      });
+      html += '</div>';
+      return html;
     }
 
     function renderBracket(t) {
       const container = document.getElementById('bracket-container');
-      if (!t.playoffs) {
-        container.innerHTML = '<p class="text-gray-500 text-center py-8">Generate ranking rounds first, then start playoffs.</p>';
+      const actions = document.getElementById('bracket-actions');
+      const isElim = t.format === 'single-elim' || t.format === 'double-elim';
+      const b = t.playoffs;
+      const isDE = b?.type === 'double-elim' || t.format === 'double-elim';
+
+      if (actions) {
+        if (isElim) {
+          actions.innerHTML = `
+            <button onclick="startBracketTournament()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white">
+              ${b ? '↺ Reset bracket' : '▶ Start bracket'}
+            </button>
+            <span class="text-xs text-zinc-500 self-center">${isDE ? 'Double elimination · winners + losers + grand final' : 'Single elimination · 3rd place match'}</span>
+          `;
+        } else {
+          actions.innerHTML = `
+            <button onclick="startPlayoffs()" class="px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400 hover:bg-amber-500/25 font-semibold text-sm transition">
+              Start Playoffs (Top 8 / 4 / 2)
+            </button>
+            <span class="text-xs text-zinc-500 self-center">After ranking rounds</span>
+          `;
+        }
+      }
+
+      const genBtn = document.getElementById('generate-round-btn');
+      if (genBtn) {
+        if (isElim) {
+          genBtn.textContent = b ? 'View bracket →' : (isDE ? 'Start Double-Elim Bracket' : 'Start Elimination Bracket');
+        } else {
+          genBtn.textContent = 'Generate Next Round';
+        }
+      }
+
+      const hasBracket = b && (b.winnersRounds?.length || b.rounds?.length);
+      if (!hasBracket) {
+        container.innerHTML = `<p class="text-zinc-500 text-center py-10 text-sm">${
+          isElim
+            ? 'Add players/teams, then start the elimination bracket.'
+            : 'Play ranking rounds first, then start playoffs — or choose Single/Double Elimination when creating the tournament.'
+        }</p>`;
         return;
       }
-      const b = t.playoffs;
-      let html = '<div class="flex gap-6 min-w-max">';
-      b.rounds.forEach((round, ri) => {
-        html += `<div class="flex flex-col justify-around gap-4 min-w-[200px]">
-          <div class="text-xs text-gray-500 font-semibold uppercase text-center mb-2">Round ${round.number}${ri === b.rounds.length-1 ? ' (Final)' : ''}</div>`;
-        round.matches.forEach(m => {
-          const nameA = m.a?.entity?.name || (m.a?.entity === null ? 'BYE' : 'TBD');
-          const nameB = m.b?.entity?.name || (m.b?.entity === null ? 'BYE' : 'TBD');
-          const score = (m.scoreA != null) ? `${m.scoreA}–${m.scoreB}` : '';
-          html += `
-            <div class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm">
-              <div class="flex justify-between items-center py-1 ${m.winner === 'a' ? 'text-foos-400 font-semibold' : ''}">
-                <span>${escapeHtml(nameA)}</span>
-              </div>
-              <div class="border-t border-gray-700 my-1"></div>
-              <div class="flex justify-between items-center py-1 ${m.winner === 'b' ? 'text-foos-400 font-semibold' : ''}">
-                <span>${escapeHtml(nameB)}</span>
-              </div>
-              ${score ? `<div class="text-center text-xs text-gray-500 mt-1">${score}</div>` : ''}
-              ${!m.winner && m.a?.entity && m.b?.entity ? `
-                <button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-1 text-xs bg-foos-800/40 hover:bg-foos-700/50 rounded">Enter Score</button>
-              ` : ''}
-            </div>
-          `;
-        });
-        html += '</div>';
-      });
-      html += '</div>';
+
+      const wb = b.winnersRounds || b.rounds || [];
+      let html = '';
+
+      if (b.type === 'double-elim') {
+        html += `<div class="mb-2 text-xs font-semibold text-emerald-400/80 uppercase tracking-wider">Winners bracket</div>`;
+        html += roundsRowHtml(wb, 'emerald');
+        if (b.losersRounds?.length) {
+          html += `<div class="mt-8 mb-2 text-xs font-semibold text-amber-400/80 uppercase tracking-wider">Losers bracket</div>`;
+          html += roundsRowHtml(b.losersRounds, 'amber');
+        }
+        if (b.grandFinal) {
+          html += `<div class="mt-8 mb-2 text-xs font-semibold text-violet-300/90 uppercase tracking-wider">Grand Final</div>`;
+          html += `<div class="max-w-xs">${matchCardHtml(b.grandFinal, 'violet')}</div>`;
+        }
+        if (b.gfResetActive && b.grandFinal2) {
+          html += `<div class="mt-4 mb-2 text-xs font-semibold text-violet-300/90 uppercase tracking-wider">Grand Final Reset (bracket reset)</div>`;
+          html += `<div class="max-w-xs">${matchCardHtml(b.grandFinal2, 'violet')}</div>`;
+          html += `<p class="text-xs text-zinc-600 mt-2">Losers-bracket champion took the first GF — winner of this match is the champion.</p>`;
+        }
+      } else {
+        html += roundsRowHtml(wb, 'emerald');
+        if (b.bronze) {
+          html += `<div class="mt-6 max-w-xs">
+            <div class="text-[11px] text-zinc-500 font-semibold uppercase tracking-wider mb-2">3rd Place Match</div>
+            ${matchCardHtml(b.bronze, 'amber')}
+          </div>`;
+        }
+      }
+
+      const p = b.placements || {};
+      if (p.first || p.second || p.third) {
+        html += `<div class="mt-6 flex flex-wrap gap-3">
+          ${p.first ? `<div class="surface-card rounded-xl px-4 py-3 text-sm"><span class="text-amber-400 font-bold">1st</span> <span class="text-white ml-2">${escapeHtml(p.first.name)}</span></div>` : ''}
+          ${p.second ? `<div class="surface-card rounded-xl px-4 py-3 text-sm"><span class="text-zinc-400 font-bold">2nd</span> <span class="text-white ml-2">${escapeHtml(p.second.name)}</span></div>` : ''}
+          ${p.third ? `<div class="surface-card rounded-xl px-4 py-3 text-sm"><span class="text-amber-700 font-bold">3rd</span> <span class="text-white ml-2">${escapeHtml(p.third.name)}</span></div>` : ''}
+        </div>`;
+      }
+
       container.innerHTML = html;
     }
 
-    function openPlayoffScore(matchId) {
-      // Simplified: reuse score modal logic or prompt
-      const t = getCurrentTournament();
-      let match = null;
-      for (const r of t.playoffs.rounds) {
-        match = r.matches.find(m => m.id === matchId);
-        if (match) break;
-      }
-      if (!match || !match.a?.entity || !match.b?.entity) return;
+    function updatePlacementsFromBracket(t) {
+      if (!t.playoffs) return;
+      const b = t.playoffs;
+      if (!b.placements) b.placements = { first: null, second: null, third: null };
 
-      const scoreA = prompt(`Score for ${match.a.entity.name}:`, '7');
+      if (b.type === 'double-elim') {
+        if (b.grandFinal) {
+          const gf = b.gfResetActive && b.grandFinal2?.winner ? b.grandFinal2 : b.grandFinal;
+          if (gf?.winner) {
+            if (b.gfResetRequired && !b.grandFinal2?.winner) {
+              b.placements.first = null;
+              b.placements.second = null;
+            } else {
+              b.placements.first = gf.winner === 'a' ? gf.a.entity : gf.b.entity;
+              b.placements.second = gf.winner === 'a' ? gf.b.entity : gf.a.entity;
+            }
+          }
+        } else {
+          // 2-player DE: winners final decides
+          const wbFinal = b.winnersRounds?.[b.winnersRounds.length - 1]?.matches?.[0];
+          if (wbFinal?.winner) {
+            b.placements.first = wbFinal.winner === 'a' ? wbFinal.a.entity : wbFinal.b.entity;
+            b.placements.second = wbFinal.winner === 'a' ? wbFinal.b.entity : wbFinal.a.entity;
+          }
+        }
+        const lbFinal = b.losersRounds?.length ? b.losersRounds[b.losersRounds.length - 1].matches[0] : null;
+        if (lbFinal?.winner) {
+          b.placements.third = lbFinal.winner === 'a' ? lbFinal.b.entity : lbFinal.a.entity;
+        }
+        t.placements = b.placements;
+        const done = b.placements.first && b.placements.second && (!b.gfResetRequired || b.grandFinal2?.winner || !b.grandFinal);
+        if (done) t.status = 'finished';
+        return;
+      }
+
+      // Single elim
+      const finalRound = (b.winnersRounds || b.rounds || [])[(b.winnersRounds || b.rounds || []).length - 1];
+      const finalMatch = finalRound?.matches?.[0];
+      if (finalMatch?.winner) {
+        b.placements.first = finalMatch.winner === 'a' ? finalMatch.a.entity : finalMatch.b.entity;
+        b.placements.second = finalMatch.winner === 'a' ? finalMatch.b.entity : finalMatch.a.entity;
+      }
+      if (b.bronze?.winner) {
+        b.placements.third = b.bronze.winner === 'a' ? b.bronze.a.entity : b.bronze.b.entity;
+      }
+      t.placements = b.placements;
+      if (b.placements.first && b.placements.second) {
+        if (!b.bronze || b.bronze.winner || !(b.bronze.a?.fromMatch)) {
+          t.status = 'finished';
+        }
+      }
+    }
+
+    function openPlayoffScore(matchId) {
+      const t = getCurrentTournament();
+      const found = findBracketMatch(t, matchId);
+      if (!found) return;
+      const match = found.match;
+      if (!match.a?.entity || !match.b?.entity) return;
+
+      const scoreA = prompt(`Score for ${match.a.entity.name}:`, String(t.raceTo || 7));
       const scoreB = prompt(`Score for ${match.b.entity.name}:`, '0');
       if (scoreA === null || scoreB === null) return;
       const a = parseInt(scoreA, 10);
-      const b = parseInt(scoreB, 10);
-      if (isNaN(a) || isNaN(b) || a === b) {
+      const bsc = parseInt(scoreB, 10);
+      if (isNaN(a) || isNaN(bsc) || a === bsc) {
         toast('Invalid or draw score', 'error');
         return;
       }
       match.scoreA = a;
-      match.scoreB = b;
-      match.winner = a > b ? 'a' : 'b';
+      match.scoreB = bsc;
+      match.winner = a > bsc ? 'a' : 'b';
+      match.loser = a > bsc ? 'b' : 'a';
 
-      // Advance winner
       const winnerEntity = match.winner === 'a' ? match.a.entity : match.b.entity;
-      // Find next match that references this
-      for (const r of t.playoffs.rounds) {
-        for (const m of r.matches) {
-          if (m.a?.fromMatch === matchId) {
-            m.a.entity = winnerEntity;
-          }
-          if (m.b?.fromMatch === matchId) {
-            m.b.entity = winnerEntity;
-          }
-        }
+      const loserEntity = match.winner === 'a' ? match.b.entity : match.a.entity;
+
+      if (!found.isBronze) {
+        propagateBracketResult(t, matchId, winnerEntity, loserEntity);
       }
+
+      updatePlacementsFromBracket(t);
       saveState();
       renderTournament();
-      toast('Playoff result saved', 'success');
+      let msg = 'Result saved';
+      if (found.isBronze) msg = '3rd place result saved';
+      if (found.isGF && t.playoffs?.gfResetActive) msg = 'GF done — bracket reset required';
+      if (found.isGF2) msg = 'Champion decided';
+      toast(msg, 'success');
+    }
+
+    function renderPodium(t) {
+      const el = document.getElementById('podium-section');
+      if (!el) return;
+      const p = t.placements || t.playoffs?.placements;
+      if (!p || (!p.first && !p.second && !p.third)) {
+        el.classList.add('hidden');
+        el.innerHTML = '';
+        return;
+      }
+      el.classList.remove('hidden');
+      el.innerHTML = `
+        <div class="grid grid-cols-3 gap-2 sm:gap-4 mb-2">
+          <div class="surface-card rounded-2xl p-4 text-center order-2 sm:order-1 opacity-90">
+            <div class="text-2xl mb-1">🥈</div>
+            <div class="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">2nd</div>
+            <div class="font-semibold text-white mt-1 text-sm truncate">${p.second ? escapeHtml(p.second.name) : '—'}</div>
+          </div>
+          <div class="surface-card rounded-2xl p-4 text-center order-1 sm:order-2 ring-1 ring-amber-500/30">
+            <div class="text-3xl mb-1">🥇</div>
+            <div class="text-[11px] font-semibold text-amber-400 uppercase tracking-wider">1st</div>
+            <div class="font-bold text-white mt-1 truncate">${p.first ? escapeHtml(p.first.name) : '—'}</div>
+          </div>
+          <div class="surface-card rounded-2xl p-4 text-center order-3 opacity-90">
+            <div class="text-2xl mb-1">🥉</div>
+            <div class="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">3rd</div>
+            <div class="font-semibold text-white mt-1 text-sm truncate">${p.third ? escapeHtml(p.third.name) : '—'}</div>
+          </div>
+        </div>
+      `;
     }
 
     // ==================== EXPORT ====================
@@ -1487,21 +2295,21 @@
       });
 
       document.getElementById('stats-summary-cards').innerHTML = `
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-          <div class="text-2xl font-bold text-foos-400">${totalPlayers}</div>
-          <div class="text-xs text-gray-500 mt-1">Active Players</div>
+        <div class="surface-card rounded-2xl p-4 text-center">
+          <div class="text-2xl font-bold text-emerald-400">${totalPlayers}</div>
+          <div class="text-[11px] text-zinc-500 mt-1 font-medium uppercase tracking-wide">Active</div>
         </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-          <div class="text-2xl font-bold">${totalMatches}</div>
-          <div class="text-xs text-gray-500 mt-1">Matches</div>
+        <div class="surface-card rounded-2xl p-4 text-center">
+          <div class="text-2xl font-bold text-white">${totalMatches}</div>
+          <div class="text-[11px] text-zinc-500 mt-1 font-medium uppercase tracking-wide">Matches</div>
         </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-          <div class="text-2xl font-bold">${avgWR}%</div>
-          <div class="text-xs text-gray-500 mt-1">Avg Win Rate</div>
+        <div class="surface-card rounded-2xl p-4 text-center">
+          <div class="text-2xl font-bold text-white">${avgWR}%</div>
+          <div class="text-[11px] text-zinc-500 mt-1 font-medium uppercase tracking-wide">Avg WR</div>
         </div>
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-          <div class="text-lg font-bold truncate">${escapeHtml(topName)}</div>
-          <div class="text-xs text-gray-500 mt-1">Top (pts)</div>
+        <div class="surface-card rounded-2xl p-4 text-center">
+          <div class="text-base font-bold text-white truncate">${escapeHtml(topName)}</div>
+          <div class="text-[11px] text-zinc-500 mt-1 font-medium uppercase tracking-wide">Top pts</div>
         </div>
       `;
 
@@ -1522,17 +2330,17 @@
         body.innerHTML = `<tr><td colspan="10" class="px-4 py-10 text-center text-gray-500">No match data for this week yet. Play some tournaments!</td></tr>`;
       } else {
         body.innerHTML = rows.map(r => `
-          <tr class="border-t border-gray-800 table-row">
-            <td class="px-3 py-2.5 font-medium sticky left-0 bg-gray-900/95">${escapeHtml(r.name)}</td>
-            <td class="px-2 py-2.5 text-center">${r.cur.played || '–'}</td>
-            <td class="px-2 py-2.5 text-center text-foos-400">${r.cur.wins || '–'}</td>
-            <td class="px-2 py-2.5 text-center">${r.cur.played ? winRate(r.cur) + '%' : '–'}</td>
-            <td class="px-2 py-2.5 text-center font-semibold">${r.cur.pts || '–'}</td>
-            <td class="px-2 py-2.5 text-center">${r.cur.played ? (r.cur.gd > 0 ? '+' : '') + r.cur.gd : '–'}</td>
+          <tr class="border-t border-white/5 table-row">
+            <td class="px-3 py-2.5 font-medium text-zinc-100 sticky left-0 bg-[#121214]">${escapeHtml(r.name)}</td>
+            <td class="px-2 py-2.5 text-center text-zinc-400">${r.cur.played || '–'}</td>
+            <td class="px-2 py-2.5 text-center text-emerald-400">${r.cur.wins || '–'}</td>
+            <td class="px-2 py-2.5 text-center text-zinc-300">${r.cur.played ? winRate(r.cur) + '%' : '–'}</td>
+            <td class="px-2 py-2.5 text-center font-semibold text-white">${r.cur.pts || '–'}</td>
+            <td class="px-2 py-2.5 text-center text-zinc-400">${r.cur.played ? (r.cur.gd > 0 ? '+' : '') + r.cur.gd : '–'}</td>
             <td class="px-2 py-2.5 text-center">${deltaBadge(r.dPts)}</td>
             <td class="px-2 py-2.5 text-center">${deltaBadge(r.dWR, '%')}</td>
-            <td class="px-2 py-2.5 text-center text-gray-500 hidden sm:table-cell">${r.prev.pts || '–'}</td>
-            <td class="px-2 py-2.5 text-center text-gray-400 hidden md:table-cell">${career[r.pid]?.pts ?? 0}</td>
+            <td class="px-2 py-2.5 text-center text-zinc-600 hidden sm:table-cell">${r.prev.pts || '–'}</td>
+            <td class="px-2 py-2.5 text-center text-zinc-500 hidden md:table-cell">${career[r.pid]?.pts ?? 0}</td>
           </tr>
         `).join('');
       }
@@ -1549,16 +2357,16 @@
         careerBody.innerHTML = `<tr><td colspan="9" class="px-4 py-10 text-center text-gray-500">No career data yet</td></tr>`;
       } else {
         careerBody.innerHTML = careerRows.map((r, i) => `
-          <tr class="border-t border-gray-800 table-row">
-            <td class="px-3 py-2.5 text-gray-500">${i + 1}</td>
-            <td class="px-3 py-2.5 font-medium">${escapeHtml(r.name)}</td>
-            <td class="px-2 py-2.5 text-center">${r.eventCount || 0}</td>
-            <td class="px-2 py-2.5 text-center">${r.played}</td>
-            <td class="px-2 py-2.5 text-center text-foos-400">${r.wins}</td>
-            <td class="px-2 py-2.5 text-center text-red-400">${r.losses}</td>
-            <td class="px-2 py-2.5 text-center">${r.wr}%</td>
-            <td class="px-2 py-2.5 text-center">${r.gd > 0 ? '+' : ''}${r.gd}</td>
-            <td class="px-2 py-2.5 text-center font-bold">${r.pts}</td>
+          <tr class="border-t border-white/5 table-row">
+            <td class="px-3 py-2.5 text-zinc-600 font-medium">${i + 1}</td>
+            <td class="px-3 py-2.5 font-medium text-zinc-100">${escapeHtml(r.name)}</td>
+            <td class="px-2 py-2.5 text-center text-zinc-400">${r.eventCount || 0}</td>
+            <td class="px-2 py-2.5 text-center text-zinc-400">${r.played}</td>
+            <td class="px-2 py-2.5 text-center text-emerald-400">${r.wins}</td>
+            <td class="px-2 py-2.5 text-center text-red-400/80">${r.losses}</td>
+            <td class="px-2 py-2.5 text-center text-zinc-300">${r.wr}%</td>
+            <td class="px-2 py-2.5 text-center text-zinc-400">${r.gd > 0 ? '+' : ''}${r.gd}</td>
+            <td class="px-2 py-2.5 text-center font-bold text-white">${r.pts}</td>
           </tr>
         `).join('');
       }
@@ -1575,6 +2383,8 @@
         const el = document.getElementById('view-' + v);
         if (el) el.classList.toggle('hidden', v !== name);
       });
+      const navMap = { home: 'home', players: 'players', stats: 'stats', create: 'home', tournament: 'home' };
+      updateNav(navMap[name] || name);
       if (name === 'home') renderHome();
       if (name === 'players') renderPlayers();
       if (name === 'tournament') renderTournament();
