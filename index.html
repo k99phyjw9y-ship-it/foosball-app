@@ -1254,6 +1254,27 @@
       return p;
     }
 
+    /** Pair players so byes never face byes: (player vs bye) then (player vs player). */
+    function arrangeFirstRoundSides(list, size) {
+      const players = list.map(e => ({ seed: e.seed, entity: { id: e.id, name: e.name }, score: null }));
+      const byeCount = size - players.length;
+      const pairs = [];
+      let pi = 0;
+      for (let i = 0; i < byeCount; i++) {
+        pairs.push([players[pi++], { seed: null, entity: null, score: null }]);
+      }
+      while (pi < players.length) {
+        pairs.push([players[pi++], players[pi++] || { seed: null, entity: null, score: null }]);
+      }
+      // Ensure exactly size/2 pairs
+      while (pairs.length < size / 2) {
+        pairs.push([{ seed: null, entity: null, score: null }, { seed: null, entity: null, score: null }]);
+      }
+      return pairs.slice(0, size / 2);
+    }
+
+
+
     function prepareSeedList(entities, shuffleSeeds) {
       const list = entities.map((e, i) => ({ id: e.id, name: e.name, seed: i + 1 }));
       if (shuffleSeeds) shuffle(list);
@@ -1314,7 +1335,8 @@
       } else if (bE && aBye) {
         match.winner = 'b'; match.loser = 'a'; match.scoreA = 0; match.scoreB = 0;
       } else if (aBye && bBye) {
-        match.winner = 'a'; match.loser = 'b'; match.scoreA = 0; match.scoreB = 0;
+        // Empty void match (should not be created) — leave unresolved
+        match.void = true;
       }
       // Both have entities → real match, wait for score entry
     }
@@ -1391,9 +1413,44 @@
         placements: { first: null, second: null, third: null }
       };
 
-      let current = slots.map(makeSide);
       let roundNum = 1;
       const totalRounds = Math.log2(size) || 1;
+      let current = null; // set after first round from winners
+
+      // Round 1: arrange so byes never face byes
+      {
+        const pairs = arrangeFirstRoundSides(list, size);
+        const matches = pairs.map(([a, b]) => makeMatch(a, b, { bracket: 'winners' }));
+        const isFinal = matches.length === 1;
+        bracket.rounds.push({
+          number: roundNum,
+          name: isFinal ? 'Final' : (roundNum === totalRounds - 1 ? 'Semifinals' : `Round ${roundNum}`),
+          matches
+        });
+        current = matches.map(m => ({
+          seed: 0,
+          entity: m.winner === 'a' ? m.a.entity : (m.winner === 'b' ? m.b.entity : null),
+          score: null,
+          fromMatch: m.id,
+          fromLoser: false
+        }));
+        if (matches.length === 2 && !bracket.bronze) {
+          bracket.bronze = makeMatch(
+            { entity: null, fromMatch: matches[0].id, fromLoser: true },
+            { entity: null, fromMatch: matches[1].id, fromLoser: true },
+            { bracket: 'bronze', isBronze: true }
+          );
+          bracket.bronze.winner = null;
+          bracket.bronze.loser = null;
+          bracket.bronze.scoreA = null;
+          bracket.bronze.scoreB = null;
+        }
+        roundNum++;
+        if (matches.length === 1) {
+          // done — fall through with empty while
+          current = [];
+        }
+      }
 
       while (current.length >= 2) {
         const matches = [];
@@ -1426,6 +1483,7 @@
 
       // Alias for unified renderer
       bracket.winnersRounds = bracket.rounds;
+      applyPreResolvedByes(bracket);
       return bracket;
     }
 
@@ -1441,9 +1499,30 @@
 
       // --- Winners bracket ---
       const winnersRounds = [];
-      let current = slots.map(makeSide);
       let roundNum = 1;
       const totalWb = Math.log2(size) || 1;
+      let current = null;
+
+      // Round 1: arrange so byes never face byes
+      {
+        const pairs = arrangeFirstRoundSides(list, size);
+        const matches = pairs.map(([a, b]) => makeMatch(a, b, { bracket: 'winners' }));
+        const isFinal = matches.length === 1;
+        winnersRounds.push({
+          number: roundNum,
+          name: isFinal ? 'Winners Final' : (roundNum === totalWb - 1 ? 'Winners SF' : `Winners R${roundNum}`),
+          matches
+        });
+        current = matches.map(m => ({
+          seed: 0,
+          entity: m.winner === 'a' ? m.a.entity : (m.winner === 'b' ? m.b.entity : null),
+          score: null,
+          fromMatch: m.id,
+          fromLoser: false
+        }));
+        roundNum++;
+        if (matches.length === 1) current = [];
+      }
 
       while (current.length >= 2) {
         const matches = [];
@@ -1470,49 +1549,91 @@
       // --- Losers bracket ---
       const losersRounds = [];
       if (size >= 4 && winnersRounds.length >= 1) {
-        // LB R1: pair losers from WB R1
+        // Helper: does this match produce a real loser into LB?
+        // Pure byes (player/team vs empty) do NOT drop anyone into losers.
+        const producesLoser = (m) => {
+          if (!m) return false;
+          if (m.winner && m.scoreA === 0 && m.scoreB === 0) {
+            const loserEnt = m.winner === 'a' ? m.b?.entity : m.a?.entity;
+            return !!loserEnt; // bye matches have no loser entity
+          }
+          // Pending match with two real sides (or feeds) will produce a loser
+          const sideLive = (s) => !!(s?.entity || s?.fromMatch);
+          return sideLive(m.a) && sideLive(m.b);
+        };
+
+        // LB R1: pair losers only from WB R1 matches that produce losers
         const wb1 = winnersRounds[0].matches;
+        const lb1Feeds = [];
+        for (const m of wb1) {
+          if (producesLoser(m)) lb1Feeds.push(loserFeed(m.id));
+        }
+        // Odd count → one permanent bye so someone advances
+        if (lb1Feeds.length % 2 === 1) {
+          lb1Feeds.push({ seed: null, entity: null, score: null }); // permanent bye
+        }
         const lb1Matches = [];
-        for (let i = 0; i < wb1.length; i += 2) {
-          if (!wb1[i + 1]) break;
-          const m = makeMatch(loserFeed(wb1[i].id), loserFeed(wb1[i + 1].id), { bracket: 'losers' });
-          m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+        for (let i = 0; i < lb1Feeds.length; i += 2) {
+          const m = makeMatch(lb1Feeds[i], lb1Feeds[i + 1], { bracket: 'losers' });
+          // makeMatch may auto-resolve player-vs-bye; keep that. Clear false both-bye wins.
+          if (m.winner && !m.a?.entity && !m.b?.entity) {
+            m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+          }
           lb1Matches.push(m);
         }
         if (lb1Matches.length) {
           losersRounds.push({ number: 1, name: 'Losers R1', matches: lb1Matches });
         }
 
-        // For each subsequent WB round: drop WB losers into LB, then consolidate if needed
+        // Subsequent WB rounds: drop WB losers into LB, then consolidate if needed
         for (let wr = 1; wr < winnersRounds.length; wr++) {
-          const wbMatches = winnersRounds[wr].matches;
+          const wbMatches = winnersRounds[wr].matches.filter(producesLoser);
           const prevLB = losersRounds[losersRounds.length - 1];
           if (!prevLB) break;
 
-          // Align counts: take prev LB matches (may need to only use first N)
           let lbSources = prevLB.matches.slice();
-          // Drop round: LB winners vs WB losers
           const dropMatches = [];
-          const nDrop = Math.min(lbSources.length, wbMatches.length);
-          for (let i = 0; i < nDrop; i++) {
-            const m = makeMatch(
-              winnerFeed(lbSources[i].id),
-              loserFeed(wbMatches[i].id),
-              { bracket: 'losers' }
-            );
-            m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
-            dropMatches.push(m);
+          const nDrop = Math.min(lbSources.length, Math.max(wbMatches.length, 1));
+
+          // Pair LB winners with WB losers (only real loser sources)
+          const wbFeeds = wbMatches.map(m => loserFeed(m.id));
+          // If more LB winners than WB losers, pair extras against each other / byes
+          const maxSlots = Math.max(lbSources.length, wbFeeds.length);
+          // Build sides list: prefer LB winner vs WB loser
+          const pairs = [];
+          const n = Math.min(lbSources.length, wbFeeds.length);
+          for (let i = 0; i < n; i++) {
+            pairs.push([winnerFeed(lbSources[i].id), wbFeeds[i]]);
           }
-          // Extra LB winners without WB opponent play each other or auto-advance
-          if (lbSources.length > nDrop) {
-            for (let i = nDrop; i < lbSources.length; i += 2) {
-              if (lbSources[i + 1]) {
-                const m = makeMatch(winnerFeed(lbSources[i].id), winnerFeed(lbSources[i + 1].id), { bracket: 'losers' });
-                m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
-                dropMatches.push(m);
-              }
+          // Extra LB winners
+          for (let i = n; i < lbSources.length; i += 2) {
+            if (lbSources[i + 1]) {
+              pairs.push([winnerFeed(lbSources[i].id), winnerFeed(lbSources[i + 1].id)]);
+            } else {
+              pairs.push([winnerFeed(lbSources[i].id), { seed: null, entity: null, score: null }]);
             }
           }
+          // Extra WB losers (rare)
+          for (let i = n; i < wbFeeds.length; i += 2) {
+            if (wbFeeds[i + 1]) {
+              pairs.push([wbFeeds[i], wbFeeds[i + 1]]);
+            } else {
+              pairs.push([wbFeeds[i], { seed: null, entity: null, score: null }]);
+            }
+          }
+
+          for (const [sa, sb] of pairs) {
+            const m = makeMatch(sa, sb, { bracket: 'losers' });
+            if (m.winner && !m.a?.entity && !m.b?.entity) {
+              m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+            }
+            // Pending real matches must wait for scores — clear accidental auto-win
+            if (m.winner && (isPendingFeed(m.a) || isPendingFeed(m.b))) {
+              m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+            }
+            dropMatches.push(m);
+          }
+
           if (dropMatches.length) {
             losersRounds.push({
               number: losersRounds.length + 1,
@@ -1522,18 +1643,21 @@
           }
 
           // Consolidate if more matches than next WB loser count needs
-          const nextWbCount = wr + 1 < winnersRounds.length ? winnersRounds[wr + 1].matches.length : 1;
+          const nextWbCount = wr + 1 < winnersRounds.length
+            ? winnersRounds[wr + 1].matches.filter(producesLoser).length || 1
+            : 1;
           while (losersRounds.length && losersRounds[losersRounds.length - 1].matches.length > nextWbCount) {
             const src = losersRounds[losersRounds.length - 1].matches;
             const consol = [];
             for (let i = 0; i < src.length; i += 2) {
               if (!src[i + 1]) {
-                // odd one out — carry with auto path via dummy: create match vs bye
-                const m = makeMatch(winnerFeed(src[i].id), makeSide(null), { bracket: 'losers' });
+                const m = makeMatch(winnerFeed(src[i].id), { seed: null, entity: null, score: null }, { bracket: 'losers' });
                 consol.push(m);
               } else {
                 const m = makeMatch(winnerFeed(src[i].id), winnerFeed(src[i + 1].id), { bracket: 'losers' });
-                m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+                if (m.winner && (isPendingFeed(m.a) || isPendingFeed(m.b))) {
+                  m.winner = null; m.loser = null; m.scoreA = null; m.scoreB = null;
+                }
                 consol.push(m);
               }
             }
@@ -1573,7 +1697,7 @@
         grandFinal2.winner = null; grandFinal2.loser = null; grandFinal2.scoreA = null; grandFinal2.scoreB = null;
       }
 
-      return {
+      const bracket = {
         type: 'double-elim',
         size,
         rounds: winnersRounds,
@@ -1586,6 +1710,8 @@
         gfResetRequired: false,
         gfResetActive: false
       };
+      applyPreResolvedByes(bracket);
+      return bracket;
     }
 
     function buildBracket(entities, format, opts) {
@@ -1917,12 +2043,61 @@
 
     function feedEntity(side, winnerEntity, loserEntity) {
       if (!side?.fromMatch) return;
-      if (side.fromLoser) side.entity = loserEntity;
-      else side.entity = winnerEntity;
+      if (side.fromLoser) {
+        if (loserEntity) {
+          side.entity = loserEntity;
+        } else {
+          // Source match was a bye — no loser drops into LB. Convert pending TBD → permanent BYE
+          // so the other team can auto-advance instead of being stuck on TBD.
+          side.entity = null;
+          side.fromMatch = null;
+          side.fromLoser = false;
+          side.isBye = true;
+        }
+      } else {
+        side.entity = winnerEntity || null;
+      }
+    }
+
+    /**
+     * After bracket structure is built, push all already-decided bye results into
+     * downstream WB/LB slots. Without this, LB feeds from WB byes stay on TBD forever.
+     */
+    function applyPreResolvedByes(bracket) {
+      if (!bracket) return;
+      const t = { playoffs: bracket };
+      let guard = 0;
+      while (guard++ < 80) {
+        let progressed = false;
+        const matches = [];
+        for (const r of allBracketRoundLists(bracket)) {
+          (r.matches || []).forEach(m => matches.push(m));
+        }
+        if (bracket.bronze) matches.push(bracket.bronze);
+        if (bracket.grandFinal) matches.push(bracket.grandFinal);
+        if (bracket.grandFinal2) matches.push(bracket.grandFinal2);
+
+        for (const m of matches) {
+          if (!m) continue;
+          if (!m.winner) resolveBye(m);
+          if (m.winner && (m.scoreA === 0 && m.scoreB === 0) && !m._byePropagated) {
+            const w = m.winner === 'a' ? m.a?.entity : m.b?.entity;
+            const l = m.winner === 'a' ? m.b?.entity : m.a?.entity;
+            m._byePropagated = true;
+            propagateBracketResult(t, m.id, w, l);
+            progressed = true;
+          }
+        }
+        if (!progressed) break;
+      }
+      const strip = (m) => { if (m) delete m._byePropagated; };
+      for (const r of allBracketRoundLists(bracket)) (r.matches || []).forEach(strip);
+      strip(bracket.bronze); strip(bracket.grandFinal); strip(bracket.grandFinal2);
     }
 
     function propagateBracketResult(t, matchId, winnerEntity, loserEntity) {
       const b = t.playoffs;
+      if (!b) return;
       const touched = [];
       const applyToMatch = (m) => {
         if (!m) return;
@@ -1939,14 +2114,13 @@
       applyToMatch(b.grandFinal);
       applyToMatch(b.grandFinal2);
 
-      // Only auto-advance true byes (never pending TBD slots)
       touched.forEach(m => {
         if (!m.winner) resolveBye(m);
-        // If this match just auto-resolved via a real bye, propagate further
-        if (m.winner && m.scoreA === 0 && m.scoreB === 0) {
-          const w = m.winner === 'a' ? m.a.entity : m.b.entity;
-          const l = m.winner === 'a' ? m.b.entity : m.a.entity;
-          if (w) propagateBracketResult(t, m.id, w, l);
+        if (m.winner && m.scoreA === 0 && m.scoreB === 0 && !m._byePropagated) {
+          const w = m.winner === 'a' ? m.a?.entity : m.b?.entity;
+          const l = m.winner === 'a' ? m.b?.entity : m.a?.entity;
+          m._byePropagated = true;
+          propagateBracketResult(t, m.id, w, l);
         }
       });
 
@@ -2015,7 +2189,11 @@
       const actions = document.getElementById('bracket-actions');
       const isElim = t.format === 'single-elim' || t.format === 'double-elim';
       const b = t.playoffs;
-      if (b) sanitizeBracketMatches(b);
+      if (b) {
+        sanitizeBracketMatches(b);
+        // Repair LB slots that were stuck TBD because WB byes never dropped a loser
+        applyPreResolvedByes(b);
+      }
       const isDE = b?.type === 'double-elim' || t.format === 'double-elim';
 
       if (actions) {
