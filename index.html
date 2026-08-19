@@ -1,23 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0a0a0b" />
-  <title>FoosManager – Foosball Tournament App</title>
+  <meta name="theme-color" content="#f4f7f5" />
+  <title>LCFC Manager – Lake Champlain Foosball Club</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
             surface: {
-              DEFAULT: '#0a0a0b',
-              raised: '#121214',
-              overlay: '#1a1a1e',
-              border: '#27272a',
-              muted: '#3f3f46'
+              DEFAULT: '#f4f7f5',
+              raised: '#ffffff',
+              overlay: '#eef2f0',
+              border: '#d4ddd8',
+              muted: '#94a3b8'
             },
             foos: {
               50: '#ecfdf5',
@@ -36,8 +35,8 @@
             sans: ['"DM Sans"', 'Inter', 'system-ui', 'sans-serif'],
           },
           boxShadow: {
-            'glow': '0 0 24px -4px rgba(16, 185, 129, 0.25)',
-            'card': '0 1px 0 0 rgba(255,255,255,0.03) inset, 0 8px 24px -8px rgba(0,0,0,0.5)',
+            'glow': '0 0 24px -4px rgba(16, 185, 129, 0.2)',
+            'card': '0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px -4px rgba(15, 23, 42, 0.08)',
           }
         }
       }
@@ -48,65 +47,72 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a0a0b;
-      --raised: #121214;
-      --overlay: #1a1a1e;
-      --border: rgba(255,255,255,0.06);
-      --border-strong: rgba(255,255,255,0.1);
-      --accent: #10b981;
-      --accent-dim: rgba(16, 185, 129, 0.15);
+      --bg: #f4f7f5;
+      --raised: #ffffff;
+      --overlay: #eef2f0;
+      --border: rgba(15, 23, 42, 0.08);
+      --border-strong: rgba(15, 23, 42, 0.14);
+      --accent: #059669;
+      --accent-dim: rgba(5, 150, 105, 0.12);
+      --text: #0f172a;
+      --text-muted: #64748b;
     }
     * { -webkit-tap-highlight-color: transparent; }
     body {
       font-family: 'DM Sans', Inter, system-ui, sans-serif;
       background: var(--bg);
       background-image:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.12), transparent),
-        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(16, 185, 129, 0.05), transparent);
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.14), transparent),
+        radial-gradient(ellipse 50% 40% at 100% 0%, rgba(5, 150, 105, 0.06), transparent);
       min-height: 100dvh;
+      color: var(--text);
     }
     .glass {
-      background: rgba(18, 18, 20, 0.75);
-      backdrop-filter: blur(16px) saturate(1.4);
-      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(16px) saturate(1.3);
+      -webkit-backdrop-filter: blur(16px) saturate(1.3);
       border: 1px solid var(--border);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
     .glass-strong {
-      background: rgba(26, 26, 30, 0.9);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(20px);
       border: 1px solid var(--border-strong);
+      box-shadow: 0 4px 20px -6px rgba(15, 23, 42, 0.1);
     }
     .surface-card {
       background: var(--raised);
       border: 1px solid var(--border);
-      box-shadow: 0 1px 0 0 rgba(255,255,255,0.03) inset, 0 4px 16px -4px rgba(0,0,0,0.4);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px -6px rgba(15, 23, 42, 0.06);
     }
     .btn-primary {
-      background: linear-gradient(180deg, #14b8a6 0%, #059669 100%);
-      box-shadow: 0 1px 0 0 rgba(255,255,255,0.15) inset, 0 4px 12px -2px rgba(16, 185, 129, 0.4);
+      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 1px 0 0 rgba(255,255,255,0.25) inset, 0 4px 12px -2px rgba(5, 150, 105, 0.35);
       transition: all 0.2s ease;
+      color: #fff;
     }
     .btn-primary:hover {
-      filter: brightness(1.08);
-      box-shadow: 0 1px 0 0 rgba(255,255,255,0.2) inset, 0 6px 16px -2px rgba(16, 185, 129, 0.5);
+      filter: brightness(1.05);
+      box-shadow: 0 1px 0 0 rgba(255,255,255,0.3) inset, 0 6px 16px -2px rgba(5, 150, 105, 0.45);
       transform: translateY(-1px);
     }
-    .btn-primary:active { transform: translateY(0); filter: brightness(0.95); }
+    .btn-primary:active { transform: translateY(0); filter: brightness(0.97); }
     .btn-ghost {
-      background: rgba(255,255,255,0.04);
+      background: rgba(15, 23, 42, 0.03);
       border: 1px solid var(--border);
       transition: all 0.15s ease;
+      color: #334155;
     }
     .btn-ghost:hover {
-      background: rgba(255,255,255,0.08);
+      background: rgba(15, 23, 42, 0.06);
       border-color: var(--border-strong);
     }
     .nav-item {
       transition: all 0.2s ease;
-      color: #71717a;
+      color: #94a3b8;
     }
     .nav-item.active, .nav-item:hover {
-      color: #34d399;
+      color: #059669;
     }
     .nav-item.active {
       background: var(--accent-dim);
@@ -128,24 +134,27 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .card-interactive:hover {
-      border-color: rgba(16, 185, 129, 0.35);
-      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.15), 0 12px 32px -8px rgba(0,0,0,0.5);
+      border-color: rgba(5, 150, 105, 0.35);
+      box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.12), 0 12px 28px -8px rgba(15, 23, 42, 0.12);
       transform: translateY(-2px);
     }
     .type-btn {
       transition: all 0.2s ease;
+      background: #fff;
+      border-color: #e2e8f0;
     }
     .type-btn.selected {
       border-color: #10b981 !important;
-      background: rgba(16, 185, 129, 0.12) !important;
+      background: rgba(16, 185, 129, 0.1) !important;
       box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
     }
     .tab-btn {
       transition: all 0.2s ease;
       position: relative;
+      color: #94a3b8;
     }
     .tab-btn.active-tab {
-      color: #34d399;
+      color: #059669;
     }
     .tab-btn.active-tab::after {
       content: '';
@@ -157,14 +166,15 @@
       border-radius: 2px;
     }
     .input-field {
-      background: rgba(0,0,0,0.35);
-      border: 1px solid var(--border);
+      background: #fff;
+      border: 1px solid var(--border-strong);
+      color: #0f172a;
       transition: all 0.15s ease;
     }
     .input-field:focus {
       outline: none;
-      border-color: rgba(16, 185, 129, 0.5);
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+      border-color: rgba(5, 150, 105, 0.55);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
     }
     .badge {
       font-size: 0.65rem;
@@ -172,14 +182,15 @@
       letter-spacing: 0.03em;
       text-transform: uppercase;
     }
-    /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+    ::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.12); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(15, 23, 42, 0.2); }
+    /* Light-mode readability helpers for common dark utility leftovers */
+    .text-on-surface { color: #0f172a; }
   </style>
 </head>
-<body class="text-zinc-100 antialiased">
+<body class="text-slate-800 antialiased">
   <!-- Toast container -->
   <div id="toast-container" class="fixed bottom-24 sm:bottom-6 right-4 z-50 space-y-2 max-w-sm"></div>
 
@@ -191,11 +202,11 @@
       <div class="flex items-center gap-3">
         <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center shadow-glow">
           <span class="text-xl">⚽</span>
-          <div class="absolute inset-0 rounded-2xl ring-1 ring-white/20"></div>
+          <div class="absolute inset-0 rounded-2xl ring-1 ring-slate-200/80"></div>
         </div>
         <div>
-          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white">FoosManager</h1>
-          <p class="text-[11px] text-zinc-500 font-medium tracking-wide">Tournament OS</p>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900">LCFC Manager</h1>
+          <p class="text-[11px] text-slate-500 font-medium tracking-wide">Lake Champlain Foosball Club</p>
         </div>
       </div>
       <!-- Desktop nav -->
@@ -207,7 +218,7 @@
     </header>
 
     <!-- Mobile bottom nav -->
-    <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-white/5 safe-bottom">
+    <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-slate-200 safe-bottom">
       <div class="flex items-center justify-around px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <button onclick="showView('home')" data-nav="home" class="nav-item flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl min-w-[72px]">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
@@ -228,8 +239,8 @@
     <div id="view-home" class="space-y-6">
       <div class="flex items-end justify-between gap-4">
         <div>
-          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Tournaments</h2>
-          <p class="text-sm text-zinc-500 mt-1">Singles · Doubles · DYP · Monster DYP</p>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Tournaments</h2>
+          <p class="text-sm text-slate-500 mt-1">Singles · Doubles · DYP · Monster DYP</p>
         </div>
         <button onclick="startCreateTournament()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2 shrink-0">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
@@ -243,9 +254,9 @@
 
       <div id="empty-tournaments" class="hidden">
         <div class="surface-card rounded-3xl p-12 text-center">
-          <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-3xl">🏆</div>
-          <p class="text-lg font-semibold text-white">No tournaments yet</p>
-          <p class="text-sm text-zinc-500 mt-2 max-w-xs mx-auto">Create your first Singles, Doubles or DYP event and start tracking matches.</p>
+          <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-emerald-50 flex items-center justify-center text-3xl">🏆</div>
+          <p class="text-lg font-semibold text-slate-900">No tournaments yet</p>
+          <p class="text-sm text-slate-500 mt-2 max-w-xs mx-auto">Create your first Singles, Doubles or DYP event and start tracking matches.</p>
           <button onclick="startCreateTournament()" class="btn-primary mt-6 px-5 py-2.5 rounded-xl font-semibold text-sm text-white inline-flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
             Create tournament
@@ -258,8 +269,8 @@
     <div id="view-players" class="hidden space-y-6">
       <div class="flex items-end justify-between gap-4">
         <div>
-          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Players</h2>
-          <p class="text-sm text-zinc-500 mt-1">Your roster for draws and rankings</p>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Players</h2>
+          <p class="text-sm text-slate-500 mt-1">Your roster for draws and rankings</p>
         </div>
         <button onclick="openPlayerModal()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2 shrink-0">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
@@ -270,10 +281,10 @@
       <div class="surface-card rounded-2xl overflow-hidden">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-white/5">
-              <th class="text-left px-4 py-3.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Name</th>
-              <th class="text-left px-4 py-3.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden sm:table-cell">Skill</th>
-              <th class="text-right px-4 py-3.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Actions</th>
+            <tr class="border-b border-slate-200">
+              <th class="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
+              <th class="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Skill</th>
+              <th class="text-right px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody id="players-table-body"></tbody>
@@ -285,36 +296,36 @@
     <div id="view-stats" class="hidden space-y-6">
       <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Player Stats</h2>
-          <p class="text-sm text-zinc-500 mt-1">Week-over-week performance</p>
+          <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Player Stats</h2>
+          <p class="text-sm text-slate-500 mt-1">Week-over-week performance</p>
         </div>
         <div class="flex items-center gap-2">
-          <label class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Week</label>
-          <select id="stats-week-select" onchange="renderStats()" class="input-field rounded-xl px-3 py-2 text-sm text-zinc-200"></select>
+          <label class="text-xs font-medium text-slate-500 uppercase tracking-wider">Week</label>
+          <select id="stats-week-select" onchange="renderStats()" class="input-field rounded-xl px-3 py-2 text-sm text-slate-800"></select>
         </div>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="stats-summary-cards"></div>
 
       <div class="surface-card rounded-2xl overflow-hidden">
-        <div class="px-4 py-3.5 border-b border-white/5 flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-zinc-200">Week-over-Week</h3>
-          <span class="text-xs text-zinc-500 font-medium" id="stats-week-label"></span>
+        <div class="px-4 py-3.5 border-b border-slate-200 flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-slate-800">Week-over-Week</h3>
+          <span class="text-xs text-slate-500 font-medium" id="stats-week-label"></span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-white/5">
-                <th class="text-left px-3 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider sticky left-0 bg-[#121214]">Player</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Played">P</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Wins">W</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Win rate">WR%</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Points">Pts</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Goal difference">GD</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Δ Points">Δ Pts</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider" title="Δ Win rate">Δ WR</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden sm:table-cell">Prev</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden md:table-cell">Career</th>
+              <tr class="border-b border-slate-200">
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider sticky left-0 bg-white">Player</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider" title="Played">P</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider" title="Wins">W</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider" title="Win rate">WR%</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider" title="Points">Pts</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider" title="Goal difference">GD</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider" title="Δ Points">Δ Pts</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider" title="Δ Win rate">Δ WR</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Prev</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Career</th>
               </tr>
             </thead>
             <tbody id="stats-wow-body"></tbody>
@@ -323,22 +334,22 @@
       </div>
 
       <div class="surface-card rounded-2xl overflow-hidden">
-        <div class="px-4 py-3.5 border-b border-white/5">
-          <h3 class="text-sm font-semibold text-zinc-200">Career Leaderboard</h3>
+        <div class="px-4 py-3.5 border-b border-slate-200">
+          <h3 class="text-sm font-semibold text-slate-800">Career Leaderboard</h3>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-white/5">
-                <th class="text-left px-3 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">#</th>
-                <th class="text-left px-3 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Player</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Events</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">P</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">W</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">L</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">WR%</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">GD</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Pts</th>
+              <tr class="border-b border-slate-200">
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Player</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Events</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">P</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">W</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">L</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">WR%</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">GD</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Pts</th>
               </tr>
             </thead>
             <tbody id="stats-career-body"></tbody>
@@ -346,7 +357,7 @@
         </div>
       </div>
 
-      <p class="text-xs text-zinc-600 leading-relaxed">
+      <p class="text-xs text-slate-500 leading-relaxed">
         ISO weeks (Mon–Sun). Stats aggregate completed matches from tournaments that started in that week. Δ compares against the previous active week.
       </p>
     </div>
@@ -354,48 +365,48 @@
     <!-- CREATE / EDIT TOURNAMENT -->
     <div id="view-create" class="hidden space-y-6">
       <div class="flex items-center gap-3">
-        <button onclick="showView('home')" class="btn-ghost w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white">
+        <button onclick="showView('home')" class="btn-ghost w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </button>
-        <h2 class="text-2xl font-bold tracking-tight text-white" id="create-title">New Tournament</h2>
+        <h2 class="text-2xl font-bold tracking-tight text-slate-900" id="create-title">New Tournament</h2>
       </div>
 
       <div class="surface-card rounded-2xl p-5 sm:p-6 space-y-6">
         <div>
-          <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Tournament Name</label>
-          <input id="t-name" type="text" placeholder="Friday Night Monster DYP" class="input-field w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600" />
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tournament Name</label>
+          <input id="t-name" type="text" placeholder="Friday Night Monster DYP" class="input-field w-full rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400" />
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Event Type</label>
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Event Type</label>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="type-selector">
-            <button data-type="singles" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-white/10 bg-black/20 hover:border-emerald-500/40 text-center">
+            <button data-type="singles" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 text-center">
               <div class="text-2xl mb-1.5">👤</div>
-              <div class="font-semibold text-sm text-white">Singles</div>
-              <div class="text-[11px] text-zinc-500 mt-0.5">1v1</div>
+              <div class="font-semibold text-sm text-slate-900">Singles</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">1v1</div>
             </button>
-            <button data-type="doubles" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-white/10 bg-black/20 hover:border-emerald-500/40 text-center">
+            <button data-type="doubles" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 text-center">
               <div class="text-2xl mb-1.5">👥</div>
-              <div class="font-semibold text-sm text-white">Doubles</div>
-              <div class="text-[11px] text-zinc-500 mt-0.5">BYP fixed</div>
+              <div class="font-semibold text-sm text-slate-900">Doubles</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">BYP fixed</div>
             </button>
-            <button data-type="dyp" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-white/10 bg-black/20 hover:border-emerald-500/40 text-center">
+            <button data-type="dyp" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 text-center">
               <div class="text-2xl mb-1.5">🎲</div>
-              <div class="font-semibold text-sm text-white">DYP</div>
-              <div class="text-[11px] text-zinc-500 mt-0.5">Draw once</div>
+              <div class="font-semibold text-sm text-slate-900">DYP</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">Draw once</div>
             </button>
-            <button data-type="monster" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-white/10 bg-black/20 hover:border-emerald-500/40 text-center">
+            <button data-type="monster" onclick="selectType(this)" class="type-btn p-4 rounded-2xl border border-slate-200 bg-white hover:border-emerald-300 text-center">
               <div class="text-2xl mb-1.5">👹</div>
-              <div class="font-semibold text-sm text-white">Monster</div>
-              <div class="text-[11px] text-zinc-500 mt-0.5">New each round</div>
+              <div class="font-semibold text-sm text-slate-900">Monster</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">New each round</div>
             </button>
           </div>
         </div>
 
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Format</label>
-            <select id="t-format" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200">
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Format</label>
+            <select id="t-format" class="input-field w-full rounded-xl px-4 py-3 text-slate-800">
               <option value="swiss">Swiss / Ranking Rounds</option>
               <option value="roundrobin">Round Robin</option>
               <option value="single-elim">Single Elimination</option>
@@ -403,8 +414,8 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Race to</label>
-            <select id="t-race" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200">
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Race to</label>
+            <select id="t-race" class="input-field w-full rounded-xl px-4 py-3 text-slate-800">
               <option value="5">5 goals</option>
               <option value="7" selected>7 goals</option>
               <option value="9">9 goals</option>
@@ -415,29 +426,29 @@
 
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Best of</label>
-            <select id="t-bestof" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200">
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Best of</label>
+            <select id="t-bestof" class="input-field w-full rounded-xl px-4 py-3 text-slate-800">
               <option value="1" selected>1 (single game)</option>
               <option value="3">Best of 3</option>
               <option value="5">Best of 5</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Tables</label>
-            <input id="t-tables" type="number" min="1" max="20" value="2" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200" />
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tables</label>
+            <input id="t-tables" type="number" min="1" max="20" value="2" class="input-field w-full rounded-xl px-4 py-3 text-slate-800" />
           </div>
         </div>
 
         <div id="draw-options" class="hidden">
-          <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Partner Draw</label>
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Partner Draw</label>
           <div class="flex flex-wrap gap-3">
             <label class="flex items-center gap-2.5 cursor-pointer px-4 py-2.5 rounded-xl btn-ghost">
               <input type="radio" name="draw-style" value="random" checked class="accent-emerald-500" />
-              <span class="text-sm text-zinc-300">Fully Random</span>
+              <span class="text-sm text-slate-700">Fully Random</span>
             </label>
             <label class="flex items-center gap-2.5 cursor-pointer px-4 py-2.5 rounded-xl btn-ghost">
               <input type="radio" name="draw-style" value="highlow" class="accent-emerald-500" />
-              <span class="text-sm text-zinc-300">High-Low</span>
+              <span class="text-sm text-slate-700">High-Low</span>
             </label>
           </div>
         </div>
@@ -452,70 +463,70 @@
     <div id="view-tournament" class="hidden space-y-5">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
-          <button onclick="showView('home')" class="btn-ghost w-9 h-9 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white shrink-0">
+          <button onclick="showView('home')" class="btn-ghost w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900 shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
           <div class="min-w-0">
-            <h2 class="text-xl font-bold tracking-tight text-white truncate" id="td-name">Tournament</h2>
-            <p class="text-xs text-zinc-500 mt-0.5 truncate" id="td-meta"></p>
+            <h2 class="text-xl font-bold tracking-tight text-slate-900 truncate" id="td-name">Tournament</h2>
+            <p class="text-xs text-slate-500 mt-0.5 truncate" id="td-meta"></p>
           </div>
         </div>
         <div class="flex gap-2">
-          <button onclick="exportStandings()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-zinc-300">Export</button>
+          <button onclick="exportStandings()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700">Export</button>
           <button onclick="confirmDeleteTournament()" class="px-3 py-1.5 text-sm rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition">Delete</button>
         </div>
       </div>
 
-      <div class="flex gap-1 overflow-x-auto border-b border-white/5 -mx-1 px-1">
-        <button data-tab="players" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-zinc-200 whitespace-nowrap">Players</button>
-        <button data-tab="matches" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-zinc-200 whitespace-nowrap">Matches</button>
-        <button data-tab="standings" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-zinc-200 whitespace-nowrap">Standings</button>
-        <button data-tab="bracket" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-zinc-500 hover:text-zinc-200 whitespace-nowrap">Bracket</button>
+      <div class="flex gap-1 overflow-x-auto border-b border-slate-200 -mx-1 px-1">
+        <button data-tab="players" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 whitespace-nowrap">Players</button>
+        <button data-tab="matches" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 whitespace-nowrap">Matches</button>
+        <button data-tab="standings" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 whitespace-nowrap">Standings</button>
+        <button data-tab="bracket" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 whitespace-nowrap">Bracket</button>
       </div>
 
       <div id="tab-players" class="tab-content space-y-4">
         <div class="flex flex-wrap gap-2 items-center">
-          <select id="add-player-select" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[140px] text-zinc-200"></select>
+          <select id="add-player-select" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[140px] text-slate-800"></select>
           <button onclick="addPlayerToTournament()" class="btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold text-white">Add</button>
-          <button onclick="openPlayerModal(true)" class="btn-ghost px-3 py-2.5 rounded-xl text-sm text-zinc-300">Quick Add</button>
+          <button onclick="openPlayerModal(true)" class="btn-ghost px-3 py-2.5 rounded-xl text-sm text-slate-700">Quick Add</button>
         </div>
         <div id="teams-section" class="hidden">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-sm font-semibold text-zinc-300">Teams</h3>
+            <h3 class="text-sm font-semibold text-slate-700">Teams</h3>
             <div class="flex gap-2">
-              <button id="draw-partners-btn" onclick="drawPartners()" class="px-3 py-1.5 text-sm rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400 hover:bg-amber-500/25 font-medium transition">🎲 Draw Partners</button>
-              <button id="clear-teams-btn" onclick="clearTeams()" class="px-3 py-1.5 text-sm rounded-xl btn-ghost text-zinc-400 hidden">Clear teams</button>
+              <button id="draw-partners-btn" onclick="drawPartners()" class="px-3 py-1.5 text-sm rounded-xl bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-100 font-medium transition">🎲 Draw Partners</button>
+              <button id="clear-teams-btn" onclick="clearTeams()" class="px-3 py-1.5 text-sm rounded-xl btn-ghost text-slate-500 hidden">Clear teams</button>
             </div>
           </div>
 
           <!-- Manual BYP team builder -->
           <div id="manual-team-builder" class="hidden surface-card rounded-2xl p-4 mb-3 space-y-3">
-            <p class="text-xs text-zinc-500 font-medium">Pick two players to form a fixed pair (BYP)</p>
+            <p class="text-xs text-slate-500 font-medium">Pick two players to form a fixed pair (BYP)</p>
             <div class="flex flex-wrap gap-2 items-center">
-              <select id="team-player-a" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[120px] text-zinc-200"></select>
-              <span class="text-zinc-600 text-sm font-medium">+</span>
-              <select id="team-player-b" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[120px] text-zinc-200"></select>
+              <select id="team-player-a" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[120px] text-slate-800"></select>
+              <span class="text-slate-500 text-sm font-medium">+</span>
+              <select id="team-player-b" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[120px] text-slate-800"></select>
               <button onclick="formTeam()" class="btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold text-white shrink-0">Form team</button>
             </div>
-            <p id="unpaired-hint" class="text-xs text-zinc-600"></p>
+            <p id="unpaired-hint" class="text-xs text-slate-500"></p>
           </div>
 
           <div id="teams-list" class="space-y-2"></div>
         </div>
         <div id="tournament-players-list" class="space-y-2"></div>
-        <div class="pt-4 border-t border-white/5">
+        <div class="pt-4 border-t border-slate-200">
           <button id="generate-round-btn" onclick="generateRound()" class="btn-primary w-full py-3.5 rounded-xl font-bold text-white disabled:opacity-40">Generate Next Round</button>
-          <p id="round-hint" class="text-xs text-zinc-600 mt-2 text-center"></p>
+          <p id="round-hint" class="text-xs text-slate-500 mt-2 text-center"></p>
         </div>
       </div>
 
       <div id="tab-matches" class="tab-content hidden space-y-4">
         <div class="flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-zinc-300">Round <span id="current-round-label" class="text-emerald-400">0</span></h3>
+          <h3 class="text-sm font-semibold text-slate-700">Round <span id="current-round-label" class="text-emerald-600">0</span></h3>
           <button onclick="generateRound()" class="btn-primary px-3 py-1.5 text-sm rounded-xl font-semibold text-white">+ Round</button>
         </div>
         <div id="matches-list" class="space-y-3"></div>
-        <div id="no-matches" class="surface-card rounded-2xl py-12 text-center text-zinc-500 text-sm hidden">
+        <div id="no-matches" class="surface-card rounded-2xl py-12 text-center text-slate-500 text-sm hidden">
           <p>No matches yet. Add players and generate a round.</p>
         </div>
       </div>
@@ -525,42 +536,42 @@
         <div class="surface-card rounded-2xl overflow-hidden">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-white/5">
-                <th class="text-left px-3 py-3 w-10 text-xs font-semibold text-zinc-500 uppercase tracking-wider">#</th>
-                <th class="text-left px-3 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Player / Team</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">P</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">W</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">L</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">GD</th>
-                <th class="text-center px-2 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Pts</th>
+              <tr class="border-b border-slate-200">
+                <th class="text-left px-3 py-3 w-10 text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Player / Team</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">P</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">W</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">L</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">GD</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Pts</th>
               </tr>
             </thead>
             <tbody id="standings-body"></tbody>
           </table>
         </div>
-        <p class="text-xs text-zinc-600 mt-3">P = Played · W = Wins · L = Losses · GD = Goal Diff · Pts = 2 per win. Bracket tournaments also show 1st / 2nd / 3rd above.</p>
+        <p class="text-xs text-slate-500 mt-3">P = Played · W = Wins · L = Losses · GD = Goal Diff · Pts = 2 per win. Bracket tournaments also show 1st / 2nd / 3rd above.</p>
       </div>
 
       <div id="tab-bracket" class="tab-content hidden space-y-4">
         <div id="bracket-actions" class="flex flex-wrap gap-2"></div>
         <div id="bracket-container" class="overflow-x-auto pb-4">
-          <p class="text-zinc-500 text-center py-10 text-sm">Start a bracket when players/teams are ready.</p>
+          <p class="text-slate-500 text-center py-10 text-sm">Start a bracket when players/teams are ready.</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Player Modal -->
-  <div id="player-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.65);backdrop-filter:blur(8px)">
+  <div id="player-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(15,23,42,0.35);backdrop-filter:blur(8px)">
     <div class="surface-card rounded-3xl w-full max-w-md p-6 space-y-5 shadow-2xl">
-      <h3 class="text-lg font-bold text-white" id="player-modal-title">Add Player</h3>
+      <h3 class="text-lg font-bold text-slate-900" id="player-modal-title">Add Player</h3>
       <div>
-        <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Name</label>
-        <input id="player-name" type="text" class="input-field w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600" placeholder="Player name" />
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Name</label>
+        <input id="player-name" type="text" class="input-field w-full rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400" placeholder="Player name" />
       </div>
       <div>
-        <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Skill (for high-low draws)</label>
-        <select id="player-skill" class="input-field w-full rounded-xl px-4 py-3 text-zinc-200">
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Skill (for high-low draws)</label>
+        <select id="player-skill" class="input-field w-full rounded-xl px-4 py-3 text-slate-800">
           <option value="3">Average</option>
           <option value="5">Pro / Advanced</option>
           <option value="4">Intermediate+</option>
@@ -569,38 +580,38 @@
         </select>
       </div>
       <div class="flex gap-3 pt-1">
-        <button onclick="closePlayerModal()" class="btn-ghost flex-1 py-3 rounded-xl text-zinc-300 font-medium">Cancel</button>
+        <button onclick="closePlayerModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
         <button onclick="savePlayer()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white">Save</button>
       </div>
     </div>
   </div>
 
   <!-- Score Modal -->
-  <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.65);backdrop-filter:blur(8px)">
+  <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(15,23,42,0.35);backdrop-filter:blur(8px)">
     <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl">
-      <h3 class="text-lg font-bold text-center text-white" id="score-modal-title">Enter Score</h3>
+      <h3 class="text-lg font-bold text-center text-slate-900" id="score-modal-title">Enter Score</h3>
       <div class="flex items-center justify-center gap-4 text-center">
         <div class="flex-1">
-          <div class="text-xs font-medium text-zinc-500 mb-2 truncate px-1" id="score-team-a"></div>
-          <input id="score-a" type="number" min="0" max="30" value="0" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-white" />
+          <div class="text-xs font-medium text-slate-500 mb-2 truncate px-1" id="score-team-a"></div>
+          <input id="score-a" type="number" min="0" max="30" value="0" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900" />
         </div>
-        <div class="text-2xl text-zinc-600 font-light">–</div>
+        <div class="text-2xl text-slate-500 font-light">–</div>
         <div class="flex-1">
-          <div class="text-xs font-medium text-zinc-500 mb-2 truncate px-1" id="score-team-b"></div>
-          <input id="score-b" type="number" min="0" max="30" value="0" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-white" />
+          <div class="text-xs font-medium text-slate-500 mb-2 truncate px-1" id="score-team-b"></div>
+          <input id="score-b" type="number" min="0" max="30" value="0" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900" />
         </div>
       </div>
       <div class="flex flex-wrap gap-1.5 justify-center">
-        <button onclick="setScore(7,0)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-0</button>
-        <button onclick="setScore(7,1)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-1</button>
-        <button onclick="setScore(7,2)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-2</button>
-        <button onclick="setScore(7,3)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-3</button>
-        <button onclick="setScore(7,4)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-4</button>
-        <button onclick="setScore(7,5)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-5</button>
-        <button onclick="setScore(7,6)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-zinc-400">7-6</button>
+        <button onclick="setScore(7,0)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-0</button>
+        <button onclick="setScore(7,1)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-1</button>
+        <button onclick="setScore(7,2)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-2</button>
+        <button onclick="setScore(7,3)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-3</button>
+        <button onclick="setScore(7,4)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-4</button>
+        <button onclick="setScore(7,5)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-5</button>
+        <button onclick="setScore(7,6)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-6</button>
       </div>
       <div class="flex gap-3">
-        <button onclick="closeScoreModal()" class="btn-ghost flex-1 py-3 rounded-xl text-zinc-300 font-medium">Cancel</button>
+        <button onclick="closeScoreModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
         <button onclick="submitScore()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white">Save</button>
       </div>
     </div>
@@ -648,9 +659,9 @@
     function toast(msg, type = 'info') {
       const el = document.createElement('div');
       el.className = `toast px-4 py-3 rounded-2xl text-sm font-medium shadow-xl border ${
-        type === 'error' ? 'bg-red-500/90 border-red-400/30 text-white' :
-        type === 'success' ? 'bg-emerald-500/90 border-emerald-400/30 text-white' :
-        'bg-zinc-800/95 border-white/10 text-zinc-100'
+        type === 'error' ? 'bg-red-500 border-red-400 text-slate-900 shadow-lg' :
+        type === 'success' ? 'bg-emerald-600 border-emerald-500 text-slate-900 shadow-lg' :
+        'bg-white border-slate-200 text-slate-800 shadow-lg'
       }`;
       el.textContent = msg;
       document.getElementById('toast-container').appendChild(el);
@@ -738,14 +749,14 @@
     function renderPlayers() {
       const tbody = document.getElementById('players-table-body');
       if (state.players.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-12 text-center text-zinc-500 text-sm">No players yet. Add your roster to get started.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-12 text-center text-slate-500 text-sm">No players yet. Add your roster to get started.</td></tr>';
         return;
       }
       const skillLabel = {1:'Beginner',2:'Beginner+',3:'Average',4:'Intermediate+',5:'Pro'};
       tbody.innerHTML = state.players.map(p => `
-        <tr class="border-t border-white/5 table-row">
-          <td class="px-4 py-3.5 font-medium text-zinc-100">${escapeHtml(p.name)}</td>
-          <td class="px-4 py-3.5 text-zinc-500 hidden sm:table-cell"><span class="badge px-2 py-0.5 rounded-md bg-white/5 text-zinc-400">${skillLabel[p.skill] || 'Average'}</span></td>
+        <tr class="border-t border-slate-200 table-row">
+          <td class="px-4 py-3.5 font-medium text-slate-900">${escapeHtml(p.name)}</td>
+          <td class="px-4 py-3.5 text-slate-500 hidden sm:table-cell"><span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">${skillLabel[p.skill] || 'Average'}</span></td>
           <td class="px-4 py-3.5 text-right space-x-3">
             <button onclick="editPlayer('${p.id}')" class="text-emerald-400/80 hover:text-emerald-300 text-sm font-medium">Edit</button>
             <button onclick="deletePlayer('${p.id}')" class="text-red-400/70 hover:text-red-300 text-sm font-medium">Delete</button>
@@ -853,17 +864,17 @@
             <div class="flex items-start gap-3 min-w-0">
               <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-lg shrink-0">${typeIcon[t.type] || '⚽'}</div>
               <div class="min-w-0">
-                <h3 class="font-semibold text-white truncate">${escapeHtml(t.name)}</h3>
-                <p class="text-xs text-zinc-500 mt-1">${typeLabel[t.type] || t.type} · Race to ${t.raceTo}</p>
+                <h3 class="font-semibold text-slate-900 truncate">${escapeHtml(t.name)}</h3>
+                <p class="text-xs text-slate-500 mt-1">${typeLabel[t.type] || t.type} · Race to ${t.raceTo}</p>
               </div>
             </div>
-            <span class="badge px-2 py-1 rounded-lg shrink-0 ${t.status === 'finished' ? 'bg-zinc-800 text-zinc-500' : t.status === 'active' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-zinc-400'}">${t.status}</span>
+            <span class="badge px-2 py-1 rounded-lg shrink-0 ${t.status === 'finished' ? 'bg-slate-100 text-slate-500' : t.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'}">${t.status}</span>
           </div>
-          <div class="mt-4 flex items-center gap-3 text-[11px] text-zinc-600 font-medium">
+          <div class="mt-4 flex items-center gap-3 text-[11px] text-slate-500 font-medium">
             <span>${t.playerIds.length} players</span>
-            <span class="w-1 h-1 rounded-full bg-zinc-700"></span>
+            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
             <span>R${t.currentRound}</span>
-            <span class="w-1 h-1 rounded-full bg-zinc-700"></span>
+            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
             <span>${new Date(t.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
@@ -961,7 +972,7 @@
     function renderTournamentPlayers(t) {
       const container = document.getElementById('tournament-players-list');
       if (t.playerIds.length === 0) {
-        container.innerHTML = '<p class="text-zinc-500 text-sm py-4 text-center">Add players to get started.</p>';
+        container.innerHTML = '<p class="text-slate-500 text-sm py-4 text-center">Add players to get started.</p>';
         return;
       }
       container.innerHTML = t.playerIds.map(pid => {
@@ -969,7 +980,7 @@
         if (!p) return '';
         return `
           <div class="flex items-center justify-between surface-card rounded-xl px-4 py-3">
-            <span class="font-medium text-zinc-100">${escapeHtml(p.name)}</span>
+            <span class="font-medium text-slate-900">${escapeHtml(p.name)}</span>
             <button onclick="removePlayerFromTournament('${pid}')" class="text-red-400/70 hover:text-red-300 text-sm font-medium">Remove</button>
           </div>
         `;
@@ -1072,7 +1083,7 @@
         const tip = t.type === 'doubles'
           ? 'No teams yet. Use the form above to pair players.'
           : 'No teams yet. Draw partners or create manually.';
-        list.innerHTML = `<p class="text-zinc-500 text-sm text-center py-2">${tip}</p>`;
+        list.innerHTML = `<p class="text-slate-500 text-sm text-center py-2">${tip}</p>`;
         return;
       }
       const canRemove = t.type === 'doubles' || t.type === 'dyp';
@@ -1083,7 +1094,7 @@
         }).join(' + ');
         return `
           <div class="flex items-center justify-between surface-card rounded-xl px-4 py-3">
-            <span class="font-medium text-zinc-100">${escapeHtml(names)}</span>
+            <span class="font-medium text-slate-900">${escapeHtml(names)}</span>
             <div class="flex items-center gap-2">
               <span class="badge px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400/80">Team</span>
               ${canRemove ? `<button onclick="removeTeam('${team.id}')" class="text-red-400/70 hover:text-red-300 text-xs font-medium">Remove</button>` : ''}
@@ -1680,31 +1691,31 @@
           return `
             <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : 'ring-1 ring-emerald-500/10'}">
               <div class="flex items-center justify-between mb-3">
-                <span class="badge px-2 py-0.5 rounded-md bg-white/5 text-zinc-500">Table ${m.table}</span>
-                <span class="text-[11px] font-semibold ${done ? 'text-emerald-400' : 'text-amber-400'}">${done ? 'Finished' : 'Pending'}</span>
+                <span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">Table ${m.table}</span>
+                <span class="text-[11px] font-semibold ${done ? 'text-emerald-400' : 'text-amber-600'}">${done ? 'Finished' : 'Pending'}</span>
               </div>
               <div class="flex items-center justify-between gap-3">
-                <div class="flex-1 text-right text-sm ${winnerA ? 'text-emerald-400 font-semibold' : 'text-zinc-300'}">${escapeHtml(m.entityA.name)}</div>
-                <div class="px-3 py-1.5 rounded-xl font-mono text-base min-w-[72px] text-center ${done ? 'bg-black/40 text-white' : 'bg-white/5 text-zinc-400'}">${scoreText}</div>
-                <div class="flex-1 text-sm ${winnerB ? 'text-emerald-400 font-semibold' : 'text-zinc-300'}">${escapeHtml(m.entityB.name)}</div>
+                <div class="flex-1 text-right text-sm ${winnerA ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">${escapeHtml(m.entityA.name)}</div>
+                <div class="px-3 py-1.5 rounded-xl font-mono text-base min-w-[72px] text-center ${done ? 'bg-slate-100 text-slate-900' : 'bg-slate-50 text-slate-400'}">${scoreText}</div>
+                <div class="flex-1 text-sm ${winnerB ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">${escapeHtml(m.entityB.name)}</div>
               </div>
               ${!done ? `
                 <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-2.5 rounded-xl text-sm font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25 transition">
                   Enter Score
                 </button>
               ` : `
-                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition">Edit score</button>
+                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-1.5 text-xs text-slate-500 hover:text-slate-500 transition">Edit score</button>
               `}
             </div>
           `;
         }).join('');
         return `
           <div class="space-y-3">
-            <h4 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Round ${round.number}</h4>
+            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Round ${round.number}</h4>
             ${matchesHtml}
           </div>
         `;
-      }).join('<div class="border-t border-white/5 my-5"></div>');
+      }).join('<div class="border-t border-slate-200 my-5"></div>');
 
       container.innerHTML = roundsHtml;
     }
@@ -1866,18 +1877,18 @@
       const body = document.getElementById('standings-body');
       const standings = computeStandings(t);
       if (standings.length === 0) {
-        body.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No results yet</td></tr>';
+        body.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">No results yet</td></tr>';
         return;
       }
       body.innerHTML = standings.map((s, i) => `
-        <tr class="border-t border-white/5 table-row">
-          <td class="px-3 py-2.5 text-zinc-600 font-medium">${i + 1}</td>
-          <td class="px-3 py-2.5 font-medium text-zinc-100">${escapeHtml(s.name)}</td>
-          <td class="px-2 py-2.5 text-center text-zinc-400">${s.played}</td>
+        <tr class="border-t border-slate-200 table-row">
+          <td class="px-3 py-2.5 text-slate-500 font-medium">${i + 1}</td>
+          <td class="px-3 py-2.5 font-medium text-slate-900">${escapeHtml(s.name)}</td>
+          <td class="px-2 py-2.5 text-center text-slate-500">${s.played}</td>
           <td class="px-2 py-2.5 text-center text-emerald-400">${s.wins}</td>
           <td class="px-2 py-2.5 text-center text-red-400/80">${s.losses}</td>
-          <td class="px-2 py-2.5 text-center text-zinc-400">${s.gd > 0 ? '+' : ''}${s.gd}</td>
-          <td class="px-2 py-2.5 text-center font-bold text-white">${s.pts}</td>
+          <td class="px-2 py-2.5 text-center text-slate-500">${s.gd > 0 ? '+' : ''}${s.gd}</td>
+          <td class="px-2 py-2.5 text-center font-bold text-slate-900">${s.pts}</td>
         </tr>
       `).join('');
     }
@@ -1963,25 +1974,25 @@
       const hasBye = m.winner && (!m.a?.entity || !m.b?.entity);
       const score = (m.winner && hasBoth && m.scoreA != null) ? `${m.scoreA}–${m.scoreB}` : (hasBye ? 'bye' : '');
       const canScore = !m.winner && hasBoth;
-      const ring = accent === 'amber' ? 'ring-amber-500/20' : accent === 'violet' ? 'ring-violet-500/20' : 'ring-emerald-500/10';
-      const win = accent === 'amber' ? 'text-amber-400' : accent === 'violet' ? 'text-violet-300' : 'text-emerald-400';
+      const ring = accent === 'amber' ? 'ring-amber-200' : accent === 'violet' ? 'ring-violet-200' : 'ring-emerald-200';
+      const win = accent === 'amber' ? 'text-amber-600' : accent === 'violet' ? 'text-violet-600' : 'text-emerald-700';
       const btn = accent === 'amber'
-        ? 'bg-amber-500/15 text-amber-400 border-amber-500/20 hover:bg-amber-500/25'
+        ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
         : accent === 'violet'
-          ? 'bg-violet-500/15 text-violet-300 border-violet-500/20 hover:bg-violet-500/25'
-          : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/25';
+          ? 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100'
+          : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
       return `
         <div class="surface-card rounded-xl p-3 text-sm ${m.winner ? 'opacity-90' : 'ring-1 ' + ring}">
-          <div class="flex justify-between items-center py-1 gap-2 ${m.winner === 'a' ? win + ' font-semibold' : 'text-zinc-300'}">
+          <div class="flex justify-between items-center py-1 gap-2 ${m.winner === 'a' ? win + ' font-semibold' : 'text-slate-700'}">
             <span class="truncate">${escapeHtml(nameA)}</span>
             ${m.winner === 'a' ? '<span class="text-[10px]">W</span>' : ''}
           </div>
-          <div class="border-t border-white/5 my-1"></div>
-          <div class="flex justify-between items-center py-1 gap-2 ${m.winner === 'b' ? win + ' font-semibold' : 'text-zinc-300'}">
+          <div class="border-t border-slate-200 my-1"></div>
+          <div class="flex justify-between items-center py-1 gap-2 ${m.winner === 'b' ? win + ' font-semibold' : 'text-slate-700'}">
             <span class="truncate">${escapeHtml(nameB)}</span>
             ${m.winner === 'b' ? '<span class="text-[10px]">W</span>' : ''}
           </div>
-          ${score ? `<div class="text-center text-xs text-zinc-500 mt-1.5 font-mono">${score}</div>` : ''}
+          ${score ? `<div class="text-center text-xs text-slate-500 mt-1.5 font-mono">${score}</div>` : ''}
           ${canScore ? `<button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-1.5 text-xs font-semibold rounded-lg border transition ${btn}">Enter score</button>` : ''}
         </div>`;
     }
@@ -1991,7 +2002,7 @@
       let html = '<div class="flex gap-4 min-w-max items-stretch">';
       rounds.forEach((round) => {
         html += `<div class="flex flex-col justify-around gap-3 min-w-[200px]">
-          <div class="text-[11px] text-zinc-500 font-semibold uppercase tracking-wider text-center mb-1">${escapeHtml(round.name || ('R' + round.number))}</div>`;
+          <div class="text-[11px] text-slate-500 font-semibold uppercase tracking-wider text-center mb-1">${escapeHtml(round.name || ('R' + round.number))}</div>`;
         round.matches.forEach(m => { html += matchCardHtml(m, accent); });
         html += '</div>';
       });
@@ -2013,14 +2024,14 @@
             <button onclick="startBracketTournament()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white">
               ${b ? '↺ Reset bracket' : '▶ Start bracket'}
             </button>
-            <span class="text-xs text-zinc-500 self-center">${isDE ? 'Double elimination · winners + losers + grand final' : 'Single elimination · 3rd place match'}</span>
+            <span class="text-xs text-slate-500 self-center">${isDE ? 'Double elimination · winners + losers + grand final' : 'Single elimination · 3rd place match'}</span>
           `;
         } else {
           actions.innerHTML = `
-            <button onclick="startPlayoffs()" class="px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400 hover:bg-amber-500/25 font-semibold text-sm transition">
+            <button onclick="startPlayoffs()" class="px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-600 hover:bg-amber-500/25 font-semibold text-sm transition">
               Start Playoffs (Top 8 / 4 / 2)
             </button>
-            <span class="text-xs text-zinc-500 self-center">After ranking rounds</span>
+            <span class="text-xs text-slate-500 self-center">After ranking rounds</span>
           `;
         }
       }
@@ -2036,7 +2047,7 @@
 
       const hasBracket = b && (b.winnersRounds?.length || b.rounds?.length);
       if (!hasBracket) {
-        container.innerHTML = `<p class="text-zinc-500 text-center py-10 text-sm">${
+        container.innerHTML = `<p class="text-slate-500 text-center py-10 text-sm">${
           isElim
             ? 'Add players/teams, then start the elimination bracket.'
             : 'Play ranking rounds first, then start playoffs — or choose Single/Double Elimination when creating the tournament.'
@@ -2051,7 +2062,7 @@
         html += `<div class="mb-2 text-xs font-semibold text-emerald-400/80 uppercase tracking-wider">Winners bracket</div>`;
         html += roundsRowHtml(wb, 'emerald');
         if (b.losersRounds?.length) {
-          html += `<div class="mt-8 mb-2 text-xs font-semibold text-amber-400/80 uppercase tracking-wider">Losers bracket</div>`;
+          html += `<div class="mt-8 mb-2 text-xs font-semibold text-amber-600/80 uppercase tracking-wider">Losers bracket</div>`;
           html += roundsRowHtml(b.losersRounds, 'amber');
         }
         if (b.grandFinal) {
@@ -2061,13 +2072,13 @@
         if (b.gfResetActive && b.grandFinal2) {
           html += `<div class="mt-4 mb-2 text-xs font-semibold text-violet-300/90 uppercase tracking-wider">Grand Final Reset (bracket reset)</div>`;
           html += `<div class="max-w-xs">${matchCardHtml(b.grandFinal2, 'violet')}</div>`;
-          html += `<p class="text-xs text-zinc-600 mt-2">Losers-bracket champion took the first GF — winner of this match is the champion.</p>`;
+          html += `<p class="text-xs text-slate-500 mt-2">Losers-bracket champion took the first GF — winner of this match is the champion.</p>`;
         }
       } else {
         html += roundsRowHtml(wb, 'emerald');
         if (b.bronze) {
           html += `<div class="mt-6 max-w-xs">
-            <div class="text-[11px] text-zinc-500 font-semibold uppercase tracking-wider mb-2">3rd Place Match</div>
+            <div class="text-[11px] text-slate-500 font-semibold uppercase tracking-wider mb-2">3rd Place Match</div>
             ${matchCardHtml(b.bronze, 'amber')}
           </div>`;
         }
@@ -2076,9 +2087,9 @@
       const p = b.placements || {};
       if (p.first || p.second || p.third) {
         html += `<div class="mt-6 flex flex-wrap gap-3">
-          ${p.first ? `<div class="surface-card rounded-xl px-4 py-3 text-sm"><span class="text-amber-400 font-bold">1st</span> <span class="text-white ml-2">${escapeHtml(p.first.name)}</span></div>` : ''}
-          ${p.second ? `<div class="surface-card rounded-xl px-4 py-3 text-sm"><span class="text-zinc-400 font-bold">2nd</span> <span class="text-white ml-2">${escapeHtml(p.second.name)}</span></div>` : ''}
-          ${p.third ? `<div class="surface-card rounded-xl px-4 py-3 text-sm"><span class="text-amber-700 font-bold">3rd</span> <span class="text-white ml-2">${escapeHtml(p.third.name)}</span></div>` : ''}
+          ${p.first ? `<div class="surface-card rounded-xl px-4 py-3 text-sm"><span class="text-amber-600 font-bold">1st</span> <span class="text-slate-900 ml-2">${escapeHtml(p.first.name)}</span></div>` : ''}
+          ${p.second ? `<div class="surface-card rounded-xl px-4 py-3 text-sm"><span class="text-slate-500 font-bold">2nd</span> <span class="text-slate-900 ml-2">${escapeHtml(p.second.name)}</span></div>` : ''}
+          ${p.third ? `<div class="surface-card rounded-xl px-4 py-3 text-sm"><span class="text-amber-700 font-bold">3rd</span> <span class="text-slate-900 ml-2">${escapeHtml(p.third.name)}</span></div>` : ''}
         </div>`;
       }
 
@@ -2190,18 +2201,18 @@
         <div class="grid grid-cols-3 gap-2 sm:gap-4 mb-2">
           <div class="surface-card rounded-2xl p-4 text-center order-2 sm:order-1 opacity-90">
             <div class="text-2xl mb-1">🥈</div>
-            <div class="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">2nd</div>
-            <div class="font-semibold text-white mt-1 text-sm truncate">${p.second ? escapeHtml(p.second.name) : '—'}</div>
+            <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">2nd</div>
+            <div class="font-semibold text-slate-900 mt-1 text-sm truncate">${p.second ? escapeHtml(p.second.name) : '—'}</div>
           </div>
           <div class="surface-card rounded-2xl p-4 text-center order-1 sm:order-2 ring-1 ring-amber-500/30">
             <div class="text-3xl mb-1">🥇</div>
-            <div class="text-[11px] font-semibold text-amber-400 uppercase tracking-wider">1st</div>
-            <div class="font-bold text-white mt-1 truncate">${p.first ? escapeHtml(p.first.name) : '—'}</div>
+            <div class="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">1st</div>
+            <div class="font-bold text-slate-900 mt-1 truncate">${p.first ? escapeHtml(p.first.name) : '—'}</div>
           </div>
           <div class="surface-card rounded-2xl p-4 text-center order-3 opacity-90">
             <div class="text-2xl mb-1">🥉</div>
             <div class="text-[11px] font-semibold text-amber-700 uppercase tracking-wider">3rd</div>
-            <div class="font-semibold text-white mt-1 text-sm truncate">${p.third ? escapeHtml(p.third.name) : '—'}</div>
+            <div class="font-semibold text-slate-900 mt-1 text-sm truncate">${p.third ? escapeHtml(p.third.name) : '—'}</div>
           </div>
         </div>
       `;
@@ -2320,7 +2331,7 @@
     }
 
     function deltaBadge(delta, suffix = '') {
-      if (delta === 0 || delta == null) return `<span class="text-gray-500">–</span>`;
+      if (delta === 0 || delta == null) return `<span class="text-slate-500">–</span>`;
       const pos = delta > 0;
       const cls = pos ? 'text-foos-400' : 'text-red-400';
       const sign = pos ? '+' : '';
@@ -2368,19 +2379,19 @@
       document.getElementById('stats-summary-cards').innerHTML = `
         <div class="surface-card rounded-2xl p-4 text-center">
           <div class="text-2xl font-bold text-emerald-400">${totalPlayers}</div>
-          <div class="text-[11px] text-zinc-500 mt-1 font-medium uppercase tracking-wide">Active</div>
+          <div class="text-[11px] text-slate-500 mt-1 font-medium uppercase tracking-wide">Active</div>
         </div>
         <div class="surface-card rounded-2xl p-4 text-center">
-          <div class="text-2xl font-bold text-white">${totalMatches}</div>
-          <div class="text-[11px] text-zinc-500 mt-1 font-medium uppercase tracking-wide">Matches</div>
+          <div class="text-2xl font-bold text-slate-900">${totalMatches}</div>
+          <div class="text-[11px] text-slate-500 mt-1 font-medium uppercase tracking-wide">Matches</div>
         </div>
         <div class="surface-card rounded-2xl p-4 text-center">
-          <div class="text-2xl font-bold text-white">${avgWR}%</div>
-          <div class="text-[11px] text-zinc-500 mt-1 font-medium uppercase tracking-wide">Avg WR</div>
+          <div class="text-2xl font-bold text-slate-900">${avgWR}%</div>
+          <div class="text-[11px] text-slate-500 mt-1 font-medium uppercase tracking-wide">Avg WR</div>
         </div>
         <div class="surface-card rounded-2xl p-4 text-center">
-          <div class="text-base font-bold text-white truncate">${escapeHtml(topName)}</div>
-          <div class="text-[11px] text-zinc-500 mt-1 font-medium uppercase tracking-wide">Top pts</div>
+          <div class="text-base font-bold text-slate-900 truncate">${escapeHtml(topName)}</div>
+          <div class="text-[11px] text-slate-500 mt-1 font-medium uppercase tracking-wide">Top pts</div>
         </div>
       `;
 
@@ -2398,20 +2409,20 @@
 
       const body = document.getElementById('stats-wow-body');
       if (rows.length === 0) {
-        body.innerHTML = `<tr><td colspan="10" class="px-4 py-10 text-center text-gray-500">No match data for this week yet. Play some tournaments!</td></tr>`;
+        body.innerHTML = `<tr><td colspan="10" class="px-4 py-10 text-center text-slate-500">No match data for this week yet. Play some tournaments!</td></tr>`;
       } else {
         body.innerHTML = rows.map(r => `
-          <tr class="border-t border-white/5 table-row">
-            <td class="px-3 py-2.5 font-medium text-zinc-100 sticky left-0 bg-[#121214]">${escapeHtml(r.name)}</td>
-            <td class="px-2 py-2.5 text-center text-zinc-400">${r.cur.played || '–'}</td>
+          <tr class="border-t border-slate-200 table-row">
+            <td class="px-3 py-2.5 font-medium text-slate-900 sticky left-0 bg-white">${escapeHtml(r.name)}</td>
+            <td class="px-2 py-2.5 text-center text-slate-500">${r.cur.played || '–'}</td>
             <td class="px-2 py-2.5 text-center text-emerald-400">${r.cur.wins || '–'}</td>
-            <td class="px-2 py-2.5 text-center text-zinc-300">${r.cur.played ? winRate(r.cur) + '%' : '–'}</td>
-            <td class="px-2 py-2.5 text-center font-semibold text-white">${r.cur.pts || '–'}</td>
-            <td class="px-2 py-2.5 text-center text-zinc-400">${r.cur.played ? (r.cur.gd > 0 ? '+' : '') + r.cur.gd : '–'}</td>
+            <td class="px-2 py-2.5 text-center text-slate-600">${r.cur.played ? winRate(r.cur) + '%' : '–'}</td>
+            <td class="px-2 py-2.5 text-center font-semibold text-slate-900">${r.cur.pts || '–'}</td>
+            <td class="px-2 py-2.5 text-center text-slate-500">${r.cur.played ? (r.cur.gd > 0 ? '+' : '') + r.cur.gd : '–'}</td>
             <td class="px-2 py-2.5 text-center">${deltaBadge(r.dPts)}</td>
             <td class="px-2 py-2.5 text-center">${deltaBadge(r.dWR, '%')}</td>
-            <td class="px-2 py-2.5 text-center text-zinc-600 hidden sm:table-cell">${r.prev.pts || '–'}</td>
-            <td class="px-2 py-2.5 text-center text-zinc-500 hidden md:table-cell">${career[r.pid]?.pts ?? 0}</td>
+            <td class="px-2 py-2.5 text-center text-slate-500 hidden sm:table-cell">${r.prev.pts || '–'}</td>
+            <td class="px-2 py-2.5 text-center text-slate-500 hidden md:table-cell">${career[r.pid]?.pts ?? 0}</td>
           </tr>
         `).join('');
       }
@@ -2425,19 +2436,19 @@
 
       const careerBody = document.getElementById('stats-career-body');
       if (careerRows.length === 0) {
-        careerBody.innerHTML = `<tr><td colspan="9" class="px-4 py-10 text-center text-gray-500">No career data yet</td></tr>`;
+        careerBody.innerHTML = `<tr><td colspan="9" class="px-4 py-10 text-center text-slate-500">No career data yet</td></tr>`;
       } else {
         careerBody.innerHTML = careerRows.map((r, i) => `
-          <tr class="border-t border-white/5 table-row">
-            <td class="px-3 py-2.5 text-zinc-600 font-medium">${i + 1}</td>
-            <td class="px-3 py-2.5 font-medium text-zinc-100">${escapeHtml(r.name)}</td>
-            <td class="px-2 py-2.5 text-center text-zinc-400">${r.eventCount || 0}</td>
-            <td class="px-2 py-2.5 text-center text-zinc-400">${r.played}</td>
+          <tr class="border-t border-slate-200 table-row">
+            <td class="px-3 py-2.5 text-slate-500 font-medium">${i + 1}</td>
+            <td class="px-3 py-2.5 font-medium text-slate-900">${escapeHtml(r.name)}</td>
+            <td class="px-2 py-2.5 text-center text-slate-500">${r.eventCount || 0}</td>
+            <td class="px-2 py-2.5 text-center text-slate-500">${r.played}</td>
             <td class="px-2 py-2.5 text-center text-emerald-400">${r.wins}</td>
             <td class="px-2 py-2.5 text-center text-red-400/80">${r.losses}</td>
-            <td class="px-2 py-2.5 text-center text-zinc-300">${r.wr}%</td>
-            <td class="px-2 py-2.5 text-center text-zinc-400">${r.gd > 0 ? '+' : ''}${r.gd}</td>
-            <td class="px-2 py-2.5 text-center font-bold text-white">${r.pts}</td>
+            <td class="px-2 py-2.5 text-center text-slate-600">${r.wr}%</td>
+            <td class="px-2 py-2.5 text-center text-slate-500">${r.gd > 0 ? '+' : ''}${r.gd}</td>
+            <td class="px-2 py-2.5 text-center font-bold text-slate-900">${r.pts}</td>
           </tr>
         `).join('');
       }
