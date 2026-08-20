@@ -521,9 +521,12 @@
       </div>
 
       <div id="tab-matches" class="tab-content hidden space-y-4">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-2 flex-wrap">
           <h3 class="text-sm font-semibold text-slate-700">Round <span id="current-round-label" class="text-emerald-600">0</span></h3>
-          <button onclick="generateRound()" class="btn-primary px-3 py-1.5 text-sm rounded-xl font-semibold text-white">+ Round</button>
+          <div class="flex items-center gap-2">
+            <button onclick="deleteLastRound()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl font-semibold text-red-600 border border-red-200 hover:bg-red-50">Delete last round</button>
+            <button onclick="generateRound()" class="btn-primary px-3 py-1.5 text-sm rounded-xl font-semibold text-white">+ Round</button>
+          </div>
         </div>
         <div id="matches-list" class="space-y-3"></div>
         <div id="no-matches" class="surface-card rounded-2xl py-12 text-center text-slate-500 text-sm hidden">
@@ -1807,6 +1810,8 @@
       }
       noMatches.classList.add('hidden');
 
+      const isLatest = (num) => num === t.currentRound;
+
       // Show latest round first, then previous
       const roundsHtml = t.rounds.slice().reverse().map(round => {
         const matchesHtml = round.matches.map(m => {
@@ -1815,35 +1820,142 @@
           const winnerA = done && m.scoreA > m.scoreB;
           const winnerB = done && m.scoreB > m.scoreA;
           return `
-            <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : 'ring-1 ring-emerald-500/10'}">
+            <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : 'ring-1 ring-emerald-200'}">
               <div class="flex items-center justify-between mb-3">
                 <span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">Table ${m.table}</span>
-                <span class="text-[11px] font-semibold ${done ? 'text-emerald-400' : 'text-amber-600'}">${done ? 'Finished' : 'Pending'}</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] font-semibold ${done ? 'text-emerald-600' : 'text-amber-600'}">${done ? 'Finished' : 'Pending'}</span>
+                  <button onclick="deleteMatch(${round.number}, '${m.id}')" class="text-[11px] font-semibold text-red-500 hover:text-red-700 px-1.5 py-0.5 rounded hover:bg-red-50 transition" title="Delete match">Delete</button>
+                </div>
               </div>
               <div class="flex items-center justify-between gap-3">
                 <div class="flex-1 text-right text-sm ${winnerA ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">${escapeHtml(m.entityA.name)}</div>
                 <div class="px-3 py-1.5 rounded-xl font-mono text-base min-w-[72px] text-center ${done ? 'bg-slate-100 text-slate-900' : 'bg-slate-50 text-slate-400'}">${scoreText}</div>
                 <div class="flex-1 text-sm ${winnerB ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">${escapeHtml(m.entityB.name)}</div>
               </div>
-              ${!done ? `
-                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-2.5 rounded-xl text-sm font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/25 transition">
+              <div class="mt-3 flex gap-2">
+                ${!done ? `
+                <button onclick="openScoreModal('${round.number}','${m.id}')" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
                   Enter Score
                 </button>
               ` : `
-                <button onclick="openScoreModal('${round.number}','${m.id}')" class="mt-3 w-full py-1.5 text-xs text-slate-500 hover:text-slate-500 transition">Edit score</button>
+                <button onclick="openScoreModal('${round.number}','${m.id}')" class="flex-1 py-1.5 text-xs text-slate-500 hover:text-slate-700 transition">Edit score</button>
               `}
+              </div>
             </div>
           `;
         }).join('');
         return `
           <div class="space-y-3">
-            <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Round ${round.number}</h4>
-            ${matchesHtml}
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Round ${round.number}${isLatest(round.number) ? ' · current' : ''}</h4>
+              <button onclick="deleteRound(${round.number})" class="text-[11px] font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition">Delete round</button>
+            </div>
+            ${matchesHtml || '<p class="text-sm text-slate-500 text-center py-2">No matches in this round</p>'}
           </div>
         `;
       }).join('<div class="border-t border-slate-200 my-5"></div>');
 
       container.innerHTML = roundsHtml;
+    }
+
+    /** Remove a single drawn match from a ranking round (all event types). */
+    function deleteMatch(roundNum, matchId) {
+      const t = getCurrentTournament();
+      if (!t) return;
+      const round = t.rounds.find(r => r.number === parseInt(roundNum, 10));
+      if (!round) return;
+      const match = round.matches.find(m => m.id === matchId);
+      if (!match) return;
+      const label = `${match.entityA?.name || '?'} vs ${match.entityB?.name || '?'}`;
+      if (!confirm(`Delete match?\n${label}`)) return;
+      round.matches = round.matches.filter(m => m.id !== matchId);
+      // Drop empty non-latest rounds
+      if (round.matches.length === 0 && round.number === t.currentRound) {
+        t.rounds = t.rounds.filter(r => r.number !== round.number);
+        t.currentRound = t.rounds.length ? Math.max(...t.rounds.map(r => r.number)) : 0;
+        if (t.currentRound === 0 && t.status === 'active') t.status = 'setup';
+      }
+      saveState();
+      renderTournament();
+      toast('Match deleted', 'success');
+    }
+
+    /** Remove an entire drawn round and its matches. */
+    function deleteRound(roundNum) {
+      const t = getCurrentTournament();
+      if (!t) return;
+      const num = parseInt(roundNum, 10);
+      const round = t.rounds.find(r => r.number === num);
+      if (!round) return;
+      const n = round.matches.length;
+      if (!confirm(`Delete Round ${num} and its ${n} match${n === 1 ? '' : 'es'}?`)) return;
+      t.rounds = t.rounds.filter(r => r.number !== num);
+      // Renumber remaining rounds to stay sequential
+      t.rounds.sort((a, b) => a.number - b.number);
+      t.rounds.forEach((r, i) => { r.number = i + 1; });
+      t.currentRound = t.rounds.length;
+      if (t.currentRound === 0) t.status = t.playerIds?.length ? 'setup' : 'setup';
+      saveState();
+      renderTournament();
+      toast(`Round ${num} deleted`, 'success');
+    }
+
+    /** Shortcut: delete the most recent drawn round. */
+    function deleteLastRound() {
+      const t = getCurrentTournament();
+      if (!t || !t.rounds?.length) {
+        toast('No rounds to delete', 'error');
+        return;
+      }
+      const last = Math.max(...t.rounds.map(r => r.number));
+      deleteRound(last);
+    }
+
+    /** Clear a bracket match result so it can be replayed (does not remove bracket structure). */
+    function clearBracketMatch(matchId) {
+      const t = getCurrentTournament();
+      if (!t?.playoffs) return;
+      const found = findBracketMatch(t, matchId);
+      if (!found?.match) return;
+      const m = found.match;
+      if (!m.winner && m.scoreA == null) {
+        toast('Match has no result to clear', 'error');
+        return;
+      }
+      if (!confirm('Clear this bracket result? Downstream matches that already advanced may need a bracket reset.')) return;
+      m.winner = null;
+      m.loser = null;
+      m.scoreA = null;
+      m.scoreB = null;
+      delete m._byePropagated;
+      // Clear entities that were fed from this match in later rounds (they become TBD again)
+      const clearFeed = (side) => {
+        if (side?.fromMatch === matchId) {
+          side.entity = null;
+        }
+      };
+      for (const r of allBracketRoundLists(t.playoffs)) {
+        for (const om of r.matches) {
+          clearFeed(om.a);
+          clearFeed(om.b);
+          // If a downstream match was already scored based on this, clear it too (cascade one level)
+          if ((om.a?.fromMatch === matchId || om.b?.fromMatch === matchId) && om.winner) {
+            om.winner = null; om.loser = null; om.scoreA = null; om.scoreB = null;
+          }
+        }
+      }
+      if (t.playoffs.bronze) { clearFeed(t.playoffs.bronze.a); clearFeed(t.playoffs.bronze.b); }
+      if (t.playoffs.grandFinal) { clearFeed(t.playoffs.grandFinal.a); clearFeed(t.playoffs.grandFinal.b); }
+      if (t.playoffs.grandFinal2) { clearFeed(t.playoffs.grandFinal2.a); clearFeed(t.playoffs.grandFinal2.b); }
+      if (t.playoffs.placements) {
+        t.playoffs.placements = { first: null, second: null, third: null };
+        t.placements = t.playoffs.placements;
+      }
+      t.status = 'active';
+      saveState();
+      renderTournament();
+      toast('Bracket result cleared', 'success');
     }
 
     function openScoreModal(roundNum, matchId) {
@@ -2168,6 +2280,7 @@
           </div>
           ${score ? `<div class="text-center text-xs text-slate-500 mt-1.5 font-mono">${score}</div>` : ''}
           ${canScore ? `<button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-1.5 text-xs font-semibold rounded-lg border transition ${btn}">Enter score</button>` : ''}
+          ${m.winner && hasBoth && !(m.scoreA === 0 && m.scoreB === 0) ? `<button onclick="clearBracketMatch('${m.id}')" class="mt-1.5 w-full py-1 text-[11px] font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition">Clear result</button>` : ''}
         </div>`;
     }
 
