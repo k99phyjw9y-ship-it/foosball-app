@@ -596,22 +596,13 @@
       <div class="flex items-center justify-center gap-4 text-center">
         <div class="flex-1">
           <div class="text-xs font-medium text-slate-500 mb-2 truncate px-1" id="score-team-a"></div>
-          <input id="score-a" type="number" min="0" max="30" value="0" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900" />
+          <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300" />
         </div>
         <div class="text-2xl text-slate-500 font-light">–</div>
         <div class="flex-1">
           <div class="text-xs font-medium text-slate-500 mb-2 truncate px-1" id="score-team-b"></div>
-          <input id="score-b" type="number" min="0" max="30" value="0" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900" />
+          <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300" />
         </div>
-      </div>
-      <div class="flex flex-wrap gap-1.5 justify-center">
-        <button onclick="setScore(7,0)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-0</button>
-        <button onclick="setScore(7,1)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-1</button>
-        <button onclick="setScore(7,2)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-2</button>
-        <button onclick="setScore(7,3)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-3</button>
-        <button onclick="setScore(7,4)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-4</button>
-        <button onclick="setScore(7,5)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-5</button>
-        <button onclick="setScore(7,6)" class="btn-ghost px-2.5 py-1 rounded-lg text-xs text-slate-500">7-6</button>
       </div>
       <div class="flex gap-3">
         <button onclick="closeScoreModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
@@ -1159,6 +1150,108 @@
       return pool.slice(0, needed);
     }
 
+    function pairKey(idA, idB) {
+      return idA < idB ? idA + '|' + idB : idB + '|' + idA;
+    }
+
+    /** Partnership history from prior rounds (teams on rounds + match entities). */
+    function getPartnershipData(t) {
+      const counts = {};
+      const byPlayer = {};
+      (t.playerIds || []).forEach(id => { byPlayer[id] = new Set(); });
+
+      const record = (idA, idB) => {
+        if (!idA || !idB || idA === idB) return;
+        const k = pairKey(idA, idB);
+        counts[k] = (counts[k] || 0) + 1;
+        if (!byPlayer[idA]) byPlayer[idA] = new Set();
+        if (!byPlayer[idB]) byPlayer[idB] = new Set();
+        byPlayer[idA].add(idB);
+        byPlayer[idB].add(idA);
+      };
+
+      (t.rounds || []).forEach(r => {
+        (r.teams || []).forEach(team => {
+          const ids = team.playerIds || [];
+          if (ids.length >= 2) record(ids[0], ids[1]);
+        });
+        (r.matches || []).forEach(m => {
+          for (const ent of [m.entityA, m.entityB]) {
+            const ids = ent?.playerIds || [];
+            if (ids.length >= 2) record(ids[0], ids[1]);
+          }
+        });
+      });
+      return { counts, byPlayer };
+    }
+
+    /**
+     * Rematch only allowed after both players have partnered with everyone else at least once.
+     */
+    function isPartnerAllowed(t, counts, byPlayer, idA, idB) {
+      const c = counts[pairKey(idA, idB)] || 0;
+      if (c === 0) return true;
+      const others = Math.max((t.playerIds || []).length - 1, 1);
+      const aDone = (byPlayer[idA]?.size || 0) >= others;
+      const bDone = (byPlayer[idB]?.size || 0) >= others;
+      return aDone && bDone;
+    }
+
+    /**
+     * Monster DYP partner matching: randomize, but never repeat a partnership
+     * until both players have partnered with everyone else at least once.
+     */
+    function fairPairPlayers(t, active) {
+      const { counts, byPlayer } = getPartnershipData(t);
+      const remaining = shuffle([...active]);
+      const pairs = [];
+      const used = new Set();
+
+      const tryPair = (preferNewOnly) => {
+        for (const p of remaining) {
+          if (used.has(p.id)) continue;
+          let candidates = remaining.filter(o => o.id !== p.id && !used.has(o.id));
+          candidates = candidates.filter(o => isPartnerAllowed(t, counts, byPlayer, p.id, o.id));
+          if (preferNewOnly) {
+            candidates = candidates.filter(o => (counts[pairKey(p.id, o.id)] || 0) === 0);
+          }
+          if (!candidates.length) continue;
+          // Lowest prior partnership count, then partner with fewer unique partners so far
+          shuffle(candidates);
+          candidates.sort((a, b) => {
+            const ca = counts[pairKey(p.id, a.id)] || 0;
+            const cb = counts[pairKey(p.id, b.id)] || 0;
+            if (ca !== cb) return ca - cb;
+            return (byPlayer[a.id]?.size || 0) - (byPlayer[b.id]?.size || 0);
+          });
+          const partner = candidates[0];
+          pairs.push([p, partner]);
+          used.add(p.id);
+          used.add(partner.id);
+        }
+      };
+
+      tryPair(true);  // new partners only
+      tryPair(false); // allowed rematches if cycles complete
+
+      // Absolute fallback (should be rare) — pair anyone left
+      const left = remaining.filter(p => !used.has(p.id));
+      for (let i = 0; i < left.length - 1; i += 2) {
+        pairs.push([left[i], left[i + 1]]);
+        used.add(left[i].id);
+        used.add(left[i + 1].id);
+      }
+      return pairs;
+    }
+
+    function pairsToTeams(pairs) {
+      return pairs.map(pair => ({
+        id: uid(),
+        playerIds: pair.map(p => p.id),
+        name: pair.map(p => p.name).join(' + ')
+      }));
+    }
+
     function drawPartners() {
       const t = getCurrentTournament();
       const players = t.playerIds.map(id => state.players.find(p => p.id === id)).filter(Boolean);
@@ -1167,7 +1260,7 @@
         return;
       }
 
-      // Odd number → one (or more if ever needed) sit out fairly
+      // Odd number → one sit out fairly
       const sitNeeded = players.length % 2;
       let sitOuts = [];
       let active = players;
@@ -1175,39 +1268,46 @@
         sitOuts = pickFairSitOuts(t, players, sitNeeded);
         const sitIds = new Set(sitOuts.map(p => p.id));
         active = players.filter(p => !sitIds.has(p.id));
-        const names = sitOuts.map(p => p.name).join(', ');
-        const counts = getSitOutCounts(t);
-        const times = sitOuts.map(p => (counts[p.id] || 0) + 1);
-        toast(`Sitting out: ${names}`, 'info');
+        toast(`Sitting out: ${sitOuts.map(p => p.name).join(', ')}`, 'info');
       }
       t.currentSitOutIds = sitOuts.map(p => p.id);
 
-      let ordered = [...active];
-      if (t.drawStyle === 'highlow') {
-        ordered.sort((a, b) => (b.skill || 3) - (a.skill || 3));
-        const pairs = [];
+      let pairs;
+      // Monster DYP (and DYP re-draws): fair partnership rotation
+      if (t.type === 'monster' || t.type === 'dyp') {
+        if (t.drawStyle === 'highlow') {
+          // Try skill high-low first when those pairs are all allowed; else fair random
+          const ordered = [...active].sort((a, b) => (b.skill || 3) - (a.skill || 3));
+          const { counts, byPlayer } = getPartnershipData(t);
+          const trial = [];
+          const half = Math.floor(ordered.length / 2);
+          let ok = true;
+          for (let i = 0; i < half; i++) {
+            const a = ordered[i];
+            const b = ordered[ordered.length - 1 - i];
+            if (!isPartnerAllowed(t, counts, byPlayer, a.id, b.id)) { ok = false; break; }
+            trial.push([a, b]);
+          }
+          pairs = ok ? trial : fairPairPlayers(t, active);
+        } else {
+          pairs = fairPairPlayers(t, active);
+        }
+      } else if (t.drawStyle === 'highlow') {
+        const ordered = [...active].sort((a, b) => (b.skill || 3) - (a.skill || 3));
+        pairs = [];
         const half = Math.floor(ordered.length / 2);
         for (let i = 0; i < half; i++) {
           pairs.push([ordered[i], ordered[ordered.length - 1 - i]]);
         }
-        t.teams = pairs.map(pair => ({
-          id: uid(),
-          playerIds: pair.map(p => p.id),
-          name: pair.map(p => p.name).join(' + ')
-        }));
       } else {
-        shuffle(ordered);
-        const pairs = [];
+        const ordered = shuffle([...active]);
+        pairs = [];
         for (let i = 0; i < ordered.length - 1; i += 2) {
           pairs.push([ordered[i], ordered[i + 1]]);
         }
-        t.teams = pairs.map(pair => ({
-          id: uid(),
-          playerIds: pair.map(p => p.id),
-          name: pair.map(p => p.name).join(' + ')
-        }));
       }
 
+      t.teams = pairsToTeams(pairs);
       saveState();
       renderTournament();
       const sitMsg = sitOuts.length ? ` · sit-out: ${sitOuts.map(p => p.name).join(', ')}` : '';
@@ -1304,7 +1404,14 @@
       const sitOutIds = (t.type === 'monster' || t.type === 'dyp')
         ? (t.currentSitOutIds || []).slice()
         : [];
-      t.rounds.push({ number: t.currentRound, matches, sitOutIds });
+      const roundTeams = (t.type === 'monster' || t.type === 'dyp')
+        ? (t.teams || []).map(team => ({
+            id: team.id,
+            playerIds: (team.playerIds || []).slice(),
+            name: team.name
+          }))
+        : [];
+      t.rounds.push({ number: t.currentRound, matches, sitOutIds, teams: roundTeams });
       t.currentSitOutIds = [];
       t.status = 'active';
       saveState();
@@ -2034,8 +2141,8 @@
       state.scoreMatchId = { roundNum: parseInt(roundNum, 10), matchId };
       document.getElementById('score-team-a').textContent = match.entityA.name;
       document.getElementById('score-team-b').textContent = match.entityB.name;
-      document.getElementById('score-a').value = match.scoreA ?? 0;
-      document.getElementById('score-b').value = match.scoreB ?? 0;
+      document.getElementById('score-a').value = match.scoreA != null ? match.scoreA : '';
+      document.getElementById('score-b').value = match.scoreB != null ? match.scoreB : '';
       document.getElementById('score-modal').classList.remove('hidden');
       document.getElementById('score-a').focus();
     }
@@ -2058,8 +2165,14 @@
       const match = round?.matches.find(m => m.id === matchId);
       if (!match) return;
 
-      const scoreA = parseInt(document.getElementById('score-a').value, 10);
-      const scoreB = parseInt(document.getElementById('score-b').value, 10);
+      const rawA = document.getElementById('score-a').value;
+      const rawB = document.getElementById('score-b').value;
+      if (rawA === '' || rawB === '') {
+        toast('Enter both scores', 'error');
+        return;
+      }
+      const scoreA = parseInt(rawA, 10);
+      const scoreB = parseInt(rawB, 10);
       if (isNaN(scoreA) || isNaN(scoreB) || scoreA < 0 || scoreB < 0) {
         toast('Invalid scores', 'error');
         return;
@@ -2514,8 +2627,8 @@
       const match = found.match;
       if (!match.a?.entity || !match.b?.entity) return;
 
-      const scoreA = prompt(`Score for ${match.a.entity.name}:`, String(t.raceTo || 7));
-      const scoreB = prompt(`Score for ${match.b.entity.name}:`, '0');
+      const scoreA = prompt(`Score for ${match.a.entity.name}:`, '');
+      const scoreB = prompt(`Score for ${match.b.entity.name}:`, '');
       if (scoreA === null || scoreB === null) return;
       const a = parseInt(scoreA, 10);
       const bsc = parseInt(scoreB, 10);
