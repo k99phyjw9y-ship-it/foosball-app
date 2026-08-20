@@ -548,7 +548,7 @@
             <tbody id="standings-body"></tbody>
           </table>
         </div>
-        <p class="text-xs text-slate-500 mt-3">P = Played · W = Wins · L = Losses · GD = Goal Diff · Pts = 2 per win. Bracket tournaments also show 1st / 2nd / 3rd above.</p>
+        <p class="text-xs text-slate-500 mt-3">P = Played · W = Wins · L = Losses · GD = Goal Diff · Pts = 3 per win. Bracket tournaments also show 1st / 2nd / 3rd above.</p>
       </div>
 
       <div id="tab-bracket" class="tab-content hidden space-y-4">
@@ -2231,7 +2231,7 @@
               playerMap[pid].played++;
               playerMap[pid].gf += m.scoreA;
               playerMap[pid].ga += m.scoreB;
-              if (aWin) { playerMap[pid].wins++; playerMap[pid].pts += 2; }
+              if (aWin) { playerMap[pid].wins++; playerMap[pid].pts += 3; }
               else { playerMap[pid].losses++; }
             });
             bPlayers.forEach(pid => {
@@ -2239,7 +2239,7 @@
               playerMap[pid].played++;
               playerMap[pid].gf += m.scoreB;
               playerMap[pid].ga += m.scoreA;
-              if (!aWin) { playerMap[pid].wins++; playerMap[pid].pts += 2; }
+              if (!aWin) { playerMap[pid].wins++; playerMap[pid].pts += 3; }
               else { playerMap[pid].losses++; }
             });
           });
@@ -2267,10 +2267,10 @@
           a.gf += m.scoreA; a.ga += m.scoreB;
           b.gf += m.scoreB; b.ga += m.scoreA;
           if (m.scoreA > m.scoreB) {
-            a.wins++; a.pts += 2;
+            a.wins++; a.pts += 3;
             b.losses++;
           } else {
-            b.wins++; b.pts += 2;
+            b.wins++; b.pts += 3;
             a.losses++;
           }
         });
@@ -2769,7 +2769,7 @@
                   s.gf += gf;
                   s.ga += ga;
                   s.gd = s.gf - s.ga;
-                  if (win) { s.wins++; s.pts += 2; }
+                  if (win) { s.wins++; s.pts += 3; }
                   else { s.losses++; }
                   s.events.add(t.id);
                 });
