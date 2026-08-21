@@ -2872,7 +2872,16 @@
         const dPts = (cur.pts || 0) - (prev.pts || 0);
         const dWR = Math.round((winRate(cur) - winRate(prev)) * 10) / 10;
         return { pid, name, cur, prev, dPts, dWR };
-      }).sort((a, b) => b.cur.pts - a.cur.pts || b.dPts - a.dPts);
+      }).sort((a, b) => {
+        const ptsA = a.cur.pts || 0, ptsB = b.cur.pts || 0;
+        if (ptsB !== ptsA) return ptsB - ptsA;
+        const gdA = a.cur.gd || 0, gdB = b.cur.gd || 0;
+        if (gdB !== gdA) return gdB - gdA;
+        const wrA = a.cur.played ? (a.cur.wins / a.cur.played) : 0;
+        const wrB = b.cur.played ? (b.cur.wins / b.cur.played) : 0;
+        if (wrB !== wrA) return wrB - wrA;
+        return a.name.localeCompare(b.name);
+      });
 
       const body = document.getElementById('stats-wow-body');
       if (rows.length === 0) {
@@ -2899,7 +2908,13 @@
         const s = career[p.id] || emptyPlayerStat();
         return { name: p.name, ...s, wr: winRate(s) };
       }).filter(r => r.played > 0)
-        .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.wr - a.wr);
+        .sort((a, b) => {
+          if ((b.pts || 0) !== (a.pts || 0)) return (b.pts || 0) - (a.pts || 0);
+          if ((b.gd || 0) !== (a.gd || 0)) return (b.gd || 0) - (a.gd || 0);
+          if ((b.wins || 0) !== (a.wins || 0)) return (b.wins || 0) - (a.wins || 0);
+          if ((b.wr || 0) !== (a.wr || 0)) return (b.wr || 0) - (a.wr || 0);
+          return a.name.localeCompare(b.name);
+        });
 
       const careerBody = document.getElementById('stats-career-body');
       if (careerRows.length === 0) {
