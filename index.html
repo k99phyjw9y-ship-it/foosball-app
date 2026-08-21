@@ -2169,9 +2169,10 @@
       const match = round?.matches.find(m => m.id === matchId);
       if (!match) return;
 
-      state.scoreMatchId = { roundNum: parseInt(roundNum, 10), matchId };
-      document.getElementById('score-team-a').textContent = match.entityA.name;
-      document.getElementById('score-team-b').textContent = match.entityB.name;
+      state.scoreMatchId = { mode: 'round', roundNum: parseInt(roundNum, 10), matchId };
+      document.getElementById('score-modal-title').textContent = 'Enter Score';
+      document.getElementById('score-team-a').textContent = match.entityA?.name || 'Team A';
+      document.getElementById('score-team-b').textContent = match.entityB?.name || 'Team B';
       document.getElementById('score-a').value = match.scoreA != null ? match.scoreA : '';
       document.getElementById('score-b').value = match.scoreB != null ? match.scoreB : '';
       document.getElementById('score-modal').classList.remove('hidden');
@@ -2188,30 +2189,43 @@
       document.getElementById('score-b').value = b;
     }
 
-    function submitScore() {
-      const t = getCurrentTournament();
-      if (!state.scoreMatchId) return;
-      const { roundNum, matchId } = state.scoreMatchId;
-      const round = t.rounds.find(r => r.number === roundNum);
-      const match = round?.matches.find(m => m.id === matchId);
-      if (!match) return;
-
+    function readScoreInputs() {
       const rawA = document.getElementById('score-a').value;
       const rawB = document.getElementById('score-b').value;
       if (rawA === '' || rawB === '') {
         toast('Enter both scores', 'error');
-        return;
+        return null;
       }
       const scoreA = parseInt(rawA, 10);
       const scoreB = parseInt(rawB, 10);
       if (isNaN(scoreA) || isNaN(scoreB) || scoreA < 0 || scoreB < 0) {
         toast('Invalid scores', 'error');
-        return;
+        return null;
       }
       if (scoreA === scoreB) {
-        toast('Foosball matches cannot end in a draw (or adjust rules)', 'error');
+        toast('Foosball matches cannot end in a draw', 'error');
+        return null;
+      }
+      return { scoreA, scoreB };
+    }
+
+    function submitScore() {
+      const t = getCurrentTournament();
+      if (!state.scoreMatchId) return;
+      const scores = readScoreInputs();
+      if (!scores) return;
+      const { scoreA, scoreB } = scores;
+
+      // Bracket / playoff match — same modal as Monster DYP
+      if (state.scoreMatchId.mode === 'bracket') {
+        submitBracketScore(scoreA, scoreB);
         return;
       }
+
+      const { roundNum, matchId } = state.scoreMatchId;
+      const round = t.rounds.find(r => r.number === roundNum);
+      const match = round?.matches.find(m => m.id === matchId);
+      if (!match) return;
 
       match.scoreA = scoreA;
       match.scoreB = scoreB;
@@ -2220,6 +2234,61 @@
       closeScoreModal();
       renderTournament();
       toast('Score saved', 'success');
+    }
+
+    function submitBracketScore(scoreA, scoreB) {
+      const t = getCurrentTournament();
+      const matchId = state.scoreMatchId?.matchId;
+      const found = findBracketMatch(t, matchId);
+      if (!found?.match) return;
+      const match = found.match;
+      if (!match.a?.entity || !match.b?.entity) {
+        toast('Both sides must be set before scoring', 'error');
+        return;
+      }
+
+      // If editing a previous result, clear downstream feeds first
+      if (match.winner) {
+        const clearFeed = (side) => {
+          if (side?.fromMatch === matchId) side.entity = null;
+        };
+        for (const r of allBracketRoundLists(t.playoffs)) {
+          for (const om of r.matches) {
+            clearFeed(om.a);
+            clearFeed(om.b);
+            if ((om.a?.fromMatch === matchId || om.b?.fromMatch === matchId) && om.winner) {
+              om.winner = null; om.loser = null; om.scoreA = null; om.scoreB = null;
+              delete om._byePropagated;
+            }
+          }
+        }
+        if (t.playoffs.bronze) { clearFeed(t.playoffs.bronze.a); clearFeed(t.playoffs.bronze.b); }
+        if (t.playoffs.grandFinal) { clearFeed(t.playoffs.grandFinal.a); clearFeed(t.playoffs.grandFinal.b); }
+        if (t.playoffs.grandFinal2) { clearFeed(t.playoffs.grandFinal2.a); clearFeed(t.playoffs.grandFinal2.b); }
+      }
+
+      match.scoreA = scoreA;
+      match.scoreB = scoreB;
+      match.winner = scoreA > scoreB ? 'a' : 'b';
+      match.loser = scoreA > scoreB ? 'b' : 'a';
+      delete match._byePropagated;
+
+      const winnerEntity = match.winner === 'a' ? match.a.entity : match.b.entity;
+      const loserEntity = match.winner === 'a' ? match.b.entity : match.a.entity;
+
+      if (!found.isBronze) {
+        propagateBracketResult(t, matchId, winnerEntity, loserEntity);
+      }
+
+      updatePlacementsFromBracket(t);
+      saveState();
+      closeScoreModal();
+      renderTournament();
+      let msg = 'Score saved';
+      if (found.isBronze) msg = '3rd place result saved';
+      if (found.isGF && t.playoffs?.gfResetActive) msg = 'GF done — bracket reset required';
+      if (found.isGF2) msg = 'Champion decided';
+      toast(msg, 'success');
     }
 
     // ==================== STANDINGS ====================
@@ -2490,8 +2559,11 @@
             ${m.winner === 'b' ? '<span class="text-[10px]">W</span>' : ''}
           </div>
           ${score ? `<div class="text-center text-xs text-slate-500 mt-1.5 font-mono">${score}</div>` : ''}
-          ${canScore ? `<button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-1.5 text-xs font-semibold rounded-lg border transition ${btn}">Enter score</button>` : ''}
-          ${m.winner && hasBoth && !(m.scoreA === 0 && m.scoreB === 0) ? `<button onclick="clearBracketMatch('${m.id}')" class="mt-1.5 w-full py-1 text-[11px] font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition">Clear result</button>` : ''}
+          ${canScore ? `<button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-2 text-xs font-semibold rounded-lg border transition ${btn}">Enter score</button>` : ''}
+          ${m.winner && hasBoth && !(m.scoreA === 0 && m.scoreB === 0) ? `
+            <button onclick="openPlayoffScore('${m.id}')" class="mt-1.5 w-full py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-700 transition">Edit score</button>
+            <button onclick="clearBracketMatch('${m.id}')" class="mt-0.5 w-full py-1 text-[11px] font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition">Clear result</button>
+          ` : ''}
         </div>`;
     }
 
@@ -2651,42 +2723,25 @@
       }
     }
 
+    /** Same score modal as ranking rounds (Monster DYP style) for all bracket matches. */
     function openPlayoffScore(matchId) {
       const t = getCurrentTournament();
       const found = findBracketMatch(t, matchId);
       if (!found) return;
       const match = found.match;
-      if (!match.a?.entity || !match.b?.entity) return;
-
-      const scoreA = prompt(`Score for ${match.a.entity.name}:`, '');
-      const scoreB = prompt(`Score for ${match.b.entity.name}:`, '');
-      if (scoreA === null || scoreB === null) return;
-      const a = parseInt(scoreA, 10);
-      const bsc = parseInt(scoreB, 10);
-      if (isNaN(a) || isNaN(bsc) || a === bsc) {
-        toast('Invalid or draw score', 'error');
+      if (!match.a?.entity || !match.b?.entity) {
+        toast('Both sides must be set before scoring', 'error');
         return;
       }
-      match.scoreA = a;
-      match.scoreB = bsc;
-      match.winner = a > bsc ? 'a' : 'b';
-      match.loser = a > bsc ? 'b' : 'a';
 
-      const winnerEntity = match.winner === 'a' ? match.a.entity : match.b.entity;
-      const loserEntity = match.winner === 'a' ? match.b.entity : match.a.entity;
-
-      if (!found.isBronze) {
-        propagateBracketResult(t, matchId, winnerEntity, loserEntity);
-      }
-
-      updatePlacementsFromBracket(t);
-      saveState();
-      renderTournament();
-      let msg = 'Result saved';
-      if (found.isBronze) msg = '3rd place result saved';
-      if (found.isGF && t.playoffs?.gfResetActive) msg = 'GF done — bracket reset required';
-      if (found.isGF2) msg = 'Champion decided';
-      toast(msg, 'success');
+      state.scoreMatchId = { mode: 'bracket', matchId };
+      document.getElementById('score-modal-title').textContent = 'Enter Score';
+      document.getElementById('score-team-a').textContent = match.a.entity.name || 'Side A';
+      document.getElementById('score-team-b').textContent = match.b.entity.name || 'Side B';
+      document.getElementById('score-a').value = match.scoreA != null ? match.scoreA : '';
+      document.getElementById('score-b').value = match.scoreB != null ? match.scoreB : '';
+      document.getElementById('score-modal').classList.remove('hidden');
+      document.getElementById('score-a').focus();
     }
 
     function renderPodium(t) {
