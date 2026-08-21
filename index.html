@@ -332,7 +332,7 @@
       <div class="surface-card rounded-2xl overflow-hidden">
         <div class="px-4 py-3.5 border-b border-slate-200">
           <h3 class="text-sm font-semibold text-slate-800">Career Leaderboard</h3>
-          <p class="text-xs text-slate-500 mt-0.5">All events · ranking rounds only · bracket matches excluded</p>
+          <p class="text-xs text-slate-500 mt-0.5">All events combined · ranking rounds only · brackets excluded</p>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -350,6 +350,39 @@
               </tr>
             </thead>
             <tbody id="stats-career-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="surface-card rounded-2xl overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-slate-200 space-y-3">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-800">Event Leaderboards</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Separate standings per event type · ranking rounds only</p>
+          </div>
+          <div class="flex flex-wrap gap-2" id="stats-event-tabs">
+            <button type="button" data-etype="singles" onclick="setStatsEventType('singles')" class="stats-etype-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700">Singles</button>
+            <button type="button" data-etype="doubles" onclick="setStatsEventType('doubles')" class="stats-etype-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700">Doubles</button>
+            <button type="button" data-etype="dyp" onclick="setStatsEventType('dyp')" class="stats-etype-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700">DYP</button>
+            <button type="button" data-etype="monster" onclick="setStatsEventType('monster')" class="stats-etype-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700">Monster DYP</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200">
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Player</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Events</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">P</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">W</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">L</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">WR%</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">GD</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Pts</th>
+              </tr>
+            </thead>
+            <tbody id="stats-event-body"></tbody>
           </table>
         </div>
       </div>
@@ -620,7 +653,8 @@
       editingPlayerId: null,
       quickAddMode: false,
       selectedType: null,
-      scoreMatchId: null
+      scoreMatchId: null,
+      statsEventType: 'singles'
     };
 
     function loadState() {
@@ -2752,6 +2786,7 @@
     function computeAllPlayerStats() {
       const byWeek = {};
       const career = {};
+      const byType = { singles: {}, doubles: {}, dyp: {}, monster: {} };
 
       state.players.forEach(p => {
         career[p.id] = emptyPlayerStat();
@@ -2760,19 +2795,21 @@
       state.tournaments.forEach(t => {
         const weekKey = getISOWeekKey(t.createdAt || Date.now());
         if (!byWeek[weekKey]) byWeek[weekKey] = {};
+        const typeKey = (t.type === 'singles' || t.type === 'doubles' || t.type === 'dyp' || t.type === 'monster')
+          ? t.type
+          : null;
 
         // Ranking rounds only — never t.playoffs / bracket tree
         (t.rounds || []).forEach(round => {
           (round.matches || []).forEach(m => {
             if (m.scoreA == null || m.scoreB == null) return;
             if (m.status && m.status !== 'done') return;
-            // Ignore pure byes / void
             if (m.void) return;
 
             const aIds = entityPlayerIds(m.entityA);
             const bIds = entityPlayerIds(m.entityB);
             if (!aIds.length || !bIds.length) return;
-            if (m.scoreA === m.scoreB) return; // draws not counted
+            if (m.scoreA === m.scoreB) return;
 
             const aWin = m.scoreA > m.scoreB;
 
@@ -2781,7 +2818,13 @@
                 if (!career[pid]) career[pid] = emptyPlayerStat();
                 if (!byWeek[weekKey][pid]) byWeek[weekKey][pid] = emptyPlayerStat();
 
-                [career[pid], byWeek[weekKey][pid]].forEach(s => {
+                const targets = [career[pid], byWeek[weekKey][pid]];
+                if (typeKey) {
+                  if (!byType[typeKey][pid]) byType[typeKey][pid] = emptyPlayerStat();
+                  targets.push(byType[typeKey][pid]);
+                }
+
+                targets.forEach(s => {
                   s.played++;
                   s.gf += gf;
                   s.ga += ga;
@@ -2799,13 +2842,13 @@
         });
       });
 
-      Object.values(career).forEach(s => { s.eventCount = s.events.size; delete s.events; });
-      Object.values(byWeek).forEach(weekMap => {
-        Object.values(weekMap).forEach(s => { s.eventCount = s.events.size; delete s.events; });
-      });
+      const finalize = (s) => { s.eventCount = s.events.size; delete s.events; };
+      Object.values(career).forEach(finalize);
+      Object.values(byWeek).forEach(weekMap => Object.values(weekMap).forEach(finalize));
+      Object.values(byType).forEach(typeMap => Object.values(typeMap).forEach(finalize));
 
       const weeks = Object.keys(byWeek).sort().reverse();
-      return { byWeek, career, weeks };
+      return { byWeek, career, byType, weeks };
     }
 
     function winRate(s) {
@@ -2822,7 +2865,7 @@
     }
 
     function renderStats() {
-      const { byWeek, career, weeks } = computeAllPlayerStats();
+      const { byWeek, career, byType, weeks } = computeAllPlayerStats();
       const select = document.getElementById('stats-week-select');
       const prevValue = select.value;
 
@@ -2944,6 +2987,61 @@
             <td class="px-2 py-2.5 text-center text-slate-500">${r.played}</td>
             <td class="px-2 py-2.5 text-center text-emerald-400">${r.wins}</td>
             <td class="px-2 py-2.5 text-center text-red-400/80">${r.losses}</td>
+            <td class="px-2 py-2.5 text-center text-slate-600">${r.wr}%</td>
+            <td class="px-2 py-2.5 text-center text-slate-500">${r.gd > 0 ? '+' : ''}${r.gd}</td>
+            <td class="px-2 py-2.5 text-center font-bold text-slate-900">${r.pts}</td>
+          </tr>
+        `).join('');
+      }
+
+      renderEventLeaderboard(byType);
+    }
+
+    function setStatsEventType(type) {
+      state.statsEventType = type;
+      const { byType } = computeAllPlayerStats();
+      renderEventLeaderboard(byType);
+    }
+
+    function renderEventLeaderboard(byType) {
+      const type = state.statsEventType || 'singles';
+      document.querySelectorAll('.stats-etype-btn').forEach(btn => {
+        const active = btn.getAttribute('data-etype') === type;
+        btn.classList.toggle('bg-emerald-50', active);
+        btn.classList.toggle('text-emerald-700', active);
+        btn.classList.toggle('border-emerald-300', active);
+        btn.classList.toggle('bg-white', !active);
+        btn.classList.toggle('text-slate-700', !active);
+        btn.classList.toggle('border-slate-200', !active);
+      });
+
+      const typeMap = (byType && byType[type]) || {};
+      const labels = { singles: 'Singles', doubles: 'Doubles', dyp: 'DYP', monster: 'Monster DYP' };
+      const rows = state.players.map(p => {
+        const s = typeMap[p.id] || emptyPlayerStat();
+        return { name: p.name, ...s, wr: winRate(s) };
+      }).filter(r => r.played > 0)
+        .sort((a, b) => {
+          if ((b.pts || 0) !== (a.pts || 0)) return (b.pts || 0) - (a.pts || 0);
+          if ((b.gd || 0) !== (a.gd || 0)) return (b.gd || 0) - (a.gd || 0);
+          if ((b.wins || 0) !== (a.wins || 0)) return (b.wins || 0) - (a.wins || 0);
+          if ((b.wr || 0) !== (a.wr || 0)) return (b.wr || 0) - (a.wr || 0);
+          return a.name.localeCompare(b.name);
+        });
+
+      const body = document.getElementById('stats-event-body');
+      if (!body) return;
+      if (rows.length === 0) {
+        body.innerHTML = `<tr><td colspan="9" class="px-4 py-10 text-center text-slate-500">No ranking matches for ${labels[type] || type} yet</td></tr>`;
+      } else {
+        body.innerHTML = rows.map((r, i) => `
+          <tr class="border-t border-slate-200 table-row">
+            <td class="px-3 py-2.5 text-slate-500 font-medium">${i + 1}</td>
+            <td class="px-3 py-2.5 font-medium text-slate-900">${escapeHtml(r.name)}</td>
+            <td class="px-2 py-2.5 text-center text-slate-500">${r.eventCount || 0}</td>
+            <td class="px-2 py-2.5 text-center text-slate-500">${r.played}</td>
+            <td class="px-2 py-2.5 text-center text-emerald-600">${r.wins}</td>
+            <td class="px-2 py-2.5 text-center text-red-500/80">${r.losses}</td>
             <td class="px-2 py-2.5 text-center text-slate-600">${r.wr}%</td>
             <td class="px-2 py-2.5 text-center text-slate-500">${r.gd > 0 ? '+' : ''}${r.gd}</td>
             <td class="px-2 py-2.5 text-center font-bold text-slate-900">${r.pts}</td>
