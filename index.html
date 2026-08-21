@@ -332,7 +332,7 @@
       <div class="surface-card rounded-2xl overflow-hidden">
         <div class="px-4 py-3.5 border-b border-slate-200">
           <h3 class="text-sm font-semibold text-slate-800">Career Leaderboard</h3>
-          <p class="text-xs text-slate-500 mt-0.5">All events combined · ranking rounds only · brackets excluded</p>
+          <p class="text-xs text-slate-500 mt-0.5">All events combined · ranking rounds + brackets / playoffs</p>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -358,7 +358,7 @@
         <div class="px-4 py-3.5 border-b border-slate-200 space-y-3">
           <div>
             <h3 class="text-sm font-semibold text-slate-800">Event Leaderboards</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Separate standings per event type · ranking rounds only</p>
+            <p class="text-xs text-slate-500 mt-0.5">Separate standings per event type · ranking rounds + brackets / playoffs</p>
           </div>
           <div class="flex flex-wrap gap-2" id="stats-event-tabs">
             <button type="button" data-etype="singles" onclick="setStatsEventType('singles')" class="stats-etype-btn px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700">Singles</button>
@@ -388,7 +388,7 @@
       </div>
 
       <p class="text-xs text-slate-500 leading-relaxed">
-        ISO weeks (Mon–Sun). Week and career stats use completed ranking-round matches from every event. Bracket / playoff matches are not included. Δ compares against the previous active week.
+        ISO weeks (Mon–Sun). Week, career, and event leaderboards include completed ranking-round and bracket/playoff matches from every event (bye auto-wins excluded). Δ compares against the previous active week.
       </p>
     </div>
 
@@ -2778,10 +2778,24 @@
       return [];
     }
 
+    /** Collect every scored match from a bracket / playoff tree. */
+    function collectBracketMatches(playoffs) {
+      if (!playoffs) return [];
+      const list = [];
+      const push = (m) => { if (m) list.push(m); };
+      for (const r of allBracketRoundLists(playoffs)) {
+        (r.matches || []).forEach(push);
+      }
+      push(playoffs.bronze);
+      push(playoffs.grandFinal);
+      push(playoffs.grandFinal2);
+      return list;
+    }
+
     /**
-     * Aggregate completed ranking-round matches across ALL events into
-     * per-player week and career stats.
-     * Bracket / playoff matches (t.playoffs) are intentionally excluded.
+     * Aggregate completed matches across ALL events into week, career, and
+     * per-event-type stats. Includes ranking rounds AND bracket/playoff matches.
+     * Bye results (0–0 auto-wins) are excluded.
      */
     function computeAllPlayerStats() {
       const byWeek = {};
@@ -2792,6 +2806,37 @@
         career[p.id] = emptyPlayerStat();
       });
 
+      const applyResult = (t, weekKey, typeKey, aIds, bIds, scoreA, scoreB) => {
+        if (!aIds.length || !bIds.length) return;
+        if (scoreA == null || scoreB == null) return;
+        if (scoreA === scoreB) return;
+        const aWin = scoreA > scoreB;
+
+        const applySide = (ids, gf, ga, win) => {
+          ids.forEach(pid => {
+            if (!career[pid]) career[pid] = emptyPlayerStat();
+            if (!byWeek[weekKey][pid]) byWeek[weekKey][pid] = emptyPlayerStat();
+            const targets = [career[pid], byWeek[weekKey][pid]];
+            if (typeKey) {
+              if (!byType[typeKey][pid]) byType[typeKey][pid] = emptyPlayerStat();
+              targets.push(byType[typeKey][pid]);
+            }
+            targets.forEach(s => {
+              s.played++;
+              s.gf += gf;
+              s.ga += ga;
+              s.gd = s.gf - s.ga;
+              if (win) { s.wins++; s.pts += 3; }
+              else { s.losses++; }
+              s.events.add(t.id);
+            });
+          });
+        };
+
+        applySide(aIds, scoreA, scoreB, aWin);
+        applySide(bIds, scoreB, scoreA, !aWin);
+      };
+
       state.tournaments.forEach(t => {
         const weekKey = getISOWeekKey(t.createdAt || Date.now());
         if (!byWeek[weekKey]) byWeek[weekKey] = {};
@@ -2799,46 +2844,40 @@
           ? t.type
           : null;
 
-        // Ranking rounds only — never t.playoffs / bracket tree
+        // 1) Ranking / Swiss rounds
         (t.rounds || []).forEach(round => {
           (round.matches || []).forEach(m => {
             if (m.scoreA == null || m.scoreB == null) return;
             if (m.status && m.status !== 'done') return;
             if (m.void) return;
-
-            const aIds = entityPlayerIds(m.entityA);
-            const bIds = entityPlayerIds(m.entityB);
-            if (!aIds.length || !bIds.length) return;
-            if (m.scoreA === m.scoreB) return;
-
-            const aWin = m.scoreA > m.scoreB;
-
-            const apply = (ids, gf, ga, win) => {
-              ids.forEach(pid => {
-                if (!career[pid]) career[pid] = emptyPlayerStat();
-                if (!byWeek[weekKey][pid]) byWeek[weekKey][pid] = emptyPlayerStat();
-
-                const targets = [career[pid], byWeek[weekKey][pid]];
-                if (typeKey) {
-                  if (!byType[typeKey][pid]) byType[typeKey][pid] = emptyPlayerStat();
-                  targets.push(byType[typeKey][pid]);
-                }
-
-                targets.forEach(s => {
-                  s.played++;
-                  s.gf += gf;
-                  s.ga += ga;
-                  s.gd = s.gf - s.ga;
-                  if (win) { s.wins++; s.pts += 3; }
-                  else { s.losses++; }
-                  s.events.add(t.id);
-                });
-              });
-            };
-
-            apply(aIds, m.scoreA, m.scoreB, aWin);
-            apply(bIds, m.scoreB, m.scoreA, !aWin);
+            applyResult(
+              t, weekKey, typeKey,
+              entityPlayerIds(m.entityA),
+              entityPlayerIds(m.entityB),
+              m.scoreA, m.scoreB
+            );
           });
+        });
+
+        // 2) Bracket / playoff matches (single-elim, double-elim, post-Swiss playoffs)
+        collectBracketMatches(t.playoffs).forEach(m => {
+          if (!m || m.void) return;
+          if (m.scoreA == null || m.scoreB == null) return;
+          // Skip automatic byes (0–0 with missing side)
+          if (m.scoreA === 0 && m.scoreB === 0 && (!m.a?.entity || !m.b?.entity)) return;
+          if (!m.winner && m.status !== 'done') return;
+          // Prefer scored real matches
+          if (!(m.winner || m.status === 'done')) return;
+          if (m.scoreA === 0 && m.scoreB === 0) return; // bye auto-score
+
+          const aEnt = m.a?.entity || m.entityA;
+          const bEnt = m.b?.entity || m.entityB;
+          applyResult(
+            t, weekKey, typeKey,
+            entityPlayerIds(aEnt),
+            entityPlayerIds(bEnt),
+            m.scoreA, m.scoreB
+          );
         });
       });
 
