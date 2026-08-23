@@ -236,7 +236,7 @@
     </nav>
 
     <!-- HOME / TOURNAMENT LIST -->
-    <div id="view-home" class="space-y-6">
+    <div id="view-home" class="space-y-6 relative min-h-[50vh]">
       <div class="flex items-end justify-between gap-4">
         <div>
           <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Tournaments</h2>
@@ -259,6 +259,8 @@
           <p class="text-sm text-slate-500 mt-2 max-w-xs mx-auto">Use <span class="font-semibold text-slate-700">Create tournament</span> above to start your first Singles, Doubles, or DYP event.</p>
         </div>
       </div>
+
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.2</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -644,6 +646,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
+    const APP_VERSION = '2.2';
 
     let state = {
       players: [],
@@ -2504,7 +2507,7 @@
       }
       applyToMatch(b.bronze);
       applyToMatch(b.grandFinal);
-      applyToMatch(b.grandFinal2);
+      // Do NOT auto-feed grandFinal2 from GF via fromMatch — only activate on true reset
 
       touched.forEach(m => {
         if (!m.winner) resolveBye(m);
@@ -2516,19 +2519,33 @@
         }
       });
 
-      // Double-elim: if first GF won by LB side (usually side b), activate reset
+      // Double-elim: GF reset only if losers-bracket side (b) wins the first GF
       if (b.type === 'double-elim' && b.grandFinal && matchId === b.grandFinal.id) {
         const gf = b.grandFinal;
         if (gf.winner === 'b') {
           b.gfResetRequired = true;
           b.gfResetActive = true;
           if (b.grandFinal2) {
-            b.grandFinal2.a.entity = winnerEntity;
-            b.grandFinal2.b.entity = loserEntity;
+            b.grandFinal2.a = { entity: winnerEntity, fromMatch: null, fromLoser: false };
+            b.grandFinal2.b = { entity: loserEntity, fromMatch: null, fromLoser: false };
+            b.grandFinal2.winner = null;
+            b.grandFinal2.loser = null;
+            b.grandFinal2.scoreA = null;
+            b.grandFinal2.scoreB = null;
+            delete b.grandFinal2._byePropagated;
           }
         } else {
           b.gfResetRequired = false;
           b.gfResetActive = false;
+          if (b.grandFinal2) {
+            // Winners-bracket champ closed it out — no reset match
+            b.grandFinal2.a = { entity: null, fromMatch: null, fromLoser: false };
+            b.grandFinal2.b = { entity: null, fromMatch: null, fromLoser: false };
+            b.grandFinal2.winner = null;
+            b.grandFinal2.loser = null;
+            b.grandFinal2.scoreA = null;
+            b.grandFinal2.scoreB = null;
+          }
         }
       }
     }
@@ -3157,7 +3174,7 @@
       });
       const navMap = { home: 'home', players: 'players', stats: 'stats', create: 'home', tournament: 'home' };
       updateNav(navMap[name] || name);
-      if (name === 'home') renderHome();
+      if (name === 'home') { renderHome(); const vw = document.getElementById('home-version-watermark'); if (vw) vw.textContent = 'v' + APP_VERSION; }
       if (name === 'players') renderPlayers();
       if (name === 'tournament') renderTournament();
       if (name === 'stats') renderStats();
