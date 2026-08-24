@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.3</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.4</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -646,7 +646,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '2.3';
+    const APP_VERSION = '2.4';
 
     let state = {
       players: [],
@@ -3027,11 +3027,15 @@
       const avgWR = totalPlayers ? Math.round(allThis.reduce((s, p) => s + winRate(p), 0) / totalPlayers) : 0;
       let topName = '–';
       let topPts = -1;
+      let topGd = -Infinity;
       Object.entries(thisWeekMap).forEach(([pid, s]) => {
-        if (s.pts > topPts) {
-          topPts = s.pts;
-          const pl = state.players.find(p => p.id === pid);
-          topName = pl ? pl.name : '–';
+        if (!state.players.some(p => p.id === pid)) return; // skip non-roster keys
+        const pts = s.pts || 0;
+        const gd = s.gd || 0;
+        if (pts > topPts || (pts === topPts && gd > topGd)) {
+          topPts = pts;
+          topGd = gd;
+          topName = state.players.find(p => p.id === pid)?.name || '–';
         }
       });
 
