@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.2</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.3</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -646,7 +646,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '2.2';
+    const APP_VERSION = '2.3';
 
     let state = {
       players: [],
@@ -2329,8 +2329,8 @@
         t.rounds.forEach(round => {
           round.matches.forEach(m => {
             if (m.status !== 'done') return;
-            const aPlayers = m.entityA.playerIds || [m.entityA.id];
-            const bPlayers = m.entityB.playerIds || [m.entityB.id];
+            const aPlayers = entityPlayerIds(m.entityA);
+            const bPlayers = entityPlayerIds(m.entityB);
             const aWin = m.scoreA > m.scoreB;
 
             aPlayers.forEach(pid => {
@@ -2832,22 +2832,44 @@
     }
 
     /**
-     * Resolve player id(s) from a match side (singles player or doubles team).
+     * Resolve player id(s) from a match side (singles player or doubles/team).
+     * Never returns team IDs — only roster player IDs (avoids "Unknown" in stats).
      */
     function entityPlayerIds(ent) {
       if (!ent) return [];
+      const isRoster = (id) => !!(id && state.players.some(p => p.id === id));
+
+      // Explicit member list on teams
       if (Array.isArray(ent.playerIds) && ent.playerIds.length) {
-        return ent.playerIds.filter(Boolean);
+        return ent.playerIds.filter(isRoster);
       }
+
       // Singles / plain player entity
-      if (ent.type === 'player' && ent.id) return [ent.id];
-      if (ent.id && !ent.playerIds) {
-        // Prefer roster match; still accept id if it looks like a stored player
-        if (state.players.some(p => p.id === ent.id)) return [ent.id];
-        // Older data: entity id is the player id
-        return [ent.id];
+      if (ent.type === 'player' && isRoster(ent.id)) return [ent.id];
+      if (ent.type !== 'team' && isRoster(ent.id)) return [ent.id];
+
+      // Fallback: parse "Name + Name" team labels back to roster players
+      if (ent.name && String(ent.name).includes('+')) {
+        const parts = String(ent.name).split('+').map(s => s.trim()).filter(Boolean);
+        const ids = [];
+        parts.forEach(name => {
+          const p = state.players.find(x => x.name === name)
+            || state.players.find(x => x.name.toLowerCase() === name.toLowerCase());
+          if (p && !ids.includes(p.id)) ids.push(p.id);
+        });
+        if (ids.length) return ids;
       }
+
+      // Last resort: only if id is actually a roster player (never team id)
+      if (isRoster(ent.id)) return [ent.id];
       return [];
+    }
+
+    function playerDisplayName(pid) {
+      const p = state.players.find(x => x.id === pid);
+      if (p) return p.name;
+      // Avoid showing raw ids / team keys as "Unknown" when possible
+      return null;
     }
 
     /** Collect every scored match from a bracket / playoff tree. */
@@ -3035,14 +3057,14 @@
       // WoW table – all players who appeared this week or last week
       const playerIds = new Set([...Object.keys(thisWeekMap), ...Object.keys(prevWeekMap)]);
       const rows = [...playerIds].map(pid => {
-        const p = state.players.find(x => x.id === pid);
-        const name = p ? p.name : 'Unknown';
+        const name = playerDisplayName(pid);
+        if (!name) return null; // drop team ids / orphan keys
         const cur = thisWeekMap[pid] || emptyPlayerStat();
         const prev = prevWeekMap[pid] || emptyPlayerStat();
         const dPts = (cur.pts || 0) - (prev.pts || 0);
         const dWR = Math.round((winRate(cur) - winRate(prev)) * 10) / 10;
         return { pid, name, cur, prev, dPts, dWR };
-      }).sort((a, b) => {
+      }).filter(Boolean).sort((a, b) => {
         const ptsA = a.cur.pts || 0, ptsB = b.cur.pts || 0;
         if (ptsB !== ptsA) return ptsB - ptsA;
         const gdA = a.cur.gd || 0, gdB = b.cur.gd || 0;
