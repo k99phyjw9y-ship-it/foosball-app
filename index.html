@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.4</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.5</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -646,7 +646,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '2.4';
+    const APP_VERSION = '2.5';
 
     let state = {
       players: [],
@@ -3020,10 +3020,34 @@
       const thisWeekMap = byWeek[selectedWeek] || {};
       const prevWeekMap = prevWeek ? (byWeek[prevWeek] || {}) : {};
 
-      // Summary cards
-      const allThis = Object.values(thisWeekMap);
-      const totalMatches = Math.round(allThis.reduce((s, p) => s + p.played, 0) / 2); // each match counted twice
-      const totalPlayers = allThis.length;
+      // Summary cards — count real matches once (team games are 4 player-rows, not 2)
+      const rosterThisWeek = Object.keys(thisWeekMap).filter(pid => state.players.some(p => p.id === pid));
+      const allThis = rosterThisWeek.map(pid => thisWeekMap[pid]);
+      const totalPlayers = rosterThisWeek.length;
+
+      let totalMatches = 0;
+      state.tournaments.forEach(t => {
+        const wk = getISOWeekKey(t.createdAt || Date.now());
+        if (wk !== selectedWeek) return;
+        (t.rounds || []).forEach(round => {
+          (round.matches || []).forEach(m => {
+            if (m.void) return;
+            if (m.scoreA == null || m.scoreB == null) return;
+            if (m.status && m.status !== 'done') return;
+            if (m.scoreA === m.scoreB) return;
+            totalMatches++;
+          });
+        });
+        if (typeof collectBracketMatches === 'function') {
+          collectBracketMatches(t.playoffs).forEach(m => {
+            if (!m || m.void) return;
+            if (m.scoreA == null || m.scoreB == null) return;
+            if (m.scoreA === 0 && m.scoreB === 0) return; // bye auto-score
+            if (!m.winner && m.status !== 'done') return;
+            totalMatches++;
+          });
+        }
+      });
       const avgWR = totalPlayers ? Math.round(allThis.reduce((s, p) => s + winRate(p), 0) / totalPlayers) : 0;
       let topName = '–';
       let topPts = -1;
