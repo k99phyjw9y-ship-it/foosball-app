@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.5</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.7</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -646,7 +646,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '2.5';
+    const APP_VERSION = '2.7';
 
     let state = {
       players: [],
@@ -841,6 +841,7 @@
         tables,
         drawStyle,
         playerIds: [],
+        absentIds: [],       // players who left early (kept on roster/standings, skipped in draws & playoffs)
         teams: [],           // for doubles / dyp: [{id, playerIds: [a,b], name}]
         rounds: [],          // [{number, matches: [{id, teamA, teamB, scoreA, scoreB, table, status}]}]
         currentRound: 0,
@@ -990,8 +991,43 @@
     function removePlayerFromTournament(pid) {
       const t = getCurrentTournament();
       t.playerIds = t.playerIds.filter(id => id !== pid);
+      if (t.absentIds) t.absentIds = t.absentIds.filter(id => id !== pid);
       if (t.teams) {
         t.teams = t.teams.filter(team => !team.playerIds.includes(pid));
+      }
+      saveState();
+      renderTournament();
+    }
+
+    function ensureAbsentIds(t) {
+      if (!t.absentIds) t.absentIds = [];
+      return t.absentIds;
+    }
+
+    /** Players still available for draws, sit-outs, and playoffs. */
+    function activePlayerIds(t) {
+      const absent = new Set(ensureAbsentIds(t));
+      return (t.playerIds || []).filter(id => !absent.has(id));
+    }
+
+    function isPlayerAbsent(t, pid) {
+      return ensureAbsentIds(t).includes(pid);
+    }
+
+    function togglePlayerAbsent(pid) {
+      const t = getCurrentTournament();
+      if (!t) return;
+      ensureAbsentIds(t);
+      const i = t.absentIds.indexOf(pid);
+      if (i >= 0) {
+        t.absentIds.splice(i, 1);
+        // Drop from any current team so they can be redrawn when present again
+        toast('Marked present — included in future draws & playoffs', 'success');
+      } else {
+        t.absentIds.push(pid);
+        // Remove from current teams so partner draw doesn't keep a half team
+        t.teams = (t.teams || []).filter(team => !(team.playerIds || []).includes(pid));
+        toast('Marked absent — keeps stats; skipped in future rounds & playoffs', 'success');
       }
       saveState();
       renderTournament();
@@ -1003,13 +1039,27 @@
         container.innerHTML = '<p class="text-slate-500 text-sm py-4 text-center">Add players to get started.</p>';
         return;
       }
-      container.innerHTML = t.playerIds.map(pid => {
+      ensureAbsentIds(t);
+      const activeN = activePlayerIds(t).length;
+      const absentN = t.absentIds.length;
+      let note = '';
+      if (t.type === 'monster' || t.type === 'dyp' || absentN) {
+        note = `<p class="text-xs text-slate-500 mb-2">Active ${activeN}${absentN ? ` · Absent ${absentN} (stats kept, not in draws/playoffs)` : ''}</p>`;
+      }
+      container.innerHTML = note + t.playerIds.map(pid => {
         const p = state.players.find(x => x.id === pid);
         if (!p) return '';
+        const absent = isPlayerAbsent(t, pid);
         return `
-          <div class="flex items-center justify-between surface-card rounded-xl px-4 py-3">
-            <span class="font-medium text-slate-900">${escapeHtml(p.name)}</span>
-            <button onclick="removePlayerFromTournament('${pid}')" class="text-red-400/70 hover:text-red-300 text-sm font-medium">Remove</button>
+          <div class="flex items-center justify-between surface-card rounded-xl px-4 py-3 ${absent ? 'opacity-60' : ''}">
+            <div class="min-w-0">
+              <span class="font-medium text-slate-900">${escapeHtml(p.name)}</span>
+              ${absent ? '<span class="ml-2 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">Absent</span>' : ''}
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="togglePlayerAbsent('${pid}')" class="text-xs font-semibold px-2 py-1 rounded-lg border transition ${absent ? 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100' : 'text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100'}">${absent ? 'Present' : 'Absent'}</button>
+              <button onclick="removePlayerFromTournament('${pid}')" class="text-red-500 hover:text-red-700 text-sm font-medium">Remove</button>
+            </div>
           </div>
         `;
       }).join('');
@@ -1018,7 +1068,7 @@
     function getUnpairedPlayerIds(t) {
       const paired = new Set();
       (t.teams || []).forEach(team => team.playerIds.forEach(id => paired.add(id)));
-      return t.playerIds.filter(id => !paired.has(id));
+      return activePlayerIds(t).filter(id => !paired.has(id));
     }
 
     function updateTeamPlayerSelects(t) {
@@ -1111,9 +1161,9 @@
       let html = '';
 
       // Fair sit-out status for odd Monster/DYP fields
-      if ((t.type === 'monster' || t.type === 'dyp') && (t.playerIds || []).length % 2 === 1) {
+      if ((t.type === 'monster' || t.type === 'dyp') && activePlayerIds(t).length % 2 === 1) {
         const counts = getSitOutCounts(t);
-        const roster = (t.playerIds || []).map(id => {
+        const roster = activePlayerIds(t).map(id => {
           const p = state.players.find(x => x.id === id);
           return { id, name: p?.name || '?', n: counts[id] || 0 };
         });
@@ -1160,7 +1210,8 @@
     /** Sit-out counts from completed rounds (so deleted rounds don't count). */
     function getSitOutCounts(t) {
       const counts = {};
-      (t.playerIds || []).forEach(id => { counts[id] = 0; });
+      activePlayerIds(t).forEach(id => { counts[id] = 0; });
+      (t.playerIds || []).forEach(id => { if (counts[id] == null) counts[id] = 0; });
       (t.rounds || []).forEach(r => {
         (r.sitOutIds || []).forEach(id => {
           counts[id] = (counts[id] || 0) + 1;
@@ -1225,6 +1276,7 @@
     function isPartnerAllowed(t, counts, byPlayer, idA, idB) {
       const c = counts[pairKey(idA, idB)] || 0;
       if (c === 0) return true;
+      // Prefer full event roster so earlier partners still count; fall back to active pool size
       const others = Math.max((t.playerIds || []).length - 1, 1);
       const aDone = (byPlayer[idA]?.size || 0) >= others;
       const bDone = (byPlayer[idB]?.size || 0) >= others;
@@ -1288,9 +1340,9 @@
 
     function drawPartners() {
       const t = getCurrentTournament();
-      const players = t.playerIds.map(id => state.players.find(p => p.id === id)).filter(Boolean);
+      const players = activePlayerIds(t).map(id => state.players.find(p => p.id === id)).filter(Boolean);
       if (players.length < 4) {
-        toast('Need at least 4 players for doubles/DYP', 'error');
+        toast('Need at least 4 active players for doubles/DYP (mark Present or add players)', 'error');
         return;
       }
 
@@ -1370,8 +1422,8 @@
         return;
       }
 
-      if (t.playerIds.length < 2) {
-        toast('Need at least 2 players', 'error');
+      if (activePlayerIds(t).length < 2) {
+        toast('Need at least 2 active players', 'error');
         return;
       }
 
@@ -1962,36 +2014,134 @@
       toast(`${label} started · ${entities.length} ${t.type === 'singles' ? 'players' : 'teams'}`, 'success');
     }
 
+    /**
+     * Monster (and similar) playoffs: tiered partner draw from standings.
+     * Rank 1 pairs with rank (n/2+1), 2 with (n/2+2), … then those teams enter the bracket.
+     * Example n=10: 1+6, 2+7, 3+8, 4+9, 5+10.
+     */
+    function buildTieredPlayoffTeams(t, standings) {
+      const absent = new Set(ensureAbsentIds(t));
+      const byId = new Map(standings.map(s => [s.id, s]));
+      // Active players only, ordered by standings (unranked actives go to the end)
+      const ranked = [];
+      standings.forEach(s => {
+        if (!absent.has(s.id) && activePlayerIds(t).includes(s.id)) ranked.push(s);
+      });
+      activePlayerIds(t).forEach(id => {
+        if (!ranked.find(s => s.id === id)) {
+          const p = state.players.find(x => x.id === id);
+          if (p) ranked.push({ id: p.id, name: p.name, pts: 0, gd: 0, wins: 0, played: 0 });
+        }
+      });
+
+      let sitOut = null;
+      if (ranked.length % 2 === 1) {
+        sitOut = ranked.pop(); // lowest remaining sits out of playoffs
+      }
+      if (ranked.length < 4) {
+        return { error: 'Need at least 4 active players for tiered playoffs', teams: [], sitOut };
+      }
+
+      const half = ranked.length / 2;
+      const teams = [];
+      const pairsLabel = [];
+      for (let i = 0; i < half; i++) {
+        const top = ranked[i];
+        const bottom = ranked[i + half];
+        const team = {
+          id: uid(),
+          playerIds: [top.id, bottom.id],
+          name: `${top.name} + ${bottom.name}`,
+          seed: i + 1,
+          tieredFrom: { top: top.id, bottom: bottom.id, ranks: [i + 1, i + half + 1] }
+        };
+        teams.push(team);
+        pairsLabel.push(`#${i + 1}+#${i + half + 1}`);
+      }
+      return { teams, sitOut, pairsLabel, fieldSize: ranked.length + (sitOut ? 1 : 0) };
+    }
+
     function startPlayoffs() {
       const t = getCurrentTournament();
+      if (t.playoffs && (t.playoffs.winnersRounds?.length || t.playoffs.rounds?.length)) {
+        if (!confirm('A playoff bracket already exists. Replace it?')) return;
+      }
+
       const standings = computeStandings(t);
-      if (standings.length < 2) {
+      if (!standings.length && activePlayerIds(t).length < 4) {
         toast('Need ranking results first (play some rounds)', 'error');
         return;
       }
-      let n = 8;
-      if (standings.length < 8) n = 4;
-      if (standings.length < 4) n = 2;
-      const qualified = standings.slice(0, n).map(s => ({ id: s.id, name: s.name }));
-      // Playoffs from Swiss: use single-elim by default; double if tournament format is double-elim
+
+      // Monster DYP (and DYP ranking → playoffs): tiered high/low partner draw
+      if (t.type === 'monster' || t.type === 'dyp') {
+        const built = buildTieredPlayoffTeams(t, standings);
+        if (built.error) {
+          toast(built.error, 'error');
+          return;
+        }
+        if (built.sitOut) {
+          toast(`${built.sitOut.name} sits out playoffs (odd field)`, 'info');
+        }
+
+        t.playoffTeams = built.teams;
+        t.teams = built.teams.map(team => ({
+          id: team.id,
+          playerIds: team.playerIds.slice(),
+          name: team.name
+        }));
+
+        const entities = built.teams.map(team => ({
+          id: team.id,
+          name: team.name,
+          type: 'team',
+          playerIds: team.playerIds.slice(),
+          seed: team.seed
+        }));
+
+        const format = t.format === 'double-elim' ? 'double-elim' : 'single-elim';
+        // Keep seed order (no shuffle): team 1 = ranks 1+(n/2+1), etc.
+        t.playoffs = buildBracket(entities, format, { shuffleSeeds: false });
+        t.playoffs.tieredDraw = true;
+        t.playoffs.tieredPairs = built.pairsLabel;
+        t.placements = t.playoffs.placements;
+        t.status = 'active';
+        saveState();
+        state.currentTab = 'bracket';
+        renderTournament();
+        toast(`Tiered playoffs · ${built.teams.length} teams (${built.pairsLabel.join(', ')})`, 'success');
+        return;
+      }
+
+      // Other event types: all active standing entities in bracket (no fixed 8/4/2 cut)
+      const entities = getMatchEntities(t);
+      if (entities.length < 2) {
+        toast('Need at least 2 teams/players for playoffs', 'error');
+        return;
+      }
       const format = t.format === 'double-elim' ? 'double-elim' : 'single-elim';
-      t.playoffs = buildBracket(qualified, format, { shuffleSeeds: false });
+      t.playoffs = buildBracket(entities, format, { shuffleSeeds: false });
       t.placements = t.playoffs.placements;
+      t.status = 'active';
       saveState();
       state.currentTab = 'bracket';
       renderTournament();
-      toast(`Playoffs started with top ${n} (${format === 'double-elim' ? 'double' : 'single'} elim)`, 'success');
+      toast(`Playoffs started · ${entities.length} ${t.type === 'singles' ? 'players' : 'teams'}`, 'success');
     }
 
     function getMatchEntities(t) {
+      const absent = new Set(ensureAbsentIds(t));
       if (t.type === 'singles') {
-        return t.playerIds.map(id => {
+        return activePlayerIds(t).map(id => {
           const p = state.players.find(x => x.id === id);
           return p ? { id: p.id, name: p.name, type: 'player' } : null;
         }).filter(Boolean);
       }
-      // doubles / dyp / monster → teams
-      return (t.teams || []).map(team => ({
+      // doubles / dyp / monster → teams (skip teams that include an absent player)
+      return (t.teams || []).filter(team => {
+        const ids = team.playerIds || [];
+        return ids.length >= 2 && ids.every(id => !absent.has(id));
+      }).map(team => ({
         id: team.id,
         name: team.name || team.playerIds.map(pid => {
           const p = state.players.find(x => x.id === pid);
@@ -2618,11 +2768,17 @@
             <span class="text-xs text-slate-500 self-center">${isDE ? 'Double elimination · winners + losers + grand final' : 'Single elimination · 3rd place match'}</span>
           `;
         } else {
+          const playoffLabel = (t.type === 'monster' || t.type === 'dyp')
+            ? 'Start Tiered Playoffs'
+            : 'Start Playoffs';
+          const playoffHint = (t.type === 'monster' || t.type === 'dyp')
+            ? 'Top half partners with bottom half (e.g. 1+6, 2+7…)'
+            : 'After ranking rounds';
           actions.innerHTML = `
             <button onclick="startPlayoffs()" class="px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-600 hover:bg-amber-500/25 font-semibold text-sm transition">
-              Start Playoffs (Top 8 / 4 / 2)
+              ${playoffLabel}
             </button>
-            <span class="text-xs text-slate-500 self-center">After ranking rounds</span>
+            <span class="text-xs text-slate-500 self-center">${playoffHint}</span>
           `;
         }
       }
@@ -2648,6 +2804,14 @@
 
       const wb = b.winnersRounds || b.rounds || [];
       let html = '';
+
+      if (b.tieredDraw && b.tieredPairs?.length) {
+        html += `<div class="mb-4 surface-card rounded-xl px-4 py-3 text-sm text-slate-700">
+          <div class="text-[11px] font-semibold text-amber-700 uppercase tracking-wider mb-1">Tiered partner draw</div>
+          <p class="text-xs text-slate-500 mb-1">Standings rank #1 pairs with bottom half, etc.</p>
+          <p class="font-medium">${escapeHtml(b.tieredPairs.join(' · '))}</p>
+        </div>`;
+      }
 
       if (b.type === 'double-elim') {
         html += `<div class="mb-2 text-xs font-semibold text-emerald-400/80 uppercase tracking-wider">Winners bracket</div>`;
