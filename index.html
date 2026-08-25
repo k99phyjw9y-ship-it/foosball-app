@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.9</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.9 · Updated Aug 24, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -648,6 +648,7 @@
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
     const APP_VERSION = '2.9';
+    const APP_UPDATED = 'Aug 24, 2026';
 
     let state = {
       players: [],
@@ -3398,7 +3399,7 @@
       });
       const navMap = { home: 'home', players: 'players', stats: 'stats', create: 'home', tournament: 'home' };
       updateNav(navMap[name] || name);
-      if (name === 'home') { renderHome(); const vw = document.getElementById('home-version-watermark'); if (vw) vw.textContent = 'v' + APP_VERSION; }
+      if (name === 'home') { renderHome(); const vw = document.getElementById('home-version-watermark'); if (vw) vw.textContent = 'v' + APP_VERSION + ' · Updated ' + APP_UPDATED; }
       if (name === 'players') renderPlayers();
       if (name === 'tournament') renderTournament();
       if (name === 'stats') renderStats();
