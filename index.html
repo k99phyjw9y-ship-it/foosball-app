@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.7</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.8</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -646,7 +646,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '2.7';
+    const APP_VERSION = '2.8';
 
     let state = {
       players: [],
@@ -2099,7 +2099,8 @@
           seed: team.seed
         }));
 
-        const format = t.format === 'double-elim' ? 'double-elim' : 'single-elim';
+        // Monster/DYP tiered playoffs are always double elimination
+        const format = 'double-elim';
         // Keep seed order (no shuffle): team 1 = ranks 1+(n/2+1), etc.
         t.playoffs = buildBracket(entities, format, { shuffleSeeds: false });
         t.playoffs.tieredDraw = true;
@@ -2109,7 +2110,7 @@
         saveState();
         state.currentTab = 'bracket';
         renderTournament();
-        toast(`Tiered playoffs · ${built.teams.length} teams (${built.pairsLabel.join(', ')})`, 'success');
+        toast(`Tiered double-elim playoffs · ${built.teams.length} teams (${built.pairsLabel.join(', ')})`, 'success');
         return;
       }
 
@@ -2772,7 +2773,7 @@
             ? 'Start Tiered Playoffs'
             : 'Start Playoffs';
           const playoffHint = (t.type === 'monster' || t.type === 'dyp')
-            ? 'Top half partners with bottom half (e.g. 1+6, 2+7…)'
+            ? 'Top half + bottom half · always double elimination'
             : 'After ranking rounds';
           actions.innerHTML = `
             <button onclick="startPlayoffs()" class="px-4 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-600 hover:bg-amber-500/25 font-semibold text-sm transition">
