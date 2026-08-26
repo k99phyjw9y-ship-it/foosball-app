@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v2.9 · Updated Aug 24, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.0 · Updated Aug 25, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -385,6 +385,29 @@
               </tr>
             </thead>
             <tbody id="stats-event-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="surface-card rounded-2xl overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-slate-200">
+          <h3 class="text-sm font-semibold text-slate-800">Podium · Bracket &amp; Playoffs</h3>
+          <p class="text-xs text-slate-500 mt-0.5">1st / 2nd / 3rd finishes across all elimination brackets and playoffs</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200">
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Player</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider" title="Playoffs / brackets entered">PO</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-amber-600 uppercase tracking-wider">🥇</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">🥈</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-amber-700 uppercase tracking-wider">🥉</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider" title="Total medals">Medals</th>
+              </tr>
+            </thead>
+            <tbody id="stats-podium-body"></tbody>
           </table>
         </div>
       </div>
@@ -647,8 +670,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '2.9';
-    const APP_UPDATED = 'Aug 24, 2026';
+    const APP_VERSION = '3.0';
+    const APP_UPDATED = 'Aug 25, 2026';
 
     let state = {
       players: [],
@@ -3159,6 +3182,108 @@
       return { byWeek, career, byType, weeks };
     }
 
+    /**
+     * Aggregate 1st / 2nd / 3rd from finished brackets & playoffs across all events.
+     * Team placements credit every roster player on that team.
+     */
+    function computePodiumStats() {
+      const map = {};
+      state.players.forEach(p => {
+        map[p.id] = { playoffs: 0, first: 0, second: 0, third: 0 };
+      });
+
+      const credit = (ent, place) => {
+        if (!ent) return;
+        const ids = entityPlayerIds(ent);
+        // Fallback: singles entity is often {id, name}
+        const list = ids.length ? ids : (ent.id && state.players.some(p => p.id === ent.id) ? [ent.id] : []);
+        list.forEach(pid => {
+          if (!map[pid]) map[pid] = { playoffs: 0, first: 0, second: 0, third: 0 };
+          if (place === 'first') map[pid].first++;
+          else if (place === 'second') map[pid].second++;
+          else if (place === 'third') map[pid].third++;
+        });
+      };
+
+      const countPlayoffAppearance = (t) => {
+        const b = t.playoffs;
+        if (!b) return;
+        const seen = new Set();
+        const note = (ent) => {
+          if (!ent) return;
+          const ids = entityPlayerIds(ent);
+          const list = ids.length ? ids : (ent.id && state.players.some(p => p.id === ent.id) ? [ent.id] : []);
+          list.forEach(pid => {
+            if (!seen.has(pid)) {
+              seen.add(pid);
+              if (!map[pid]) map[pid] = { playoffs: 0, first: 0, second: 0, third: 0 };
+              map[pid].playoffs++;
+            }
+          });
+        };
+        // Anyone who appeared on a scored bracket match (or got a placement)
+        const matches = typeof collectBracketMatches === 'function' ? collectBracketMatches(b) : [];
+        matches.forEach(m => {
+          if (!m) return;
+          if (m.a?.entity) note(m.a.entity);
+          if (m.b?.entity) note(m.b.entity);
+        });
+        const p = t.placements || b.placements;
+        if (p) {
+          if (p.first) note(p.first);
+          if (p.second) note(p.second);
+          if (p.third) note(p.third);
+        }
+      };
+
+      state.tournaments.forEach(t => {
+        const p = t.placements || t.playoffs?.placements;
+        if (!t.playoffs) return;
+        countPlayoffAppearance(t);
+        if (p) {
+          credit(p.first, 'first');
+          credit(p.second, 'second');
+          credit(p.third, 'third');
+        }
+      });
+
+      return map;
+    }
+
+    function renderPodiumStats() {
+      const map = computePodiumStats();
+      const rows = state.players.map(p => {
+        const s = map[p.id] || { playoffs: 0, first: 0, second: 0, third: 0 };
+        const medals = (s.first || 0) + (s.second || 0) + (s.third || 0);
+        return { name: p.name, ...s, medals };
+      }).filter(r => r.playoffs > 0 || r.medals > 0)
+        .sort((a, b) => {
+          if (b.first !== a.first) return b.first - a.first;
+          if (b.second !== a.second) return b.second - a.second;
+          if (b.third !== a.third) return b.third - a.third;
+          if (b.playoffs !== a.playoffs) return b.playoffs - a.playoffs;
+          return a.name.localeCompare(b.name);
+        });
+
+      const body = document.getElementById('stats-podium-body');
+      if (!body) return;
+      if (rows.length === 0) {
+        body.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-500">No bracket or playoff finishes yet</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map((r, i) => `
+        <tr class="border-t border-slate-200 table-row">
+          <td class="px-3 py-2.5 text-slate-500 font-medium">${i + 1}</td>
+          <td class="px-3 py-2.5 font-medium text-slate-900">${escapeHtml(r.name)}</td>
+          <td class="px-2 py-2.5 text-center text-slate-500">${r.playoffs}</td>
+          <td class="px-2 py-2.5 text-center font-semibold text-amber-600">${r.first || '–'}</td>
+          <td class="px-2 py-2.5 text-center text-slate-600">${r.second || '–'}</td>
+          <td class="px-2 py-2.5 text-center text-amber-700">${r.third || '–'}</td>
+          <td class="px-2 py-2.5 text-center font-bold text-slate-900">${r.medals}</td>
+        </tr>
+      `).join('');
+    }
+
     function winRate(s) {
       if (!s || s.played === 0) return 0;
       return Math.round((s.wins / s.played) * 1000) / 10; // one decimal
@@ -3331,6 +3456,7 @@
       }
 
       renderEventLeaderboard(byType);
+      renderPodiumStats();
     }
 
     function setStatsEventType(type) {
