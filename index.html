@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.0 · Updated Aug 25, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.1 · Updated Aug 25, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -524,6 +524,10 @@
           <div class="min-w-0">
             <h2 class="text-xl font-bold tracking-tight text-slate-900 truncate" id="td-name">Tournament</h2>
             <p class="text-xs text-slate-500 mt-0.5 truncate" id="td-meta"></p>
+            <div class="flex items-center gap-2 mt-1.5">
+              <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0" for="td-event-date">Event date</label>
+              <input type="date" id="td-event-date" onchange="setTournamentDate(this.value)" class="input-field rounded-lg px-2 py-1 text-xs text-slate-800 max-w-[11rem]" />
+            </div>
           </div>
         </div>
         <div class="flex gap-2">
@@ -670,7 +674,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '3.0';
+    const APP_VERSION = '3.1';
     const APP_UPDATED = 'Aug 25, 2026';
 
     let state = {
@@ -900,6 +904,28 @@
       renderTournament();
     }
 
+    function setTournamentDate(value) {
+      const t = getCurrentTournament();
+      if (!t || !value) return;
+      // Parse as local date at noon to avoid timezone day-shift
+      const parts = value.split('-').map(Number);
+      if (parts.length !== 3 || parts.some(n => !n && n !== 0)) {
+        toast('Invalid date', 'error');
+        return;
+      }
+      const [y, mo, d] = parts;
+      const dt = new Date(y, mo - 1, d, 12, 0, 0, 0);
+      if (isNaN(dt.getTime())) {
+        toast('Invalid date', 'error');
+        return;
+      }
+      t.createdAt = dt.getTime();
+      saveState();
+      renderHome();
+      toast('Event date updated', 'success');
+    }
+
+
     function confirmDeleteTournament() {
       if (!confirm('Delete this tournament permanently?')) return;
       state.tournaments = state.tournaments.filter(t => t.id !== state.currentTournamentId);
@@ -951,6 +977,15 @@
       document.getElementById('td-name').textContent = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
       document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · ${t.tables} table${t.tables>1?'s':''}`;
+      const dateInput = document.getElementById('td-event-date');
+      if (dateInput) {
+        const d = new Date(t.createdAt || Date.now());
+        // Local YYYY-MM-DD for <input type="date">
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+      }
 
       // Show/hide teams section
       const teamsSection = document.getElementById('teams-section');
