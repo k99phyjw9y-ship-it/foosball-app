@@ -242,10 +242,15 @@
           <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Tournaments</h2>
           <p class="text-sm text-slate-500 mt-1">Singles · Doubles · DYP · Monster DYP</p>
         </div>
-        <button onclick="startCreateTournament()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2 shrink-0">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-          Create tournament
-        </button>
+        <div class="flex flex-wrap gap-2 shrink-0">
+          <button type="button" onclick="document.getElementById('import-file-input').click()" class="btn-ghost px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-700">Import</button>
+          <button type="button" onclick="exportAllData()" class="btn-ghost px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-700">Export all</button>
+          <button onclick="startCreateTournament()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Create tournament
+          </button>
+        </div>
+        <input type="file" id="import-file-input" accept="application/json,.json" class="hidden" onchange="importDataFromFile(event)" />
       </div>
 
       <div id="tournament-list" class="grid gap-3 sm:grid-cols-2">
@@ -260,7 +265,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.4 · Updated Aug 27, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.5 · Updated Aug 27, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -531,7 +536,8 @@
           </div>
         </div>
         <div class="flex gap-2">
-          <button onclick="exportStandings()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700">Export</button>
+          <button onclick="exportTournamentJson()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="Download this event as JSON">Export event</button>
+          <button onclick="exportStandings()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="CSV standings">CSV</button>
           <button onclick="confirmDeleteTournament()" class="px-3 py-1.5 text-sm rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition">Delete</button>
         </div>
       </div>
@@ -674,7 +680,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '3.4';
+    const APP_VERSION = '3.5';
     const APP_UPDATED = 'Aug 27, 2026';
 
     let state = {
@@ -3113,9 +3119,64 @@
       `;
     }
 
-    // ==================== EXPORT ====================
+    // ==================== EXPORT / IMPORT ====================
+    function downloadJson(filename, data) {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function safeFileName(name) {
+      return String(name || 'event').replace(/[^\w\-]+/g, '_').replace(/_+/g, '_').slice(0, 60);
+    }
+
+    /** Players referenced by a tournament (roster + any embedded ids). */
+    function playersForTournament(t) {
+      const ids = new Set(t.playerIds || []);
+      (t.absentIds || []).forEach(id => ids.add(id));
+      (t.teams || []).forEach(team => (team.playerIds || []).forEach(id => ids.add(id)));
+      (t.rounds || []).forEach(r => {
+        (r.sitOutIds || []).forEach(id => ids.add(id));
+        (r.teams || []).forEach(team => (team.playerIds || []).forEach(id => ids.add(id)));
+      });
+      return state.players.filter(p => ids.has(p.id));
+    }
+
+    function exportTournamentJson() {
+      const t = getCurrentTournament();
+      if (!t) return;
+      const payload = {
+        app: 'LCFC Manager',
+        version: APP_VERSION,
+        exportedAt: new Date().toISOString(),
+        type: 'tournament',
+        tournament: t,
+        players: playersForTournament(t)
+      };
+      downloadJson(`${safeFileName(t.name)}_export.json`, payload);
+      toast('Event exported', 'success');
+    }
+
+    function exportAllData() {
+      const payload = {
+        app: 'LCFC Manager',
+        version: APP_VERSION,
+        exportedAt: new Date().toISOString(),
+        type: 'full',
+        players: state.players,
+        tournaments: state.tournaments
+      };
+      downloadJson(`LCFC_Manager_backup_${new Date().toISOString().slice(0, 10)}.json`, payload);
+      toast('Full backup exported', 'success');
+    }
+
     function exportStandings() {
       const t = getCurrentTournament();
+      if (!t) return;
       const standings = computeStandings(t);
       let csv = 'Rank,Name,Played,Wins,Losses,GD,Points\n';
       standings.forEach((s, i) => {
@@ -3125,10 +3186,120 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${t.name.replace(/\s+/g, '_')}_standings.csv`;
+      a.download = `${safeFileName(t.name)}_standings.csv`;
       a.click();
       URL.revokeObjectURL(url);
       toast('Standings exported', 'success');
+    }
+
+    function mergePlayers(incoming) {
+      if (!Array.isArray(incoming)) return { added: 0, updated: 0 };
+      let added = 0, updated = 0;
+      incoming.forEach(p => {
+        if (!p || !p.id) return;
+        const existing = state.players.find(x => x.id === p.id);
+        if (existing) {
+          if (p.name) existing.name = p.name;
+          if (p.skill != null) existing.skill = p.skill;
+          updated++;
+        } else {
+          // Avoid duplicate names with different ids when possible: keep both
+          state.players.push({
+            id: p.id,
+            name: p.name || 'Player',
+            skill: p.skill != null ? p.skill : 3
+          });
+          added++;
+        }
+      });
+      return { added, updated };
+    }
+
+    function importTournamentObject(t) {
+      if (!t || !t.id) return false;
+      const idx = state.tournaments.findIndex(x => x.id === t.id);
+      if (idx >= 0) {
+        if (!confirm(`Tournament "${t.name || t.id}" already exists. Replace it?`)) {
+          // Import as a copy with new id
+          t = JSON.parse(JSON.stringify(t));
+          t.id = uid();
+          t.name = (t.name || 'Tournament') + ' (imported)';
+          state.tournaments.unshift(t);
+          return true;
+        }
+        state.tournaments[idx] = t;
+      } else {
+        state.tournaments.unshift(t);
+      }
+      return true;
+    }
+
+    function importDataFromFile(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!data || typeof data !== 'object') throw new Error('Invalid file');
+
+          // Full backup
+          if (data.type === 'full' || (Array.isArray(data.players) && Array.isArray(data.tournaments) && !data.tournament)) {
+            const mode = confirm(
+              'Full backup detected.\\n\\nOK = merge into existing data\\nCancel = replace all data (cannot undo)'
+            );
+            if (mode) {
+              const pr = mergePlayers(data.players || []);
+              let tCount = 0;
+              (data.tournaments || []).forEach(t => {
+                if (importTournamentObject(t)) tCount++;
+              });
+              saveState();
+              renderHome();
+              renderPlayers();
+              toast(`Merged: ${pr.added} players added, ${tCount} events`, 'success');
+            } else {
+              if (!confirm('Replace ALL players and tournaments with this file?')) return;
+              state.players = Array.isArray(data.players) ? data.players : [];
+              state.tournaments = Array.isArray(data.tournaments) ? data.tournaments : [];
+              state.currentTournamentId = null;
+              saveState();
+              renderHome();
+              renderPlayers();
+              toast('Data replaced from backup', 'success');
+            }
+            return;
+          }
+
+          // Single tournament export
+          if (data.type === 'tournament' || data.tournament) {
+            const t = data.tournament || data;
+            mergePlayers(data.players || []);
+            importTournamentObject(t);
+            saveState();
+            renderHome();
+            renderPlayers();
+            toast(`Imported event: ${t.name || 'tournament'}`, 'success');
+            return;
+          }
+
+          // Raw array of tournaments
+          if (Array.isArray(data)) {
+            data.forEach(t => importTournamentObject(t));
+            saveState();
+            renderHome();
+            toast(`Imported ${data.length} event(s)`, 'success');
+            return;
+          }
+
+          toast('Unrecognized JSON format', 'error');
+        } catch (e) {
+          console.error(e);
+          toast('Import failed — invalid JSON', 'error');
+        }
+      };
+      reader.readAsText(file);
     }
 
     // ==================== WEEK-OVER-WEEK STATS ====================
