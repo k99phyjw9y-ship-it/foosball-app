@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.2 · Updated Aug 26, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.4 · Updated Aug 27, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -522,7 +522,7 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
           <div class="min-w-0">
-            <h2 class="text-xl font-bold tracking-tight text-slate-900 truncate" id="td-name">Tournament</h2>
+            <input type="text" id="td-name" onchange="setTournamentName(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}" class="w-full text-xl font-bold tracking-tight text-slate-900 bg-transparent border border-transparent hover:border-slate-200 focus:border-emerald-300 rounded-lg px-1.5 py-0.5 -ml-1.5 outline-none transition" title="Click to edit name" />
             <p class="text-xs text-slate-500 mt-0.5 truncate" id="td-meta"></p>
             <div class="flex items-center gap-2 mt-1.5">
               <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0" for="td-event-date">Event date</label>
@@ -674,8 +674,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '3.2';
-    const APP_UPDATED = 'Aug 26, 2026';
+    const APP_VERSION = '3.4';
+    const APP_UPDATED = 'Aug 27, 2026';
 
     let state = {
       players: [],
@@ -904,6 +904,22 @@
       renderTournament();
     }
 
+    function setTournamentName(value) {
+      const t = getCurrentTournament();
+      if (!t) return;
+      const name = (value || '').trim();
+      if (!name) {
+        toast('Name is required', 'error');
+        document.getElementById('td-name').value = t.name;
+        return;
+      }
+      if (name === t.name) return;
+      t.name = name;
+      saveState();
+      renderHome();
+      toast('Tournament name updated', 'success');
+    }
+
     function setTournamentDate(value) {
       const t = getCurrentTournament();
       if (!t || !value) return;
@@ -974,7 +990,7 @@
       const t = getCurrentTournament();
       if (!t) return;
 
-      document.getElementById('td-name').textContent = t.name;
+      document.getElementById('td-name').value = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
       document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · ${t.tables} table${t.tables>1?'s':''}`;
       const dateInput = document.getElementById('td-event-date');
@@ -1050,14 +1066,13 @@
       if (!pid) return;
       if (!t.playerIds.includes(pid)) {
         t.playerIds.push(pid);
-        // Field changed — clear pending partners/sit-out so next draw re-randomizes
+        // Clear pending teams only — sit-out history on past rounds is kept
         if (t.type === 'monster' || t.type === 'dyp') {
           t.teams = [];
-          t.currentSitOutIds = [];
         }
         saveState();
         renderTournament();
-        toast('Player added — draw partners again for a fresh random field');
+        toast('Player added — draw partners again (sit-out history kept)');
       }
     }
 
@@ -1065,11 +1080,8 @@
       const t = getCurrentTournament();
       t.playerIds = t.playerIds.filter(id => id !== pid);
       if (t.absentIds) t.absentIds = t.absentIds.filter(id => id !== pid);
-      if (t.type === 'monster' || t.type === 'dyp') {
-        t.teams = [];
-        t.currentSitOutIds = [];
-      } else if (t.teams) {
-        t.teams = t.teams.filter(team => !team.playerIds.includes(pid));
+      if (t.teams) {
+        t.teams = t.teams.filter(team => !(team.playerIds || []).includes(pid));
       }
       saveState();
       renderTournament();
@@ -1102,10 +1114,9 @@
         t.absentIds.push(pid);
         toast('Marked absent — keeps stats; skipped in future rounds & playoffs', 'success');
       }
-      // Field changed: clear pending draw so next Draw Partners is a full re-randomize
+      // Clear pending teams only — do not erase sit-out history
       if (t.type === 'monster' || t.type === 'dyp') {
-        t.teams = [];
-        t.currentSitOutIds = [];
+        t.teams = (t.teams || []).filter(team => !(team.playerIds || []).includes(pid));
       } else {
         t.teams = (t.teams || []).filter(team => !(team.playerIds || []).includes(pid));
       }
@@ -1240,25 +1251,34 @@
       const canRemove = t.type === 'doubles' || t.type === 'dyp';
       let html = '';
 
-      // Fair sit-out status for odd Monster/DYP fields
-      if ((t.type === 'monster' || t.type === 'dyp') && activePlayerIds(t).length % 2 === 1) {
-        const counts = getSitOutCounts(t);
-        const roster = activePlayerIds(t).map(id => {
-          const p = state.players.find(x => x.id === id);
-          return { id, name: p?.name || '?', n: counts[id] || 0 };
-        });
-        const minSit = roster.length ? Math.min(...roster.map(r => r.n)) : 0;
-        const waiting = roster.filter(r => r.n === minSit);
-        const current = (t.currentSitOutIds || []).map(id => {
-          const p = state.players.find(x => x.id === id);
-          return p?.name || '?';
-        });
-        html += `<div class="surface-card rounded-xl px-4 py-3 mb-3 border border-amber-200 bg-amber-50/60">
-          <div class="text-[11px] font-semibold text-amber-700 uppercase tracking-wider mb-1">Sit-out rotation</div>
-          <p class="text-sm text-slate-700">Odd field — no one sits twice until everyone has sat once.</p>
-          ${current.length ? `<p class="text-sm mt-1"><span class="font-semibold text-amber-700">This draw:</span> ${escapeHtml(current.join(', '))}</p>` : ''}
-          <p class="text-xs text-slate-500 mt-1">Next eligible (${minSit} sit${minSit === 1 ? '' : 's'} so far): ${escapeHtml(waiting.map(r => r.name).join(', '))}</p>
-        </div>`;
+      // Sit-out status when field exceeds table capacity (2 tables → max 8 on floor)
+      if (t.type === 'monster' || t.type === 'dyp') {
+        const activeN = activePlayerIds(t).length;
+        const need = computeSitNeeded(t, activeN);
+        if (need > 0 || activeN > 0) {
+          const counts = getSitOutCounts(t);
+          const roster = activePlayerIds(t).map(id => {
+            const p = state.players.find(x => x.id === id);
+            return { id, name: p?.name || '?', n: counts[id] || 0 };
+          });
+          const minSit = roster.length ? Math.min(...roster.map(r => r.n)) : 0;
+          const waiting = roster.filter(r => r.n === minSit);
+          const current = (t.currentSitOutIds || []).map(id => {
+            const p = state.players.find(x => x.id === id);
+            return p?.name || '?';
+          });
+          const cap = monsterFloorCapacity(t);
+          const tables = Math.max(1, parseInt(t.tables, 10) || 2);
+          if (need > 0) {
+            html += `<div class="surface-card rounded-xl px-4 py-3 mb-3 border border-amber-200 bg-amber-50/60">
+              <div class="text-[11px] font-semibold text-amber-700 uppercase tracking-wider mb-1">Sit-out rotation</div>
+              <p class="text-sm text-slate-700">${tables} table${tables > 1 ? 's' : ''} · max ${cap} playing · <span class="font-semibold">${need} sit out</span> this round (${activeN} active).</p>
+              <p class="text-xs text-slate-600 mt-1">No one sits twice until every active player has sat once. History is kept when players join or go absent.</p>
+              ${current.length ? `<p class="text-sm mt-1"><span class="font-semibold text-amber-700">This draw:</span> ${escapeHtml(current.join(', '))}</p>` : ''}
+              <p class="text-xs text-slate-500 mt-1">Next eligible (${minSit} sit${minSit === 1 ? '' : 's'} so far): ${escapeHtml(waiting.map(r => r.name).join(', ') || '—')}</p>
+            </div>`;
+          }
+        }
       }
 
       if (!t.teams || t.teams.length === 0) {
@@ -1288,10 +1308,31 @@
 
     // ==================== DRAW PARTNERS ====================
     /** Sit-out counts from completed rounds (so deleted rounds don't count). */
+    /** Max players on floor: each table is 2v2 (4 players). */
+    function monsterFloorCapacity(t) {
+      const tables = Math.max(1, parseInt(t.tables, 10) || 2);
+      return tables * 4;
+    }
+
+    /**
+     * How many must sit so the rest fit on the tables as complete 2v2 matches
+     * (playing count is a multiple of 4, capped by table capacity).
+     * 9 → 1, 10 → 2, 11 → 3 (with 2 tables).
+     */
+    function computeSitNeeded(t, activeCount) {
+      if (activeCount < 4) return Math.max(0, activeCount); // can't form a match
+      const cap = monsterFloorCapacity(t);
+      let playing = Math.min(cap, activeCount);
+      playing = Math.floor(playing / 4) * 4;
+      if (playing < 4) playing = 0;
+      return Math.max(0, activeCount - playing);
+    }
+
     function getSitOutCounts(t) {
       const counts = {};
-      activePlayerIds(t).forEach(id => { counts[id] = 0; });
-      (t.playerIds || []).forEach(id => { if (counts[id] == null) counts[id] = 0; });
+      // Track every roster player (incl. absent) so history survives field changes
+      (t.playerIds || []).forEach(id => { counts[id] = 0; });
+      activePlayerIds(t).forEach(id => { if (counts[id] == null) counts[id] = 0; });
       (t.rounds || []).forEach(r => {
         (r.sitOutIds || []).forEach(id => {
           counts[id] = (counts[id] || 0) + 1;
@@ -1301,9 +1342,11 @@
     }
 
     /**
-     * Fair sit-out picker for odd fields (Monster DYP / DYP).
-     * - No one sits a second time until everyone has sat once (fewest sit-outs first)
-     * - Never sit out back-to-back when another eligible player is available
+     * Fair sit-out picker (Monster DYP / DYP).
+     * - Sit-out history is never reset when the field changes
+     * - No one sits a second time until every *active* player has sat at least once
+     * - New joiners (0 sits) sit before anyone who already sat in this cycle
+     * - Avoid back-to-back sit-outs when another eligible player is available
      * - Ties broken randomly
      */
     function pickFairSitOuts(t, players, needed) {
@@ -1314,22 +1357,36 @@
       if (lastRound?.sitOutIds?.length) {
         lastRound.sitOutIds.forEach(id => lastSit.add(id));
       }
-      // Also avoid immediate re-sit if a draw was done but round not generated yet
-      (t.currentSitOutIds || []).forEach(id => lastSit.add(id));
 
-      const pickFrom = (list) => {
-        const pool = shuffle([...list]);
-        pool.sort((a, b) => (counts[a.id] || 0) - (counts[b.id] || 0));
-        return pool.slice(0, needed);
-      };
+      // Among active field: prefer fewest career sit-outs this event (cycle rule)
+      const minAmongActive = Math.min(...players.map(p => counts[p.id] || 0));
+      // Until everyone active has sat once, only pick from those still at the minimum
+      const cycleComplete = players.every(p => (counts[p.id] || 0) > 0);
+      let eligible = cycleComplete
+        ? [...players]
+        : players.filter(p => (counts[p.id] || 0) === minAmongActive);
 
-      // Prefer players who did not sit last round
-      const notLast = players.filter(p => !lastSit.has(p.id));
-      if (notLast.length >= needed) {
-        return pickFrom(notLast);
+      // Prefer not back-to-back
+      const notLast = eligible.filter(p => !lastSit.has(p.id));
+      if (notLast.length >= needed) eligible = notLast;
+      else {
+        // Expand to full active pool if needed for enough sitters, still prefer low counts
+        eligible = cycleComplete ? [...players] : players.filter(p => (counts[p.id] || 0) === minAmongActive);
+        const notLast2 = eligible.filter(p => !lastSit.has(p.id));
+        if (notLast2.length >= needed) eligible = notLast2;
+        else if (eligible.length < needed) eligible = [...players];
       }
-      // Not enough non-consecutive options — fall back to full pool (still fewest-first)
-      return pickFrom(players);
+
+      const pool = shuffle([...eligible]);
+      pool.sort((a, b) => {
+        const ca = counts[a.id] || 0, cb = counts[b.id] || 0;
+        if (ca !== cb) return ca - cb;
+        // Prefer avoiding consecutive when counts tie
+        const aLast = lastSit.has(a.id) ? 1 : 0;
+        const bLast = lastSit.has(b.id) ? 1 : 0;
+        return aLast - bLast;
+      });
+      return pool.slice(0, needed);
     }
 
     function pairKey(idA, idB) {
@@ -1443,11 +1500,11 @@
         return;
       }
 
-      // Always start from a clean team list so each draw is a fresh randomization
+      // Fresh partner randomization each draw (does not erase sit-out history on rounds)
       t.teams = [];
 
-      // Odd number → one sit out fairly (no back-to-back when possible)
-      const sitNeeded = players.length % 2;
+      // Sit enough players so the rest fit on the tables as full 2v2 matches
+      const sitNeeded = computeSitNeeded(t, players.length);
       let sitOuts = [];
       let active = players;
       if (sitNeeded > 0) {
