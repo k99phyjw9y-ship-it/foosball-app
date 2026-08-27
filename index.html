@@ -260,7 +260,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.1 · Updated Aug 25, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.2 · Updated Aug 26, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -674,8 +674,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '3.1';
-    const APP_UPDATED = 'Aug 25, 2026';
+    const APP_VERSION = '3.2';
+    const APP_UPDATED = 'Aug 26, 2026';
 
     let state = {
       players: [],
@@ -1050,9 +1050,14 @@
       if (!pid) return;
       if (!t.playerIds.includes(pid)) {
         t.playerIds.push(pid);
+        // Field changed — clear pending partners/sit-out so next draw re-randomizes
+        if (t.type === 'monster' || t.type === 'dyp') {
+          t.teams = [];
+          t.currentSitOutIds = [];
+        }
         saveState();
         renderTournament();
-        toast('Player added');
+        toast('Player added — draw partners again for a fresh random field');
       }
     }
 
@@ -1060,7 +1065,10 @@
       const t = getCurrentTournament();
       t.playerIds = t.playerIds.filter(id => id !== pid);
       if (t.absentIds) t.absentIds = t.absentIds.filter(id => id !== pid);
-      if (t.teams) {
+      if (t.type === 'monster' || t.type === 'dyp') {
+        t.teams = [];
+        t.currentSitOutIds = [];
+      } else if (t.teams) {
         t.teams = t.teams.filter(team => !team.playerIds.includes(pid));
       }
       saveState();
@@ -1089,13 +1097,17 @@
       const i = t.absentIds.indexOf(pid);
       if (i >= 0) {
         t.absentIds.splice(i, 1);
-        // Drop from any current team so they can be redrawn when present again
         toast('Marked present — included in future draws & playoffs', 'success');
       } else {
         t.absentIds.push(pid);
-        // Remove from current teams so partner draw doesn't keep a half team
-        t.teams = (t.teams || []).filter(team => !(team.playerIds || []).includes(pid));
         toast('Marked absent — keeps stats; skipped in future rounds & playoffs', 'success');
+      }
+      // Field changed: clear pending draw so next Draw Partners is a full re-randomize
+      if (t.type === 'monster' || t.type === 'dyp') {
+        t.teams = [];
+        t.currentSitOutIds = [];
+      } else {
+        t.teams = (t.teams || []).filter(team => !(team.playerIds || []).includes(pid));
       }
       saveState();
       renderTournament();
@@ -1290,17 +1302,34 @@
 
     /**
      * Fair sit-out picker for odd fields (Monster DYP / DYP).
-     * No one sits a second time until everyone has sat exactly once
-     * (always choose from the group with the fewest sit-outs so far).
+     * - No one sits a second time until everyone has sat once (fewest sit-outs first)
+     * - Never sit out back-to-back when another eligible player is available
+     * - Ties broken randomly
      */
     function pickFairSitOuts(t, players, needed) {
       if (needed <= 0) return [];
       const counts = getSitOutCounts(t);
-      const pool = [...players];
-      // Shuffle first so ties are random, then stable-sort by sit-out count ascending
-      shuffle(pool);
-      pool.sort((a, b) => (counts[a.id] || 0) - (counts[b.id] || 0));
-      return pool.slice(0, needed);
+      const lastSit = new Set();
+      const lastRound = (t.rounds || [])[(t.rounds || []).length - 1];
+      if (lastRound?.sitOutIds?.length) {
+        lastRound.sitOutIds.forEach(id => lastSit.add(id));
+      }
+      // Also avoid immediate re-sit if a draw was done but round not generated yet
+      (t.currentSitOutIds || []).forEach(id => lastSit.add(id));
+
+      const pickFrom = (list) => {
+        const pool = shuffle([...list]);
+        pool.sort((a, b) => (counts[a.id] || 0) - (counts[b.id] || 0));
+        return pool.slice(0, needed);
+      };
+
+      // Prefer players who did not sit last round
+      const notLast = players.filter(p => !lastSit.has(p.id));
+      if (notLast.length >= needed) {
+        return pickFrom(notLast);
+      }
+      // Not enough non-consecutive options — fall back to full pool (still fewest-first)
+      return pickFrom(players);
     }
 
     function pairKey(idA, idB) {
@@ -1414,7 +1443,10 @@
         return;
       }
 
-      // Odd number → one sit out fairly
+      // Always start from a clean team list so each draw is a fresh randomization
+      t.teams = [];
+
+      // Odd number → one sit out fairly (no back-to-back when possible)
       const sitNeeded = players.length % 2;
       let sitOuts = [];
       let active = players;
@@ -1422,7 +1454,6 @@
         sitOuts = pickFairSitOuts(t, players, sitNeeded);
         const sitIds = new Set(sitOuts.map(p => p.id));
         active = players.filter(p => !sitIds.has(p.id));
-        toast(`Sitting out: ${sitOuts.map(p => p.name).join(', ')}`, 'info');
       }
       t.currentSitOutIds = sitOuts.map(p => p.id);
 
