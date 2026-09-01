@@ -237,18 +237,20 @@
 
     <!-- HOME / TOURNAMENT LIST -->
     <div id="view-home" class="space-y-6 relative min-h-[50vh]">
-      <div class="flex items-end justify-between gap-4">
-        <div>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div class="min-w-0">
           <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Tournaments</h2>
           <p class="text-sm text-slate-500 mt-1">Singles · Doubles · DYP · Monster DYP</p>
         </div>
-        <div class="flex flex-wrap gap-2 shrink-0">
-          <button type="button" onclick="document.getElementById('import-file-input').click()" class="btn-ghost px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-700">Import</button>
-          <button type="button" onclick="exportAllData()" class="btn-ghost px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-700">Export all</button>
-          <button onclick="startCreateTournament()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-            Create tournament
+        <div class="flex flex-col gap-2 w-full sm:w-auto sm:items-end">
+          <button type="button" onclick="startCreateTournament()" class="btn-primary w-full sm:w-auto px-4 py-2.5 rounded-xl font-semibold text-sm text-white inline-flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            <span>Create tournament</span>
           </button>
+          <div class="flex gap-2 w-full sm:w-auto">
+            <button type="button" onclick="document.getElementById('import-file-input').click()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700">Import</button>
+            <button type="button" onclick="exportAllData()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700">Export all</button>
+          </div>
         </div>
         <input type="file" id="import-file-input" accept="application/json,.json" class="hidden" onchange="importDataFromFile(event)" />
       </div>
@@ -265,7 +267,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.5 · Updated Aug 27, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.6 · Updated Sep 1, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -680,8 +682,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '3.5';
-    const APP_UPDATED = 'Aug 27, 2026';
+    const APP_VERSION = '3.6';
+    const APP_UPDATED = 'Sep 1, 2026';
 
     let state = {
       players: [],
