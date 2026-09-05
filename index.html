@@ -267,7 +267,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.7 · Updated Sep 5, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.8 · Updated Sep 5, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -478,8 +478,8 @@
           <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Race to</label>
             <select id="t-race" class="input-field w-full rounded-xl px-4 py-3 text-slate-800">
-              <option value="5">5 goals</option>
-              <option value="7" selected>7 goals</option>
+              <option value="5" selected>5 goals</option>
+              <option value="7">7 goals</option>
               <option value="9">9 goals</option>
               <option value="11">11 goals</option>
             </select>
@@ -682,7 +682,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '3.7';
+    const APP_VERSION = '3.8';
     const APP_UPDATED = 'Sep 5, 2026';
 
     let state = {
@@ -843,7 +843,7 @@
       state.selectedType = null;
       document.getElementById('t-name').value = '';
       document.getElementById('t-format').value = 'swiss';
-      document.getElementById('t-race').value = '7';
+      document.getElementById('t-race').value = '5';
       document.getElementById('t-bestof').value = '1';
       document.getElementById('t-tables').value = '2';
       document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
