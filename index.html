@@ -267,7 +267,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.6 · Updated Sep 1, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.7 · Updated Sep 5, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -682,8 +682,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '3.6';
-    const APP_UPDATED = 'Sep 1, 2026';
+    const APP_VERSION = '3.7';
+    const APP_UPDATED = 'Sep 5, 2026';
 
     let state = {
       players: [],
@@ -1338,7 +1338,6 @@
 
     function getSitOutCounts(t) {
       const counts = {};
-      // Track every roster player (incl. absent) so history survives field changes
       (t.playerIds || []).forEach(id => { counts[id] = 0; });
       activePlayerIds(t).forEach(id => { if (counts[id] == null) counts[id] = 0; });
       (t.rounds || []).forEach(r => {
@@ -1350,15 +1349,13 @@
     }
 
     /**
-     * Fair sit-out picker (Monster DYP / DYP).
-     * - Sit-out history is never reset when the field changes
-     * - No one sits a second time until every *active* player has sat at least once
-     * - New joiners (0 sits) sit before anyone who already sat in this cycle
-     * - Avoid back-to-back sit-outs when another eligible player is available
-     * - Ties broken randomly
+     * Fair sit-out picker.
+     * Strict: never take someone with more sits while anyone eligible has fewer.
+     * Avoid back-to-back when possible. Field-change history is preserved.
      */
     function pickFairSitOuts(t, players, needed) {
-      if (needed <= 0) return [];
+      if (needed <= 0 || !players.length) return [];
+      needed = Math.min(needed, players.length);
       const counts = getSitOutCounts(t);
       const lastSit = new Set();
       const lastRound = (t.rounds || [])[(t.rounds || []).length - 1];
@@ -1366,42 +1363,29 @@
         lastRound.sitOutIds.forEach(id => lastSit.add(id));
       }
 
-      // Among active field: prefer fewest career sit-outs this event (cycle rule)
-      const minAmongActive = Math.min(...players.map(p => counts[p.id] || 0));
-      // Until everyone active has sat once, only pick from those still at the minimum
-      const cycleComplete = players.every(p => (counts[p.id] || 0) > 0);
-      let eligible = cycleComplete
-        ? [...players]
-        : players.filter(p => (counts[p.id] || 0) === minAmongActive);
+      const remaining = [...players];
+      const chosen = [];
 
-      // Prefer not back-to-back
-      const notLast = eligible.filter(p => !lastSit.has(p.id));
-      if (notLast.length >= needed) eligible = notLast;
-      else {
-        // Expand to full active pool if needed for enough sitters, still prefer low counts
-        eligible = cycleComplete ? [...players] : players.filter(p => (counts[p.id] || 0) === minAmongActive);
-        const notLast2 = eligible.filter(p => !lastSit.has(p.id));
-        if (notLast2.length >= needed) eligible = notLast2;
-        else if (eligible.length < needed) eligible = [...players];
+      while (chosen.length < needed && remaining.length) {
+        const minC = Math.min(...remaining.map(p => counts[p.id] || 0));
+        // Only players still at the global minimum among those not yet chosen
+        let tier = remaining.filter(p => (counts[p.id] || 0) === minC);
+        const notLast = tier.filter(p => !lastSit.has(p.id));
+        if (notLast.length) tier = notLast;
+        shuffle(tier);
+        const pick = tier[0];
+        chosen.push(pick);
+        const idx = remaining.findIndex(p => p.id === pick.id);
+        if (idx >= 0) remaining.splice(idx, 1);
       }
-
-      const pool = shuffle([...eligible]);
-      pool.sort((a, b) => {
-        const ca = counts[a.id] || 0, cb = counts[b.id] || 0;
-        if (ca !== cb) return ca - cb;
-        // Prefer avoiding consecutive when counts tie
-        const aLast = lastSit.has(a.id) ? 1 : 0;
-        const bLast = lastSit.has(b.id) ? 1 : 0;
-        return aLast - bLast;
-      });
-      return pool.slice(0, needed);
+      return chosen;
     }
 
     function pairKey(idA, idB) {
       return idA < idB ? idA + '|' + idB : idB + '|' + idA;
     }
 
-    /** Partnership history from prior rounds (teams on rounds + match entities). */
+    /** Partnership history from prior rounds (saved teams + match entities). */
     function getPartnershipData(t) {
       const counts = {};
       const byPlayer = {};
@@ -1433,61 +1417,108 @@
     }
 
     /**
-     * Rematch only allowed after both players have partnered with everyone else at least once.
+     * Rematch only after both have partnered with every other *active* player at least once.
      */
     function isPartnerAllowed(t, counts, byPlayer, idA, idB) {
       const c = counts[pairKey(idA, idB)] || 0;
       if (c === 0) return true;
-      // Prefer full event roster so earlier partners still count; fall back to active pool size
-      const others = Math.max((t.playerIds || []).length - 1, 1);
-      const aDone = (byPlayer[idA]?.size || 0) >= others;
-      const bDone = (byPlayer[idB]?.size || 0) >= others;
-      return aDone && bDone;
+      const active = new Set(activePlayerIds(t));
+      const need = Math.max(active.size - 1, 1);
+      const aPartners = [...(byPlayer[idA] || [])].filter(id => active.has(id) && id !== idA).length;
+      const bPartners = [...(byPlayer[idB] || [])].filter(id => active.has(id) && id !== idB).length;
+      return aPartners >= need && bPartners >= need;
     }
 
     /**
-     * Monster DYP partner matching: randomize, but never repeat a partnership
-     * until both players have partnered with everyone else at least once.
+     * Score a full pairing: lower is fairer (prefer never-paired partners).
      */
-    function fairPairPlayers(t, active) {
-      const { counts, byPlayer } = getPartnershipData(t);
-      const remaining = shuffle([...active]);
+    function scorePairing(pairs, counts) {
+      let score = 0;
+      let rematches = 0;
+      pairs.forEach(([a, b]) => {
+        const c = counts[pairKey(a.id, b.id)] || 0;
+        score += c * 100;
+        if (c > 0) rematches++;
+      });
+      return { score, rematches };
+    }
+
+    /**
+     * Build one random greedy pairing preferring allowed / new partners.
+     */
+    function buildOnePairing(t, active, counts, byPlayer) {
+      const remaining = [...active];
       const pairs = [];
       const used = new Set();
 
-      const tryPair = (preferNewOnly) => {
-        for (const p of remaining) {
-          if (used.has(p.id)) continue;
-          let candidates = remaining.filter(o => o.id !== p.id && !used.has(o.id));
-          candidates = candidates.filter(o => isPartnerAllowed(t, counts, byPlayer, p.id, o.id));
-          if (preferNewOnly) {
-            candidates = candidates.filter(o => (counts[pairKey(p.id, o.id)] || 0) === 0);
-          }
-          if (!candidates.length) continue;
-          // Lowest prior partnership count, then partner with fewer unique partners so far
-          shuffle(candidates);
-          candidates.sort((a, b) => {
-            const ca = counts[pairKey(p.id, a.id)] || 0;
-            const cb = counts[pairKey(p.id, b.id)] || 0;
-            if (ca !== cb) return ca - cb;
-            return (byPlayer[a.id]?.size || 0) - (byPlayer[b.id]?.size || 0);
-          });
-          const partner = candidates[0];
-          pairs.push([p, partner]);
-          used.add(p.id);
-          used.add(partner.id);
+      const newPartnerCount = (p) => {
+        let n = 0;
+        for (const o of remaining) {
+          if (o.id === p.id || used.has(o.id)) continue;
+          if ((counts[pairKey(p.id, o.id)] || 0) === 0) n++;
         }
+        return n;
       };
 
-      tryPair(true);  // new partners only
-      tryPair(false); // allowed rematches if cycles complete
+      // Hardest-to-match first (fewest unused partners), shuffle within ties
+      const order = shuffle([...remaining]).sort((a, b) => newPartnerCount(a) - newPartnerCount(b));
 
-      // Absolute fallback (should be rare) — pair anyone left
-      const left = remaining.filter(p => !used.has(p.id));
-      for (let i = 0; i < left.length - 1; i += 2) {
-        pairs.push([left[i], left[i + 1]]);
-        used.add(left[i].id);
-        used.add(left[i + 1].id);
+      for (const p of order) {
+        if (used.has(p.id)) continue;
+        let candidates = remaining.filter(o => o.id !== p.id && !used.has(o.id));
+        let pool = candidates.filter(o => (counts[pairKey(p.id, o.id)] || 0) === 0);
+        if (!pool.length) {
+          pool = candidates.filter(o => isPartnerAllowed(t, counts, byPlayer, p.id, o.id));
+        }
+        if (!pool.length) pool = candidates;
+        if (!pool.length) continue;
+        shuffle(pool);
+        pool.sort((a, b) => {
+          const ca = counts[pairKey(p.id, a.id)] || 0;
+          const cb = counts[pairKey(p.id, b.id)] || 0;
+          if (ca !== cb) return ca - cb;
+          return newPartnerCount(a) - newPartnerCount(b);
+        });
+        const partner = pool[0];
+        pairs.push([p, partner]);
+        used.add(p.id);
+        used.add(partner.id);
+      }
+      return pairs;
+    }
+
+    /**
+     * Monster partner matching: try many random pairings, keep the fairest
+     * (fewest rematches, then lowest total prior partnership counts).
+     */
+    function fairPairPlayers(t, active) {
+      if (active.length < 2) return [];
+      const { counts, byPlayer } = getPartnershipData(t);
+      let best = null;
+      let bestMetric = { rematches: Infinity, score: Infinity };
+      const trials = Math.min(80, 12 + active.length * 6);
+
+      for (let i = 0; i < trials; i++) {
+        const pairs = buildOnePairing(t, active, counts, byPlayer);
+        if (pairs.length < Math.floor(active.length / 2)) continue;
+        const metric = scorePairing(pairs, counts);
+        if (
+          metric.rematches < bestMetric.rematches ||
+          (metric.rematches === bestMetric.rematches && metric.score < bestMetric.score)
+        ) {
+          bestMetric = metric;
+          best = pairs;
+          if (metric.rematches === 0 && metric.score === 0) break;
+        }
+      }
+
+      if (best) return best;
+
+      // Absolute fallback
+      const ordered = shuffle([...active]);
+      const pairs = [];
+      for (let i = 0; i < ordered.length - 1; i += 2) {
+        pairs.push([ordered[i], ordered[i + 1]]);
       }
       return pairs;
     }
