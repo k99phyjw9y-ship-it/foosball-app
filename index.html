@@ -267,7 +267,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v4.3 · Updated Sep 8, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v4.5 · Updated Sep 8, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -711,7 +711,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '4.3';
+    const APP_VERSION = '4.5';
     const APP_UPDATED = 'Sep 8, 2026';
 
     let state = {
@@ -1699,7 +1699,14 @@
      * 9 → 1, 10 → 2, 11 → 3 (with 2 tables).
      */
     function computeSitNeeded(t, activeCount) {
-      if (activeCount < 4) return Math.max(0, activeCount); // can't form a match
+      if (activeCount < 2) return activeCount;
+      // Elimination / pure bracket events: form as many teams as possible.
+      // Odd player sits once; even field (e.g. 6 → 3 teams) sits nobody — bracket uses byes.
+      if (t.format === 'single-elim' || t.format === 'double-elim') {
+        return activeCount % 2; // 0 or 1 only
+      }
+      // Ranking rounds (Swiss etc.): fill complete 2v2 matches on available tables
+      if (activeCount < 4) return Math.max(0, activeCount);
       const cap = monsterFloorCapacity(t);
       let playing = Math.min(cap, activeCount);
       playing = Math.floor(playing / 4) * 4;
@@ -1902,7 +1909,7 @@
       }));
     }
 
-    function drawPartners() {
+    function drawPartners(opts = {}) {
       const t = getCurrentTournament();
       const players = activePlayerIds(t).map(id => state.players.find(p => p.id === id)).filter(Boolean);
       if (players.length < 4) {
@@ -1913,8 +1920,10 @@
       // Fresh partner randomization each draw (does not erase sit-out history on rounds)
       t.teams = [];
 
-      // Sit enough players so the rest fit on the tables as full 2v2 matches
-      const sitNeeded = computeSitNeeded(t, players.length);
+      // Bracket / playoff pairing: only sit if odd (6/10/14 → 0 sits → 3/5/7 teams + byes).
+      // Ranking rounds: may sit extra so matches fit on tables.
+      const forBracket = !!(opts.forBracket || t.format === 'single-elim' || t.format === 'double-elim');
+      const sitNeeded = forBracket ? (players.length % 2) : computeSitNeeded(t, players.length);
       let sitOuts = [];
       let active = players;
       if (sitNeeded > 0) {
@@ -2082,17 +2091,22 @@
 
     /** Pair players so byes never face byes: (player vs bye) then (player vs player). */
     function arrangeFirstRoundSides(list, size) {
-      const players = list.map(e => ({ seed: e.seed, entity: { id: e.id, name: e.name }, score: null }));
-      const byeCount = size - players.length;
+      // Higher seeds get byes first (list is seed order 1..n)
+      const players = list.map(e => ({
+        seed: e.seed,
+        entity: entityPayload(e),
+        score: null
+      }));
+      const byeCount = Math.max(0, size - players.length);
       const pairs = [];
       let pi = 0;
-      for (let i = 0; i < byeCount; i++) {
+      // Assign byes to top seeds so the bracket fills to a power of 2 (e.g. 3 teams → 4 slots, 1 bye)
+      for (let i = 0; i < byeCount && pi < players.length; i++) {
         pairs.push([players[pi++], { seed: null, entity: null, score: null }]);
       }
       while (pi < players.length) {
         pairs.push([players[pi++], players[pi++] || { seed: null, entity: null, score: null }]);
       }
-      // Ensure exactly size/2 pairs
       while (pairs.length < size / 2) {
         pairs.push([{ seed: null, entity: null, score: null }, { seed: null, entity: null, score: null }]);
       }
@@ -2102,16 +2116,30 @@
 
 
     function prepareSeedList(entities, shuffleSeeds) {
-      const list = entities.map((e, i) => ({ id: e.id, name: e.name, seed: i + 1 }));
+      const list = entities.map((e, i) => ({
+        id: e.id,
+        name: e.name,
+        seed: e.seed != null ? e.seed : i + 1,
+        type: e.type,
+        playerIds: e.playerIds ? e.playerIds.slice() : undefined
+      }));
       if (shuffleSeeds) shuffle(list);
       list.forEach((e, i) => { e.seed = i + 1; });
       return list;
     }
 
+    function entityPayload(ent) {
+      if (!ent) return null;
+      const out = { id: ent.id, name: ent.name };
+      if (ent.type) out.type = ent.type;
+      if (ent.playerIds?.length) out.playerIds = ent.playerIds.slice();
+      return out;
+    }
+
     function makeSide(ent) {
       return {
         seed: ent ? ent.seed : null,
-        entity: ent ? { id: ent.id, name: ent.name } : null,
+        entity: entityPayload(ent),
         score: null
       };
     }
@@ -2561,7 +2589,18 @@
       if (t.playoffs && (t.playoffs.rounds?.length || t.playoffs.winnersRounds?.length)) {
         if (!confirm('A bracket already exists. Replace it and reset placements?')) return;
       }
-      if (!ensureTeamsReady(t)) return;
+
+      // Team events: pair EVERY active player (no table-capacity sits). Odd field sits 1 only.
+      // 6 → 3 teams, 10 → 5, 14 → 7; bracket expands with byes (4 / 8 / 8).
+      if (t.type === 'dyp' || t.type === 'monster') {
+        drawPartners({ forBracket: true });
+        if (!t.teams || t.teams.length < 2) {
+          toast('Need at least 2 teams — add players or mark Present', 'error');
+          return;
+        }
+      } else if (!ensureTeamsReady(t)) {
+        return;
+      }
 
       const entities = getMatchEntities(t);
       if (entities.length < 2) {
@@ -2577,7 +2616,11 @@
       state.currentTab = 'bracket';
       renderTournament();
       const label = format === 'double-elim' ? 'Double-elim bracket' : 'Single-elim bracket';
-      toast(`${label} started · ${entities.length} ${t.type === 'singles' ? 'players' : 'teams'}`, 'success');
+      const bracketSize = t.playoffs?.size || nextPowerOfTwo(entities.length);
+      const byes = Math.max(0, bracketSize - entities.length);
+      const unit = t.type === 'singles' ? 'players' : 'teams';
+      const byeNote = byes ? ` · ${byes} bye${byes > 1 ? 's' : ''} → bracket of ${bracketSize}` : '';
+      toast(`${label} · ${entities.length} ${unit}${byeNote}`, 'success');
     }
 
     /**
@@ -2605,7 +2648,7 @@
         sitOut = ranked.pop(); // lowest remaining sits out of playoffs
       }
       if (ranked.length < 4) {
-        return { error: 'Need at least 4 active players for tiered playoffs', teams: [], sitOut };
+        return { error: 'Need at least 4 active players (2 teams) for tiered playoffs', teams: [], sitOut };
       }
 
       const half = ranked.length / 2;
@@ -2676,11 +2719,15 @@
         saveState();
         state.currentTab = 'bracket';
         renderTournament();
-        toast(`Tiered double-elim playoffs · ${built.teams.length} teams (${built.pairsLabel.join(', ')})`, 'success');
+        const brSize = t.playoffs?.size || built.teams.length;
+        const byes = Math.max(0, brSize - built.teams.length);
+        const byeNote = byes ? ` · ${byes} bye${byes > 1 ? 's' : ''} (bracket of ${brSize})` : '';
+        toast(`Tiered double-elim playoffs · ${built.teams.length} teams (${built.pairsLabel.join(', ')})${byeNote}`, 'success');
         return;
       }
 
-      // Other event types: all active standing entities in bracket (no fixed 8/4/2 cut)
+      // Singles / Doubles: every active player or formed team enters; bracket expands with byes
+      // (6 → 8, 10 → 16, 14 → 16, 3 teams → 4, 5 teams → 8, 7 teams → 8)
       const entities = getMatchEntities(t);
       if (entities.length < 2) {
         toast('Need at least 2 teams/players for playoffs', 'error');
@@ -2693,7 +2740,11 @@
       saveState();
       state.currentTab = 'bracket';
       renderTournament();
-      toast(`Playoffs started · ${entities.length} ${t.type === 'singles' ? 'players' : 'teams'}`, 'success');
+      const bracketSize = t.playoffs?.size || nextPowerOfTwo(entities.length);
+      const byes = Math.max(0, bracketSize - entities.length);
+      const unit = t.type === 'singles' ? 'players' : 'teams';
+      const byeNote = byes ? ` · ${byes} bye${byes > 1 ? 's' : ''} → bracket of ${bracketSize}` : '';
+      toast(`Playoffs · ${entities.length} ${unit}${byeNote}`, 'success');
     }
 
     function getMatchEntities(t) {
