@@ -267,7 +267,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v3.8 · Updated Sep 5, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v4.1 · Updated Sep 8, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -334,6 +334,27 @@
               </tr>
             </thead>
             <tbody id="stats-wow-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="surface-card rounded-2xl overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-slate-200">
+          <h3 class="text-sm font-semibold text-slate-800">Club Ranking</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Starts at 2,000 · points only from brackets/playoffs · seed ±8 · podium bonus</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200">
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Player</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Rank</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Points</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Δ</th>
+              </tr>
+            </thead>
+            <tbody id="stats-ranking-body"></tbody>
           </table>
         </div>
       </div>
@@ -650,6 +671,11 @@
           <option value="6">Master</option>
         </select>
       </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Ranking points</label>
+        <input id="player-ranking-points" type="number" min="0" max="99999" step="1" value="2000" class="input-field w-full rounded-xl px-4 py-3 text-slate-800" />
+        <p class="text-[11px] text-slate-500 mt-1">Club ranking · new players start at 2,000 (Amateur)</p>
+      </div>
       <div class="flex gap-3 pt-1">
         <button onclick="closePlayerModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
         <button onclick="savePlayer()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white">Save</button>
@@ -682,8 +708,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '3.8';
-    const APP_UPDATED = 'Sep 5, 2026';
+    const APP_VERSION = '4.1';
+    const APP_UPDATED = 'Sep 8, 2026';
 
     let state = {
       players: [],
@@ -704,6 +730,7 @@
           const data = JSON.parse(raw);
           state.players = data.players || [];
           state.tournaments = data.tournaments || [];
+          migratePlayerRankings();
         }
       } catch (e) {
         console.error('Failed to load state', e);
@@ -748,12 +775,244 @@
       return n;
     }
 
+    // ==================== CLUB RANKING (WFT-inspired) ====================
+    const RANK_START_POINTS = 2000;
+    const SEED_POINTS_PER_TIER = 8;
+
+    function ensurePlayerRanking(p) {
+      if (!p) return;
+      if (p.rankingPoints == null || isNaN(Number(p.rankingPoints))) {
+        p.rankingPoints = RANK_START_POINTS;
+      } else {
+        p.rankingPoints = Math.round(Number(p.rankingPoints));
+        // Upgrade previous default start (900) to 2000 if no ranking results applied yet
+        if (p.rankingPoints === 900 && !p.rankingDelta) {
+          p.rankingPoints = RANK_START_POINTS;
+        }
+      }
+      if (p.rankingDelta == null) p.rankingDelta = 0;
+    }
+
+    function migratePlayerRankings() {
+      (state.players || []).forEach(ensurePlayerRanking);
+    }
+
+    /** Rank bands: Beginner 0–999 · Rookie 1000–1999 · Amateur 2000–2999 · Expert 3000–3999 · Pro 4000–4999 · Master 5000+. */
+    function rankingBandFromPoints(pts) {
+      const p = pts == null ? RANK_START_POINTS : Number(pts);
+      if (p < 1000) return { skill: 1, label: 'Beginner', min: 0, max: 999 };
+      if (p < 2000) return { skill: 2, label: 'Rookie', min: 1000, max: 1999 };
+      if (p < 3000) return { skill: 3, label: 'Amateur', min: 2000, max: 2999 };
+      if (p < 4000) return { skill: 4, label: 'Expert', min: 3000, max: 3999 };
+      if (p < 5000) return { skill: 5, label: 'Pro', min: 4000, max: 4999 };
+      return { skill: 6, label: 'Master', min: 5000, max: 99999 };
+    }
+
+    /** Placement tier index (0 = champion), mirrors bracket seed bands. */
+    function placementTierIndex(place) {
+      if (place <= 1) return 0;
+      if (place === 2) return 1;
+      if (place <= 4) return 2;
+      if (place <= 8) return 3;
+      if (place <= 16) return 4;
+      if (place <= 32) return 5;
+      return 6;
+    }
+
+    function getPlayerRankingPoints(pid) {
+      const p = state.players.find(x => x.id === pid);
+      if (!p) return RANK_START_POINTS;
+      ensurePlayerRanking(p);
+      return p.rankingPoints;
+    }
+
+    /** Player IDs that appeared in bracket / playoff matches (not ranking rounds only). */
+    function getBracketParticipantIds(t) {
+      const ids = new Set();
+      const b = t.playoffs;
+      if (!b) return ids;
+      const note = (ent) => {
+        if (!ent) return;
+        const list = (typeof entityPlayerIds === 'function') ? entityPlayerIds(ent) : [];
+        const fallback = list.length ? list : (ent.id && state.players.some(p => p.id === ent.id) ? [ent.id] : []);
+        fallback.forEach(id => ids.add(id));
+      };
+      const matches = (typeof collectBracketMatches === 'function') ? collectBracketMatches(b) : [];
+      matches.forEach(m => {
+        if (!m) return;
+        if (m.a?.entity) note(m.a.entity);
+        if (m.b?.entity) note(m.b.entity);
+      });
+      const p = t.placements || b.placements || {};
+      note(p.first); note(p.second); note(p.third);
+      return ids;
+    }
+
+    /**
+     * Finish order for ranking points — bracket/playoff only.
+     * 1st → 2nd → 3rd, then other bracket participants by event standings.
+     * Ranking-round-only players are excluded.
+     */
+    function getEventFinishOrder(t) {
+      const placements = t.placements || t.playoffs?.placements || {};
+      if (!placements.first || !placements.second) return [];
+
+      const bracketPlayers = getBracketParticipantIds(t);
+      if (bracketPlayers.size < 2) return [];
+
+      const orderedIds = [];
+      const seen = new Set();
+
+      const addEntity = (ent) => {
+        if (!ent) return;
+        const list = (typeof entityPlayerIds === 'function') ? entityPlayerIds(ent) : [];
+        const ids = list.length ? list : (ent.id && state.players.some(p => p.id === ent.id) ? [ent.id] : []);
+        ids.forEach(id => {
+          if (!seen.has(id) && bracketPlayers.has(id)) {
+            seen.add(id);
+            orderedIds.push(id);
+          }
+        });
+      };
+
+      addEntity(placements.first);
+      addEntity(placements.second);
+      addEntity(placements.third);
+
+      // Remaining bracket players only (not swiss-only), ordered by standings
+      const standings = (typeof computeStandings === 'function') ? computeStandings(t) : [];
+      standings.forEach(s => {
+        if (!seen.has(s.id) && bracketPlayers.has(s.id)) {
+          seen.add(s.id);
+          orderedIds.push(s.id);
+        }
+      });
+      bracketPlayers.forEach(id => {
+        if (!seen.has(id)) {
+          seen.add(id);
+          orderedIds.push(id);
+        }
+      });
+
+      return orderedIds;
+    }
+
+    /**
+     * Apply ranking points only after bracket/playoff results (never ranking rounds alone).
+     * Seed: ±8 per placement-tier difference vs pre-event ranking order.
+     * Bonus: 1% of bracket-field ranking pool to podium (50% / 30% / 20%).
+     */
+    function applyRankingPointsForTournament(t) {
+      if (!t || t.rankingApplied) return false;
+      // Must have a completed playoff/bracket with at least 1st & 2nd
+      if (!t.playoffs) return false;
+      const placements = t.placements || t.playoffs.placements || {};
+      if (!placements.first || !placements.second) return false;
+
+      const finishOrder = getEventFinishOrder(t);
+      if (finishOrder.length < 2) return false;
+
+      // Pre-event seeds by current ranking points (stable name tiebreak)
+      const seeded = finishOrder.slice().sort((a, b) => {
+        const pa = getPlayerRankingPoints(a), pb = getPlayerRankingPoints(b);
+        if (pb !== pa) return pb - pa;
+        const na = state.players.find(p => p.id === a)?.name || '';
+        const nb = state.players.find(p => p.id === b)?.name || '';
+        return na.localeCompare(nb);
+      });
+      const expectedPlace = {};
+      seeded.forEach((id, i) => { expectedPlace[id] = i + 1; });
+
+      const fieldPoints = finishOrder.reduce((s, id) => s + getPlayerRankingPoints(id), 0);
+      const bonusPool = Math.round(fieldPoints * 0.01);
+      const bonusShare = [
+        Math.round(bonusPool * 0.50),
+        Math.round(bonusPool * 0.30),
+        Math.round(bonusPool * 0.20)
+      ];
+
+      const deltas = {};
+      finishOrder.forEach((id, idx) => {
+        const actual = idx + 1;
+        const expected = expectedPlace[id] || actual;
+        const seedDelta = (placementTierIndex(expected) - placementTierIndex(actual)) * SEED_POINTS_PER_TIER;
+        let bonus = 0;
+        if (idx < 3) bonus = bonusShare[idx] || 0;
+        deltas[id] = seedDelta + bonus;
+      });
+
+      Object.entries(deltas).forEach(([id, d]) => {
+        const p = state.players.find(x => x.id === id);
+        if (!p) return;
+        ensurePlayerRanking(p);
+        p.rankingPoints = Math.max(0, Math.round(p.rankingPoints + d));
+        p.rankingDelta = Math.round((p.rankingDelta || 0) + d);
+        // Keep skill badge roughly aligned with ranking band (optional soft sync)
+        const band = rankingBandFromPoints(p.rankingPoints);
+        if (p.skill == null) p.skill = band.skill;
+      });
+
+      t.rankingApplied = true;
+      t.rankingAppliedAt = Date.now();
+      t.rankingDeltas = deltas;
+      return true;
+    }
+
+    function tryApplyRankingOnFinish(t) {
+      if (!t || t.status !== 'finished') return;
+      if (applyRankingPointsForTournament(t)) {
+        saveState();
+        toast('Club ranking points updated', 'success');
+      }
+    }
+
+    function renderClubRanking() {
+      migratePlayerRankings();
+      const body = document.getElementById('stats-ranking-body');
+      if (!body) return;
+      const rows = state.players.map(p => {
+        ensurePlayerRanking(p);
+        const band = rankingBandFromPoints(p.rankingPoints);
+        return {
+          id: p.id,
+          name: p.name,
+          pts: p.rankingPoints,
+          delta: p.rankingDelta || 0,
+          label: band.label
+        };
+      }).sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        return a.name.localeCompare(b.name);
+      });
+
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="5" class="px-4 py-10 text-center text-slate-500">Add players to see club ranking</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map((r, i) => {
+        const d = r.delta;
+        const dHtml = d === 0 ? '<span class="text-slate-400">—</span>'
+          : d > 0 ? `<span class="text-emerald-600 font-semibold">+${d}</span>`
+          : `<span class="text-red-500 font-semibold">${d}</span>`;
+        return `<tr class="border-t border-slate-200 table-row">
+          <td class="px-3 py-2.5 text-slate-500 font-medium">${i + 1}</td>
+          <td class="px-3 py-2.5 font-medium text-slate-900">${escapeHtml(r.name)}</td>
+          <td class="px-2 py-2.5 text-center"><span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-600 text-xs">${escapeHtml(r.label)}</span></td>
+          <td class="px-2 py-2.5 text-center font-bold text-slate-900">${r.pts}</td>
+          <td class="px-2 py-2.5 text-center hidden sm:table-cell">${dHtml}</td>
+        </tr>`;
+      }).join('');
+    }
+
+
     function openPlayerModal(quick = false) {
       state.quickAddMode = quick;
       state.editingPlayerId = null;
       document.getElementById('player-modal-title').textContent = 'Add Player';
       document.getElementById('player-name').value = '';
       document.getElementById('player-skill').value = '3';
+      const rp = document.getElementById('player-ranking-points');
+      if (rp) rp.value = String(RANK_START_POINTS);
       document.getElementById('player-modal').classList.remove('hidden');
       document.getElementById('player-name').focus();
     }
@@ -769,15 +1028,19 @@
         return;
       }
       const skill = parseInt(document.getElementById('player-skill').value, 10);
+      let rankingPoints = parseInt(document.getElementById('player-ranking-points')?.value, 10);
+      if (isNaN(rankingPoints)) rankingPoints = RANK_START_POINTS;
 
       if (state.editingPlayerId) {
         const p = state.players.find(x => x.id === state.editingPlayerId);
         if (p) {
           p.name = name;
           p.skill = skill;
+          p.rankingPoints = rankingPoints;
+          ensurePlayerRanking(p);
         }
       } else {
-        const player = { id: uid(), name, skill };
+        const player = { id: uid(), name, skill, rankingPoints, rankingDelta: 0 };
         state.players.push(player);
         if (state.quickAddMode && state.currentTournamentId) {
           const t = getCurrentTournament();
@@ -801,6 +1064,9 @@
       document.getElementById('player-modal-title').textContent = 'Edit Player';
       document.getElementById('player-name').value = p.name;
       document.getElementById('player-skill').value = String(normalizeSkill(p.skill));
+      ensurePlayerRanking(p);
+      const rp = document.getElementById('player-ranking-points');
+      if (rp) rp.value = String(p.rankingPoints);
       document.getElementById('player-modal').classList.remove('hidden');
     }
 
@@ -825,17 +1091,24 @@
         tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-12 text-center text-slate-500 text-sm">No players yet. Add your roster to get started.</td></tr>';
         return;
       }
-      const skillLabel = {1:'Beginner',2:'Rookie',3:'Amateur',4:'Expert',5:'Pro',6:'Master'};
-      tbody.innerHTML = state.players.map(p => `
+      migratePlayerRankings();
+      tbody.innerHTML = state.players.slice().sort((a, b) => {
+        ensurePlayerRanking(a); ensurePlayerRanking(b);
+        if (b.rankingPoints !== a.rankingPoints) return b.rankingPoints - a.rankingPoints;
+        return a.name.localeCompare(b.name);
+      }).map(p => {
+        ensurePlayerRanking(p);
+        const band = rankingBandFromPoints(p.rankingPoints);
+        return `
         <tr class="border-t border-slate-200 table-row">
           <td class="px-4 py-3.5 font-medium text-slate-900">${escapeHtml(p.name)}</td>
-          <td class="px-4 py-3.5 text-slate-500 hidden sm:table-cell"><span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">${skillLabel[normalizeSkill(p.skill)] || 'Amateur'}</span></td>
+          <td class="px-4 py-3.5 text-slate-500 hidden sm:table-cell"><span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">${escapeHtml(band.label)}</span> <span class="text-xs text-slate-400 ml-1">${p.rankingPoints}</span></td>
           <td class="px-4 py-3.5 text-right space-x-3">
             <button onclick="editPlayer('${p.id}')" class="text-emerald-400/80 hover:text-emerald-300 text-sm font-medium">Edit</button>
             <button onclick="deletePlayer('${p.id}')" class="text-red-400/70 hover:text-red-300 text-sm font-medium">Delete</button>
           </td>
-        </tr>
-      `).join('');
+        </tr>`;
+      }).join('');
     }
 
     // ==================== TOURNAMENTS ====================
@@ -3078,7 +3351,10 @@
         }
         t.placements = b.placements;
         const done = b.placements.first && b.placements.second && (!b.gfResetRequired || b.grandFinal2?.winner || !b.grandFinal);
-        if (done) t.status = 'finished';
+        if (done) {
+          t.status = 'finished';
+          tryApplyRankingOnFinish(t);
+        }
         return;
       }
 
@@ -3096,6 +3372,7 @@
       if (b.placements.first && b.placements.second) {
         if (!b.bronze || b.bronze.winner || !(b.bronze.a?.fromMatch)) {
           t.status = 'finished';
+          tryApplyRankingOnFinish(t);
         }
       }
     }
@@ -3784,6 +4061,7 @@
 
       renderEventLeaderboard(byType);
       renderPodiumStats();
+      renderClubRanking();
     }
 
     function setStatsEventType(type) {
