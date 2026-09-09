@@ -267,7 +267,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v4.6 · Updated Sep 8, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v4.7 · Updated Sep 9, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -555,9 +555,15 @@
           <div class="min-w-0">
             <input type="text" id="td-name" onchange="setTournamentName(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}" class="w-full text-xl font-bold tracking-tight text-slate-900 bg-transparent border border-transparent hover:border-slate-200 focus:border-emerald-300 rounded-lg px-1.5 py-0.5 -ml-1.5 outline-none transition" title="Click to edit name" />
             <p class="text-xs text-slate-500 mt-0.5 truncate" id="td-meta"></p>
-            <div class="flex items-center gap-2 mt-1.5">
-              <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0" for="td-event-date">Event date</label>
-              <input type="date" id="td-event-date" onchange="setTournamentDate(this.value)" class="input-field rounded-lg px-2 py-1 text-xs text-slate-800 max-w-[11rem]" />
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1.5">
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0" for="td-event-date">Event date</label>
+                <input type="date" id="td-event-date" onchange="setTournamentDate(this.value)" class="input-field rounded-lg px-2 py-1 text-xs text-slate-800 max-w-[11rem]" />
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0" for="td-tables">Tables</label>
+                <input type="number" id="td-tables" min="1" max="20" step="1" onchange="setTournamentTables(this.value)" class="input-field rounded-lg px-2 py-1 text-xs text-slate-800 w-16" title="Number of tables — affects sit-outs in ranking rounds" />
+              </div>
             </div>
           </div>
         </div>
@@ -711,8 +717,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '4.6';
-    const APP_UPDATED = 'Sep 8, 2026';
+    const APP_VERSION = '4.7';
+    const APP_UPDATED = 'Sep 9, 2026';
 
     let state = {
       players: [],
@@ -1320,6 +1326,23 @@
       toast('Event date updated', 'success');
     }
 
+    function setTournamentTables(value) {
+      const t = getCurrentTournament();
+      if (!t) return;
+      let n = parseInt(value, 10);
+      if (isNaN(n) || n < 1) n = 1;
+      if (n > 20) n = 20;
+      const input = document.getElementById('td-tables');
+      if (input) input.value = String(n);
+      if (n === (parseInt(t.tables, 10) || 2)) return;
+      t.tables = n;
+      saveState();
+      renderTournament();
+      renderHome();
+      const cap = n * 4;
+      toast(`Tables set to ${n} (max ${cap} playing in ranking rounds)`, 'success');
+    }
+
 
     function confirmDeleteTournament() {
       if (!confirm('Delete this tournament permanently?')) return;
@@ -1381,6 +1404,10 @@
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const dd = String(d.getDate()).padStart(2, '0');
         dateInput.value = `${yyyy}-${mm}-${dd}`;
+      }
+      const tablesInput = document.getElementById('td-tables');
+      if (tablesInput) {
+        tablesInput.value = String(Math.max(1, parseInt(t.tables, 10) || 2));
       }
 
       // Show/hide teams section
