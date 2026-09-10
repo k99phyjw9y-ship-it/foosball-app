@@ -267,7 +267,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v4.7 · Updated Sep 9, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v4.8 · Updated Sep 10, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -567,7 +567,8 @@
             </div>
           </div>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
+          <button type="button" id="td-finish-btn" onclick="toggleTournamentFinished()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="Mark ranking-only night as finished (no bracket required)">Mark finished</button>
           <button onclick="exportTournamentJson()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="Download this event as JSON">Export event</button>
           <button onclick="exportStandings()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="CSV standings">CSV</button>
           <button onclick="confirmDeleteTournament()" class="px-3 py-1.5 text-sm rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition">Delete</button>
@@ -717,8 +718,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '4.7';
-    const APP_UPDATED = 'Sep 9, 2026';
+    const APP_VERSION = '4.8';
+    const APP_UPDATED = 'Sep 10, 2026';
 
     let state = {
       players: [],
@@ -1343,6 +1344,33 @@
       toast(`Tables set to ${n} (max ${cap} playing in ranking rounds)`, 'success');
     }
 
+    /** Mark event finished without a bracket (e.g. Monster ranking-only night), or reopen. */
+    function toggleTournamentFinished() {
+      const t = getCurrentTournament();
+      if (!t) return;
+      if (t.status === 'finished') {
+        if (!confirm('Reopen this event? Status will go back to active.')) return;
+        t.status = (t.rounds && t.rounds.length) || t.playoffs ? 'active' : 'setup';
+        saveState();
+        renderTournament();
+        renderHome();
+        toast('Event reopened', 'success');
+        return;
+      }
+      const hasRounds = (t.rounds && t.rounds.length) || (t.currentRound > 0);
+      const msg = t.playoffs
+        ? 'Mark this event as finished?'
+        : (hasRounds
+          ? 'Mark this event finished without a playoff bracket? Club ranking points are only awarded from brackets/playoffs — ranking rounds alone will not change club ranking.'
+          : 'Mark this event as finished? There are no rounds yet.');
+      if (!confirm(msg)) return;
+      t.status = 'finished';
+      saveState();
+      renderTournament();
+      renderHome();
+      toast('Event marked finished', 'success');
+    }
+
 
     function confirmDeleteTournament() {
       if (!confirm('Delete this tournament permanently?')) return;
@@ -1396,6 +1424,16 @@
       document.getElementById('td-name').value = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
       document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · ${t.tables} table${t.tables>1?'s':''}`;
+      const finishBtn = document.getElementById('td-finish-btn');
+      if (finishBtn) {
+        if (t.status === 'finished') {
+          finishBtn.textContent = 'Reopen event';
+          finishBtn.title = 'Set status back to active';
+        } else {
+          finishBtn.textContent = 'Mark finished';
+          finishBtn.title = 'Mark ranking-only night as finished (no bracket required)';
+        }
+      }
       const dateInput = document.getElementById('td-event-date');
       if (dateInput) {
         const d = new Date(t.createdAt || Date.now());
