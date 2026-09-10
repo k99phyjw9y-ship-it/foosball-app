@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#f4f7f5" />
   <title>LCFC Manager – Lake Champlain Foosball Club</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -267,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v4.8 · Updated Sep 10, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v4.9 · Updated Sep 10, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -443,8 +444,52 @@
         </div>
       </div>
 
+      <!-- CHARTS -->
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-sm font-semibold text-slate-800">Charts</h3>
+          <div class="flex items-center gap-2">
+            <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider" for="chart-radar-player">Radar player</label>
+            <select id="chart-radar-player" onchange="renderStatsCharts()" class="input-field rounded-xl px-3 py-1.5 text-xs text-slate-800 max-w-[12rem]"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="surface-card rounded-2xl p-4">
+            <h4 class="text-xs font-semibold text-slate-700 mb-1">Week-over-week points</h4>
+            <p class="text-[11px] text-slate-500 mb-3">Top players by career points · points earned each active week</p>
+            <div class="relative h-56 sm:h-64"><canvas id="chart-wow-points"></canvas></div>
+          </div>
+          <div class="surface-card rounded-2xl p-4">
+            <h4 class="text-xs font-semibold text-slate-700 mb-1">Player radar</h4>
+            <p class="text-[11px] text-slate-500 mb-3">WR% · pts/match · GD · playoffs · podium rate · ranking</p>
+            <div class="relative h-56 sm:h-64"><canvas id="chart-radar"></canvas></div>
+          </div>
+          <div class="surface-card rounded-2xl p-4">
+            <h4 class="text-xs font-semibold text-slate-700 mb-1">Podium medals</h4>
+            <p class="text-[11px] text-slate-500 mb-3">1st / 2nd / 3rd across all brackets &amp; playoffs</p>
+            <div class="relative h-56 sm:h-64"><canvas id="chart-podium"></canvas></div>
+          </div>
+          <div class="surface-card rounded-2xl p-4">
+            <h4 class="text-xs font-semibold text-slate-700 mb-1">Club ranking ladder</h4>
+            <p class="text-[11px] text-slate-500 mb-3">Ranking points from 2,000 baseline · color by band</p>
+            <div class="relative h-56 sm:h-64"><canvas id="chart-ranking"></canvas></div>
+          </div>
+          <div class="surface-card rounded-2xl p-4 lg:col-span-2">
+            <h4 class="text-xs font-semibold text-slate-700 mb-1">Win rate vs volume</h4>
+            <p class="text-[11px] text-slate-500 mb-3">Matches played × WR% · dot size ≈ |goal differential|</p>
+            <div class="relative h-56 sm:h-72"><canvas id="chart-scatter"></canvas></div>
+          </div>
+          <div class="surface-card rounded-2xl p-4 lg:col-span-2 overflow-x-auto">
+            <h4 class="text-xs font-semibold text-slate-700 mb-1">Event form heatmap</h4>
+            <p class="text-[11px] text-slate-500 mb-3">Points per event (darker = more points that night)</p>
+            <div id="chart-heatmap" class="min-w-0"></div>
+          </div>
+        </div>
+      </div>
+
       <p class="text-xs text-slate-500 leading-relaxed">
-        ISO weeks (Mon–Sun). Week, career, and event leaderboards include completed ranking-round and bracket/playoff matches from every event (bye auto-wins excluded). Δ compares against the previous active week.
+        ISO weeks (Mon–Sun). Week, career, and event leaderboards include completed ranking-round and bracket/playoff matches from every event (bye auto-wins excluded). Δ compares against the previous active week. Charts use the same career, podium, ranking, and weekly data.
       </p>
     </div>
 
@@ -718,7 +763,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '4.8';
+    const APP_VERSION = '4.9';
     const APP_UPDATED = 'Sep 10, 2026';
 
     let state = {
@@ -4124,6 +4169,396 @@
       return `<span class="${cls} font-medium">${sign}${delta}${suffix}</span>`;
     }
 
+
+    // ==================== STATS CHARTS ====================
+    const chartInstances = {};
+    const CHART_COLORS = [
+      '#059669', '#2563eb', '#d97706', '#db2777', '#7c3aed',
+      '#0891b2', '#ea580c', '#4f46e5', '#65a30d', '#e11d48'
+    ];
+
+    function destroyChart(key) {
+      if (chartInstances[key]) {
+        try { chartInstances[key].destroy(); } catch (e) {}
+        chartInstances[key] = null;
+      }
+    }
+
+    function chartFont() {
+      return { family: 'system-ui, sans-serif', size: 11 };
+    }
+
+    /** Per-player points by ISO week (career weeks ascending). */
+    function computeWeeklyPointsSeries() {
+      const { byWeek, career, weeks } = computeAllPlayerStats();
+      // weeks is newest-first in UI; reverse for chronological x-axis
+      const chronological = weeks.slice().reverse();
+      const ranked = state.players.map(p => {
+        const s = career[p.id] || emptyPlayerStat();
+        return { id: p.id, name: p.name, pts: s.pts || 0, played: s.played || 0 };
+      }).filter(p => p.played > 0)
+        .sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+
+      const top = ranked.slice(0, 8);
+      const series = top.map((p, i) => ({
+        label: p.name,
+        color: CHART_COLORS[i % CHART_COLORS.length],
+        data: chronological.map(w => (byWeek[w] && byWeek[w][p.id] ? (byWeek[w][p.id].pts || 0) : 0))
+      }));
+      return { labels: chronological.map(weekKeyLabel), series, top };
+    }
+
+    function computeRadarProfile(playerId) {
+      const { career } = computeAllPlayerStats();
+      const podium = computePodiumStats();
+      const s = career[playerId] || emptyPlayerStat();
+      const pod = podium[playerId] || { playoffs: 0, first: 0, second: 0, third: 0 };
+      const p = state.players.find(x => x.id === playerId);
+      ensurePlayerRanking(p || {});
+      const wr = s.played ? (s.wins / s.played) * 100 : 0;
+      const ppm = s.played ? (s.pts / s.played) : 0;
+      // Normalize GD to 0–100-ish using tanh scale
+      const gdScore = Math.max(0, Math.min(100, 50 + (s.gd || 0) * 2));
+      const poScore = Math.min(100, (pod.playoffs || 0) * 20);
+      const medals = (pod.first || 0) + (pod.second || 0) + (pod.third || 0);
+      const podiumRate = pod.playoffs ? (medals / pod.playoffs) * 100 : 0;
+      const rankPts = p ? (p.rankingPoints || RANK_START_POINTS) : RANK_START_POINTS;
+      // Map ranking points ~1000–5000 into 0–100
+      const rankScore = Math.max(0, Math.min(100, ((rankPts - 1000) / 40)));
+      return {
+        name: p ? p.name : 'Player',
+        values: [
+          Math.round(wr * 10) / 10,
+          Math.round(Math.min(100, ppm * 25) * 10) / 10,
+          Math.round(gdScore * 10) / 10,
+          Math.round(poScore * 10) / 10,
+          Math.round(podiumRate * 10) / 10,
+          Math.round(rankScore * 10) / 10
+        ]
+      };
+    }
+
+    function renderWowPointsChart() {
+      const canvas = document.getElementById('chart-wow-points');
+      if (!canvas || typeof Chart === 'undefined') return;
+      destroyChart('wow');
+      const { labels, series } = computeWeeklyPointsSeries();
+      if (!labels.length || !series.length) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
+      chartInstances.wow = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: series.map(s => ({
+            label: s.label,
+            data: s.data,
+            borderColor: s.color,
+            backgroundColor: s.color + '33',
+            tension: 0.25,
+            fill: false,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            borderWidth: 2
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: chartFont() } }
+          },
+          scales: {
+            x: { ticks: { font: chartFont(), maxRotation: 45 }, grid: { color: '#e2e8f0' } },
+            y: { beginAtZero: true, ticks: { font: chartFont() }, grid: { color: '#e2e8f0' }, title: { display: true, text: 'Pts', font: chartFont() } }
+          }
+        }
+      });
+    }
+
+    function renderRadarChart() {
+      const canvas = document.getElementById('chart-radar');
+      const select = document.getElementById('chart-radar-player');
+      if (!canvas || typeof Chart === 'undefined') return;
+      destroyChart('radar');
+
+      const { career } = computeAllPlayerStats();
+      const options = state.players.filter(p => (career[p.id]?.played || 0) > 0)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      if (select) {
+        const prev = select.value;
+        select.innerHTML = options.length
+          ? options.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
+          : '<option value="">No data</option>';
+        if (prev && options.some(p => p.id === prev)) select.value = prev;
+      }
+      const pid = select?.value || options[0]?.id;
+      if (!pid) return;
+      const profile = computeRadarProfile(pid);
+      chartInstances.radar = new Chart(canvas, {
+        type: 'radar',
+        data: {
+          labels: ['WR%', 'Pts/match', 'GD form', 'Playoffs', 'Podium %', 'Ranking'],
+          datasets: [{
+            label: profile.name,
+            data: profile.values,
+            borderColor: '#059669',
+            backgroundColor: 'rgba(5, 150, 105, 0.2)',
+            pointBackgroundColor: '#059669',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              min: 0,
+              max: 100,
+              ticks: { display: false },
+              pointLabels: { font: chartFont() },
+              grid: { color: '#e2e8f0' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderPodiumChart() {
+      const canvas = document.getElementById('chart-podium');
+      if (!canvas || typeof Chart === 'undefined') return;
+      destroyChart('podium');
+      const map = computePodiumStats();
+      const rows = state.players.map(p => {
+        const s = map[p.id] || { first: 0, second: 0, third: 0 };
+        return { name: p.name, first: s.first || 0, second: s.second || 0, third: s.third || 0 };
+      }).filter(r => r.first + r.second + r.third > 0)
+        .sort((a, b) => (b.first + b.second + b.third) - (a.first + a.second + a.third) || b.first - a.first)
+        .slice(0, 12);
+      if (!rows.length) return;
+      chartInstances.podium = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: rows.map(r => r.name),
+          datasets: [
+            { label: '1st', data: rows.map(r => r.first), backgroundColor: '#f59e0b', stack: 'm' },
+            { label: '2nd', data: rows.map(r => r.second), backgroundColor: '#94a3b8', stack: 'm' },
+            { label: '3rd', data: rows.map(r => r.third), backgroundColor: '#b45309', stack: 'm' }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: chartFont() } } },
+          scales: {
+            x: { stacked: true, ticks: { stepSize: 1, font: chartFont() }, grid: { color: '#e2e8f0' } },
+            y: { stacked: true, ticks: { font: chartFont() }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function renderRankingChart() {
+      const canvas = document.getElementById('chart-ranking');
+      if (!canvas || typeof Chart === 'undefined') return;
+      destroyChart('ranking');
+      migratePlayerRankings();
+      const rows = state.players.map(p => {
+        ensurePlayerRanking(p);
+        const band = rankingBandFromPoints(p.rankingPoints);
+        return { name: p.name, pts: p.rankingPoints, label: band.label };
+      }).sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name))
+        .slice(0, 12);
+      if (!rows.length) return;
+      const bandColor = {
+        Beginner: '#22c55e', Rookie: '#3b82f6', Amateur: '#f97316',
+        Expert: '#ef4444', Pro: '#a855f7', Master: '#eab308'
+      };
+      chartInstances.ranking = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: rows.map(r => r.name),
+          datasets: [{
+            label: 'Ranking pts',
+            data: rows.map(r => r.pts),
+            backgroundColor: rows.map(r => bandColor[r.label] || '#059669'),
+            borderRadius: 4
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                afterLabel: (ctx) => rows[ctx.dataIndex]?.label || ''
+              }
+            }
+          },
+          scales: {
+            x: {
+              min: Math.min(1500, ...rows.map(r => r.pts)) - 50,
+              ticks: { font: chartFont() },
+              grid: { color: '#e2e8f0' }
+            },
+            y: { ticks: { font: chartFont() }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function renderScatterChart() {
+      const canvas = document.getElementById('chart-scatter');
+      if (!canvas || typeof Chart === 'undefined') return;
+      destroyChart('scatter');
+      const { career } = computeAllPlayerStats();
+      const points = state.players.map(p => {
+        const s = career[p.id] || emptyPlayerStat();
+        if (!s.played) return null;
+        const wr = (s.wins / s.played) * 100;
+        const size = Math.max(4, Math.min(28, 6 + Math.abs(s.gd || 0) * 0.8));
+        return {
+          x: s.played,
+          y: Math.round(wr * 10) / 10,
+          r: size / 2,
+          name: p.name,
+          gd: s.gd || 0,
+          pts: s.pts || 0
+        };
+      }).filter(Boolean);
+      if (!points.length) return;
+      chartInstances.scatter = new Chart(canvas, {
+        type: 'bubble',
+        data: {
+          datasets: [{
+            label: 'Players',
+            data: points,
+            backgroundColor: 'rgba(5, 150, 105, 0.45)',
+            borderColor: '#059669',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const d = ctx.raw;
+                  return `${d.name}: ${d.x} matches, ${d.y}% WR, GD ${d.gd > 0 ? '+' : ''}${d.gd}, ${d.pts} pts`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Matches played', font: chartFont() },
+              ticks: { font: chartFont() },
+              grid: { color: '#e2e8f0' },
+              beginAtZero: true
+            },
+            y: {
+              title: { display: true, text: 'Win rate %', font: chartFont() },
+              min: 0,
+              max: 100,
+              ticks: { font: chartFont() },
+              grid: { color: '#e2e8f0' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderHeatmap() {
+      const el = document.getElementById('chart-heatmap');
+      if (!el) return;
+      const events = state.tournaments.slice()
+        .filter(t => (t.rounds && t.rounds.length) || t.playoffs)
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      if (!events.length) {
+        el.innerHTML = '<p class="text-sm text-slate-500 py-6 text-center">No event data yet</p>';
+        return;
+      }
+
+      // Per-player points in each event (ranking rounds + brackets)
+      const { career } = computeAllPlayerStats();
+      const players = state.players.filter(p => (career[p.id]?.played || 0) > 0)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      function ptsInTournament(t, pid) {
+        let pts = 0;
+        const addMatch = (m) => {
+          if (!m || m.void) return;
+          if (m.scoreA == null || m.scoreB == null) return;
+          if (m.scoreA === m.scoreB) return;
+          if (m.scoreA === 0 && m.scoreB === 0) return;
+          const aIds = entityPlayerIds(m.entityA || m.a?.entity);
+          const bIds = entityPlayerIds(m.entityB || m.b?.entity);
+          const onA = aIds.includes(pid);
+          const onB = bIds.includes(pid);
+          if (!onA && !onB) return;
+          const won = (onA && m.scoreA > m.scoreB) || (onB && m.scoreB > m.scoreA);
+          if (won) pts += 3;
+        };
+        (t.rounds || []).forEach(r => (r.matches || []).forEach(addMatch));
+        collectBracketMatches(t.playoffs).forEach(addMatch);
+        return pts;
+      }
+
+      const matrix = players.map(p => events.map(t => ptsInTournament(t, p.id)));
+      const maxPts = Math.max(1, ...matrix.flat());
+
+      const cell = (v) => {
+        if (v === 0) return 'background:#f8fafc;color:#94a3b8';
+        const intensity = Math.min(1, v / maxPts);
+        const alpha = 0.15 + intensity * 0.85;
+        return `background:rgba(5,150,105,${alpha.toFixed(2)});color:${intensity > 0.55 ? '#fff' : '#064e3b'}`;
+      };
+
+      let html = '<table class="text-[11px] border-collapse w-full min-w-[480px]"><thead><tr>';
+      html += '<th class="sticky left-0 bg-white z-10 text-left px-2 py-1.5 font-semibold text-slate-500">Player</th>';
+      events.forEach(t => {
+        const label = escapeHtml((t.name || 'Event').slice(0, 12));
+        html += `<th class="px-1.5 py-1.5 font-medium text-slate-500 whitespace-nowrap" title="${escapeHtml(t.name || '')}">${label}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+      players.forEach((p, i) => {
+        html += `<tr class="border-t border-slate-100"><td class="sticky left-0 bg-white z-10 px-2 py-1 font-medium text-slate-800 whitespace-nowrap">${escapeHtml(p.name)}</td>`;
+        matrix[i].forEach(v => {
+          html += `<td class="px-1.5 py-1 text-center font-semibold rounded-sm" style="${cell(v)}" title="${v} pts">${v || '·'}</td>`;
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      el.innerHTML = html;
+    }
+
+    function renderStatsCharts() {
+      if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not loaded');
+        return;
+      }
+      try {
+        renderWowPointsChart();
+        renderRadarChart();
+        renderPodiumChart();
+        renderRankingChart();
+        renderScatterChart();
+        renderHeatmap();
+      } catch (e) {
+        console.error('Charts error', e);
+      }
+    }
+
+
     function renderStats() {
       const { byWeek, career, byType, weeks } = computeAllPlayerStats();
       const select = document.getElementById('stats-week-select');
@@ -4285,6 +4720,7 @@
       renderEventLeaderboard(byType);
       renderPodiumStats();
       renderClubRanking();
+      renderStatsCharts();
     }
 
     function setStatsEventType(type) {
