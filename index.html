@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.2 · Updated Sep 11, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.3 · Updated Sep 11, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -863,7 +863,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.2';
+    const APP_VERSION = '5.3';
     const APP_UPDATED = 'Sep 11, 2026';
 
     let state = {
@@ -5329,6 +5329,40 @@
       }
     }
 
+    /**
+     * Auto-size team names on the TV board so the full name is visible.
+     * Shrinks font from max→min; if still wide, allows wrap at a readable size.
+     */
+    function fitSpectatorTeamNames(root) {
+      if (!root) return;
+      const names = root.querySelectorAll('.spec-team-name');
+      const maxPx = Math.min(40, Math.max(22, Math.floor(window.innerWidth / 28)));
+      const minPx = 13;
+      names.forEach(el => {
+        el.style.whiteSpace = 'nowrap';
+        el.style.overflow = 'hidden';
+        el.style.display = 'block';
+        el.style.width = '100%';
+        let size = maxPx;
+        el.style.fontSize = size + 'px';
+        // Binary-ish shrink until fits or min
+        let guard = 40;
+        while (guard-- > 0 && size > minPx && el.scrollWidth > el.clientWidth + 1) {
+          size -= 1;
+          el.style.fontSize = size + 'px';
+        }
+        if (el.scrollWidth > el.clientWidth + 1) {
+          // Still too long: wrap and use a solid readable size
+          el.style.whiteSpace = 'normal';
+          el.style.overflow = 'visible';
+          el.style.fontSize = Math.max(minPx, Math.min(size, 20)) + 'px';
+          el.style.wordBreak = 'break-word';
+        } else {
+          el.style.overflow = 'visible';
+        }
+      });
+    }
+
     function renderSpectatorBoard() {
       const t = state.tournaments.find(x => x.id === state.spectatorTournamentId);
       const title = document.getElementById('spec-title');
@@ -5378,16 +5412,18 @@
         matchesEl.innerHTML = live.map(m => `
           <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-6">
             <div class="text-xs text-slate-500 mb-3">${m.table ? 'Table ' + m.table + ' · ' : ''}R${m.round}</div>
-            <div class="flex items-center justify-between gap-4 text-lg sm:text-2xl font-bold">
-              <span class="flex-1 text-right truncate">${escapeHtml(m.nameA)}</span>
-              <span class="text-slate-500 font-semibold px-2">vs</span>
-              <span class="flex-1 text-left truncate">${escapeHtml(m.nameB)}</span>
+            <div class="space-y-2 text-center">
+              <div class="spec-team-name font-bold text-white leading-snug px-1" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
+              <div class="text-slate-500 font-semibold text-sm tracking-wide">vs</div>
+              <div class="spec-team-name font-bold text-white leading-snug px-1" title="${escapeHtml(m.nameB)}">${escapeHtml(m.nameB)}</div>
             </div>
-            <div class="mt-3 text-center text-3xl sm:text-4xl font-black tracking-tight text-emerald-400">
+            <div class="mt-4 text-center text-3xl sm:text-4xl font-black tracking-tight text-emerald-400">
               ${m.scoreA != null && m.scoreB != null ? `${m.scoreA} — ${m.scoreB}` : '—'}
             </div>
           </div>
         `).join('');
+        // Shrink names so full text is visible on the card
+        requestAnimationFrame(() => fitSpectatorTeamNames(matchesEl));
       }
 
       // Standings
@@ -5413,8 +5449,8 @@
       if (recentEl) {
         const recent = recentDone.slice(-8).reverse();
         recentEl.innerHTML = recent.length ? recent.map(m => `
-          <div class="flex justify-between gap-2 text-slate-300">
-            <span class="truncate">${escapeHtml(m.nameA)} <span class="text-slate-500">vs</span> ${escapeHtml(m.nameB)}</span>
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 text-slate-300 py-1.5 border-b border-slate-800/50">
+            <span class="min-w-0 leading-snug break-words">${escapeHtml(m.nameA)} <span class="text-slate-500">vs</span> ${escapeHtml(m.nameB)}</span>
             <span class="font-semibold text-white shrink-0">${m.scoreA}–${m.scoreB}</span>
           </div>`).join('') : '<p class="text-slate-500">No completed matches yet</p>';
       }
