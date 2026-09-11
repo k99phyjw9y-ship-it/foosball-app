@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.0 · Updated Sep 11, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.1 · Updated Sep 11, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -444,49 +444,23 @@
         </div>
       </div>
 
-      <!-- PARTNERS & CHEMISTRY -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="surface-card rounded-2xl overflow-hidden">
-          <div class="px-4 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h3 class="text-sm font-semibold text-slate-800">Best / Worst Partners</h3>
-              <p class="text-xs text-slate-500 mt-0.5">DYP · Monster · Doubles · min 2 matches together</p>
-            </div>
-            <select id="partner-focus-player" onchange="renderPartnerStats()" class="input-field rounded-xl px-3 py-1.5 text-xs text-slate-800 max-w-[11rem]"></select>
+      <!-- PARTNERS -->
+      <div class="surface-card rounded-2xl overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="text-sm font-semibold text-slate-800">Best / Worst Partners</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Ranking rounds + brackets/playoffs · DYP · Monster · Doubles · min 2 matches together</p>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-0 divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
-            <div class="p-4">
-              <div class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider mb-2">Best</div>
-              <div id="stats-best-partners" class="space-y-2 text-sm"></div>
-            </div>
-            <div class="p-4">
-              <div class="text-[11px] font-semibold text-red-600 uppercase tracking-wider mb-2">Worst</div>
-              <div id="stats-worst-partners" class="space-y-2 text-sm"></div>
-            </div>
-          </div>
+          <select id="partner-focus-player" onchange="renderPartnerStats()" class="input-field rounded-xl px-3 py-1.5 text-xs text-slate-800 max-w-[11rem]"></select>
         </div>
-
-        <div class="surface-card rounded-2xl overflow-hidden">
-          <div class="px-4 py-3.5 border-b border-slate-200">
-            <h3 class="text-sm font-semibold text-slate-800">Table Chemistry</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Win rate when partnered by skill band (not club ranking)</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
+          <div class="p-4">
+            <div class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider mb-2">Best</div>
+            <div id="stats-best-partners" class="space-y-2 text-sm"></div>
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="border-b border-slate-200">
-                  <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">With band</th>
-                  <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">P</th>
-                  <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">W</th>
-                  <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">WR%</th>
-                  <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">GD</th>
-                </tr>
-              </thead>
-              <tbody id="stats-chemistry-body"></tbody>
-            </table>
-          </div>
-          <div class="px-4 py-2 border-t border-slate-100">
-            <select id="chemistry-focus-player" onchange="renderChemistryStats()" class="input-field rounded-xl px-3 py-1.5 text-xs text-slate-800 w-full max-w-xs"></select>
+          <div class="p-4">
+            <div class="text-[11px] font-semibold text-red-600 uppercase tracking-wider mb-2">Worst</div>
+            <div id="stats-worst-partners" class="space-y-2 text-sm"></div>
           </div>
         </div>
       </div>
@@ -845,7 +819,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.0';
+    const APP_VERSION = '5.1';
     const APP_UPDATED = 'Sep 11, 2026';
 
     let state = {
@@ -4258,20 +4232,43 @@
 
     /** Walk every scored non-bye match across all events. */
     function forEachScoredMatch(fn) {
+      const resolveSideIds = (t, ent) => {
+        let ids = entityPlayerIds(ent);
+        if (ids.length) return ids;
+        if (ent?.playerIds?.length) {
+          ids = ent.playerIds.filter(id => state.players.some(p => p.id === id));
+          if (ids.length) return ids;
+        }
+        // Look up team from tournament.teams / playoffTeams / round teams
+        if (ent?.id) {
+          const pools = []
+            .concat(t.teams || [])
+            .concat(t.playoffTeams || [])
+            .concat((t.rounds || []).flatMap(r => r.teams || []));
+          const team = pools.find(x => x.id === ent.id);
+          if (team?.playerIds?.length) {
+            return team.playerIds.filter(id => state.players.some(p => p.id === id));
+          }
+        }
+        return ids;
+      };
       state.tournaments.forEach(t => {
         const handle = (m, entityA, entityB) => {
           if (!m || m.void) return;
+          if (m.status && m.status !== 'done') return;
           const sa = m.scoreA, sb = m.scoreB;
           if (sa == null || sb == null || sa === sb) return;
           if (sa === 0 && sb === 0) return; // bye
-          const aIds = entityPlayerIds(entityA);
-          const bIds = entityPlayerIds(entityB);
+          const aIds = resolveSideIds(t, entityA);
+          const bIds = resolveSideIds(t, entityB);
           if (aIds.length < 1 || bIds.length < 1) return;
           fn({ t, m, aIds, bIds, scoreA: sa, scoreB: sb, aWin: sa > sb });
         };
+        // Ranking rounds (Swiss / Monster draws)
         (t.rounds || []).forEach(r => {
           (r.matches || []).forEach(m => handle(m, m.entityA, m.entityB));
         });
+        // Brackets / playoffs
         collectBracketMatches(t.playoffs).forEach(m => {
           handle(m, m.a?.entity || m.entityA, m.b?.entity || m.entityB);
         });
@@ -4358,50 +4355,6 @@
         </div>`;
       bestEl.innerHTML = byBest.slice(0, 5).map(fmt).join('');
       worstEl.innerHTML = byWorst.slice(0, 5).map(fmt).join('');
-    }
-
-    /** Chemistry by partner skill band only (normalizeSkill), not club ranking. */
-    function renderChemistryStats() {
-      const focus = document.getElementById('chemistry-focus-player');
-      fillPlayerSelect(focus);
-      const body = document.getElementById('stats-chemistry-body');
-      if (!body) return;
-      const pid = focus?.value;
-      if (!pid) {
-        body.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">Select a player</td></tr>';
-        return;
-      }
-      const maps = computePartnerMaps();
-      const byBand = {};
-      Object.entries(maps[pid] || {}).forEach(([oid, s]) => {
-        const partner = state.players.find(p => p.id === oid);
-        if (!partner) return;
-        const band = normalizeSkill(partner.skill);
-        if (!byBand[band]) byBand[band] = { played: 0, wins: 0, losses: 0, gf: 0, ga: 0 };
-        const b = byBand[band];
-        b.played += s.played;
-        b.wins += s.wins;
-        b.losses += s.losses;
-        b.gf += s.gf;
-        b.ga += s.ga;
-      });
-      const bands = [1, 2, 3, 4, 5, 6].filter(b => byBand[b]?.played);
-      if (!bands.length) {
-        body.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">No partner data yet</td></tr>';
-        return;
-      }
-      body.innerHTML = bands.map(band => {
-        const s = byBand[band];
-        const wr = s.played ? ((s.wins / s.played) * 100).toFixed(1) : '0';
-        const gd = s.gf - s.ga;
-        return `<tr class="border-t border-slate-200 table-row">
-          <td class="px-3 py-2.5 font-medium text-slate-900">${SKILL_BAND_LABEL[band]}</td>
-          <td class="px-2 py-2.5 text-center text-slate-500">${s.played}</td>
-          <td class="px-2 py-2.5 text-center text-emerald-600">${s.wins}</td>
-          <td class="px-2 py-2.5 text-center font-semibold text-slate-800">${wr}%</td>
-          <td class="px-2 py-2.5 text-center text-slate-600">${gd > 0 ? '+' : ''}${gd}</td>
-        </tr>`;
-      }).join('');
     }
 
     /** Most improved: recent half of active weeks vs earlier half. */
@@ -5107,7 +5060,6 @@
       renderPodiumStats();
       renderClubRanking();
       renderPartnerStats();
-      renderChemistryStats();
       renderMostImproved();
       renderPlayerCompare();
       renderStatsCharts();
