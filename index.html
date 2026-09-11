@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.5 · Updated Sep 11, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.6 · Updated Sep 11, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -541,6 +541,15 @@
           <select id="compare-player-b" onchange="renderPlayerCompare()" class="input-field rounded-xl px-3 py-2 text-sm text-slate-800 min-w-[9rem]"></select>
         </div>
         <div id="stats-compare-grid" class="px-4 pb-4"></div>
+      </div>
+
+      <!-- CRAZY STATS -->
+      <div class="surface-card rounded-2xl overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-slate-200">
+          <h3 class="text-sm font-semibold text-slate-800">Crazy Stats · Awards</h3>
+          <p class="text-xs text-slate-500 mt-0.5">Career leaders with fun labels · WR% needs 10+ matches · pairs need 5+ together</p>
+        </div>
+        <div id="stats-crazy-grid" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
       </div>
 
       <!-- CHARTS -->
@@ -863,7 +872,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.5';
+    const APP_VERSION = '5.6';
     const APP_UPDATED = 'Sep 11, 2026';
 
     let state = {
@@ -4407,7 +4416,162 @@
       worstEl.innerHTML = byWorst.slice(0, 5).map(fmt).join('');
     }
 
-    /** Most improved: recent half of active weeks vs earlier half. */
+
+    // ==================== CRAZY STATS / AWARDS ====================
+    function computeSitOutTotals() {
+      const counts = {};
+      state.players.forEach(p => { counts[p.id] = 0; });
+      state.tournaments.forEach(t => {
+        (t.rounds || []).forEach(r => {
+          (r.sitOutIds || []).forEach(id => {
+            counts[id] = (counts[id] || 0) + 1;
+          });
+        });
+      });
+      return counts;
+    }
+
+    /** Best points in a single event (ranking + bracket matches that night). */
+    function computeBestSingleNight() {
+      const best = {}; // pid -> { pts, eventName }
+      state.tournaments.forEach(t => {
+        const night = {};
+        const bump = (ids, win) => {
+          ids.forEach(pid => {
+            if (!night[pid]) night[pid] = 0;
+            if (win) night[pid] += 3;
+          });
+        };
+        const handle = (m, entA, entB) => {
+          if (!m || m.void) return;
+          if (m.scoreA == null || m.scoreB == null || m.scoreA === m.scoreB) return;
+          if (m.scoreA === 0 && m.scoreB === 0) return;
+          const aIds = entityPlayerIds(entA);
+          const bIds = entityPlayerIds(entB);
+          if (!aIds.length || !bIds.length) return;
+          bump(aIds, m.scoreA > m.scoreB);
+          bump(bIds, m.scoreB > m.scoreA);
+        };
+        (t.rounds || []).forEach(r => (r.matches || []).forEach(m => handle(m, m.entityA, m.entityB)));
+        collectBracketMatches(t.playoffs).forEach(m => handle(m, m.a?.entity || m.entityA, m.b?.entity || m.entityB));
+        Object.entries(night).forEach(([pid, pts]) => {
+          if (!best[pid] || pts > best[pid].pts) {
+            best[pid] = { pts, eventName: t.name || 'Event' };
+          }
+        });
+      });
+      return best;
+    }
+
+    function computeCrazyAwards() {
+      const { career } = computeAllPlayerStats();
+      const podium = computePodiumStats();
+      const sits = computeSitOutTotals();
+      const night = computeBestSingleNight();
+      const partners = computePartnerMaps();
+
+      const players = state.players.map(p => {
+        const s = career[p.id] || emptyPlayerStat();
+        const pod = podium[p.id] || { first: 0, second: 0, third: 0, playoffs: 0 };
+        return {
+          id: p.id,
+          name: p.name,
+          played: s.played || 0,
+          wins: s.wins || 0,
+          losses: s.losses || 0,
+          gf: s.gf || 0,
+          ga: s.ga || 0,
+          gd: s.gd || 0,
+          wr: s.played ? (s.wins / s.played) * 100 : 0,
+          first: pod.first || 0,
+          sits: sits[p.id] || 0,
+          nightPts: night[p.id]?.pts || 0,
+          nightEvent: night[p.id]?.eventName || ''
+        };
+      });
+
+      const withPlay = players.filter(p => p.played > 0);
+      const minWr = players.filter(p => p.played >= 10);
+
+      const pick = (arr, scoreFn, preferHigh = true) => {
+        if (!arr.length) return null;
+        const sorted = arr.slice().sort((a, b) => {
+          const sa = scoreFn(a), sb = scoreFn(b);
+          if (preferHigh) {
+            if (sb !== sa) return sb - sa;
+          } else {
+            if (sa !== sb) return sa - sb;
+          }
+          return a.name.localeCompare(b.name);
+        });
+        return sorted[0];
+      };
+
+      // Pair awards
+      let duo = null, cursed = null;
+      const pairList = [];
+      const seen = new Set();
+      Object.entries(partners).forEach(([pid, map]) => {
+        Object.entries(map).forEach(([oid, st]) => {
+          if (st.played < 5) return;
+          const key = [pid, oid].sort().join('|');
+          if (seen.has(key)) return;
+          seen.add(key);
+          const n1 = state.players.find(p => p.id === pid)?.name || '?';
+          const n2 = state.players.find(p => p.id === oid)?.name || '?';
+          const wr = st.played ? (st.wins / st.played) * 100 : 0;
+          pairList.push({ name: `${n1} + ${n2}`, played: st.played, wins: st.wins, losses: st.losses, wr, gd: st.gd });
+        });
+      });
+      if (pairList.length) {
+        duo = pairList.slice().sort((a, b) => b.wr - a.wr || b.played - a.played)[0];
+        cursed = pairList.slice().sort((a, b) => a.wr - b.wr || b.played - a.played)[0];
+      }
+
+      const awards = [
+        { emoji: '🏆', label: 'Win Machine', desc: 'Most wins', holder: pick(withPlay, p => p.wins), detail: p => `${p.wins} wins` },
+        { emoji: '😅', label: 'Tough Luck', desc: 'Most losses', holder: pick(withPlay, p => p.losses), detail: p => `${p.losses} losses` },
+        { emoji: '🎯', label: 'Sniper', desc: 'Most goals scored', holder: pick(withPlay, p => p.gf), detail: p => `${p.gf} GF` },
+        { emoji: '🧱', label: 'Pin Cushion', desc: 'Most goals against', holder: pick(withPlay, p => p.ga), detail: p => `${p.ga} GA` },
+        { emoji: '📈', label: 'Diff Monster', desc: 'Best goal differential', holder: pick(withPlay, p => p.gd), detail: p => `${p.gd > 0 ? '+' : ''}${p.gd} GD` },
+        { emoji: '📉', label: 'Open Net', desc: 'Worst goal differential', holder: pick(withPlay, p => p.gd, false), detail: p => `${p.gd > 0 ? '+' : ''}${p.gd} GD` },
+        { emoji: '🔥', label: 'Hot Stick', desc: 'Highest win rate (10+ matches)', holder: pick(minWr, p => p.wr), detail: p => `${p.wr.toFixed(1)}% · ${p.played} played` },
+        { emoji: '🐷', label: 'Table Hog', desc: 'Most matches played', holder: pick(withPlay, p => p.played), detail: p => `${p.played} matches` },
+        { emoji: '🌙', label: 'Night Owl', desc: 'Best single-night points', holder: pick(withPlay.filter(p => p.nightPts > 0), p => p.nightPts), detail: p => `${p.nightPts} pts · ${p.nightEvent}` },
+        { emoji: '🪑', label: 'Bench Warmer', desc: 'Most sit-outs', holder: pick(players.filter(p => p.sits > 0), p => p.sits), detail: p => `${p.sits} sit-outs` },
+        { emoji: '🥇', label: 'Champion', desc: 'Most 1st-place finishes', holder: pick(players.filter(p => p.first > 0), p => p.first), detail: p => `${p.first} titles` },
+        { emoji: '🤝', label: 'Dynamic Duo', desc: 'Best partner pair (5+ together)', holder: duo, detail: p => `${p.wr.toFixed(0)}% · ${p.wins}-${p.losses}`, isPair: true },
+        { emoji: '💀', label: 'Cursed Pair', desc: 'Worst partner pair (5+ together)', holder: cursed, detail: p => `${p.wr.toFixed(0)}% · ${p.wins}-${p.losses}`, isPair: true },
+      ];
+      return awards;
+    }
+
+    function renderCrazyStats() {
+      const grid = document.getElementById('stats-crazy-grid');
+      if (!grid) return;
+      const awards = computeCrazyAwards();
+      const cards = awards.filter(a => a.holder).map(a => {
+        const h = a.holder;
+        const name = a.isPair ? h.name : h.name;
+        const detail = a.detail(h);
+        return `<div class="rounded-xl border border-slate-200 bg-slate-50/80 p-3.5 flex gap-3 items-start">
+          <div class="text-2xl shrink-0 leading-none pt-0.5">${a.emoji}</div>
+          <div class="min-w-0">
+            <div class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">${escapeHtml(a.label)}</div>
+            <div class="text-xs text-slate-500">${escapeHtml(a.desc)}</div>
+            <div class="font-bold text-slate-900 mt-1 truncate" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+            <div class="text-xs text-slate-600 mt-0.5">${escapeHtml(detail)}</div>
+          </div>
+        </div>`;
+      });
+      if (!cards.length) {
+        grid.innerHTML = '<p class="text-sm text-slate-500 col-span-full text-center py-6">Play some matches to unlock awards</p>';
+        return;
+      }
+      grid.innerHTML = cards.join('');
+    }
+
+        /** Most improved: recent half of active weeks vs earlier half. */
     function renderMostImproved() {
       const body = document.getElementById('stats-improved-body');
       if (!body) return;
@@ -5112,6 +5276,7 @@
       renderPartnerStats();
       renderMostImproved();
       renderPlayerCompare();
+      renderCrazyStats();
       renderStatsCharts();
     }
 
