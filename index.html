@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.6 · Updated Sep 11, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.7 · Updated Sep 11, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -872,7 +872,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.6';
+    const APP_VERSION = '5.7';
     const APP_UPDATED = 'Sep 11, 2026';
 
     let state = {
@@ -3032,6 +3032,7 @@
                 <div class="px-3 py-1.5 rounded-xl font-mono text-base min-w-[72px] text-center ${done ? 'bg-slate-100 text-slate-900' : 'bg-slate-50 text-slate-400'}">${scoreText}</div>
                 <div class="flex-1 text-sm ${winnerB ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">${escapeHtml(m.entityB.name)}</div>
               </div>
+              ${!done ? formatProjectionBadge(m.entityA, m.entityB) : ''}
               <div class="mt-3 flex gap-2">
                 ${!done ? `
                 <button onclick="openScoreModal('${round.number}','${m.id}')" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
@@ -3160,6 +3161,85 @@
       toast('Bracket result cleared', 'success');
     }
 
+    /**
+     * Player strength for win projection: club ranking + last-10 form + career GD rate.
+     * Scale roughly Elo-like around 2000.
+     */
+    function getPlayerProjectionStrength(playerId) {
+      const p = state.players.find(x => x.id === playerId);
+      if (!p) return RANK_START_POINTS;
+      ensurePlayerRanking(p);
+      let s = Number(p.rankingPoints) || RANK_START_POINTS;
+      const form = (typeof getLast10Form === 'function') ? getLast10Form(playerId) : [];
+      if (form.length >= 3) {
+        const wr = form.filter(r => r.won).length / form.length;
+        s += (wr - 0.5) * 280; // recent form swing
+      } else if (form.length > 0) {
+        const wr = form.filter(r => r.won).length / form.length;
+        s += (wr - 0.5) * 120;
+      }
+      try {
+        const { career } = computeAllPlayerStats();
+        const c = career[playerId];
+        if (c && c.played >= 5) {
+          s += Math.max(-80, Math.min(80, (c.gd / c.played) * 18));
+        }
+      } catch (e) {}
+      return s;
+    }
+
+    function getEntityProjectionStrength(ent) {
+      const ids = entityPlayerIds(ent);
+      if (!ids.length) return null;
+      const vals = ids.map(getPlayerProjectionStrength);
+      return vals.reduce((a, b) => a + b, 0) / vals.length;
+    }
+
+    /**
+     * Elo-style win probability from two strengths.
+     * Returns { pctA, pctB } integers 1–99 that sum to 100, or null if unknown.
+     */
+    function projectMatchWinPct(entA, entB) {
+      const sa = getEntityProjectionStrength(entA);
+      const sb = getEntityProjectionStrength(entB);
+      if (sa == null || sb == null) return null;
+      const scale = 400;
+      let pA = 1 / (1 + Math.pow(10, (sb - sa) / scale));
+      // Soft pull toward 50% when sample is thin overall
+      const conf = Math.min(1, (entityPlayerIds(entA).length + entityPlayerIds(entB).length) / 2);
+      pA = 0.5 + (pA - 0.5) * (0.75 + 0.25 * conf);
+      let pctA = Math.round(pA * 100);
+      pctA = Math.max(8, Math.min(92, pctA)); // avoid silly 99–1 on club data
+      return { pctA, pctB: 100 - pctA };
+    }
+
+    function updateScoreProjection(entA, entB) {
+      const box = document.getElementById('score-projection');
+      const elA = document.getElementById('score-proj-a');
+      const elB = document.getElementById('score-proj-b');
+      const barA = document.getElementById('score-proj-bar-a');
+      const barB = document.getElementById('score-proj-bar-b');
+      if (!box || !elA || !elB) return;
+      const proj = projectMatchWinPct(entA, entB);
+      if (!proj) {
+        box.classList.add('hidden');
+        return;
+      }
+      box.classList.remove('hidden');
+      elA.textContent = proj.pctA + '%';
+      elB.textContent = proj.pctB + '%';
+      if (barA) barA.style.width = proj.pctA + '%';
+      if (barB) barB.style.width = proj.pctB + '%';
+      elA.className = 'font-bold ' + (proj.pctA >= proj.pctB ? 'text-emerald-700' : 'text-slate-600');
+      elB.className = 'font-bold ' + (proj.pctB > proj.pctA ? 'text-emerald-700' : 'text-slate-600');
+    }
+
+    function formatProjectionBadge(entA, entB) {
+      const proj = projectMatchWinPct(entA, entB);
+      if (!proj) return '';
+      return `<div class="mt-2 text-center text-[11px] text-slate-500">Est. <span class="font-semibold text-slate-700">${proj.pctA}%</span> – <span class="font-semibold text-slate-700">${proj.pctB}%</span></div>`;
+    }
+
     function openScoreModal(roundNum, matchId) {
       const t = getCurrentTournament();
       const round = t.rounds.find(r => r.number === parseInt(roundNum, 10));
@@ -3172,6 +3252,7 @@
       document.getElementById('score-team-b').textContent = match.entityB?.name || 'Team B';
       document.getElementById('score-a').value = match.scoreA != null ? match.scoreA : '';
       document.getElementById('score-b').value = match.scoreB != null ? match.scoreB : '';
+      updateScoreProjection(match.entityA, match.entityB);
       document.getElementById('score-modal').classList.remove('hidden');
       document.getElementById('score-a').focus();
     }
@@ -3769,6 +3850,7 @@
       document.getElementById('score-team-b').textContent = match.b.entity.name || 'Side B';
       document.getElementById('score-a').value = match.scoreA != null ? match.scoreA : '';
       document.getElementById('score-b').value = match.scoreB != null ? match.scoreB : '';
+      updateScoreProjection(match.a.entity, match.b.entity);
       document.getElementById('score-modal').classList.remove('hidden');
       document.getElementById('score-a').focus();
     }
@@ -5556,7 +5638,8 @@
           const nameA = m.entityA?.name || 'TBD';
           const nameB = m.entityB?.name || 'TBD';
           const done = m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB);
-          const row = { round: r.number, nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table, done };
+          const proj = (!done && m.entityA && m.entityB) ? projectMatchWinPct(m.entityA, m.entityB) : null;
+          const row = { round: r.number, nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table, done, proj };
           if (done) recentDone.push(row);
           else live.push(row);
         });
@@ -5566,7 +5649,10 @@
         const nameA = m.a?.entity?.name || m.entityA?.name || 'TBD';
         const nameB = m.b?.entity?.name || m.entityB?.name || 'TBD';
         const done = !!(m.winner || (m.scoreA != null && m.scoreB != null && !(m.scoreA === 0 && m.scoreB === 0)));
-        const row = { round: m.bracket || 'bracket', nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: null, done };
+        const entA = m.a?.entity || m.entityA;
+        const entB = m.b?.entity || m.entityB;
+        const proj = (!done && entA && entB) ? projectMatchWinPct(entA, entB) : null;
+        const row = { round: m.bracket || 'bracket', nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: null, done, proj };
         if (done && m.scoreA != null) recentDone.push(row);
         else if (!done && (m.a?.entity || m.b?.entity || m.entityA)) live.push(row);
       });
@@ -5585,6 +5671,7 @@
             <div class="mt-2 text-center text-xl sm:text-2xl font-black tracking-tight text-emerald-400">
               ${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}
             </div>
+            ${m.proj ? `<div class="mt-1 text-center text-[10px] text-slate-500">Est. ${m.proj.pctA}% – ${m.proj.pctB}%</div>` : ''}
           </div>
         `).join('');
         // Shrink names so full text is visible on the card
