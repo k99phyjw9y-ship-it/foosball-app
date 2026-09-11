@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.4 · Updated Sep 11, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.5 · Updated Sep 11, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -325,16 +325,16 @@
             <button type="button" onclick="closeSpectator()" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-3 py-2 text-sm font-medium">Exit</button>
           </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4">
-          <div class="lg:col-span-9 xl:col-span-10 space-y-2 min-w-0">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+          <div class="lg:col-span-8 space-y-2 min-w-0">
             <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Now playing</h3>
-            <div id="spec-matches" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2"></div>
+            <div id="spec-matches" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
           </div>
-          <div class="lg:col-span-3 xl:col-span-2 space-y-2 min-w-0 max-w-full lg:max-w-[11.5rem] xl:max-w-[13rem] lg:ml-auto">
+          <div class="lg:col-span-4 space-y-2 min-w-0">
             <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Standings</h3>
             <div id="spec-standings" class="rounded-xl bg-slate-900/80 border border-slate-800 overflow-hidden"></div>
             <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mt-3">Recent</h3>
-            <div id="spec-recent" class="space-y-1 text-[11px] leading-snug"></div>
+            <div id="spec-recent" class="space-y-1.5 text-sm leading-snug"></div>
           </div>
         </div>
         <p class="text-center text-[11px] text-slate-600 mt-10">Auto-refreshes every 5s · read-only</p>
@@ -863,7 +863,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.4';
+    const APP_VERSION = '5.5';
     const APP_UPDATED = 'Sep 11, 2026';
 
     let state = {
@@ -5336,8 +5336,8 @@
     function fitSpectatorTeamNames(root) {
       if (!root) return;
       const names = root.querySelectorAll('.spec-team-name');
-      const maxPx = Math.min(22, Math.max(14, Math.floor(window.innerWidth / 55)));
-      const minPx = 11;
+      const maxPx = Math.min(28, Math.max(16, Math.floor(window.innerWidth / 40)));
+      const minPx = 12;
       names.forEach(el => {
         el.style.whiteSpace = 'nowrap';
         el.style.overflow = 'hidden';
@@ -5432,19 +5432,19 @@
       if (!standings.length) {
         standEl.innerHTML = '<p class="p-4 text-slate-500 text-sm">No standings yet</p>';
       } else {
-        standEl.innerHTML = `<table class="w-full text-[11px] leading-tight">
-          <thead><tr class="text-slate-500 text-left border-b border-slate-800">
-            <th class="pl-1.5 pr-0.5 py-1 font-medium w-4">#</th>
-            <th class="px-1 py-1 font-medium">Player</th>
-            <th class="px-1 py-1 text-right font-medium">Pts</th>
-            <th class="pl-1 pr-1.5 py-1 text-right font-medium">GD</th>
+        standEl.innerHTML = `<table class="w-full text-sm sm:text-base leading-snug">
+          <thead><tr class="text-slate-400 text-left border-b border-slate-800">
+            <th class="pl-3 pr-1 py-2.5 font-medium w-8">#</th>
+            <th class="px-2 py-2.5 font-medium">Player</th>
+            <th class="px-2 py-2.5 text-right font-medium">Pts</th>
+            <th class="pl-2 pr-3 py-2.5 text-right font-medium">GD</th>
           </tr></thead>
           <tbody>${standings.slice(0, 14).map((s, i) => `
             <tr class="border-t border-slate-800/80">
-              <td class="pl-1.5 pr-0.5 py-1 text-slate-500">${i + 1}</td>
-              <td class="px-1 py-1 font-medium text-white break-words">${escapeHtml(s.name)}</td>
-              <td class="px-1 py-1 text-right text-emerald-400 font-bold">${s.pts}</td>
-              <td class="pl-1 pr-1.5 py-1 text-right text-slate-400">${s.gd > 0 ? '+' : ''}${s.gd}</td>
+              <td class="pl-3 pr-1 py-2.5 text-slate-500">${i + 1}</td>
+              <td class="px-2 py-2.5 font-semibold text-white break-words">${escapeHtml(s.name)}</td>
+              <td class="px-2 py-2.5 text-right text-emerald-400 font-bold">${s.pts}</td>
+              <td class="pl-2 pr-3 py-2.5 text-right text-slate-300">${s.gd > 0 ? '+' : ''}${s.gd}</td>
             </tr>`).join('')}</tbody></table>`;
       }
 
