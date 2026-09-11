@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.3 · Updated Sep 11, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.4 · Updated Sep 11, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -312,12 +312,12 @@
 
     <!-- SPECTATOR / TV BOARD -->
     <div id="view-spectator" class="hidden fixed inset-0 z-[100] bg-slate-950 text-white overflow-auto">
-      <div class="min-h-full p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
-        <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400/90">LCFC · Live</p>
-            <h2 class="text-2xl sm:text-4xl font-bold tracking-tight mt-1" id="spec-title">Spectator</h2>
-            <p class="text-sm text-slate-400 mt-1" id="spec-meta"></p>
+      <div class="min-h-full p-3 sm:p-4 max-w-[1800px] mx-auto">
+        <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
+          <div class="min-w-0">
+            <p class="text-[10px] font-semibold uppercase tracking-widest text-emerald-400/90">LCFC · Live</p>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight mt-0.5 truncate" id="spec-title">Spectator</h2>
+            <p class="text-xs text-slate-500 mt-0.5" id="spec-meta"></p>
           </div>
           <div class="flex flex-wrap gap-2">
             <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="rounded-xl bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 text-sm max-w-[14rem]"></select>
@@ -325,16 +325,16 @@
             <button type="button" onclick="closeSpectator()" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-3 py-2 text-sm font-medium">Exit</button>
           </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div class="lg:col-span-3 space-y-4">
-            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Now playing</h3>
-            <div id="spec-matches" class="space-y-3"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 lg:gap-4">
+          <div class="lg:col-span-9 xl:col-span-10 space-y-2 min-w-0">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Now playing</h3>
+            <div id="spec-matches" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2"></div>
           </div>
-          <div class="lg:col-span-2 space-y-4">
-            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Standings</h3>
-            <div id="spec-standings" class="rounded-2xl bg-slate-900/80 border border-slate-800 overflow-hidden"></div>
-            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mt-6">Recent results</h3>
-            <div id="spec-recent" class="space-y-2 text-sm"></div>
+          <div class="lg:col-span-3 xl:col-span-2 space-y-2 min-w-0 max-w-full lg:max-w-[11.5rem] xl:max-w-[13rem] lg:ml-auto">
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Standings</h3>
+            <div id="spec-standings" class="rounded-xl bg-slate-900/80 border border-slate-800 overflow-hidden"></div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mt-3">Recent</h3>
+            <div id="spec-recent" class="space-y-1 text-[11px] leading-snug"></div>
           </div>
         </div>
         <p class="text-center text-[11px] text-slate-600 mt-10">Auto-refreshes every 5s · read-only</p>
@@ -863,7 +863,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.3';
+    const APP_VERSION = '5.4';
     const APP_UPDATED = 'Sep 11, 2026';
 
     let state = {
@@ -5336,8 +5336,8 @@
     function fitSpectatorTeamNames(root) {
       if (!root) return;
       const names = root.querySelectorAll('.spec-team-name');
-      const maxPx = Math.min(40, Math.max(22, Math.floor(window.innerWidth / 28)));
-      const minPx = 13;
+      const maxPx = Math.min(22, Math.max(14, Math.floor(window.innerWidth / 55)));
+      const minPx = 11;
       names.forEach(el => {
         el.style.whiteSpace = 'nowrap';
         el.style.overflow = 'hidden';
@@ -5410,15 +5410,15 @@
         matchesEl.innerHTML = '<div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-center text-slate-400">No live matches — draw a round or enter scores</div>';
       } else {
         matchesEl.innerHTML = live.map(m => `
-          <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-6">
-            <div class="text-xs text-slate-500 mb-3">${m.table ? 'Table ' + m.table + ' · ' : ''}R${m.round}</div>
-            <div class="space-y-2 text-center">
-              <div class="spec-team-name font-bold text-white leading-snug px-1" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
-              <div class="text-slate-500 font-semibold text-sm tracking-wide">vs</div>
-              <div class="spec-team-name font-bold text-white leading-snug px-1" title="${escapeHtml(m.nameB)}">${escapeHtml(m.nameB)}</div>
+          <div class="rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2.5 sm:px-3.5 sm:py-3">
+            <div class="text-[10px] text-slate-500 mb-1.5">${m.table ? 'T' + m.table + ' · ' : ''}R${m.round}</div>
+            <div class="space-y-0.5 text-center">
+              <div class="spec-team-name font-semibold text-white leading-tight px-0.5" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
+              <div class="text-slate-600 font-medium text-[10px] tracking-wide">vs</div>
+              <div class="spec-team-name font-semibold text-white leading-tight px-0.5" title="${escapeHtml(m.nameB)}">${escapeHtml(m.nameB)}</div>
             </div>
-            <div class="mt-4 text-center text-3xl sm:text-4xl font-black tracking-tight text-emerald-400">
-              ${m.scoreA != null && m.scoreB != null ? `${m.scoreA} — ${m.scoreB}` : '—'}
+            <div class="mt-2 text-center text-xl sm:text-2xl font-black tracking-tight text-emerald-400">
+              ${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}
             </div>
           </div>
         `).join('');
@@ -5432,17 +5432,19 @@
       if (!standings.length) {
         standEl.innerHTML = '<p class="p-4 text-slate-500 text-sm">No standings yet</p>';
       } else {
-        standEl.innerHTML = `<table class="w-full text-sm sm:text-base">
+        standEl.innerHTML = `<table class="w-full text-[11px] leading-tight">
           <thead><tr class="text-slate-500 text-left border-b border-slate-800">
-            <th class="px-3 py-2 font-medium">#</th><th class="px-3 py-2 font-medium">Player</th>
-            <th class="px-2 py-2 text-center font-medium">Pts</th><th class="px-2 py-2 text-center font-medium">GD</th>
+            <th class="pl-1.5 pr-0.5 py-1 font-medium w-4">#</th>
+            <th class="px-1 py-1 font-medium">Player</th>
+            <th class="px-1 py-1 text-right font-medium">Pts</th>
+            <th class="pl-1 pr-1.5 py-1 text-right font-medium">GD</th>
           </tr></thead>
-          <tbody>${standings.slice(0, 12).map((s, i) => `
+          <tbody>${standings.slice(0, 14).map((s, i) => `
             <tr class="border-t border-slate-800/80">
-              <td class="px-3 py-2.5 text-slate-500">${i + 1}</td>
-              <td class="px-3 py-2.5 font-semibold text-white">${escapeHtml(s.name)}</td>
-              <td class="px-2 py-2.5 text-center text-emerald-400 font-bold">${s.pts}</td>
-              <td class="px-2 py-2.5 text-center text-slate-300">${s.gd > 0 ? '+' : ''}${s.gd}</td>
+              <td class="pl-1.5 pr-0.5 py-1 text-slate-500">${i + 1}</td>
+              <td class="px-1 py-1 font-medium text-white break-words">${escapeHtml(s.name)}</td>
+              <td class="px-1 py-1 text-right text-emerald-400 font-bold">${s.pts}</td>
+              <td class="pl-1 pr-1.5 py-1 text-right text-slate-400">${s.gd > 0 ? '+' : ''}${s.gd}</td>
             </tr>`).join('')}</tbody></table>`;
       }
 
