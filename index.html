@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.1 · Updated Sep 11, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.2 · Updated Sep 11, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -290,11 +290,54 @@
             <tr class="border-b border-slate-200">
               <th class="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
               <th class="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Skill</th>
+              <th class="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Form</th>
               <th class="text-right px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody id="players-table-body"></tbody>
         </table>
+      </div>
+
+      <div id="player-profile-panel" class="hidden surface-card rounded-2xl overflow-hidden">
+        <div class="px-4 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900" id="profile-name">Player</h3>
+            <p class="text-xs text-slate-500 mt-0.5" id="profile-sub"></p>
+          </div>
+          <button type="button" onclick="closePlayerProfile()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-600">Close</button>
+        </div>
+        <div class="p-4 space-y-4" id="player-profile-body"></div>
+      </div>
+    </div>
+
+    <!-- SPECTATOR / TV BOARD -->
+    <div id="view-spectator" class="hidden fixed inset-0 z-[100] bg-slate-950 text-white overflow-auto">
+      <div class="min-h-full p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-6">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400/90">LCFC · Live</p>
+            <h2 class="text-2xl sm:text-4xl font-bold tracking-tight mt-1" id="spec-title">Spectator</h2>
+            <p class="text-sm text-slate-400 mt-1" id="spec-meta"></p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="rounded-xl bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 text-sm max-w-[14rem]"></select>
+            <button type="button" onclick="toggleSpectatorFullscreen()" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-3 py-2 text-sm font-medium">Fullscreen</button>
+            <button type="button" onclick="closeSpectator()" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-3 py-2 text-sm font-medium">Exit</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div class="lg:col-span-3 space-y-4">
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Now playing</h3>
+            <div id="spec-matches" class="space-y-3"></div>
+          </div>
+          <div class="lg:col-span-2 space-y-4">
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Standings</h3>
+            <div id="spec-standings" class="rounded-2xl bg-slate-900/80 border border-slate-800 overflow-hidden"></div>
+            <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mt-6">Recent results</h3>
+            <div id="spec-recent" class="space-y-2 text-sm"></div>
+          </div>
+        </div>
+        <p class="text-center text-[11px] text-slate-600 mt-10">Auto-refreshes every 5s · read-only</p>
       </div>
     </div>
 
@@ -670,6 +713,7 @@
         </div>
         <div class="flex flex-wrap gap-2">
           <button type="button" id="td-finish-btn" onclick="toggleTournamentFinished()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="Mark ranking-only night as finished (no bracket required)">Mark finished</button>
+          <button type="button" onclick="openSpectator(state.currentTournamentId)" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-emerald-700" title="Read-only live board for TVs">TV Board</button>
           <button onclick="exportTournamentJson()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="Download this event as JSON">Export event</button>
           <button onclick="exportStandings()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="CSV standings">CSV</button>
           <button onclick="confirmDeleteTournament()" class="px-3 py-1.5 text-sm rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition">Delete</button>
@@ -819,7 +863,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.1';
+    const APP_VERSION = '5.2';
     const APP_UPDATED = 'Sep 11, 2026';
 
     let state = {
@@ -1294,7 +1338,7 @@
     function renderPlayers() {
       const tbody = document.getElementById('players-table-body');
       if (state.players.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-12 text-center text-slate-500 text-sm">No players yet. Add your roster to get started.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-12 text-center text-slate-500 text-sm">No players yet. Add your roster to get started.</td></tr>';
         return;
       }
       migratePlayerRankings();
@@ -1305,16 +1349,22 @@
       }).map(p => {
         ensurePlayerRanking(p);
         const band = rankingBandFromPoints(p.rankingPoints);
+        const form = formatLast10FormHtml(p.id);
         return `
         <tr class="border-t border-slate-200 table-row">
-          <td class="px-4 py-3.5 font-medium text-slate-900">${escapeHtml(p.name)}</td>
+          <td class="px-4 py-3.5">
+            <button type="button" onclick="openPlayerProfile('${p.id}')" class="font-medium text-slate-900 hover:text-emerald-700 text-left">${escapeHtml(p.name)}</button>
+          </td>
           <td class="px-4 py-3.5 text-slate-500 hidden sm:table-cell"><span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">${escapeHtml(band.label)}</span> <span class="text-xs text-slate-400 ml-1">${p.rankingPoints}</span></td>
-          <td class="px-4 py-3.5 text-right space-x-3">
-            <button onclick="editPlayer('${p.id}')" class="text-emerald-400/80 hover:text-emerald-300 text-sm font-medium">Edit</button>
-            <button onclick="deletePlayer('${p.id}')" class="text-red-400/70 hover:text-red-300 text-sm font-medium">Delete</button>
+          <td class="px-4 py-3.5 hidden md:table-cell">${form}</td>
+          <td class="px-4 py-3.5 text-right space-x-2 sm:space-x-3">
+            <button onclick="openPlayerProfile('${p.id}')" class="text-slate-500 hover:text-emerald-600 text-sm font-medium">Profile</button>
+            <button onclick="editPlayer('${p.id}')" class="text-emerald-600/90 hover:text-emerald-700 text-sm font-medium">Edit</button>
+            <button onclick="deletePlayer('${p.id}')" class="text-red-500/80 hover:text-red-600 text-sm font-medium">Delete</button>
           </td>
         </tr>`;
       }).join('');
+      if (state.profilePlayerId) openPlayerProfile(state.profilePlayerId, true);
     }
 
     // ==================== TOURNAMENTS ====================
@@ -5124,7 +5174,254 @@
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    // ==================== PLAYER PROFILE & LAST 10 FORM ====================
+    /** Chronological scored matches for a player (oldest → newest). */
+    function getPlayerMatchHistory(playerId) {
+      const list = [];
+      forEachScoredMatch(({ t, m, aIds, bIds, scoreA, scoreB, aWin }) => {
+        const onA = aIds.includes(playerId);
+        const onB = bIds.includes(playerId);
+        if (!onA && !onB) return;
+        const won = (onA && aWin) || (onB && !aWin);
+        list.push({
+          tId: t.id,
+          tName: t.name,
+          createdAt: t.createdAt || 0,
+          won,
+          scoreFor: onA ? scoreA : scoreB,
+          scoreAgainst: onA ? scoreB : scoreA
+        });
+      });
+      // Stable chronological: event date, then push order is roughly round order
+      list.sort((a, b) => a.createdAt - b.createdAt);
+      return list;
+    }
+
+    function getLast10Form(playerId) {
+      const hist = getPlayerMatchHistory(playerId);
+      return hist.slice(-10);
+    }
+
+    function formatLast10FormHtml(playerId) {
+      const form = getLast10Form(playerId);
+      if (!form.length) return '<span class="text-xs text-slate-400">—</span>';
+      return `<span class="inline-flex gap-0.5 items-center" title="Last ${form.length} matches (oldest → newest)">${
+        form.map(r => r.won
+          ? '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" title="W"></span>'
+          : '<span class="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block" title="L"></span>'
+        ).join('')
+      }</span>`;
+    }
+
+    function openPlayerProfile(playerId, soft = false) {
+      const p = state.players.find(x => x.id === playerId);
+      const panel = document.getElementById('player-profile-panel');
+      const body = document.getElementById('player-profile-body');
+      if (!p || !panel || !body) return;
+      state.profilePlayerId = playerId;
+      ensurePlayerRanking(p);
+      const band = rankingBandFromPoints(p.rankingPoints);
+      const skillLabel = (typeof SKILL_BAND_LABEL !== 'undefined' ? SKILL_BAND_LABEL[normalizeSkill(p.skill)] : null) || 'Amateur';
+      document.getElementById('profile-name').textContent = p.name;
+      document.getElementById('profile-sub').textContent = `${skillLabel} · ${band.label} · ${p.rankingPoints} rank pts`;
+
+      const { career } = computeAllPlayerStats();
+      const s = career[playerId] || emptyPlayerStat();
+      const podium = computePodiumStats()[playerId] || { playoffs: 0, first: 0, second: 0, third: 0 };
+      const form = getLast10Form(playerId);
+      const formHtml = form.length
+        ? form.map(r => r.won
+            ? '<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500 text-white text-xs font-bold">W</span>'
+            : '<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold">L</span>'
+          ).join('')
+        : '<span class="text-sm text-slate-500">No matches yet</span>';
+
+      // Best partners teaser
+      const maps = typeof computePartnerMaps === 'function' ? computePartnerMaps() : {};
+      const partners = Object.entries(maps[playerId] || {}).map(([oid, st]) => {
+        const name = state.players.find(x => x.id === oid)?.name || '?';
+        const wr = st.played ? (st.wins / st.played) * 100 : 0;
+        return { name, ...st, wr };
+      }).filter(x => x.played >= 2).sort((a, b) => b.wr - a.wr || b.played - a.played).slice(0, 3);
+
+      body.innerHTML = `
+        <div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Last 10 form</div>
+          <div class="flex flex-wrap gap-1.5">${formHtml}</div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="rounded-xl bg-slate-50 p-3 text-center"><div class="text-xs text-slate-500">Played</div><div class="text-xl font-bold text-slate-900">${s.played || 0}</div></div>
+          <div class="rounded-xl bg-slate-50 p-3 text-center"><div class="text-xs text-slate-500">WR%</div><div class="text-xl font-bold text-slate-900">${winRate(s)}%</div></div>
+          <div class="rounded-xl bg-slate-50 p-3 text-center"><div class="text-xs text-slate-500">GD</div><div class="text-xl font-bold text-slate-900">${(s.gd||0) > 0 ? '+' : ''}${s.gd||0}</div></div>
+          <div class="rounded-xl bg-slate-50 p-3 text-center"><div class="text-xs text-slate-500">Pts</div><div class="text-xl font-bold text-slate-900">${s.pts||0}</div></div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-sm">
+          <div><div class="text-xs text-slate-500">Events</div><div class="font-semibold text-slate-800">${s.events?.size || 0}</div></div>
+          <div><div class="text-xs text-slate-500">Playoffs</div><div class="font-semibold text-slate-800">${podium.playoffs||0}</div></div>
+          <div><div class="text-xs text-slate-500">🥇 / 🥈 / 🥉</div><div class="font-semibold text-slate-800">${podium.first||0} / ${podium.second||0} / ${podium.third||0}</div></div>
+          <div><div class="text-xs text-slate-500">Rank Δ</div><div class="font-semibold ${(p.rankingDelta||0)>=0?'text-emerald-600':'text-red-500'}">${(p.rankingDelta||0)>0?'+':''}${p.rankingDelta||0}</div></div>
+        </div>
+        <div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Top partners</div>
+          ${partners.length ? partners.map(x => `<div class="flex justify-between text-sm py-1 border-b border-slate-100"><span class="font-medium text-slate-800">${escapeHtml(x.name)}</span><span class="text-slate-500">${x.wins}-${x.losses} · ${x.wr.toFixed(0)}%</span></div>`).join('') : '<p class="text-sm text-slate-500">Not enough partner matches yet</p>'}
+        </div>`;
+      panel.classList.remove('hidden');
+      if (!soft) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closePlayerProfile() {
+      state.profilePlayerId = null;
+      const panel = document.getElementById('player-profile-panel');
+      if (panel) panel.classList.add('hidden');
+    }
+
+    // ==================== SPECTATOR / TV BOARD ====================
+    let spectatorTimer = null;
+
+    function openSpectator(tournamentId) {
+      state.spectatorTournamentId = tournamentId || state.currentTournamentId || state.tournaments[0]?.id || null;
+      const view = document.getElementById('view-spectator');
+      if (!view) return;
+      view.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      populateSpectatorSelect();
+      renderSpectatorBoard();
+      if (spectatorTimer) clearInterval(spectatorTimer);
+      spectatorTimer = setInterval(() => {
+        try { loadState(); } catch (e) {}
+        renderSpectatorBoard();
+      }, 5000);
+    }
+
+    function closeSpectator() {
+      const view = document.getElementById('view-spectator');
+      if (view) view.classList.add('hidden');
+      document.body.style.overflow = '';
+      if (spectatorTimer) { clearInterval(spectatorTimer); spectatorTimer = null; }
+      if (document.fullscreenElement) {
+        document.exitFullscreen?.().catch(() => {});
+      }
+    }
+
+    function toggleSpectatorFullscreen() {
+      const view = document.getElementById('view-spectator');
+      if (!view) return;
+      if (!document.fullscreenElement) view.requestFullscreen?.().catch(() => toast('Fullscreen not available', 'error'));
+      else document.exitFullscreen?.();
+    }
+
+    function setSpectatorTournament(id) {
+      state.spectatorTournamentId = id;
+      renderSpectatorBoard();
+    }
+
+    function populateSpectatorSelect() {
+      const sel = document.getElementById('spec-tournament-select');
+      if (!sel) return;
+      const list = state.tournaments.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      sel.innerHTML = list.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')
+        || '<option value="">No events</option>';
+      if (state.spectatorTournamentId && list.some(t => t.id === state.spectatorTournamentId)) {
+        sel.value = state.spectatorTournamentId;
+      } else if (list[0]) {
+        state.spectatorTournamentId = list[0].id;
+        sel.value = list[0].id;
+      }
+    }
+
+    function renderSpectatorBoard() {
+      const t = state.tournaments.find(x => x.id === state.spectatorTournamentId);
+      const title = document.getElementById('spec-title');
+      const meta = document.getElementById('spec-meta');
+      const matchesEl = document.getElementById('spec-matches');
+      const standEl = document.getElementById('spec-standings');
+      const recentEl = document.getElementById('spec-recent');
+      if (!matchesEl || !standEl) return;
+      if (!t) {
+        if (title) title.textContent = 'No event selected';
+        matchesEl.innerHTML = '<p class="text-slate-500">Create or open a tournament first.</p>';
+        standEl.innerHTML = '';
+        if (recentEl) recentEl.innerHTML = '';
+        return;
+      }
+      if (title) title.textContent = t.name;
+      const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
+      if (meta) meta.textContent = `${typeLabel[t.type] || t.type} · Round ${t.currentRound || 0} · ${t.status} · ${t.playerIds?.length || 0} players`;
+
+      // Live / open matches: incomplete in latest rounds + open bracket matches
+      const live = [];
+      const recentDone = [];
+      (t.rounds || []).forEach(r => {
+        (r.matches || []).forEach(m => {
+          if (!m || m.void) return;
+          const nameA = m.entityA?.name || 'TBD';
+          const nameB = m.entityB?.name || 'TBD';
+          const done = m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB);
+          const row = { round: r.number, nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table, done };
+          if (done) recentDone.push(row);
+          else live.push(row);
+        });
+      });
+      collectBracketMatches(t.playoffs).forEach(m => {
+        if (!m || m.void) return;
+        const nameA = m.a?.entity?.name || m.entityA?.name || 'TBD';
+        const nameB = m.b?.entity?.name || m.entityB?.name || 'TBD';
+        const done = !!(m.winner || (m.scoreA != null && m.scoreB != null && !(m.scoreA === 0 && m.scoreB === 0)));
+        const row = { round: m.bracket || 'bracket', nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: null, done };
+        if (done && m.scoreA != null) recentDone.push(row);
+        else if (!done && (m.a?.entity || m.b?.entity || m.entityA)) live.push(row);
+      });
+
+      if (!live.length) {
+        matchesEl.innerHTML = '<div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-center text-slate-400">No live matches — draw a round or enter scores</div>';
+      } else {
+        matchesEl.innerHTML = live.map(m => `
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-6">
+            <div class="text-xs text-slate-500 mb-3">${m.table ? 'Table ' + m.table + ' · ' : ''}R${m.round}</div>
+            <div class="flex items-center justify-between gap-4 text-lg sm:text-2xl font-bold">
+              <span class="flex-1 text-right truncate">${escapeHtml(m.nameA)}</span>
+              <span class="text-slate-500 font-semibold px-2">vs</span>
+              <span class="flex-1 text-left truncate">${escapeHtml(m.nameB)}</span>
+            </div>
+            <div class="mt-3 text-center text-3xl sm:text-4xl font-black tracking-tight text-emerald-400">
+              ${m.scoreA != null && m.scoreB != null ? `${m.scoreA} — ${m.scoreB}` : '—'}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Standings
+      let standings = [];
+      try { standings = typeof computeStandings === 'function' ? computeStandings(t) : []; } catch (e) {}
+      if (!standings.length) {
+        standEl.innerHTML = '<p class="p-4 text-slate-500 text-sm">No standings yet</p>';
+      } else {
+        standEl.innerHTML = `<table class="w-full text-sm sm:text-base">
+          <thead><tr class="text-slate-500 text-left border-b border-slate-800">
+            <th class="px-3 py-2 font-medium">#</th><th class="px-3 py-2 font-medium">Player</th>
+            <th class="px-2 py-2 text-center font-medium">Pts</th><th class="px-2 py-2 text-center font-medium">GD</th>
+          </tr></thead>
+          <tbody>${standings.slice(0, 12).map((s, i) => `
+            <tr class="border-t border-slate-800/80">
+              <td class="px-3 py-2.5 text-slate-500">${i + 1}</td>
+              <td class="px-3 py-2.5 font-semibold text-white">${escapeHtml(s.name)}</td>
+              <td class="px-2 py-2.5 text-center text-emerald-400 font-bold">${s.pts}</td>
+              <td class="px-2 py-2.5 text-center text-slate-300">${s.gd > 0 ? '+' : ''}${s.gd}</td>
+            </tr>`).join('')}</tbody></table>`;
+      }
+
+      if (recentEl) {
+        const recent = recentDone.slice(-8).reverse();
+        recentEl.innerHTML = recent.length ? recent.map(m => `
+          <div class="flex justify-between gap-2 text-slate-300">
+            <span class="truncate">${escapeHtml(m.nameA)} <span class="text-slate-500">vs</span> ${escapeHtml(m.nameB)}</span>
+            <span class="font-semibold text-white shrink-0">${m.scoreA}–${m.scoreB}</span>
+          </div>`).join('') : '<p class="text-slate-500">No completed matches yet</p>';
+      }
+    }
+
     function showView(name) {
+      if (name !== 'spectator') closeSpectator();
       ['home', 'players', 'create', 'tournament', 'stats'].forEach(v => {
         const el = document.getElementById('view-' + v);
         if (el) el.classList.toggle('hidden', v !== name);
