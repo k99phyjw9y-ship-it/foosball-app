@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.14 · Updated Sep 12, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.15 · Updated Sep 12, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -962,7 +962,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.14';
+    const APP_VERSION = '5.15';
     const APP_UPDATED = 'Sep 12, 2026';
 
     let state = {
@@ -1530,14 +1530,14 @@
       if (!confirm(`Merge "${from.name}" into "${keep.name}"?\n\n• Keep name/skill: ${keep.name}\n• Ranking points: higher of the two\n• All matches & events combine\n• "${from.name}" is removed\n\nThis cannot be undone (export a backup first if unsure).`)) {
         return;
       }
-      mergePlayers(keepId, fromId);
+      mergePlayerRecords(keepId, fromId);
     }
 
     /**
      * Absorb fromId into keepId across the whole app state, then delete fromId.
      * Career/stats recompute from match history automatically after remap.
      */
-    function mergePlayers(keepId, fromId) {
+    function mergePlayerRecords(keepId, fromId) {
       const keep = state.players.find(p => p.id === keepId);
       const from = state.players.find(p => p.id === fromId);
       if (!keep || !from) return;
@@ -4456,7 +4456,7 @@
       toast('Standings exported', 'success');
     }
 
-    function mergePlayers(incoming) {
+    function mergeImportedPlayers(incoming) {
       if (!Array.isArray(incoming)) return { added: 0, updated: 0 };
       let added = 0, updated = 0;
       incoming.forEach(p => {
@@ -4465,13 +4465,15 @@
         if (existing) {
           if (p.name) existing.name = p.name;
           if (p.skill != null) existing.skill = p.skill;
+          if (p.rankingPoints != null) existing.rankingPoints = p.rankingPoints;
           updated++;
         } else {
-          // Avoid duplicate names with different ids when possible: keep both
           state.players.push({
             id: p.id,
             name: p.name || 'Player',
-            skill: p.skill != null ? p.skill : 3
+            skill: p.skill != null ? p.skill : 3,
+            rankingPoints: p.rankingPoints != null ? p.rankingPoints : RANK_START_POINTS,
+            rankingDelta: p.rankingDelta != null ? p.rankingDelta : 0
           });
           added++;
         }
@@ -4514,7 +4516,7 @@
               'Full backup detected.\\n\\nOK = merge into existing data\\nCancel = replace all data (cannot undo)'
             );
             if (mode) {
-              const pr = mergePlayers(data.players || []);
+              const pr = mergeImportedPlayers(data.players || []);
               let tCount = 0;
               (data.tournaments || []).forEach(t => {
                 if (importTournamentObject(t)) tCount++;
@@ -4542,7 +4544,7 @@
           // Single tournament export
           if (data.type === 'tournament' || data.tournament) {
             const t = data.tournament || data;
-            mergePlayers(data.players || []);
+            mergeImportedPlayers(data.players || []);
             if (t) { delete t.rankingApplied; delete t.rankingDeltas; }
             importTournamentObject(t);
             const ranked = recalculateClubRankingsFromEvents();
