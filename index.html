@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.12 · Updated Sep 12, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.13 · Updated Sep 12, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -547,7 +547,7 @@
       <div class="surface-card rounded-2xl overflow-hidden">
         <div class="px-4 py-3.5 border-b border-slate-200">
           <h3 class="text-sm font-semibold text-slate-800">Crazy Stats · Awards</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Career leaders with fun labels · WR% needs 10+ matches · pairs need 5+ together</p>
+          <p class="text-xs text-slate-500 mt-0.5">Career leaders · form/drama · playoffs · WR% needs 10+ matches · pairs need 5+ together</p>
         </div>
         <div id="stats-crazy-grid" class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
       </div>
@@ -938,7 +938,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.12';
+    const APP_VERSION = '5.13';
     const APP_UPDATED = 'Sep 12, 2026';
 
     let state = {
@@ -4988,16 +4988,115 @@
       return best;
     }
 
+    /** Per-player drama margins and streaks from individual games (or match scores). */
+    function computeDramaAndStreakStats() {
+      const map = {};
+      state.players.forEach(p => {
+        map[p.id] = {
+          closeWins: 0, closeLosses: 0, blowoutWins: 0, blowoutLosses: 0,
+          results: [] // chronological W/L for streaks
+        };
+      });
+      const pushResult = (pid, won, margin) => {
+        if (!map[pid]) return;
+        map[pid].results.push(won);
+        if (won && margin === 1) map[pid].closeWins++;
+        if (!won && margin === 1) map[pid].closeLosses++;
+        if (won && margin >= 4) map[pid].blowoutWins++;
+        if (!won && margin >= 4) map[pid].blowoutLosses++;
+      };
+      // Ranking rounds
+      state.tournaments.forEach(t => {
+        (t.rounds || []).forEach(round => {
+          (round.matches || []).forEach(m => {
+            if (!m || m.void || m.status !== 'done') return;
+            const games = getMatchGames(m);
+            const applyGame = (scoreA, scoreB) => {
+              if (scoreA == null || scoreB == null || scoreA === scoreB) return;
+              if (scoreA === 0 && scoreB === 0) return;
+              const margin = Math.abs(scoreA - scoreB);
+              const aWin = scoreA > scoreB;
+              entityPlayerIds(m.entityA).forEach(pid => pushResult(pid, aWin, margin));
+              entityPlayerIds(m.entityB).forEach(pid => pushResult(pid, !aWin, margin));
+            };
+            if (games.length) games.forEach(g => applyGame(g.scoreA, g.scoreB));
+            else applyGame(m.scoreA, m.scoreB);
+          });
+        });
+        // Bracket / playoff games for margins & streaks too
+        collectBracketMatches(t.playoffs).forEach(m => {
+          if (!m || m.void) return;
+          if (!m.winner && m.status !== 'done') return;
+          const entA = m.a?.entity || m.entityA;
+          const entB = m.b?.entity || m.entityB;
+          const games = getMatchGames(m);
+          const applyGame = (scoreA, scoreB) => {
+            if (scoreA == null || scoreB == null || scoreA === scoreB) return;
+            if (scoreA === 0 && scoreB === 0) return;
+            const margin = Math.abs(scoreA - scoreB);
+            const aWin = scoreA > scoreB;
+            entityPlayerIds(entA).forEach(pid => pushResult(pid, aWin, margin));
+            entityPlayerIds(entB).forEach(pid => pushResult(pid, !aWin, margin));
+          };
+          if (games.length) games.forEach(g => applyGame(g.scoreA, g.scoreB));
+          else applyGame(m.scoreA, m.scoreB);
+        });
+      });
+      Object.values(map).forEach(s => {
+        let bestW = 0, bestL = 0, curW = 0, curL = 0;
+        s.results.forEach(won => {
+          if (won) { curW++; curL = 0; if (curW > bestW) bestW = curW; }
+          else { curL++; curW = 0; if (curL > bestL) bestL = curL; }
+        });
+        s.longestWinStreak = bestW;
+        s.longestLossStreak = bestL;
+      });
+      return map;
+    }
+
+    /** Wins in bracket/playoff matches only (not ranking rounds). */
+    function computePlayoffWinCounts() {
+      const wins = {};
+      state.players.forEach(p => { wins[p.id] = 0; });
+      state.tournaments.forEach(t => {
+        collectBracketMatches(t.playoffs).forEach(m => {
+          if (!m || m.void) return;
+          if (!m.winner && m.status !== 'done') return;
+          const entA = m.a?.entity || m.entityA;
+          const entB = m.b?.entity || m.entityB;
+          let aWin;
+          const games = getMatchGames(m);
+          if (games.length) {
+            const tall = tallySeriesFromGames(games);
+            if (tall.seriesA === tall.seriesB) return;
+            aWin = tall.seriesA > tall.seriesB;
+          } else if (m.winner === 'a' || m.winner === 'b') {
+            aWin = m.winner === 'a';
+          } else if (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB) {
+            if (m.scoreA === 0 && m.scoreB === 0) return;
+            aWin = m.scoreA > m.scoreB;
+          } else return;
+          entityPlayerIds(aWin ? entA : entB).forEach(pid => {
+            wins[pid] = (wins[pid] || 0) + 1;
+          });
+        });
+      });
+      return wins;
+    }
+
     function computeCrazyAwards() {
       const { career } = computeAllPlayerStats();
       const podium = computePodiumStats();
       const sits = computeSitOutTotals();
       const night = computeBestSingleNight();
       const partners = computePartnerMaps();
+      const drama = computeDramaAndStreakStats();
+      const playoffWins = computePlayoffWinCounts();
 
       const players = state.players.map(p => {
         const s = career[p.id] || emptyPlayerStat();
         const pod = podium[p.id] || { first: 0, second: 0, third: 0, playoffs: 0 };
+        const d = drama[p.id] || {};
         return {
           id: p.id,
           name: p.name,
@@ -5009,9 +5108,20 @@
           gd: s.gd || 0,
           wr: s.played ? (s.wins / s.played) * 100 : 0,
           first: pod.first || 0,
+          second: pod.second || 0,
+          third: pod.third || 0,
+          playoffs: pod.playoffs || 0,
+          finalist: (pod.first || 0) + (pod.second || 0),
           sits: sits[p.id] || 0,
           nightPts: night[p.id]?.pts || 0,
-          nightEvent: night[p.id]?.eventName || ''
+          nightEvent: night[p.id]?.eventName || '',
+          closeWins: d.closeWins || 0,
+          closeLosses: d.closeLosses || 0,
+          blowoutWins: d.blowoutWins || 0,
+          blowoutLosses: d.blowoutLosses || 0,
+          winStreak: d.longestWinStreak || 0,
+          lossStreak: d.longestLossStreak || 0,
+          bracketWins: playoffWins[p.id] || 0
         };
       });
 
@@ -5065,6 +5175,18 @@
         { emoji: '🌙', label: 'Night Owl', desc: 'Best single-night points', holder: pick(withPlay.filter(p => p.nightPts > 0), p => p.nightPts), detail: p => `${p.nightPts} pts · ${p.nightEvent}` },
         { emoji: '🪑', label: 'Bench Warmer', desc: 'Most sit-outs', holder: pick(players.filter(p => p.sits > 0), p => p.sits), detail: p => `${p.sits} sit-outs` },
         { emoji: '🥇', label: 'Champion', desc: 'Most 1st-place finishes', holder: pick(players.filter(p => p.first > 0), p => p.first), detail: p => `${p.first} titles` },
+        // Form & drama
+        { emoji: '✨', label: 'Closer', desc: 'Most wins by 1 goal', holder: pick(players.filter(p => p.closeWins > 0), p => p.closeWins), detail: p => `${p.closeWins} one-goal wins` },
+        { emoji: '💔', label: 'Heartbreak Hotel', desc: 'Most losses by 1 goal', holder: pick(players.filter(p => p.closeLosses > 0), p => p.closeLosses), detail: p => `${p.closeLosses} one-goal losses` },
+        { emoji: '🚂', label: 'Steamroller', desc: 'Most wins by 4+ goals', holder: pick(players.filter(p => p.blowoutWins > 0), p => p.blowoutWins), detail: p => `${p.blowoutWins} blowout wins` },
+        { emoji: '🚧', label: 'Traffic Cone', desc: 'Most losses by 4+ goals', holder: pick(players.filter(p => p.blowoutLosses > 0), p => p.blowoutLosses), detail: p => `${p.blowoutLosses} blowout losses` },
+        { emoji: '⚡', label: 'Streaky', desc: 'Longest win streak', holder: pick(players.filter(p => p.winStreak >= 2), p => p.winStreak), detail: p => `${p.winStreak}-game win streak` },
+        { emoji: '🥶', label: 'Cold Streak', desc: 'Longest loss streak', holder: pick(players.filter(p => p.lossStreak >= 2), p => p.lossStreak), detail: p => `${p.lossStreak}-game loss streak` },
+        // Playoffs
+        { emoji: '🗡️', label: 'Bracket Bully', desc: 'Most playoff/bracket wins', holder: pick(players.filter(p => p.bracketWins > 0), p => p.bracketWins), detail: p => `${p.bracketWins} bracket wins` },
+        { emoji: '🥈', label: 'Finalist', desc: 'Most 1st + 2nd place finishes', holder: pick(players.filter(p => p.finalist > 0), p => p.finalist), detail: p => `${p.finalist} finals · ${p.first}🥇 ${p.second}🥈` },
+        { emoji: '🥉', label: 'Always Third', desc: 'Most 3rd places with zero titles', holder: pick(players.filter(p => p.third > 0 && p.first === 0), p => p.third), detail: p => `${p.third} bronzes · 0 titles` },
+        { emoji: '🏃', label: 'Deep Run', desc: 'Most playoffs entered', holder: pick(players.filter(p => p.playoffs > 0), p => p.playoffs), detail: p => `${p.playoffs} playoffs` },
         { emoji: '🤝', label: 'Dynamic Duo', desc: 'Best partner pair (5+ together)', holder: duo, detail: p => `${p.wr.toFixed(0)}% · ${p.wins}-${p.losses}`, isPair: true },
         { emoji: '💀', label: 'Cursed Pair', desc: 'Worst partner pair (5+ together)', holder: cursed, detail: p => `${p.wr.toFixed(0)}% · ${p.wins}-${p.losses}`, isPair: true },
       ];
