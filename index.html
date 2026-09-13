@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.13 · Updated Sep 12, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.14 · Updated Sep 12, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -278,10 +278,13 @@
           <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Players</h2>
           <p class="text-sm text-slate-500 mt-1">Your roster for draws and rankings</p>
         </div>
-        <button onclick="openPlayerModal()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2 shrink-0">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-          Add
-        </button>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" onclick="openMergePlayersModal()" class="btn-ghost px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-700 border border-slate-200">Merge</button>
+          <button onclick="openPlayerModal()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Add
+          </button>
+        </div>
       </div>
 
       <div class="surface-card rounded-2xl overflow-hidden">
@@ -895,6 +898,27 @@
     </div>
   </div>
 
+  <!-- Merge Players Modal -->
+  <div id="merge-players-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(15,23,42,0.35);backdrop-filter:blur(8px)">
+    <div class="surface-card rounded-3xl w-full max-w-md p-6 space-y-5 shadow-2xl">
+      <h3 class="text-lg font-bold text-slate-900">Merge players</h3>
+      <p class="text-sm text-slate-500">Combine all match history, teams, sit-outs, and ranking into one roster entry. The secondary player is removed.</p>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Keep this player</label>
+        <select id="merge-keep" class="input-field w-full rounded-xl px-4 py-3 text-slate-800"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Merge this player into them (will be deleted)</label>
+        <select id="merge-from" class="input-field w-full rounded-xl px-4 py-3 text-slate-800"></select>
+      </div>
+      <p class="text-xs text-slate-500 leading-relaxed">Name, skill, and ranking band stay with the kept player. Ranking points become the higher of the two. All event data is remapped so career/stats combine.</p>
+      <div class="flex gap-3 pt-1">
+        <button type="button" onclick="closeMergePlayersModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
+        <button type="button" onclick="confirmMergePlayers()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white">Merge</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Score Modal -->
   <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(15,23,42,0.35);backdrop-filter:blur(8px)">
     <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
@@ -938,7 +962,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.13';
+    const APP_VERSION = '5.14';
     const APP_UPDATED = 'Sep 12, 2026';
 
     let state = {
@@ -1408,6 +1432,147 @@
       renderPlayers();
       if (state.currentTournamentId) renderTournament();
       toast('Player deleted');
+    }
+
+    // ==================== MERGE PLAYERS ====================
+    function openMergePlayersModal() {
+      if (state.players.length < 2) {
+        toast('Need at least 2 players to merge', 'error');
+        return;
+      }
+      const keep = document.getElementById('merge-keep');
+      const from = document.getElementById('merge-from');
+      const list = state.players.slice().sort((a, b) => a.name.localeCompare(b.name));
+      const opts = list.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+      keep.innerHTML = opts;
+      from.innerHTML = opts;
+      if (list.length > 1) from.value = list[1].id;
+      document.getElementById('merge-players-modal').classList.remove('hidden');
+    }
+
+    function closeMergePlayersModal() {
+      document.getElementById('merge-players-modal')?.classList.add('hidden');
+    }
+
+    function remapPlayerIdInValue(val, fromId, toId) {
+      if (val === fromId) return toId;
+      return val;
+    }
+
+    function remapPlayerIdDeep(obj, fromId, toId, depth = 0) {
+      if (!obj || depth > 20) return;
+      if (Array.isArray(obj)) {
+        for (let i = 0; i < obj.length; i++) {
+          if (obj[i] === fromId) obj[i] = toId;
+          else if (obj[i] && typeof obj[i] === 'object') remapPlayerIdDeep(obj[i], fromId, toId, depth + 1);
+        }
+        // Dedupe pure id arrays (playerIds, sitOutIds, absentIds)
+        return;
+      }
+      if (typeof obj !== 'object') return;
+      // positions map keys
+      if (obj.positions && typeof obj.positions === 'object' && !Array.isArray(obj.positions)) {
+        if (Object.prototype.hasOwnProperty.call(obj.positions, fromId)) {
+          if (!Object.prototype.hasOwnProperty.call(obj.positions, toId)) {
+            obj.positions[toId] = obj.positions[fromId];
+          }
+          delete obj.positions[fromId];
+        }
+      }
+      // rankingDeltas map if present
+      if (obj.rankingDeltas && typeof obj.rankingDeltas === 'object') {
+        if (Object.prototype.hasOwnProperty.call(obj.rankingDeltas, fromId)) {
+          const v = obj.rankingDeltas[fromId] || 0;
+          obj.rankingDeltas[toId] = (obj.rankingDeltas[toId] || 0) + v;
+          delete obj.rankingDeltas[fromId];
+        }
+      }
+      Object.keys(obj).forEach(k => {
+        const v = obj[k];
+        if (v === fromId) obj[k] = toId;
+        else if (Array.isArray(v) || (v && typeof v === 'object')) remapPlayerIdDeep(v, fromId, toId, depth + 1);
+      });
+      // Refresh team/entity display names when possible
+      if (Array.isArray(obj.playerIds) && obj.playerIds.length) {
+        obj.playerIds = [...new Set(obj.playerIds)];
+        if (typeof formatTeamDisplayName === 'function') {
+          obj.name = formatTeamDisplayName(obj.playerIds, obj.positions);
+        }
+      }
+    }
+
+    function dedupeIdArraysInTournament(t) {
+      if (Array.isArray(t.playerIds)) t.playerIds = [...new Set(t.playerIds)];
+      if (Array.isArray(t.absentIds)) t.absentIds = [...new Set(t.absentIds)];
+      if (Array.isArray(t.currentSitOutIds)) t.currentSitOutIds = [...new Set(t.currentSitOutIds)];
+      (t.rounds || []).forEach(r => {
+        if (Array.isArray(r.sitOutIds)) r.sitOutIds = [...new Set(r.sitOutIds)];
+      });
+    }
+
+    function confirmMergePlayers() {
+      const keepId = document.getElementById('merge-keep')?.value;
+      const fromId = document.getElementById('merge-from')?.value;
+      if (!keepId || !fromId) {
+        toast('Select both players', 'error');
+        return;
+      }
+      if (keepId === fromId) {
+        toast('Choose two different players', 'error');
+        return;
+      }
+      const keep = state.players.find(p => p.id === keepId);
+      const from = state.players.find(p => p.id === fromId);
+      if (!keep || !from) {
+        toast('Player not found', 'error');
+        return;
+      }
+      if (!confirm(`Merge "${from.name}" into "${keep.name}"?\n\n• Keep name/skill: ${keep.name}\n• Ranking points: higher of the two\n• All matches & events combine\n• "${from.name}" is removed\n\nThis cannot be undone (export a backup first if unsure).`)) {
+        return;
+      }
+      mergePlayers(keepId, fromId);
+    }
+
+    /**
+     * Absorb fromId into keepId across the whole app state, then delete fromId.
+     * Career/stats recompute from match history automatically after remap.
+     */
+    function mergePlayers(keepId, fromId) {
+      const keep = state.players.find(p => p.id === keepId);
+      const from = state.players.find(p => p.id === fromId);
+      if (!keep || !from) return;
+
+      ensurePlayerRanking(keep);
+      ensurePlayerRanking(from);
+      // Ranking: take higher total (preserves club standing of the stronger entry)
+      keep.rankingPoints = Math.max(keep.rankingPoints || RANK_START_POINTS, from.rankingPoints || RANK_START_POINTS);
+      keep.rankingDelta = (keep.rankingPoints || RANK_START_POINTS) - RANK_START_POINTS;
+
+      state.tournaments.forEach(t => {
+        remapPlayerIdDeep(t, fromId, keepId);
+        dedupeIdArraysInTournament(t);
+        // Drop teams that somehow became the same player twice
+        if (t.teams) {
+          t.teams = t.teams.filter(team => {
+            const ids = [...new Set(team.playerIds || [])];
+            team.playerIds = ids;
+            return ids.length >= 1 && !(ids.length === 1 && t.type !== 'singles');
+          });
+        }
+      });
+
+      state.players = state.players.filter(p => p.id !== fromId);
+      if (state.profilePlayerId === fromId) state.profilePlayerId = keepId;
+      if (state.editingPlayerId === fromId) state.editingPlayerId = null;
+
+      saveState();
+      closeMergePlayersModal();
+      renderPlayers();
+      if (state.currentTournamentId) renderTournament();
+      if (typeof renderStats === 'function' && document.getElementById('view-stats') && !document.getElementById('view-stats').classList.contains('hidden')) {
+        renderStats();
+      }
+      toast(`Merged into ${keep.name}`, 'success');
     }
 
     function renderPlayers() {
