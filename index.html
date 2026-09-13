@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.7 · Updated Sep 11, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.8 · Updated Sep 12, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -849,8 +849,14 @@
 
   <!-- Score Modal -->
   <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(15,23,42,0.35);backdrop-filter:blur(8px)">
-    <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl">
+    <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <h3 class="text-lg font-bold text-center text-slate-900" id="score-modal-title">Enter Score</h3>
+      <div id="score-series-banner" class="hidden rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-center">
+        <div class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80" id="score-series-label">Best of 3</div>
+        <div class="text-sm font-bold text-slate-800 mt-0.5" id="score-series-score">Games 0 – 0</div>
+        <div class="text-xs text-slate-500 mt-0.5" id="score-series-game">Game 1 of 3</div>
+        <div class="text-[11px] text-slate-500 mt-1 leading-snug" id="score-series-history"></div>
+      </div>
       <div class="flex items-center justify-center gap-4 text-center">
         <div class="flex-1">
           <div class="text-xs font-medium text-slate-500 mb-2 truncate px-1" id="score-team-a"></div>
@@ -862,9 +868,21 @@
           <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300" />
         </div>
       </div>
+      <div id="score-projection" class="hidden rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-center">
+        <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Projected series winner (estimate)</div>
+        <div class="flex items-center justify-center gap-2 text-sm font-bold text-slate-800">
+          <span id="score-proj-a" class="text-emerald-700">50%</span>
+          <span class="text-slate-400 font-medium text-xs">vs</span>
+          <span id="score-proj-b" class="text-slate-600">50%</span>
+        </div>
+        <div class="mt-1.5 h-1.5 rounded-full bg-slate-200 overflow-hidden flex">
+          <div id="score-proj-bar-a" class="h-full bg-emerald-500 transition-all" style="width:50%"></div>
+          <div id="score-proj-bar-b" class="h-full bg-slate-400 transition-all" style="width:50%"></div>
+        </div>
+      </div>
       <div class="flex gap-3">
         <button onclick="closeScoreModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
-        <button onclick="submitScore()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white">Save</button>
+        <button onclick="submitScore()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white" id="score-save-btn">Save game</button>
       </div>
     </div>
   </div>
@@ -872,8 +890,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.7';
-    const APP_UPDATED = 'Sep 11, 2026';
+    const APP_VERSION = '5.8';
+    const APP_UPDATED = 'Sep 12, 2026';
 
     let state = {
       players: [],
@@ -1583,7 +1601,7 @@
 
       document.getElementById('td-name').value = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
-      document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · ${t.tables} table${t.tables>1?'s':''}`;
+      document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · Bo${getTournamentBestOf(t)} · ${t.tables} table${t.tables>1?'s':''}`;
       const finishBtn = document.getElementById('td-finish-btn');
       if (finishBtn) {
         if (t.status === 'finished') {
@@ -3015,9 +3033,16 @@
       const roundsHtml = t.rounds.slice().reverse().map(round => {
         const matchesHtml = round.matches.map(m => {
           const done = m.status === 'done';
-          const scoreText = done ? `${m.scoreA} – ${m.scoreB}` : 'vs';
-          const winnerA = done && m.scoreA > m.scoreB;
-          const winnerB = done && m.scoreB > m.scoreA;
+          const bestOf = getTournamentBestOf(t);
+          const games = getMatchGames(m);
+          const tall = games.length ? tallySeriesFromGames(games) : null;
+          const scoreText = done
+            ? formatSeriesScoreText(m, t)
+            : (bestOf > 1 && tall && (tall.seriesA + tall.seriesB) > 0
+              ? `${tall.seriesA} – ${tall.seriesB}`
+              : 'vs');
+          const winnerA = done && ((tall ? tall.seriesA > tall.seriesB : m.scoreA > m.scoreB));
+          const winnerB = done && ((tall ? tall.seriesB > tall.seriesA : m.scoreB > m.scoreA));
           return `
             <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : 'ring-1 ring-emerald-200'}">
               <div class="flex items-center justify-between mb-3">
@@ -3033,6 +3058,7 @@
                 <div class="flex-1 text-sm ${winnerB ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">${escapeHtml(m.entityB.name)}</div>
               </div>
               ${!done ? formatProjectionBadge(m.entityA, m.entityB) : ''}
+              ${(bestOf > 1 && games.length) ? `<div class="mt-1.5 text-center text-[10px] text-slate-500">${games.map((g,i)=>`G${i+1} ${g.scoreA}–${g.scoreB}`).join(' · ')}${!done ? ' · in progress' : ''}</div>` : ''}
               <div class="mt-3 flex gap-2">
                 ${!done ? `
                 <button onclick="openScoreModal('${round.number}','${m.id}')" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
@@ -3161,6 +3187,86 @@
       toast('Bracket result cleared', 'success');
     }
 
+
+    // ==================== BEST-OF SERIES ====================
+    function getTournamentBestOf(t) {
+      const n = parseInt(t?.bestOf, 10);
+      if (n === 3 || n === 5) return n;
+      return 1;
+    }
+
+    function seriesWinsNeeded(bestOf) {
+      return Math.ceil((bestOf || 1) / 2);
+    }
+
+    /** Games list for a match; migrates legacy single scoreA/scoreB into one game. */
+    function getMatchGames(m) {
+      if (!m) return [];
+      if (Array.isArray(m.games) && m.games.length) return m.games;
+      if (m.scoreA != null && m.scoreB != null) {
+        // Bye auto-win 0-0 is not a real game for series stats
+        if (m.scoreA === 0 && m.scoreB === 0 && (m.winner || m._byePropagated)) return [];
+        // If series fields exist but games empty, don't invent from series totals
+        if (m.seriesA != null && m.seriesB != null && (m.seriesA + m.seriesB) > 1) return [];
+        return [{ scoreA: m.scoreA, scoreB: m.scoreB }];
+      }
+      return [];
+    }
+
+    function tallySeriesFromGames(games) {
+      let seriesA = 0, seriesB = 0, gfA = 0, gfB = 0;
+      (games || []).forEach(g => {
+        if (g.scoreA == null || g.scoreB == null || g.scoreA === g.scoreB) return;
+        gfA += g.scoreA;
+        gfB += g.scoreB;
+        if (g.scoreA > g.scoreB) seriesA++;
+        else seriesB++;
+      });
+      return { seriesA, seriesB, gfA, gfB };
+    }
+
+    function isSeriesComplete(seriesA, seriesB, bestOf) {
+      const need = seriesWinsNeeded(bestOf);
+      return seriesA >= need || seriesB >= need;
+    }
+
+    function formatSeriesScoreText(m, t) {
+      const bestOf = getTournamentBestOf(t);
+      const games = getMatchGames(m);
+      if (bestOf > 1 && (games.length || m.seriesA != null)) {
+        const tall = games.length ? tallySeriesFromGames(games) : { seriesA: m.seriesA || 0, seriesB: m.seriesB || 0 };
+        return `${tall.seriesA} – ${tall.seriesB}`;
+      }
+      if (m.scoreA != null && m.scoreB != null) return `${m.scoreA} – ${m.scoreB}`;
+      return 'vs';
+    }
+
+    function updateSeriesBanner(t, match) {
+      const banner = document.getElementById('score-series-banner');
+      const bestOf = getTournamentBestOf(t);
+      if (!banner) return;
+      if (bestOf <= 1) {
+        banner.classList.add('hidden');
+        const btn = document.getElementById('score-save-btn');
+        if (btn) btn.textContent = 'Save';
+        return;
+      }
+      banner.classList.remove('hidden');
+      const games = Array.isArray(match.games) ? match.games : [];
+      const tall = tallySeriesFromGames(games);
+      const need = seriesWinsNeeded(bestOf);
+      const gameNum = games.length + 1;
+      document.getElementById('score-series-label').textContent = `Best of ${bestOf} · first to ${need}`;
+      document.getElementById('score-series-score').textContent = `Games ${tall.seriesA} – ${tall.seriesB}`;
+      document.getElementById('score-series-game').textContent = isSeriesComplete(tall.seriesA, tall.seriesB, bestOf)
+        ? 'Series complete'
+        : `Game ${gameNum} of ${bestOf}`;
+      const hist = games.map((g, i) => `G${i + 1}: ${g.scoreA}–${g.scoreB}`).join(' · ');
+      document.getElementById('score-series-history').textContent = hist || 'Enter each game score (race-to applies per game)';
+      const btn = document.getElementById('score-save-btn');
+      if (btn) btn.textContent = 'Save game';
+    }
+
     /**
      * Player strength for win projection: club ranking + last-10 form + career GD rate.
      * Scale roughly Elo-like around 2000.
@@ -3250,8 +3356,25 @@
       document.getElementById('score-modal-title').textContent = 'Enter Score';
       document.getElementById('score-team-a').textContent = match.entityA?.name || 'Team A';
       document.getElementById('score-team-b').textContent = match.entityB?.name || 'Team B';
-      document.getElementById('score-a').value = match.scoreA != null ? match.scoreA : '';
-      document.getElementById('score-b').value = match.scoreB != null ? match.scoreB : '';
+      const bestOf = getTournamentBestOf(t);
+      if (!Array.isArray(match.games)) match.games = [];
+      // Re-edit completed series: start fresh so we don't append past the winner
+      if (bestOf > 1 && match.status === 'done') {
+        match.games = [];
+        match.seriesA = 0;
+        match.seriesB = 0;
+        match.scoreA = null;
+        match.scoreB = null;
+        match.status = 'pending';
+      }
+      if (bestOf <= 1 && match.scoreA != null) {
+        document.getElementById('score-a').value = match.scoreA;
+        document.getElementById('score-b').value = match.scoreB;
+      } else {
+        document.getElementById('score-a').value = '';
+        document.getElementById('score-b').value = '';
+      }
+      updateSeriesBanner(t, match);
       updateScoreProjection(match.entityA, match.entityB);
       document.getElementById('score-modal').classList.remove('hidden');
       document.getElementById('score-a').focus();
@@ -3305,13 +3428,50 @@
       const match = round?.matches.find(m => m.id === matchId);
       if (!match) return;
 
-      match.scoreA = scoreA;
-      match.scoreB = scoreB;
-      match.status = 'done';
+      const bestOf = getTournamentBestOf(t);
+      if (!Array.isArray(match.games)) match.games = [];
+
+      if (bestOf <= 1) {
+        match.games = [{ scoreA, scoreB }];
+        match.scoreA = scoreA;
+        match.scoreB = scoreB;
+        match.seriesA = scoreA > scoreB ? 1 : 0;
+        match.seriesB = scoreB > scoreA ? 1 : 0;
+        match.status = 'done';
+        saveState();
+        closeScoreModal();
+        renderTournament();
+        toast('Score saved', 'success');
+        return;
+      }
+
+      // Best-of series: append one game
+      match.games.push({ scoreA, scoreB });
+      const tall = tallySeriesFromGames(match.games);
+      match.seriesA = tall.seriesA;
+      match.seriesB = tall.seriesB;
+      // Display score = series wins (match result)
+      match.scoreA = tall.seriesA;
+      match.scoreB = tall.seriesB;
+
+      if (isSeriesComplete(tall.seriesA, tall.seriesB, bestOf)) {
+        match.status = 'done';
+        saveState();
+        closeScoreModal();
+        renderTournament();
+        toast(`Series over ${tall.seriesA}–${tall.seriesB}`, 'success');
+        return;
+      }
+
+      match.status = 'pending';
       saveState();
-      closeScoreModal();
       renderTournament();
-      toast('Score saved', 'success');
+      // Stay open for next game
+      updateSeriesBanner(t, match);
+      document.getElementById('score-a').value = '';
+      document.getElementById('score-b').value = '';
+      document.getElementById('score-a').focus();
+      toast(`Game saved · series ${tall.seriesA}–${tall.seriesB} · next game`, 'success');
     }
 
     function submitBracketScore(scoreA, scoreB) {
@@ -3345,10 +3505,49 @@
         if (t.playoffs.grandFinal2) { clearFeed(t.playoffs.grandFinal2.a); clearFeed(t.playoffs.grandFinal2.b); }
       }
 
-      match.scoreA = scoreA;
-      match.scoreB = scoreB;
-      match.winner = scoreA > scoreB ? 'a' : 'b';
-      match.loser = scoreA > scoreB ? 'b' : 'a';
+      const bestOf = getTournamentBestOf(t);
+      if (!Array.isArray(match.games)) match.games = [];
+
+      // If re-scoring a finished match, reset series when starting fresh edit
+      // (caller already cleared winner downstream if match.winner was set)
+
+      if (bestOf <= 1) {
+        match.games = [{ scoreA, scoreB }];
+        match.scoreA = scoreA;
+        match.scoreB = scoreB;
+        match.seriesA = scoreA > scoreB ? 1 : 0;
+        match.seriesB = scoreB > scoreA ? 1 : 0;
+        match.winner = scoreA > scoreB ? 'a' : 'b';
+        match.loser = scoreA > scoreB ? 'b' : 'a';
+      } else {
+        // Continuing series: if previous winner existed we cleared it — also reset games if was complete
+        if (match.winner && isSeriesComplete(match.seriesA || 0, match.seriesB || 0, bestOf)) {
+          match.games = [];
+          match.winner = null;
+          match.loser = null;
+        }
+        match.games.push({ scoreA, scoreB });
+        const tall = tallySeriesFromGames(match.games);
+        match.seriesA = tall.seriesA;
+        match.seriesB = tall.seriesB;
+        match.scoreA = tall.seriesA;
+        match.scoreB = tall.seriesB;
+        if (!isSeriesComplete(tall.seriesA, tall.seriesB, bestOf)) {
+          match.winner = null;
+          match.loser = null;
+          delete match._byePropagated;
+          saveState();
+          renderTournament();
+          updateSeriesBanner(t, match);
+          document.getElementById('score-a').value = '';
+          document.getElementById('score-b').value = '';
+          document.getElementById('score-a').focus();
+          toast(`Game saved · series ${tall.seriesA}–${tall.seriesB}`, 'success');
+          return;
+        }
+        match.winner = tall.seriesA > tall.seriesB ? 'a' : 'b';
+        match.loser = tall.seriesA > tall.seriesB ? 'b' : 'a';
+      }
       delete match._byePropagated;
 
       const winnerEntity = match.winner === 'a' ? match.a.entity : match.b.entity;
@@ -3362,7 +3561,7 @@
       saveState();
       closeScoreModal();
       renderTournament();
-      let msg = 'Score saved';
+      let msg = bestOf > 1 ? `Series ${match.scoreA}–${match.scoreB}` : 'Score saved';
       if (found.isBronze) msg = '3rd place result saved';
       if (found.isGF && t.playoffs?.gfResetActive) msg = 'GF done — bracket reset required';
       if (found.isGF2) msg = 'Champion decided';
@@ -3406,21 +3605,23 @@
             if (m.status !== 'done') return;
             const aPlayers = entityPlayerIds(m.entityA);
             const bPlayers = entityPlayerIds(m.entityB);
-            const aWin = m.scoreA > m.scoreB;
+            const games = getMatchGames(m);
+            const tall = games.length ? tallySeriesFromGames(games) : { seriesA: m.scoreA, seriesB: m.scoreB, gfA: m.scoreA, gfB: m.scoreB };
+            const aWin = tall.seriesA > tall.seriesB;
 
             aPlayers.forEach(pid => {
               if (!playerMap[pid]) return;
               playerMap[pid].played++;
-              playerMap[pid].gf += m.scoreA;
-              playerMap[pid].ga += m.scoreB;
+              playerMap[pid].gf += tall.gfA;
+              playerMap[pid].ga += tall.gfB;
               if (aWin) { playerMap[pid].wins++; playerMap[pid].pts += 3; }
               else { playerMap[pid].losses++; }
             });
             bPlayers.forEach(pid => {
               if (!playerMap[pid]) return;
               playerMap[pid].played++;
-              playerMap[pid].gf += m.scoreB;
-              playerMap[pid].ga += m.scoreA;
+              playerMap[pid].gf += tall.gfB;
+              playerMap[pid].ga += tall.gfA;
               if (!aWin) { playerMap[pid].wins++; playerMap[pid].pts += 3; }
               else { playerMap[pid].losses++; }
             });
@@ -3445,10 +3646,12 @@
           const a = map[m.entityA.id];
           const b = map[m.entityB.id];
           if (!a || !b) return;
+          const games = getMatchGames(m);
+          const tall = games.length ? tallySeriesFromGames(games) : { seriesA: m.scoreA, seriesB: m.scoreB, gfA: m.scoreA, gfB: m.scoreB };
           a.played++; b.played++;
-          a.gf += m.scoreA; a.ga += m.scoreB;
-          b.gf += m.scoreB; b.ga += m.scoreA;
-          if (m.scoreA > m.scoreB) {
+          a.gf += tall.gfA; a.ga += tall.gfB;
+          b.gf += tall.gfB; b.ga += tall.gfA;
+          if (tall.seriesA > tall.seriesB) {
             a.wins++; a.pts += 3;
             b.losses++;
           } else {
@@ -3848,8 +4051,25 @@
       document.getElementById('score-modal-title').textContent = 'Enter Score';
       document.getElementById('score-team-a').textContent = match.a.entity.name || 'Side A';
       document.getElementById('score-team-b').textContent = match.b.entity.name || 'Side B';
-      document.getElementById('score-a').value = match.scoreA != null ? match.scoreA : '';
-      document.getElementById('score-b').value = match.scoreB != null ? match.scoreB : '';
+      if (!Array.isArray(match.games)) match.games = [];
+      const bestOf = getTournamentBestOf(t);
+      if (bestOf > 1 && match.winner && isSeriesComplete(match.seriesA || 0, match.seriesB || 0, bestOf)) {
+        match.games = [];
+        match.seriesA = 0;
+        match.seriesB = 0;
+        match.scoreA = null;
+        match.scoreB = null;
+        match.winner = null;
+        match.loser = null;
+      }
+      if (bestOf <= 1 && match.scoreA != null) {
+        document.getElementById('score-a').value = match.scoreA;
+        document.getElementById('score-b').value = match.scoreB;
+      } else {
+        document.getElementById('score-a').value = '';
+        document.getElementById('score-b').value = '';
+      }
+      updateSeriesBanner(t, match);
       updateScoreProjection(match.a.entity, match.b.entity);
       document.getElementById('score-modal').classList.remove('hidden');
       document.getElementById('score-a').focus();
@@ -4396,14 +4616,28 @@
       state.tournaments.forEach(t => {
         const handle = (m, entityA, entityB) => {
           if (!m || m.void) return;
-          if (m.status && m.status !== 'done') return;
-          const sa = m.scoreA, sb = m.scoreB;
-          if (sa == null || sb == null || sa === sb) return;
-          if (sa === 0 && sb === 0) return; // bye
+          if (m.status && m.status !== 'done' && !m.winner) return;
+          // Prefer series/games outcome; one callback per completed match (not per game)
+          const games = getMatchGames(m);
+          let sa, sb, aWin;
+          if (games.length) {
+            const tall = tallySeriesFromGames(games);
+            if (tall.seriesA === tall.seriesB) return;
+            if (!isSeriesComplete(tall.seriesA, tall.seriesB, getTournamentBestOf(t)) && !m.winner && m.status !== 'done') return;
+            // Goals = sum of game goals; win = series
+            sa = tall.gfA;
+            sb = tall.gfB;
+            aWin = tall.seriesA > tall.seriesB;
+          } else {
+            sa = m.scoreA; sb = m.scoreB;
+            if (sa == null || sb == null || sa === sb) return;
+            if (sa === 0 && sb === 0) return; // bye
+            aWin = sa > sb;
+          }
           const aIds = resolveSideIds(t, entityA);
           const bIds = resolveSideIds(t, entityB);
           if (aIds.length < 1 || bIds.length < 1) return;
-          fn({ t, m, aIds, bIds, scoreA: sa, scoreB: sb, aWin: sa > sb });
+          fn({ t, m, aIds, bIds, scoreA: sa, scoreB: sb, aWin });
         };
         // Ranking rounds (Swiss / Monster draws)
         (t.rounds || []).forEach(r => {
