@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.10 · Updated Sep 12, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.12 · Updated Sep 12, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -714,6 +714,15 @@
               <span class="text-sm text-slate-700">High-Low</span>
             </label>
           </div>
+          <div id="monster-positions-option" class="hidden mt-4">
+            <label class="flex items-start gap-3 cursor-pointer px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-emerald-200">
+              <input type="checkbox" id="t-monster-positions" class="mt-1 accent-emerald-500 w-4 h-4" />
+              <span>
+                <span class="text-sm font-semibold text-slate-800 block">Random Forward / Goalie</span>
+                <span class="text-xs text-slate-500">Monster ranking rounds only · off by default · re-randomized every partner draw</span>
+              </span>
+            </label>
+          </div>
         </div>
 
         <button onclick="saveTournament()" class="btn-primary w-full py-3.5 rounded-xl font-bold text-base text-white">
@@ -741,6 +750,10 @@
                 <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0" for="td-tables">Tables</label>
                 <input type="number" id="td-tables" min="1" max="20" step="1" onchange="setTournamentTables(this.value)" class="input-field rounded-lg px-2 py-1 text-xs text-slate-800 w-16" title="Number of tables — affects sit-outs in ranking rounds" />
               </div>
+              <label id="td-positions-wrap" class="hidden items-center gap-2 cursor-pointer rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1" title="Monster ranking rounds: random Forward/Goalie each draw">
+                <input type="checkbox" id="td-monster-positions" onchange="setMonsterPositions(this.checked)" class="accent-emerald-600 w-4 h-4" />
+                <span class="text-[11px] font-bold text-emerald-800">Random F/G</span>
+              </label>
             </div>
           </div>
         </div>
@@ -797,6 +810,17 @@
       </div>
 
       <div id="tab-matches" class="tab-content hidden space-y-4">
+        <div id="monster-fg-banner" class="hidden rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="text-sm font-semibold text-emerald-900">Random Forward / Goalie</div>
+            <div class="text-xs text-emerald-800/80 mt-0.5">When on, each ranking-round partner draw assigns F and G at random</div>
+          </div>
+          <label class="flex items-center gap-2 cursor-pointer shrink-0 bg-white/80 rounded-lg px-3 py-2 border border-emerald-200">
+            <span class="text-xs font-semibold text-emerald-900">Off</span>
+            <input type="checkbox" id="matches-monster-positions" onchange="setMonsterPositions(this.checked)" class="accent-emerald-600 w-5 h-5" />
+            <span class="text-xs font-semibold text-emerald-900">On</span>
+          </label>
+        </div>
         <div class="flex items-center justify-between gap-2 flex-wrap">
           <h3 class="text-sm font-semibold text-slate-700">Round <span id="current-round-label" class="text-emerald-600">0</span></h3>
           <div class="flex items-center gap-2">
@@ -914,7 +938,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.10';
+    const APP_VERSION = '5.12';
     const APP_UPDATED = 'Sep 12, 2026';
 
     let state = {
@@ -1426,8 +1450,12 @@
       document.getElementById('t-race').value = '5';
       document.getElementById('t-bestof').value = '1';
       document.getElementById('t-tables').value = '2';
+      const posCb0 = document.getElementById('t-monster-positions');
+      if (posCb0) posCb0.checked = false;
       document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
       document.getElementById('draw-options').classList.add('hidden');
+      const posOpt0 = document.getElementById('monster-positions-option');
+      if (posOpt0) posOpt0.classList.add('hidden');
       document.getElementById('create-title').textContent = 'New Tournament';
       showView('create');
     }
@@ -1442,6 +1470,10 @@
       } else {
         drawOpts.classList.add('hidden');
       }
+      const posOpt = document.getElementById('monster-positions-option');
+      if (posOpt) posOpt.classList.toggle('hidden', state.selectedType !== 'monster');
+      const posCb = document.getElementById('t-monster-positions');
+      if (posCb && state.selectedType !== 'monster') posCb.checked = false;
     }
 
     function saveTournament() {
@@ -1465,6 +1497,7 @@
         bestOf,
         tables,
         drawStyle,
+        monsterPositions: state.selectedType === 'monster' && !!document.getElementById('t-monster-positions')?.checked,
         playerIds: [],
         absentIds: [],       // players who left early (kept on roster/standings, skipped in draws & playoffs)
         teams: [],           // for doubles / dyp: [{id, playerIds: [a,b], name}]
@@ -1527,6 +1560,21 @@
       saveState();
       renderHome();
       toast('Event date updated', 'success');
+    }
+
+    function setMonsterPositions(on) {
+      const t = getCurrentTournament();
+      if (!t || t.type !== 'monster') return;
+      t.monsterPositions = !!on;
+      saveState();
+      // Keep all F/G checkboxes in sync
+      const a = document.getElementById('td-monster-positions');
+      const b = document.getElementById('matches-monster-positions');
+      const c = document.getElementById('t-monster-positions');
+      if (a) a.checked = t.monsterPositions;
+      if (b) b.checked = t.monsterPositions;
+      toast(t.monsterPositions ? 'Random F/G ON for ranking draws' : 'Random F/G OFF', 'success');
+      renderTournament();
     }
 
     function setTournamentTables(value) {
@@ -1625,7 +1673,18 @@
 
       document.getElementById('td-name').value = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
-      document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · Bo${getTournamentBestOf(t)} · ${t.tables} table${t.tables>1?'s':''}`;
+      document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · Bo${getTournamentBestOf(t)} · ${t.tables} table${t.tables>1?'s':''}${t.type === 'monster' && t.monsterPositions ? ' · F/G on' : ''}`;
+      const posWrap = document.getElementById('td-positions-wrap');
+      if (posWrap) {
+        posWrap.classList.toggle('hidden', t.type !== 'monster');
+        posWrap.classList.toggle('flex', t.type === 'monster');
+      }
+      const posCbTd = document.getElementById('td-monster-positions');
+      if (posCbTd && t.type === 'monster') posCbTd.checked = !!t.monsterPositions;
+      const fgBanner = document.getElementById('monster-fg-banner');
+      if (fgBanner) fgBanner.classList.toggle('hidden', t.type !== 'monster');
+      const posCbM = document.getElementById('matches-monster-positions');
+      if (posCbM && t.type === 'monster') posCbM.checked = !!t.monsterPositions;
       const finishBtn = document.getElementById('td-finish-btn');
       if (finishBtn) {
         if (t.status === 'finished') {
@@ -2171,11 +2230,35 @@
       return pairs;
     }
 
+    function formatTeamDisplayName(playerIds, positions) {
+      return (playerIds || []).map(id => {
+        const p = state.players.find(x => x.id === id);
+        const n = p ? p.name : '?';
+        const pos = positions && positions[id];
+        if (pos === 'forward') return n + ' (F)';
+        if (pos === 'goalie') return n + ' (G)';
+        return n;
+      }).join(' + ');
+    }
+
+    function assignRandomPositions(team) {
+      if (!team || !team.playerIds || team.playerIds.length !== 2) return team;
+      const [a, b] = team.playerIds;
+      const aForward = Math.random() < 0.5;
+      team.positions = {
+        [a]: aForward ? 'forward' : 'goalie',
+        [b]: aForward ? 'goalie' : 'forward'
+      };
+      team.name = formatTeamDisplayName(team.playerIds, team.positions);
+      return team;
+    }
+
     function pairsToTeams(pairs) {
       return pairs.map(pair => ({
         id: uid(),
         playerIds: pair.map(p => p.id),
-        name: pair.map(p => p.name).join(' + ')
+        name: pair.map(p => p.name).join(' + '),
+        positions: null
       }));
     }
 
@@ -2239,10 +2322,14 @@
       }
 
       t.teams = pairsToTeams(pairs);
+      if (t.type === 'monster' && t.monsterPositions && !forBracket) {
+        t.teams.forEach(assignRandomPositions);
+      }
       saveState();
       renderTournament();
       const sitMsg = sitOuts.length ? ` · sit-out: ${sitOuts.map(p => p.name).join(', ')}` : '';
-      toast(`Drew ${t.teams.length} teams${sitMsg}`, 'success');
+      const posMsg = (t.type === 'monster' && t.monsterPositions && !forBracket) ? ' · F/G randomized' : '';
+      toast(`Drew ${t.teams.length} teams${sitMsg}${posMsg}`, 'success');
     }
 
     function shuffle(arr) {
@@ -2339,7 +2426,8 @@
         ? (t.teams || []).map(team => ({
             id: team.id,
             playerIds: (team.playerIds || []).slice(),
-            name: team.name
+            name: team.name,
+            positions: team.positions ? { ...team.positions } : null
           }))
         : [];
       t.rounds.push({ number: t.currentRound, matches, sitOutIds, teams: roundTeams });
