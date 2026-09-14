@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.14 · Updated Sep 14, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.15 · Updated Sep 14, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -940,7 +940,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.14';
+    const APP_VERSION = '5.15';
     const APP_UPDATED = 'Sep 14, 2026';
 
     let state = {
@@ -4491,6 +4491,43 @@
      * per-event-type stats. Includes ranking rounds AND bracket/playoff matches.
      * Bye results (0–0 auto-wins) are excluded.
      */
+    /**
+     * Resolve W/L and goal totals for a completed match.
+     * Best-of series: wins from series, GF/GA = sum of individual game scores.
+     * Best of 1 / legacy: scoreA/scoreB are the game goals.
+     */
+    function resolveMatchOutcome(m, t) {
+      if (!m || m.void) return null;
+      if (m.status && m.status !== 'done' && !m.winner) return null;
+      const games = getMatchGames(m);
+      if (games.length) {
+        const tall = tallySeriesFromGames(games);
+        if (tall.seriesA === tall.seriesB) return null;
+        // Incomplete series (in progress) — do not count yet
+        if (m.status !== 'done' && !m.winner &&
+            !isSeriesComplete(tall.seriesA, tall.seriesB, getTournamentBestOf(t))) {
+          return null;
+        }
+        return {
+          gfA: tall.gfA,
+          gfB: tall.gfB,
+          aWin: tall.seriesA > tall.seriesB,
+          seriesA: tall.seriesA,
+          seriesB: tall.seriesB
+        };
+      }
+      if (m.scoreA == null || m.scoreB == null) return null;
+      if (m.scoreA === m.scoreB) return null;
+      if (m.scoreA === 0 && m.scoreB === 0) return null; // bye
+      return {
+        gfA: m.scoreA,
+        gfB: m.scoreB,
+        aWin: m.scoreA > m.scoreB,
+        seriesA: m.scoreA > m.scoreB ? 1 : 0,
+        seriesB: m.scoreB > m.scoreA ? 1 : 0
+      };
+    }
+
     function computeAllPlayerStats() {
       const byWeek = {};
       const career = {};
@@ -4500,11 +4537,9 @@
         career[p.id] = emptyPlayerStat();
       });
 
-      const applyResult = (t, weekKey, typeKey, aIds, bIds, scoreA, scoreB) => {
+      const applyResult = (t, weekKey, typeKey, aIds, bIds, gfA, gfB, aWin) => {
         if (!aIds.length || !bIds.length) return;
-        if (scoreA == null || scoreB == null) return;
-        if (scoreA === scoreB) return;
-        const aWin = scoreA > scoreB;
+        if (gfA == null || gfB == null) return;
 
         const applySide = (ids, gf, ga, win) => {
           ids.forEach(pid => {
@@ -4527,8 +4562,8 @@
           });
         };
 
-        applySide(aIds, scoreA, scoreB, aWin);
-        applySide(bIds, scoreB, scoreA, !aWin);
+        applySide(aIds, gfA, gfB, aWin);
+        applySide(bIds, gfB, gfA, !aWin);
       };
 
       state.tournaments.forEach(t => {
@@ -4541,14 +4576,13 @@
         // 1) Ranking / Swiss rounds
         (t.rounds || []).forEach(round => {
           (round.matches || []).forEach(m => {
-            if (m.scoreA == null || m.scoreB == null) return;
-            if (m.status && m.status !== 'done') return;
-            if (m.void) return;
+            const outcome = resolveMatchOutcome(m, t);
+            if (!outcome) return;
             applyResult(
               t, weekKey, typeKey,
               entityPlayerIds(m.entityA),
               entityPlayerIds(m.entityB),
-              m.scoreA, m.scoreB
+              outcome.gfA, outcome.gfB, outcome.aWin
             );
           });
         });
@@ -4556,21 +4590,16 @@
         // 2) Bracket / playoff matches (single-elim, double-elim, post-Swiss playoffs)
         collectBracketMatches(t.playoffs).forEach(m => {
           if (!m || m.void) return;
-          if (m.scoreA == null || m.scoreB == null) return;
-          // Skip automatic byes (0–0 with missing side)
-          if (m.scoreA === 0 && m.scoreB === 0 && (!m.a?.entity || !m.b?.entity)) return;
-          if (!m.winner && m.status !== 'done') return;
-          // Prefer scored real matches
-          if (!(m.winner || m.status === 'done')) return;
-          if (m.scoreA === 0 && m.scoreB === 0) return; // bye auto-score
-
           const aEnt = m.a?.entity || m.entityA;
           const bEnt = m.b?.entity || m.entityB;
+          if (!aEnt || !bEnt) return; // bye / incomplete side
+          const outcome = resolveMatchOutcome(m, t);
+          if (!outcome) return;
           applyResult(
             t, weekKey, typeKey,
             entityPlayerIds(aEnt),
             entityPlayerIds(bEnt),
-            m.scoreA, m.scoreB
+            outcome.gfA, outcome.gfB, outcome.aWin
           );
         });
       });
