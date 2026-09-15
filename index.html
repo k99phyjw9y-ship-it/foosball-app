@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.15 · Updated Sep 14, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.16 · Updated Sep 15, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -907,15 +907,15 @@
         <div class="text-xs text-slate-500 mt-0.5" id="score-series-game">Game 1 of 3</div>
         <div class="text-[11px] text-slate-500 mt-1 leading-snug" id="score-series-history"></div>
       </div>
-      <div class="flex items-center justify-center gap-4 text-center">
-        <div class="flex-1">
-          <div class="text-xs font-medium text-slate-500 mb-2 truncate px-1" id="score-team-a"></div>
-          <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300" />
+      <div class="flex items-start justify-center gap-3 text-center">
+        <div class="flex-1 min-w-0 max-w-[42%]">
+          <div class="score-team-label text-[12px] font-medium text-slate-600 mb-2 px-0.5 leading-snug" id="score-team-a" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line"></div>
+          <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300 mx-auto block" />
         </div>
-        <div class="text-2xl text-slate-500 font-light">–</div>
-        <div class="flex-1">
-          <div class="text-xs font-medium text-slate-500 mb-2 truncate px-1" id="score-team-b"></div>
-          <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300" />
+        <div class="text-2xl text-slate-500 font-light pt-6 shrink-0">–</div>
+        <div class="flex-1 min-w-0 max-w-[42%]">
+          <div class="score-team-label text-[12px] font-medium text-slate-600 mb-2 px-0.5 leading-snug" id="score-team-b" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line"></div>
+          <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300 mx-auto block" />
         </div>
       </div>
       <div id="score-projection" class="hidden rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-center">
@@ -940,8 +940,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.15';
-    const APP_UPDATED = 'Sep 14, 2026';
+    const APP_VERSION = '5.16';
+    const APP_UPDATED = 'Sep 15, 2026';
 
     let state = {
       players: [],
@@ -3460,6 +3460,51 @@
       return `<div class="mt-2 text-center text-[11px] text-slate-500">Est. <span class="font-semibold text-slate-700">${proj.pctA}%</span> – <span class="font-semibold text-slate-700">${proj.pctB}%</span></div>`;
     }
 
+    /** Format side name for score modal: doubles "A + B" → two lines. */
+    function formatScoreSideName(name) {
+      const raw = (name || '').trim() || '—';
+      if (raw.includes('+')) {
+        return raw.split('+').map(s => s.trim()).filter(Boolean).join('\n');
+      }
+      return raw;
+    }
+
+    /** Shrink / wrap team labels so long doubles names stay inside the modal. */
+    function fitScoreTeamLabels() {
+      ['score-team-a', 'score-team-b'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.fontSize = '';
+        el.style.lineHeight = '1.25';
+        let size = 12;
+        el.style.fontSize = size + 'px';
+        // Allow up to ~3 lines; shrink if still overflowing width
+        let guard = 16;
+        while (guard-- > 0 && size > 9 && el.scrollWidth > el.clientWidth + 2) {
+          size -= 0.5;
+          el.style.fontSize = size + 'px';
+        }
+        // Height safety if many chars
+        guard = 10;
+        while (guard-- > 0 && size > 9 && el.scrollHeight > 48) {
+          size -= 0.5;
+          el.style.fontSize = size + 'px';
+        }
+      });
+    }
+
+    function setScoreTeamLabels(nameA, nameB) {
+      const elA = document.getElementById('score-team-a');
+      const elB = document.getElementById('score-team-b');
+      if (elA) elA.textContent = formatScoreSideName(nameA);
+      if (elB) elB.textContent = formatScoreSideName(nameB);
+      // Fit after layout (modal visible)
+      requestAnimationFrame(() => {
+        fitScoreTeamLabels();
+        requestAnimationFrame(fitScoreTeamLabels);
+      });
+    }
+
     function openScoreModal(roundNum, matchId) {
       const t = getCurrentTournament();
       const round = t.rounds.find(r => r.number === parseInt(roundNum, 10));
@@ -3468,8 +3513,7 @@
 
       state.scoreMatchId = { mode: 'round', roundNum: parseInt(roundNum, 10), matchId };
       document.getElementById('score-modal-title').textContent = 'Enter Score';
-      document.getElementById('score-team-a').textContent = match.entityA?.name || 'Team A';
-      document.getElementById('score-team-b').textContent = match.entityB?.name || 'Team B';
+      setScoreTeamLabels(match.entityA?.name || 'Team A', match.entityB?.name || 'Team B');
       const bestOf = getTournamentBestOf(t);
       if (!Array.isArray(match.games)) match.games = [];
       // Re-edit completed series: start fresh so we don't append past the winner
@@ -3491,7 +3535,7 @@
       updateSeriesBanner(t, match);
       updateScoreProjection(match.entityA, match.entityB);
       document.getElementById('score-modal').classList.remove('hidden');
-      document.getElementById('score-a').focus();
+      requestAnimationFrame(() => { fitScoreTeamLabels(); document.getElementById('score-a').focus(); });
     }
 
     function closeScoreModal() {
@@ -4163,8 +4207,7 @@
 
       state.scoreMatchId = { mode: 'bracket', matchId };
       document.getElementById('score-modal-title').textContent = 'Enter Score';
-      document.getElementById('score-team-a').textContent = match.a.entity.name || 'Side A';
-      document.getElementById('score-team-b').textContent = match.b.entity.name || 'Side B';
+      setScoreTeamLabels(match.a.entity.name || 'Side A', match.b.entity.name || 'Side B');
       if (!Array.isArray(match.games)) match.games = [];
       const bestOf = getTournamentBestOf(t);
       if (bestOf > 1 && match.winner && isSeriesComplete(match.seriesA || 0, match.seriesB || 0, bestOf)) {
@@ -4186,7 +4229,7 @@
       updateSeriesBanner(t, match);
       updateScoreProjection(match.a.entity, match.b.entity);
       document.getElementById('score-modal').classList.remove('hidden');
-      document.getElementById('score-a').focus();
+      requestAnimationFrame(() => { fitScoreTeamLabels(); document.getElementById('score-a').focus(); });
     }
 
     function renderPodium(t) {
