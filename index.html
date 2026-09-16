@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.16 · Updated Sep 15, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.17 · Updated Sep 16, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -750,7 +750,7 @@
               </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0" for="td-tables">Tables</label>
-                <input type="number" id="td-tables" min="1" max="20" step="1" onchange="setTournamentTables(this.value)" class="input-field rounded-lg px-2 py-1 text-xs text-slate-800 w-16" title="Number of tables — affects sit-outs in ranking rounds" />
+                <input type="number" id="td-tables" min="1" max="20" step="1" onchange="setTournamentTables(this.value)" class="input-field rounded-lg px-2 py-1 text-xs text-slate-800 w-16" title="Number of tables — labels concurrent play; extra matches rotate T1, T2, T1… Sit-outs only when field is not a multiple of 4" />
               </div>
               <label id="td-positions-wrap" class="hidden items-center gap-2 cursor-pointer rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1" title="Monster ranking rounds: random Forward/Goalie each draw">
                 <input type="checkbox" id="td-monster-positions" onchange="setMonsterPositions(this.checked)" class="accent-emerald-600 w-4 h-4" />
@@ -940,8 +940,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.16';
-    const APP_UPDATED = 'Sep 15, 2026';
+    const APP_VERSION = '5.17';
+    const APP_UPDATED = 'Sep 16, 2026';
 
     let state = {
       players: [],
@@ -1975,13 +1975,14 @@
             const p = state.players.find(x => x.id === id);
             return p?.name || '?';
           });
-          const cap = monsterFloorCapacity(t);
           const tables = Math.max(1, parseInt(t.tables, 10) || 2);
+          const playing = activeN - need;
+          const matchN = Math.floor(playing / 4);
           if (need > 0) {
             html += `<div class="surface-card rounded-xl px-4 py-3 mb-3 border border-amber-200 bg-amber-50/60">
               <div class="text-[11px] font-semibold text-amber-700 uppercase tracking-wider mb-1">Sit-out rotation</div>
-              <p class="text-sm text-slate-700">${tables} table${tables > 1 ? 's' : ''} · max ${cap} playing · <span class="font-semibold">${need} sit out</span> this round (${activeN} active).</p>
-              <p class="text-xs text-slate-600 mt-1">No one sits twice until every active player has sat once. History is kept when players join or go absent.</p>
+              <p class="text-sm text-slate-700">${playing} play (${matchN} match${matchN === 1 ? '' : 'es'}) · <span class="font-semibold">${need} sit out</span> · ${tables} table${tables > 1 ? 's' : ''} rotate for extras (${activeN} active).</p>
+              <p class="text-xs text-slate-600 mt-1">Only remainder sit (field not a multiple of 4). No one sits twice until every active player has sat once.</p>
               ${current.length ? `<p class="text-sm mt-1"><span class="font-semibold text-amber-700">This draw:</span> ${escapeHtml(current.join(', '))}</p>` : ''}
               <p class="text-xs text-slate-500 mt-1">Next eligible (${minSit} sit${minSit === 1 ? '' : 's'} so far): ${escapeHtml(waiting.map(r => r.name).join(', ') || '—')}</p>
             </div>`;
@@ -2018,16 +2019,17 @@
 
     // ==================== DRAW PARTNERS ====================
     /** Sit-out counts from completed rounds (so deleted rounds don't count). */
-    /** Max players on floor: each table is 2v2 (4 players). */
+    /** Concurrent table capacity (info only). Sit-outs use remainder-of-4, not this cap. */
     function monsterFloorCapacity(t) {
       const tables = Math.max(1, parseInt(t.tables, 10) || 2);
       return tables * 4;
     }
 
     /**
-     * How many must sit so the rest fit on the tables as complete 2v2 matches
-     * (playing count is a multiple of 4, capped by table capacity).
-     * 9 → 1, 10 → 2, 11 → 3 (with 2 tables).
+     * How many must sit so the rest form complete 2v2 matches (multiples of 4).
+     * Tables do NOT cap who plays — extra matches queue on rotating tables
+     * (e.g. 12 players, 2 tables → 3 matches on T1, T2, T1; 0 sit-outs).
+     * Remainder only: 9 → 1, 10 → 2, 11 → 3, 12 → 0.
      */
     function computeSitNeeded(t, activeCount) {
       if (activeCount < 2) return activeCount;
@@ -2036,12 +2038,9 @@
       if (t.format === 'single-elim' || t.format === 'double-elim') {
         return activeCount % 2; // 0 or 1 only
       }
-      // Ranking rounds (Swiss etc.): fill complete 2v2 matches on available tables
+      // Ranking rounds: every full group of 4 plays; only remainder sits
       if (activeCount < 4) return Math.max(0, activeCount);
-      const cap = monsterFloorCapacity(t);
-      let playing = Math.min(cap, activeCount);
-      playing = Math.floor(playing / 4) * 4;
-      if (playing < 4) playing = 0;
+      const playing = Math.floor(activeCount / 4) * 4;
       return Math.max(0, activeCount - playing);
     }
 
@@ -2276,7 +2275,7 @@
       t.teams = [];
 
       // Bracket / playoff pairing: only sit if odd (6/10/14 → 0 sits → 3/5/7 teams + byes).
-      // Ranking rounds: may sit extra so matches fit on tables.
+      // Ranking rounds: sit only activeCount % 4 (tables rotate for extra matches).
       const forBracket = !!(opts.forBracket || t.format === 'single-elim' || t.format === 'double-elim');
       const sitNeeded = forBracket ? (players.length % 2) : computeSitNeeded(t, players.length);
       let sitOuts = [];
@@ -2408,7 +2407,8 @@
         used.add(ranked[i].id);
         used.add(opponent.id);
 
-        const tableNum = (matches.length % t.tables) + 1;
+        const tableCount = Math.max(1, parseInt(t.tables, 10) || 2);
+        const tableNum = (matches.length % tableCount) + 1;
         matches.push({
           id: uid(),
           entityA: ranked[i],
