@@ -268,7 +268,7 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.17 · Updated Sep 16, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.18 · Updated Sep 17, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -940,8 +940,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.17';
-    const APP_UPDATED = 'Sep 16, 2026';
+    const APP_VERSION = '5.18';
+    const APP_UPDATED = 'Sep 17, 2026';
 
     let state = {
       players: [],
@@ -1675,7 +1675,7 @@
 
       document.getElementById('td-name').value = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
-      document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · Bo${getTournamentBestOf(t)} · ${t.tables} table${t.tables>1?'s':''}${t.type === 'monster' && t.monsterPositions ? ' · F/G on' : ''}`;
+      document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · Bo${getTournamentBestOf(t, 'ranking')}${t.type === 'monster' && t.playoffs ? ' · Playoffs Bo3' : ''} · ${t.tables} table${t.tables>1?'s':''}${t.type === 'monster' && t.monsterPositions ? ' · F/G on' : ''}`;
       const posWrap = document.getElementById('td-positions-wrap');
       if (posWrap) {
         posWrap.classList.toggle('hidden', t.type !== 'monster');
@@ -3074,6 +3074,10 @@
         t.playoffs = buildBracket(entities, format, { shuffleSeeds: false });
         t.playoffs.tieredDraw = true;
         t.playoffs.tieredPairs = built.pairsLabel;
+        // Monster playoffs are always Best of 3 (ranking rounds keep event bestOf)
+        if (t.type === 'monster') {
+          t.playoffs.bestOf = 3;
+        }
         t.placements = t.playoffs.placements;
         t.status = 'active';
         saveState();
@@ -3082,7 +3086,8 @@
         const brSize = t.playoffs?.size || built.teams.length;
         const byes = Math.max(0, brSize - built.teams.length);
         const byeNote = byes ? ` · ${byes} bye${byes > 1 ? 's' : ''} (bracket of ${brSize})` : '';
-        toast(`Tiered double-elim playoffs · ${built.teams.length} teams (${built.pairsLabel.join(', ')})${byeNote}`, 'success');
+        const boNote = t.type === 'monster' ? ' · Best of 3' : '';
+        toast(`Tiered double-elim playoffs · ${built.teams.length} teams (${built.pairsLabel.join(', ')})${byeNote}${boNote}`, 'success');
         return;
       }
 
@@ -3303,7 +3308,15 @@
 
 
     // ==================== BEST-OF SERIES ====================
-    function getTournamentBestOf(t) {
+    /**
+     * Best-of for a match.
+     * @param context 'playoff' | 'ranking' | undefined
+     * Monster playoffs are always Best of 3 once the bracket starts.
+     */
+    function getTournamentBestOf(t, context) {
+      if (t?.type === 'monster' && context === 'playoff') return 3;
+      // Bracket scoring in Monster also forces Bo3 (even if ranking rounds were Bo1)
+      if (t?.type === 'monster' && context === 'bracket') return 3;
       const n = parseInt(t?.bestOf, 10);
       if (n === 3 || n === 5) return n;
       return 1;
@@ -3344,8 +3357,8 @@
       return seriesA >= need || seriesB >= need;
     }
 
-    function formatSeriesScoreText(m, t) {
-      const bestOf = getTournamentBestOf(t);
+    function formatSeriesScoreText(m, t, context) {
+      const bestOf = getTournamentBestOf(t, context);
       const games = getMatchGames(m);
       if (bestOf > 1 && (games.length || m.seriesA != null)) {
         const tall = games.length ? tallySeriesFromGames(games) : { seriesA: m.seriesA || 0, seriesB: m.seriesB || 0 };
@@ -3355,9 +3368,9 @@
       return 'vs';
     }
 
-    function updateSeriesBanner(t, match) {
+    function updateSeriesBanner(t, match, context) {
       const banner = document.getElementById('score-series-banner');
-      const bestOf = getTournamentBestOf(t);
+      const bestOf = getTournamentBestOf(t, context);
       if (!banner) return;
       if (bestOf <= 1) {
         banner.classList.add('hidden');
@@ -3514,7 +3527,7 @@
       state.scoreMatchId = { mode: 'round', roundNum: parseInt(roundNum, 10), matchId };
       document.getElementById('score-modal-title').textContent = 'Enter Score';
       setScoreTeamLabels(match.entityA?.name || 'Team A', match.entityB?.name || 'Team B');
-      const bestOf = getTournamentBestOf(t);
+      const bestOf = getTournamentBestOf(t, 'ranking');
       if (!Array.isArray(match.games)) match.games = [];
       // Re-edit completed series: start fresh so we don't append past the winner
       if (bestOf > 1 && match.status === 'done') {
@@ -3532,7 +3545,7 @@
         document.getElementById('score-a').value = '';
         document.getElementById('score-b').value = '';
       }
-      updateSeriesBanner(t, match);
+      updateSeriesBanner(t, match, 'ranking');
       updateScoreProjection(match.entityA, match.entityB);
       document.getElementById('score-modal').classList.remove('hidden');
       requestAnimationFrame(() => { fitScoreTeamLabels(); document.getElementById('score-a').focus(); });
@@ -3586,7 +3599,7 @@
       const match = round?.matches.find(m => m.id === matchId);
       if (!match) return;
 
-      const bestOf = getTournamentBestOf(t);
+      const bestOf = getTournamentBestOf(t, 'ranking');
       if (!Array.isArray(match.games)) match.games = [];
 
       if (bestOf <= 1) {
@@ -3625,7 +3638,7 @@
       saveState();
       renderTournament();
       // Stay open for next game
-      updateSeriesBanner(t, match);
+      updateSeriesBanner(t, match, 'ranking');
       document.getElementById('score-a').value = '';
       document.getElementById('score-b').value = '';
       document.getElementById('score-a').focus();
@@ -3663,7 +3676,7 @@
         if (t.playoffs.grandFinal2) { clearFeed(t.playoffs.grandFinal2.a); clearFeed(t.playoffs.grandFinal2.b); }
       }
 
-      const bestOf = getTournamentBestOf(t);
+      const bestOf = getTournamentBestOf(t, 'playoff');
       if (!Array.isArray(match.games)) match.games = [];
 
       // If re-scoring a finished match, reset series when starting fresh edit
@@ -3696,7 +3709,7 @@
           delete match._byePropagated;
           saveState();
           renderTournament();
-          updateSeriesBanner(t, match);
+          updateSeriesBanner(t, match, 'playoff');
           document.getElementById('score-a').value = '';
           document.getElementById('score-b').value = '';
           document.getElementById('score-a').focus();
@@ -4209,7 +4222,7 @@
       document.getElementById('score-modal-title').textContent = 'Enter Score';
       setScoreTeamLabels(match.a.entity.name || 'Side A', match.b.entity.name || 'Side B');
       if (!Array.isArray(match.games)) match.games = [];
-      const bestOf = getTournamentBestOf(t);
+      const bestOf = getTournamentBestOf(t, 'playoff');
       if (bestOf > 1 && match.winner && isSeriesComplete(match.seriesA || 0, match.seriesB || 0, bestOf)) {
         match.games = [];
         match.seriesA = 0;
@@ -4226,7 +4239,7 @@
         document.getElementById('score-a').value = '';
         document.getElementById('score-b').value = '';
       }
-      updateSeriesBanner(t, match);
+      updateSeriesBanner(t, match, 'playoff');
       updateScoreProjection(match.a.entity, match.b.entity);
       document.getElementById('score-modal').classList.remove('hidden');
       requestAnimationFrame(() => { fitScoreTeamLabels(); document.getElementById('score-a').focus(); });
