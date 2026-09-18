@@ -268,7 +268,25 @@
         </div>
       </div>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.18 · Updated Sep 17, 2026</div>
+      <footer class="pt-6 pb-24 sm:pb-10 border-t border-slate-200/80 mt-8">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">ITSF Rules of Table Soccer</p>
+        <ul class="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-x-4 sm:gap-y-1 text-xs">
+          <li>
+            <a href="https://s3.tablesoccer.org/organization/ITSF/rules/Standard_Matchplay_Rules_2024_en.pdf" target="_blank" rel="noopener noreferrer" class="text-emerald-700 hover:text-emerald-800 hover:underline font-medium">Standard Matchplay Rules 2024 (PDF)</a>
+          </li>
+          <li>
+            <a href="https://s3.tablesoccer.org/organization/ITSF/rules/Summary_of_Rule_Changes_2024_en.pdf" target="_blank" rel="noopener noreferrer" class="text-emerald-700 hover:text-emerald-800 hover:underline font-medium">Summary of Rule Changes 2024 (PDF)</a>
+          </li>
+          <li>
+            <a href="https://s3.tablesoccer.org/organization/ITSF/rules/Classic_Rules_2025_en.pdf" target="_blank" rel="noopener noreferrer" class="text-emerald-700 hover:text-emerald-800 hover:underline font-medium">Classic Rules 2025 (PDF)</a>
+          </li>
+        </ul>
+        <p class="text-[11px] text-slate-400 mt-2">
+          <a href="https://www.tablesoccer.org/rules/" target="_blank" rel="noopener noreferrer" class="hover:text-slate-600 hover:underline">All ITSF rules on tablesoccer.org</a>
+        </p>
+      </footer>
+
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.19 · Updated Sep 18, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -940,8 +958,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.18';
-    const APP_UPDATED = 'Sep 17, 2026';
+    const APP_VERSION = '5.19';
+    const APP_UPDATED = 'Sep 18, 2026';
 
     let state = {
       players: [],
