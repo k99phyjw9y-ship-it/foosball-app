@@ -286,7 +286,7 @@
         </p>
       </footer>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.22 · Updated Sep 20, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.23 · Updated Sep 20, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -958,7 +958,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.22';
+    const APP_VERSION = '5.23';
     const APP_UPDATED = 'Sep 20, 2026';
 
     let state = {
@@ -1679,23 +1679,58 @@
     function homePodiumCellHtml(placeLabel, name, colorClass) {
       if (!name) return '';
       const tip = escapeHtml(name.replace(/\n/g, ' + '));
-      return `<div class="min-w-0 flex-1 basis-0">
+      // data-full keeps original (possibly multi-line) for fit/fallback
+      return `<div class="min-w-0 flex-1 basis-0 max-w-full overflow-hidden">
           <div class="text-[10px] font-semibold uppercase tracking-wider ${colorClass} mb-0.5">${placeLabel}</div>
-          <div class="home-champ-name text-[11px] font-semibold text-slate-800 leading-snug" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line" title="${tip}">${escapeHtml(name)}</div>
+          <div class="home-champ-name w-full max-w-full text-[11px] font-semibold text-slate-800 leading-snug"
+            data-full="${tip}"
+            style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;overflow:hidden;max-height:2.6em"
+            title="${tip}">${escapeHtml(name)}</div>
         </div>`;
     }
 
-    /** Shrink podium name text on home cards so long doubles fit. */
+    /**
+     * Fit podium names in narrow horizontal cells:
+     * 1) shrink font 11→7.5px while multi-line partners
+     * 2) if still overflowing, collapse partners to one line (A · B) and shrink again
+     */
     function fitHomeChampionLabels() {
       document.querySelectorAll('.home-champ-name').forEach(el => {
-        el.style.fontSize = '';
+        const full = el.getAttribute('data-full') || el.textContent || '';
+        // Restore multi-line form from title/data (partners joined with +)
+        const multi = full.includes(' + ')
+          ? full.split(' + ').map(s => s.trim()).filter(Boolean).join('\n')
+          : full;
+        el.textContent = multi;
+        el.style.whiteSpace = 'pre-line';
         el.style.lineHeight = '1.2';
+        el.style.width = '100%';
+
+        const fits = () => {
+          // clientWidth can be 0 before layout
+          if (el.clientWidth < 8) return true;
+          return el.scrollWidth <= el.clientWidth + 1 && el.scrollHeight <= el.clientHeight + 1;
+        };
+
         let size = 11;
         el.style.fontSize = size + 'px';
-        let guard = 16;
-        while (guard-- > 0 && size > 8 && (el.scrollWidth > el.clientWidth + 2 || el.scrollHeight > 34)) {
+        let guard = 20;
+        while (guard-- > 0 && size > 7.5 && !fits()) {
           size -= 0.5;
           el.style.fontSize = size + 'px';
+        }
+
+        // Still overflowing: single-line partners with middle dot
+        if (!fits() && multi.includes('\n')) {
+          el.textContent = multi.split('\n').join(' · ');
+          el.style.whiteSpace = 'normal';
+          size = 11;
+          el.style.fontSize = size + 'px';
+          guard = 20;
+          while (guard-- > 0 && size > 7.5 && !fits()) {
+            size -= 0.5;
+            el.style.fontSize = size + 'px';
+          }
         }
       });
     }
