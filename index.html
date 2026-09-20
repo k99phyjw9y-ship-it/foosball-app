@@ -286,7 +286,7 @@
         </p>
       </footer>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.23 · Updated Sep 20, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.24 · Updated Sep 20, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -958,7 +958,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.23';
+    const APP_VERSION = '5.24';
     const APP_UPDATED = 'Sep 20, 2026';
 
     let state = {
@@ -4621,16 +4621,19 @@
       if (ent.type === 'player' && isRoster(ent.id)) return [ent.id];
       if (ent.type !== 'team' && isRoster(ent.id)) return [ent.id];
 
-      // Fallback: parse "Name + Name" team labels back to roster players
+      // Fallback: parse "Name + Name" only when EVERY part matches a roster player
+      // (partial matches e.g. spelling drift hid partners on home podium cards)
       if (ent.name && String(ent.name).includes('+')) {
         const parts = String(ent.name).split('+').map(s => s.trim()).filter(Boolean);
         const ids = [];
+        let allMatched = parts.length > 0;
         parts.forEach(name => {
           const p = state.players.find(x => x.name === name)
             || state.players.find(x => x.name.toLowerCase() === name.toLowerCase());
           if (p && !ids.includes(p.id)) ids.push(p.id);
+          else allMatched = false;
         });
-        if (ids.length) return ids;
+        if (allMatched && ids.length) return ids;
       }
 
       // Last resort: only if id is actually a roster player (never team id)
