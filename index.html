@@ -286,7 +286,7 @@
         </p>
       </footer>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.20 · Updated Sep 20, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.21 · Updated Sep 20, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -958,7 +958,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.20';
+    const APP_VERSION = '5.21';
     const APP_UPDATED = 'Sep 20, 2026';
 
     let state = {
@@ -1667,13 +1667,25 @@
       return raw || '—';
     }
 
-    function getTournamentChampionLabel(t) {
+    function getTournamentPodiumLabels(t) {
       const pl = t.placements || t.playoffs?.placements || {};
-      if (!pl.first) return '';
-      return formatPlacementDisplayName(t, pl.first);
+      return {
+        first: pl.first ? formatPlacementDisplayName(t, pl.first) : '',
+        second: pl.second ? formatPlacementDisplayName(t, pl.second) : '',
+        third: pl.third ? formatPlacementDisplayName(t, pl.third) : ''
+      };
     }
 
-    /** Shrink champion name text on home cards so long doubles fit. */
+    function homePodiumRowHtml(placeLabel, name, colorClass) {
+      if (!name) return '';
+      const tip = escapeHtml(name.replace(/\n/g, ' + '));
+      return `<div class="min-w-0">
+          <div class="text-[10px] font-semibold uppercase tracking-wider ${colorClass} mb-0.5">${placeLabel}</div>
+          <div class="home-champ-name text-[12px] font-semibold text-slate-800 leading-snug" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line" title="${tip}">${escapeHtml(name)}</div>
+        </div>`;
+    }
+
+    /** Shrink podium name text on home cards so long doubles fit. */
     function fitHomeChampionLabels() {
       document.querySelectorAll('.home-champ-name').forEach(el => {
         el.style.fontSize = '';
@@ -1701,12 +1713,14 @@
       const typeIcon = {singles:'👤', doubles:'👥', dyp:'🎲', monster:'👹'};
       const sorted = state.tournaments.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       list.innerHTML = sorted.map(t => {
-        const champ = getTournamentChampionLabel(t);
-        const champBlock = champ
-          ? `<div class="mt-3 pt-3 border-t border-slate-100 min-w-0">
-              <div class="text-[10px] font-semibold uppercase tracking-wider text-amber-600/90 mb-0.5">1st place</div>
-              <div class="home-champ-name text-[12px] font-semibold text-slate-800 leading-snug" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line" title="${escapeHtml(champ.replace(/\\n/g, ' + '))}">${escapeHtml(champ)}</div>
-            </div>`
+        const pod = getTournamentPodiumLabels(t);
+        const rows = [
+          homePodiumRowHtml('1st place', pod.first, 'text-amber-600/90'),
+          homePodiumRowHtml('2nd place', pod.second, 'text-slate-500'),
+          homePodiumRowHtml('3rd place', pod.third, 'text-amber-800/80')
+        ].filter(Boolean).join('<div class="h-2"></div>');
+        const podiumBlock = rows
+          ? `<div class="mt-3 pt-3 border-t border-slate-100 min-w-0 space-y-0">${rows}</div>`
           : '';
         return `
         <div onclick="openTournament('${t.id}')" class="card-interactive surface-card rounded-2xl p-5 cursor-pointer">
@@ -1727,7 +1741,7 @@
             <span class="w-1 h-1 rounded-full bg-slate-300"></span>
             <span>${new Date(t.createdAt).toLocaleDateString()}</span>
           </div>
-          ${champBlock}
+          ${podiumBlock}
         </div>`;
       }).join('');
       requestAnimationFrame(() => {
