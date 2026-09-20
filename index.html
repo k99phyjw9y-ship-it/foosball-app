@@ -286,7 +286,7 @@
         </p>
       </footer>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.21 · Updated Sep 20, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.22 · Updated Sep 20, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -958,7 +958,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.21';
+    const APP_VERSION = '5.22';
     const APP_UPDATED = 'Sep 20, 2026';
 
     let state = {
@@ -1676,12 +1676,12 @@
       };
     }
 
-    function homePodiumRowHtml(placeLabel, name, colorClass) {
+    function homePodiumCellHtml(placeLabel, name, colorClass) {
       if (!name) return '';
       const tip = escapeHtml(name.replace(/\n/g, ' + '));
-      return `<div class="min-w-0">
+      return `<div class="min-w-0 flex-1 basis-0">
           <div class="text-[10px] font-semibold uppercase tracking-wider ${colorClass} mb-0.5">${placeLabel}</div>
-          <div class="home-champ-name text-[12px] font-semibold text-slate-800 leading-snug" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line" title="${tip}">${escapeHtml(name)}</div>
+          <div class="home-champ-name text-[11px] font-semibold text-slate-800 leading-snug" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line" title="${tip}">${escapeHtml(name)}</div>
         </div>`;
     }
 
@@ -1689,11 +1689,11 @@
     function fitHomeChampionLabels() {
       document.querySelectorAll('.home-champ-name').forEach(el => {
         el.style.fontSize = '';
-        el.style.lineHeight = '1.25';
-        let size = 12;
+        el.style.lineHeight = '1.2';
+        let size = 11;
         el.style.fontSize = size + 'px';
         let guard = 16;
-        while (guard-- > 0 && size > 9 && (el.scrollWidth > el.clientWidth + 2 || el.scrollHeight > 36)) {
+        while (guard-- > 0 && size > 8 && (el.scrollWidth > el.clientWidth + 2 || el.scrollHeight > 34)) {
           size -= 0.5;
           el.style.fontSize = size + 'px';
         }
@@ -1714,13 +1714,13 @@
       const sorted = state.tournaments.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       list.innerHTML = sorted.map(t => {
         const pod = getTournamentPodiumLabels(t);
-        const rows = [
-          homePodiumRowHtml('1st place', pod.first, 'text-amber-600/90'),
-          homePodiumRowHtml('2nd place', pod.second, 'text-slate-500'),
-          homePodiumRowHtml('3rd place', pod.third, 'text-amber-800/80')
-        ].filter(Boolean).join('<div class="h-2"></div>');
-        const podiumBlock = rows
-          ? `<div class="mt-3 pt-3 border-t border-slate-100 min-w-0 space-y-0">${rows}</div>`
+        const cells = [
+          homePodiumCellHtml('1st', pod.first, 'text-amber-600/90'),
+          homePodiumCellHtml('2nd', pod.second, 'text-slate-500'),
+          homePodiumCellHtml('3rd', pod.third, 'text-amber-800/80')
+        ].filter(Boolean).join('');
+        const podiumBlock = cells
+          ? `<div class="mt-3 pt-3 border-t border-slate-100 min-w-0 flex gap-2 sm:gap-3 items-start">${cells}</div>`
           : '';
         return `
         <div onclick="openTournament('${t.id}')" class="card-interactive surface-card rounded-2xl p-5 cursor-pointer">
