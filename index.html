@@ -345,6 +345,7 @@
     .quick-chip:hover { background: rgb(var(--fg-rgb) / 0.07); }
     .quick-chip:active { transform: scale(0.95); }
     .quick-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .quick-chip.win { border-color: rgb(var(--c-accent-500) / 0.5); color: var(--accent); }
     .quick-chip.selected {
       background: linear-gradient(180deg, var(--btn-from), var(--btn-to));
       border-color: transparent; color: #fff;
@@ -476,7 +477,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.26 · Updated Sep 21, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.27 · Updated Sep 21, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1132,6 +1133,7 @@
       <!-- Quick score: tap the winner's row, then the loser's goals -->
       <div id="quick-score">
         <div id="quick-score-rows" class="space-y-2.5"></div>
+        <p id="quick-score-hint" class="mt-2 text-center text-[12px] text-slate-500 min-h-[1rem]"></p>
         <label class="mt-2.5 flex items-center gap-2 text-[12px] text-slate-500 cursor-pointer select-none">
           <input type="checkbox" id="quick-autosave" onchange="setQuickAutosave(this.checked)" class="accent-emerald-500 w-4 h-4" />
           <span>Save as soon as I tap a score</span>
@@ -1159,7 +1161,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.26';
+    const APP_VERSION = '5.27';
     const APP_UPDATED = 'Sep 21, 2026';
 
     let state = {
@@ -3942,41 +3944,80 @@
       return isNaN(n) ? null : n;
     }
 
-    /** One row per side: "<team> won" + the opponent's goals 0…race-to−1. One tap sets both scores. */
+    /** A finished game: the winner has exactly race-to goals, the loser 0…race-to−1. */
+    function quickResultValid(a, b, R) {
+      if (a === null || b === null) return false;
+      return (a === R && b >= 0 && b < R) || (b === R && a >= 0 && a < R);
+    }
+
+    /**
+     * One row per side with buttons 0…race-to.
+     *  - Tap a number below race-to  → that side lost with that score; the other side gets race-to.
+     *  - Tap race-to                 → that side won; then tap the other side's score (0…race-to−1).
+     */
     function refreshQuickScore() {
       const box = document.getElementById('quick-score-rows');
       if (!box) return;
       const R = quickRaceTo();
       const a = scoreInputNumber('score-a');
       const b = scoreInputNumber('score-b');
-      const cols = R <= 6 ? R : Math.ceil(R / 2);
-      const row = (side, mine, theirs) => {
+      ['score-a', 'score-b'].forEach(id => { document.getElementById(id).max = R; });
+      const cols = R + 1 <= 6 ? R + 1 : Math.ceil((R + 1) / 2);
+      const row = (side, mine) => {
         const name = quickNames[side];
-        const opp = quickNames[side === 'a' ? 'b' : 'a'];
-        const chips = Array.from({ length: R }, (_, n) => {
-          const on = mine === R && theirs === n;
-          return `<button type="button" onclick="quickScore('${side}', ${n})" aria-pressed="${on}" aria-label="${escapeHtml(name)} wins ${R} to ${n}" class="quick-chip${on ? ' selected' : ''}">${n}</button>`;
+        const chips = Array.from({ length: R + 1 }, (_, n) => {
+          const on = mine === n;
+          return `<button type="button" onclick="quickScore('${side}', ${n})" aria-pressed="${on}" aria-label="${escapeHtml(name)} scored ${n}" class="quick-chip${n === R ? ' win' : ''}${on ? ' selected' : ''}">${n}</button>`;
         }).join('');
         return `<div>
-          <div class="flex items-baseline justify-between gap-2 mb-1 px-0.5">
-            <span class="min-w-0 truncate text-[12px] font-semibold text-slate-700">${escapeHtml(name)} won ${R}–</span>
-            <span class="min-w-0 max-w-[50%] truncate text-right text-[11px] text-slate-500">${escapeHtml(opp)} scored</span>
-          </div>
+          <div class="mb-1 px-0.5 truncate text-[12px] font-semibold text-slate-700">${escapeHtml(name)}</div>
           <div class="grid gap-1.5" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${chips}</div>
         </div>`;
       };
-      box.innerHTML = row('a', a, b) + row('b', b, a);
+      box.innerHTML = row('a', a) + row('b', b);
+
+      const hint = document.getElementById('quick-score-hint');
+      if (hint) {
+        let msg, ok = false;
+        if (quickResultValid(a, b, R)) {
+          const w = a === R ? 'a' : 'b';
+          msg = `${quickNames[w]} wins ${R}–${w === 'a' ? b : a}`;
+          ok = true;
+        } else if (a === R && b === null) {
+          msg = `Now tap ${quickNames.b}'s score (0–${R - 1})`;
+        } else if (b === R && a === null) {
+          msg = `Now tap ${quickNames.a}'s score (0–${R - 1})`;
+        } else if (a !== null && b !== null) {
+          msg = `Winner needs ${R}, the other side 0–${R - 1}`;
+        } else {
+          msg = `Tap the losing score (0–${R - 1}); the other side gets ${R}`;
+        }
+        hint.textContent = msg;
+        hint.classList.toggle('text-emerald-700', ok);
+        hint.classList.toggle('font-semibold', ok);
+        hint.classList.toggle('text-slate-500', !ok);
+      }
       const cb = document.getElementById('quick-autosave');
       if (cb) cb.checked = quickAutosaveOn();
     }
 
-    function quickScore(side, opponentGoals) {
+    function quickScore(side, n) {
       if (!state.scoreMatchId) return;
       const R = quickRaceTo();
-      document.getElementById(side === 'a' ? 'score-a' : 'score-b').value = R;
-      document.getElementById(side === 'a' ? 'score-b' : 'score-a').value = opponentGoals;
+      const mineEl = document.getElementById(side === 'a' ? 'score-a' : 'score-b');
+      const otherEl = document.getElementById(side === 'a' ? 'score-b' : 'score-a');
+      if (n < R) {
+        // this side lost with n → the other side wins with exactly race-to
+        mineEl.value = n;
+        otherEl.value = R;
+      } else {
+        // this side won → keep the other side's losing score if it has one, otherwise ask for it
+        mineEl.value = R;
+        const o = scoreInputNumber(otherEl.id);
+        if (o === null || o >= R) otherEl.value = '';
+      }
       refreshQuickScore();
-      if (quickAutosaveOn()) submitScore();
+      if (quickAutosaveOn() && quickResultValid(scoreInputNumber('score-a'), scoreInputNumber('score-b'), R)) submitScore();
     }
 
     function closeScoreModal() {
@@ -4004,6 +4045,11 @@
       }
       if (scoreA === scoreB) {
         toast('Foosball matches cannot end in a draw', 'error');
+        return null;
+      }
+      const R = quickRaceTo();
+      if (!quickResultValid(scoreA, scoreB, R)) {
+        toast(`Winner needs exactly ${R}; the other side 0–${R - 1}`, 'error');
         return null;
       }
       return { scoreA, scoreB };
