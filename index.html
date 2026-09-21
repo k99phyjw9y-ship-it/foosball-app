@@ -335,6 +335,22 @@
     /* Light-mode readability helpers for common dark utility leftovers */
     .text-on-surface { color: var(--text); }
 
+    /* ---- Quick score tap targets ---- */
+    .quick-chip {
+      height: 44px; border-radius: 12px; font-weight: 700; font-size: 1.05rem; line-height: 1;
+      border: 1px solid var(--border-strong); background: rgb(var(--fg-rgb) / 0.03);
+      color: rgb(var(--c-slate-800)); transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
+      touch-action: manipulation;
+    }
+    .quick-chip:hover { background: rgb(var(--fg-rgb) / 0.07); }
+    .quick-chip:active { transform: scale(0.95); }
+    .quick-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .quick-chip.selected {
+      background: linear-gradient(180deg, var(--btn-from), var(--btn-to));
+      border-color: transparent; color: #fff;
+      box-shadow: 0 4px 12px -2px rgb(var(--btn-rgb) / 0.35);
+    }
+
     /* ---- Theme picker ---- */
     #theme-menu { background: var(--raised); }
     .theme-opt {
@@ -459,7 +475,11 @@
         </p>
       </footer>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.25 · Updated Sep 21, 2026</div>
+      <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.26 · Updated Sep 21, 2026</div>
+        <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
+        <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
+      </div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -1090,7 +1110,7 @@
 
   <!-- Score Modal -->
   <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
-    <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+    <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
       <h3 class="text-lg font-bold text-center text-slate-900" id="score-modal-title">Enter Score</h3>
       <div id="score-series-banner" class="hidden rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-center">
         <div class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80" id="score-series-label">Best of 3</div>
@@ -1108,6 +1128,14 @@
           <div class="score-team-label text-[12px] font-medium text-slate-600 mb-2 px-0.5 leading-snug" id="score-team-b" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line"></div>
           <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300 mx-auto block" />
         </div>
+      </div>
+      <!-- Quick score: tap the winner's row, then the loser's goals -->
+      <div id="quick-score">
+        <div id="quick-score-rows" class="space-y-2.5"></div>
+        <label class="mt-2.5 flex items-center gap-2 text-[12px] text-slate-500 cursor-pointer select-none">
+          <input type="checkbox" id="quick-autosave" onchange="setQuickAutosave(this.checked)" class="accent-emerald-500 w-4 h-4" />
+          <span>Save as soon as I tap a score</span>
+        </label>
       </div>
       <div id="score-projection" class="hidden rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-center">
         <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Projected series winner (estimate)</div>
@@ -1131,7 +1159,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.25';
+    const APP_VERSION = '5.26';
     const APP_UPDATED = 'Sep 21, 2026';
 
     let state = {
@@ -1166,6 +1194,44 @@
         players: state.players,
         tournaments: state.tournaments
       }));
+      try { localStorage.setItem(CHANGE_KEY, String(Date.now())); } catch (e) {}
+    }
+
+    // ==================== BACKUP REMINDER ====================
+    const BACKUP_KEY = 'lcfc_last_backup_v1';
+    const CHANGE_KEY = 'lcfc_last_change_v1';
+    const BACKUP_STALE_DAYS = 7; // nudge when data changed since a backup older than this
+
+    function readStoredTime(key) {
+      try {
+        const n = parseInt(localStorage.getItem(key), 10);
+        return isNaN(n) ? null : n;
+      } catch (e) { return null; }
+    }
+
+    function formatBackupTime(ts) {
+      const d = new Date(ts);
+      const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      return `${date} · ${time}`;
+    }
+
+    function markBackupDone() {
+      try { localStorage.setItem(BACKUP_KEY, String(Date.now())); } catch (e) {}
+      renderBackupStatus();
+    }
+
+    function renderBackupStatus() {
+      const line = document.getElementById('home-backup-status');
+      const nudge = document.getElementById('home-backup-nudge');
+      if (!line) return;
+      const last = readStoredTime(BACKUP_KEY);
+      const changed = readStoredTime(CHANGE_KEY);
+      const hasData = state.players.length > 0 || state.tournaments.length > 0;
+      const ageDays = last ? (Date.now() - last) / 86400000 : Infinity;
+      const stale = hasData && (!last || (changed && changed > last && ageDays >= BACKUP_STALE_DAYS));
+      line.textContent = last ? `Last backup: ${formatBackupTime(last)}` : 'Last backup: never';
+      if (nudge) nudge.classList.toggle('hidden', !stale);
     }
 
     function uid() {
@@ -3796,7 +3862,10 @@
       });
     }
 
+    let quickNames = { a: 'Team A', b: 'Team B' };
+
     function setScoreTeamLabels(nameA, nameB) {
+      quickNames = { a: (nameA || '').trim() || 'Team A', b: (nameB || '').trim() || 'Team B' };
       const elA = document.getElementById('score-team-a');
       const elB = document.getElementById('score-team-b');
       if (elA) elA.textContent = formatScoreSideName(nameA);
@@ -3838,7 +3907,76 @@
       updateSeriesBanner(t, match, 'ranking');
       updateScoreProjection(match.entityA, match.entityB);
       document.getElementById('score-modal').classList.remove('hidden');
-      requestAnimationFrame(() => { fitScoreTeamLabels(); document.getElementById('score-a').focus(); });
+      refreshQuickScore();
+      requestAnimationFrame(() => { fitScoreTeamLabels(); focusScoreInput(); });
+    }
+
+    // ==================== QUICK SCORE (tap targets) ====================
+    const QUICK_AUTOSAVE_KEY = 'lcfc_quick_autosave_v1';
+
+    function quickAutosaveOn() {
+      try { return localStorage.getItem(QUICK_AUTOSAVE_KEY) === '1'; } catch (e) { return false; }
+    }
+
+    function setQuickAutosave(on) {
+      try { localStorage.setItem(QUICK_AUTOSAVE_KEY, on ? '1' : '0'); } catch (e) {}
+    }
+
+    /** Goals needed to win a game in this event (falls back to 5 for old/imported data). */
+    function quickRaceTo() {
+      const t = getCurrentTournament();
+      const n = parseInt(t && t.raceTo, 10);
+      return n >= 1 && n <= 30 ? n : 5;
+    }
+
+    /** Keyboard flow on desktop; on touch screens skip focus so the keyboard doesn't cover the tap targets. */
+    function focusScoreInput() {
+      const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      if (!coarse) document.getElementById('score-a').focus();
+    }
+
+    function scoreInputNumber(id) {
+      const raw = document.getElementById(id).value;
+      if (raw === '') return null;
+      const n = parseInt(raw, 10);
+      return isNaN(n) ? null : n;
+    }
+
+    /** One row per side: "<team> won" + the opponent's goals 0…race-to−1. One tap sets both scores. */
+    function refreshQuickScore() {
+      const box = document.getElementById('quick-score-rows');
+      if (!box) return;
+      const R = quickRaceTo();
+      const a = scoreInputNumber('score-a');
+      const b = scoreInputNumber('score-b');
+      const cols = R <= 6 ? R : Math.ceil(R / 2);
+      const row = (side, mine, theirs) => {
+        const name = quickNames[side];
+        const opp = quickNames[side === 'a' ? 'b' : 'a'];
+        const chips = Array.from({ length: R }, (_, n) => {
+          const on = mine === R && theirs === n;
+          return `<button type="button" onclick="quickScore('${side}', ${n})" aria-pressed="${on}" aria-label="${escapeHtml(name)} wins ${R} to ${n}" class="quick-chip${on ? ' selected' : ''}">${n}</button>`;
+        }).join('');
+        return `<div>
+          <div class="flex items-baseline justify-between gap-2 mb-1 px-0.5">
+            <span class="min-w-0 truncate text-[12px] font-semibold text-slate-700">${escapeHtml(name)} won ${R}–</span>
+            <span class="min-w-0 max-w-[50%] truncate text-right text-[11px] text-slate-500">${escapeHtml(opp)} scored</span>
+          </div>
+          <div class="grid gap-1.5" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${chips}</div>
+        </div>`;
+      };
+      box.innerHTML = row('a', a, b) + row('b', b, a);
+      const cb = document.getElementById('quick-autosave');
+      if (cb) cb.checked = quickAutosaveOn();
+    }
+
+    function quickScore(side, opponentGoals) {
+      if (!state.scoreMatchId) return;
+      const R = quickRaceTo();
+      document.getElementById(side === 'a' ? 'score-a' : 'score-b').value = R;
+      document.getElementById(side === 'a' ? 'score-b' : 'score-a').value = opponentGoals;
+      refreshQuickScore();
+      if (quickAutosaveOn()) submitScore();
     }
 
     function closeScoreModal() {
@@ -3931,7 +4069,8 @@
       updateSeriesBanner(t, match, 'ranking');
       document.getElementById('score-a').value = '';
       document.getElementById('score-b').value = '';
-      document.getElementById('score-a').focus();
+      focusScoreInput();
+      refreshQuickScore();
       toast(`Game saved · series ${tall.seriesA}–${tall.seriesB} · next game`, 'success');
     }
 
@@ -4002,7 +4141,8 @@
           updateSeriesBanner(t, match, 'playoff');
           document.getElementById('score-a').value = '';
           document.getElementById('score-b').value = '';
-          document.getElementById('score-a').focus();
+          focusScoreInput();
+          refreshQuickScore();
           toast(`Game saved · series ${tall.seriesA}–${tall.seriesB}`, 'success');
           return;
         }
@@ -4532,7 +4672,8 @@
       updateSeriesBanner(t, match, 'playoff');
       updateScoreProjection(match.a.entity, match.b.entity);
       document.getElementById('score-modal').classList.remove('hidden');
-      requestAnimationFrame(() => { fitScoreTeamLabels(); document.getElementById('score-a').focus(); });
+      refreshQuickScore();
+      requestAnimationFrame(() => { fitScoreTeamLabels(); focusScoreInput(); });
     }
 
     function renderPodium(t) {
@@ -4618,6 +4759,7 @@
         tournaments: state.tournaments
       };
       downloadJson(`LCFC_Manager_backup_${new Date().toISOString().slice(0, 10)}.json`, payload);
+      markBackupDone();
       toast('Full backup exported', 'success');
     }
 
@@ -6697,7 +6839,7 @@
       });
       const navMap = { home: 'home', players: 'players', stats: 'stats', create: 'home', tournament: 'home' };
       updateNav(navMap[name] || name);
-      if (name === 'home') { renderHome(); const vw = document.getElementById('home-version-watermark'); if (vw) vw.textContent = 'v' + APP_VERSION + ' · Updated ' + APP_UPDATED; }
+      if (name === 'home') { renderHome(); renderBackupStatus(); const vw = document.getElementById('home-version-watermark'); if (vw) vw.textContent = 'v' + APP_VERSION + ' · Updated ' + APP_UPDATED; }
       if (name === 'players') renderPlayers();
       if (name === 'tournament') renderTournament();
       if (name === 'stats') renderStats();
@@ -6784,6 +6926,10 @@
     showView('home');
     renderPlayers();
     renderThemeMenu();
+
+    ['score-a', 'score-b'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', refreshQuickScore);
+    });
 
     // Keyboard: Enter in player modal
     document.getElementById('player-name')?.addEventListener('keydown', e => {
