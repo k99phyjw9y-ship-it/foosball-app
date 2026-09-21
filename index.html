@@ -5,9 +5,160 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <title>LCFC Manager – Lake Champlain Foosball Club</title>
+  <script>
+    /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
+    (function () {
+      var KEY = 'lcfc_theme_v1';
+      var SH = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+      var PAL = {
+        slate:  ['#f8fafc','#f1f5f9','#e2e8f0','#cbd5e1','#94a3b8','#64748b','#475569','#334155','#1e293b','#0f172a','#020617'],
+        stone:  ['#fafaf9','#f5f5f4','#e7e5e4','#d6d3d1','#a8a29e','#78716c','#57534e','#44403c','#292524','#1c1917','#0c0a09'],
+        gray:   ['#f9fafb','#f3f4f6','#e5e7eb','#d1d5db','#9ca3af','#6b7280','#4b5563','#374151','#1f2937','#111827','#030712'],
+        /* dark neutrals: same slots as slate, but inverted (900 = strongest text, 50 = faintest surface tint) */
+        nightN:    ['#17221d','#1c2924','#283a32','#384d43','#6f8479','#96a99f','#adbdb5','#c5d2cb','#dde7e1','#f2f7f4','#f8fbf9'],
+        midnightN: ['#171d31','#1d243b','#2b3452','#3c4869','#7783a3','#9ea8c6','#b3bcd6','#ccd3e6','#e2e7f3','#f4f6fb','#f9fafd'],
+        emerald:['#ecfdf5','#d1fae5','#a7f3d0','#6ee7b7','#34d399','#10b981','#059669','#047857','#065f46','#064e3b'],
+        sky:    ['#f0f9ff','#e0f2fe','#bae6fd','#7dd3fc','#38bdf8','#0ea5e9','#0284c7','#0369a1','#075985','#0c4a6e'],
+        orange: ['#fff7ed','#ffedd5','#fed7aa','#fdba74','#fb923c','#f97316','#ea580c','#c2410c','#9a3412','#7c2d12'],
+        violet: ['#f5f3ff','#ede9fe','#ddd6fe','#c4b5fd','#a78bfa','#8b5cf6','#7c3aed','#6d28d9','#5b21b6','#4c1d95'],
+        indigo: ['#eef2ff','#e0e7ff','#c7d2fe','#a5b4fc','#818cf8','#6366f1','#4f46e5','#4338ca','#3730a3','#312e81'],
+        amber:  ['#fffbeb','#fef3c7','#fde68a','#fcd34d','#fbbf24','#f59e0b','#d97706','#b45309','#92400e','#78350f'],
+        red:    ['#fef2f2','#fee2e2','#fecaca','#fca5a5','#f87171','#ef4444','#dc2626','#b91c1c','#991b1b','#7f1d1d']
+      };
+      /* btn = which accent shades (500/600/700 …) form the primary-button gradient */
+      var THEMES = [
+        { id: 'pitch',    name: 'Pitch',    dark: false, accent: 'emerald', neutral: 'slate',     bg: '#f4f7f5', raised: '#ffffff', overlay: '#eef2f0', btn: [5, 6] },
+        { id: 'lake',     name: 'Lake',     dark: false, accent: 'sky',     neutral: 'slate',     bg: '#f1f6fa', raised: '#ffffff', overlay: '#e8f0f6', btn: [6, 7] },
+        { id: 'sunset',   name: 'Sunset',   dark: false, accent: 'orange',  neutral: 'stone',     bg: '#faf6f1', raised: '#ffffff', overlay: '#f3ede5', btn: [6, 7] },
+        { id: 'grape',    name: 'Grape',    dark: false, accent: 'violet',  neutral: 'gray',      bg: '#f6f4fa', raised: '#ffffff', overlay: '#eeeaf5', btn: [5, 6] },
+        { id: 'night',    name: 'Night',    dark: true,  accent: 'emerald', neutral: 'nightN',    bg: '#0c1411', raised: '#131d19', overlay: '#182420', btn: [6, 7] },
+        { id: 'midnight', name: 'Midnight', dark: true,  accent: 'indigo',  neutral: 'midnightN', bg: '#0b0f1c', raised: '#121829', overlay: '#171e33', btn: [5, 6] }
+      ];
+      var cur = { pref: 'pitch', theme: THEMES[0] };
+
+      function h2r(h) { var n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+      function trip(h) { return h2r(h).join(' '); }
+      function mix(a, b, t) {
+        var x = h2r(a), y = h2r(b);
+        return '#' + [0, 1, 2].map(function (i) {
+          return ('0' + Math.round(x[i] * (1 - t) + y[i] * t).toString(16)).slice(-2);
+        }).join('');
+      }
+      function lum(h) {
+        var c = h2r(h).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+        return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+      }
+      function onColor(h) {
+        var L = lum(h);
+        return 1.05 / (L + 0.05) > (L + 0.05) / (lum('#0f172a') + 0.05) ? '#ffffff' : '#0f172a';
+      }
+      /* Dark themes flip the tint scales so "50" is a subtle dark tint and "700" is readable light text. */
+      function scaleFor(p, dark, base, brightMid) {
+        return dark ? [mix(p[9], base, 0.5), p[9], p[8], p[5], p[4], brightMid ? p[4] : p[5], p[4], p[3], p[2], p[1]] : p;
+      }
+      function emit(name, arr, out) {
+        for (var i = 0; i < arr.length; i++) out.push('--c-' + name + '-' + SH[i] + ':' + trip(arr[i]));
+      }
+      function build(t) {
+        var d = t.dark, a = PAL[t.accent], N = PAL[t.neutral], out = [];
+        emit('slate', N, out);
+        emit('accent', scaleFor(a, d, t.raised), out);
+        ['amber', 'red', 'violet', 'sky'].forEach(function (k) { emit(k, scaleFor(PAL[k], d, t.raised, k === 'red'), out); });
+        var solid = a[t.btn[1]];
+        out.push(
+          '--bg:' + t.bg, '--raised:' + t.raised, '--raised-rgb:' + trip(t.raised), '--overlay:' + t.overlay,
+          '--field:' + (d ? t.overlay : t.raised),
+          '--border:' + (d ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'),
+          '--border-strong:' + (d ? 'rgba(255,255,255,0.15)' : 'rgba(15,23,42,0.14)'),
+          '--ink:' + (d ? '0 0 0' : '15 23 42'),
+          '--fg-rgb:' + (d ? '255 255 255' : '15 23 42'),
+          '--accent:' + (d ? a[4] : a[6]),
+          '--accent-dim:rgb(' + trip(a[5]) + ' / ' + (d ? '0.18' : '0.12') + ')',
+          '--text:' + N[9], '--text-muted:' + N[5], '--grid:' + N[2],
+          '--scrim:' + (d ? 'rgba(0,0,0,0.62)' : 'rgba(15,23,42,0.35)'),
+          '--glow-1:' + (d ? '0.16' : '0.14'), '--glow-2:' + (d ? '0.10' : '0.06'),
+          '--btn-from:' + a[t.btn[0]], '--btn-to:' + a[t.btn[1]], '--btn-rgb:' + trip(a[t.btn[1]]),
+          '--solid:' + trip(solid), '--on-solid:' + onColor(solid),
+          '--logo-from:' + a[4], '--logo-to:' + a[7]
+        );
+        return out;
+      }
+      /* The live TV board is always dark, so it keeps the original (light-theme) scales whatever theme is picked. */
+      function spectatorVars(t) {
+        var out = [];
+        emit('slate', PAL.slate, out);
+        emit('accent', PAL[t.accent], out);
+        ['amber', 'red', 'violet', 'sky'].forEach(function (k) { emit(k, PAL[k], out); });
+        return '#view-spectator{' + out.join(';') + '}';
+      }
+      function find(id) { for (var i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) return THEMES[i]; return null; }
+      function resolve(pref) {
+        if (pref === 'auto') {
+          var dk = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          return find(dk ? 'night' : 'pitch');
+        }
+        return find(pref) || THEMES[0];
+      }
+      function apply(pref) {
+        var t = resolve(pref), root = document.documentElement;
+        var el = document.getElementById('lcfc-theme-vars');
+        if (!el) { el = document.createElement('style'); el.id = 'lcfc-theme-vars'; document.head.appendChild(el); }
+        el.textContent = ':root{' + build(t).join(';') + '}' + spectatorVars(t);
+        root.setAttribute('data-theme', t.id);
+        root.setAttribute('data-mode', t.dark ? 'dark' : 'light');
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.setAttribute('content', t.bg);
+        cur = { pref: pref, theme: t };
+        try { document.dispatchEvent(new CustomEvent('lcfc-themechange', { detail: { pref: pref, id: t.id } })); } catch (e) {}
+      }
+
+      window.LCFCTheme = {
+        list: function () { return THEMES.slice(); },
+        current: function () { return { pref: cur.pref, id: cur.theme.id, dark: cur.theme.dark }; },
+        set: function (pref) {
+          try { localStorage.setItem(KEY, pref); } catch (e) {}
+          apply(pref);
+        },
+        /* Colors for canvas charts and other places CSS variables cannot reach. */
+        colors: function () {
+          var t = cur.theme, a = PAL[t.accent], N = PAL[t.neutral], d = t.dark;
+          var acc = d ? a[4] : a[6];
+          return {
+            dark: d, accent: acc, accentRGB: h2r(acc).join(','),
+            grid: N[2], text: N[5], heatText: d ? a[1] : a[9]
+          };
+        },
+        preview: function (t) {
+          var a = PAL[t.accent], N = PAL[t.neutral];
+          return {
+            bg: t.bg, raised: t.raised, accent: t.dark ? a[4] : a[6], muted: N[3],
+            border: t.dark ? 'rgba(255,255,255,0.14)' : 'rgba(15,23,42,0.10)'
+          };
+        }
+      };
+
+      var saved = 'pitch';
+      try { saved = localStorage.getItem(KEY) || 'pitch'; } catch (e) {}
+      if (saved !== 'auto' && !find(saved)) saved = 'pitch';
+      apply(saved);
+
+      if (window.matchMedia) {
+        var mq = window.matchMedia('(prefers-color-scheme: dark)');
+        var onChange = function () { if (cur.pref === 'auto') apply('auto'); };
+        if (mq.addEventListener) mq.addEventListener('change', onChange);
+        else if (mq.addListener) mq.addListener(onChange);
+      }
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script>
+    function cssScale(name, withDeepest) {
+      const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900].concat(withDeepest ? [950] : []);
+      const o = {};
+      shades.forEach(k => { o[k] = `rgb(var(--c-${name}-${k}) / <alpha-value>)`; });
+      return o;
+    }
     tailwind.config = {
       theme: {
         extend: {
@@ -19,24 +170,19 @@
               border: '#d4ddd8',
               muted: '#94a3b8'
             },
-            foos: {
-              50: '#ecfdf5',
-              100: '#d1fae5',
-              200: '#a7f3d0',
-              300: '#6ee7b7',
-              400: '#34d399',
-              500: '#10b981',
-              600: '#059669',
-              700: '#047857',
-              800: '#065f46',
-              900: '#064e3b',
-            }
+            /* Palette scales are driven by CSS variables so themes can swap them at runtime */
+            foos: cssScale('accent'),
+            emerald: cssScale('accent'),
+            slate: cssScale('slate', true),
+            amber: cssScale('amber'),
+            red: cssScale('red'),
+            violet: cssScale('violet'),
+            sky: cssScale('sky')
           },
           fontFamily: {
             sans: ['"DM Sans"', 'Inter', 'system-ui', 'sans-serif'],
           },
           boxShadow: {
-            'glow': '0 0 24px -4px rgba(16, 185, 129, 0.2)',
             'card': '0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px -4px rgba(15, 23, 42, 0.08)',
           }
         }
@@ -47,79 +193,76 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #f4f7f5;
-      --raised: #ffffff;
-      --overlay: #eef2f0;
-      --border: rgba(15, 23, 42, 0.08);
-      --border-strong: rgba(15, 23, 42, 0.14);
-      --accent: #059669;
-      --accent-dim: rgba(5, 150, 105, 0.12);
-      --text: #0f172a;
-      --text-muted: #64748b;
-    }
+    /* Theme variables (--bg, --raised, --accent, --c-*-NNN …) are written by the theme engine in <head>. */
+    html { color-scheme: light; }
+    html[data-mode="dark"] { color-scheme: dark; }
     * { -webkit-tap-highlight-color: transparent; }
     body {
       font-family: 'DM Sans', Inter, system-ui, sans-serif;
       background: var(--bg);
       background-image:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.14), transparent),
-        radial-gradient(ellipse 50% 40% at 100% 0%, rgba(5, 150, 105, 0.06), transparent);
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgb(var(--c-accent-500) / var(--glow-1)), transparent),
+        radial-gradient(ellipse 50% 40% at 100% 0%, rgb(var(--c-accent-600) / var(--glow-2)), transparent);
       min-height: 100dvh;
       color: var(--text);
     }
     .glass {
-      background: rgba(255, 255, 255, 0.82);
+      background: rgb(var(--raised-rgb) / 0.82);
       backdrop-filter: blur(16px) saturate(1.3);
       -webkit-backdrop-filter: blur(16px) saturate(1.3);
       border: 1px solid var(--border);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      box-shadow: 0 1px 2px rgb(var(--ink) / 0.04);
     }
     .glass-strong {
-      background: rgba(255, 255, 255, 0.94);
+      background: rgb(var(--raised-rgb) / 0.94);
       backdrop-filter: blur(20px);
       border: 1px solid var(--border-strong);
-      box-shadow: 0 4px 20px -6px rgba(15, 23, 42, 0.1);
+      box-shadow: 0 4px 20px -6px rgb(var(--ink) / 0.1);
     }
     .surface-card {
       background: var(--raised);
       border: 1px solid var(--border);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px -6px rgba(15, 23, 42, 0.06);
+      box-shadow: 0 1px 2px rgb(var(--ink) / 0.04), 0 4px 16px -6px rgb(var(--ink) / 0.06);
     }
+    .brand-mark { background: linear-gradient(135deg, var(--logo-from), var(--logo-to)); }
+    .shadow-glow { box-shadow: 0 0 24px -4px rgb(var(--c-accent-500) / 0.2); }
+    /* Cards/tables that use bg-white follow the theme's raised surface */
+    html[data-theme] .bg-white { background-color: var(--raised); }
+    html[data-theme] .bg-white\/80 { background-color: rgb(var(--raised-rgb) / 0.8); }
     .btn-primary {
-      background: linear-gradient(180deg, #10b981 0%, #059669 100%);
-      box-shadow: 0 1px 0 0 rgba(255,255,255,0.25) inset, 0 4px 12px -2px rgba(5, 150, 105, 0.35);
+      background: linear-gradient(180deg, var(--btn-from) 0%, var(--btn-to) 100%);
+      box-shadow: 0 1px 0 0 rgba(255,255,255,0.25) inset, 0 4px 12px -2px rgb(var(--btn-rgb) / 0.35);
       transition: all 0.2s ease;
       color: #fff;
     }
     .btn-primary:hover {
       filter: brightness(1.05);
-      box-shadow: 0 1px 0 0 rgba(255,255,255,0.3) inset, 0 6px 16px -2px rgba(5, 150, 105, 0.45);
+      box-shadow: 0 1px 0 0 rgba(255,255,255,0.3) inset, 0 6px 16px -2px rgb(var(--btn-rgb) / 0.45);
       transform: translateY(-1px);
     }
     .btn-primary:active { transform: translateY(0); filter: brightness(0.97); }
     .btn-ghost {
-      background: rgba(15, 23, 42, 0.03);
+      background: rgb(var(--fg-rgb) / 0.03);
       border: 1px solid var(--border);
       transition: all 0.15s ease;
-      color: #334155;
+      color: rgb(var(--c-slate-700));
     }
     .btn-ghost:hover {
-      background: rgba(15, 23, 42, 0.06);
+      background: rgb(var(--fg-rgb) / 0.06);
       border-color: var(--border-strong);
     }
     .nav-item {
       transition: all 0.2s ease;
-      color: #94a3b8;
+      color: rgb(var(--c-slate-400));
     }
     .nav-item.active, .nav-item:hover {
-      color: #059669;
+      color: var(--accent);
     }
     .nav-item.active {
       background: var(--accent-dim);
     }
     .table-row { transition: background 0.15s ease; }
-    .table-row:hover { background-color: rgba(16, 185, 129, 0.06); }
+    .table-row:hover { background-color: rgb(var(--c-accent-500) / 0.06); }
     .score-input::-webkit-outer-spin-button,
     .score-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .score-input { -moz-appearance: textfield; }
@@ -127,6 +270,8 @@
       animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       backdrop-filter: blur(12px);
     }
+    .toast-success { background: rgb(var(--solid)); border-color: rgb(var(--c-accent-500)); color: var(--on-solid); }
+    .toast-error { background: #ef4444; border-color: #f87171; color: #0f172a; }
     @keyframes toastIn {
       from { transform: translateY(12px) scale(0.96); opacity: 0; }
       to { transform: translateY(0) scale(1); opacity: 1; }
@@ -135,27 +280,27 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .card-interactive:hover {
-      border-color: rgba(5, 150, 105, 0.35);
-      box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.12), 0 12px 28px -8px rgba(15, 23, 42, 0.12);
+      border-color: rgb(var(--c-accent-600) / 0.35);
+      box-shadow: 0 0 0 1px rgb(var(--c-accent-600) / 0.12), 0 12px 28px -8px rgb(var(--ink) / 0.12);
       transform: translateY(-2px);
     }
     .type-btn {
       transition: all 0.2s ease;
-      background: #fff;
-      border-color: #e2e8f0;
+      background: var(--raised);
+      border-color: rgb(var(--c-slate-200));
     }
     .type-btn.selected {
-      border-color: #10b981 !important;
-      background: rgba(16, 185, 129, 0.1) !important;
-      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+      border-color: rgb(var(--c-accent-500)) !important;
+      background: rgb(var(--c-accent-500) / 0.1) !important;
+      box-shadow: 0 0 0 1px rgb(var(--c-accent-500) / 0.2);
     }
     .tab-btn {
       transition: all 0.2s ease;
       position: relative;
-      color: #94a3b8;
+      color: rgb(var(--c-slate-400));
     }
     .tab-btn.active-tab {
-      color: #059669;
+      color: var(--accent);
     }
     .tab-btn.active-tab::after {
       content: '';
@@ -163,19 +308,19 @@
       bottom: -1px;
       left: 0; right: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, #10b981, transparent);
+      background: linear-gradient(90deg, transparent, rgb(var(--c-accent-500)), transparent);
       border-radius: 2px;
     }
     .input-field {
-      background: #fff;
+      background: var(--field);
       border: 1px solid var(--border-strong);
-      color: #0f172a;
+      color: var(--text);
       transition: all 0.15s ease;
     }
     .input-field:focus {
       outline: none;
-      border-color: rgba(5, 150, 105, 0.55);
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+      border-color: rgb(var(--c-accent-600) / 0.55);
+      box-shadow: 0 0 0 3px rgb(var(--c-accent-500) / 0.15);
     }
     .badge {
       font-size: 0.65rem;
@@ -185,10 +330,29 @@
     }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.12); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(15, 23, 42, 0.2); }
+    ::-webkit-scrollbar-thumb { background: rgb(var(--fg-rgb) / 0.12); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgb(var(--fg-rgb) / 0.2); }
     /* Light-mode readability helpers for common dark utility leftovers */
-    .text-on-surface { color: #0f172a; }
+    .text-on-surface { color: var(--text); }
+
+    /* ---- Theme picker ---- */
+    #theme-menu { background: var(--raised); }
+    .theme-opt {
+      display: flex; flex-direction: column; gap: 6px; width: 100%;
+      padding: 6px; border-radius: 14px; border: 1px solid transparent;
+      text-align: left; font-size: 12px; font-weight: 600;
+      color: rgb(var(--c-slate-700)); transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .theme-opt:hover { background: rgb(var(--fg-rgb) / 0.05); }
+    .theme-opt.selected { border-color: rgb(var(--c-accent-500) / 0.6); background: var(--accent-dim); }
+    .theme-opt:focus-visible, #theme-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .theme-opt-name { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 0 2px; }
+    .theme-opt-name svg { width: 14px; height: 14px; color: var(--accent); flex-shrink: 0; }
+    .theme-swatch { display: block; height: 46px; border-radius: 10px; border: 1px solid; padding: 7px; }
+    .theme-swatch-card { display: flex; flex-direction: column; justify-content: center; gap: 4px; height: 100%; border-radius: 6px; border: 1px solid; padding: 0 7px; }
+    .theme-swatch-card i { display: block; height: 4px; border-radius: 2px; }
+    .theme-opt-auto { flex-direction: row; align-items: center; gap: 10px; }
+    .theme-opt-auto .theme-swatch { width: 46px; flex-shrink: 0; padding: 0; }
   </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -201,7 +365,7 @@
     <!-- Top Header (brand only on mobile, full on desktop) -->
     <header class="flex items-center justify-between mb-8">
       <div class="flex items-center gap-3">
-        <div class="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center shadow-glow">
+        <div class="relative w-11 h-11 rounded-2xl brand-mark flex items-center justify-center shadow-glow">
           <span class="text-xl">⚽</span>
           <div class="absolute inset-0 rounded-2xl ring-1 ring-slate-200/80"></div>
         </div>
@@ -210,12 +374,21 @@
           <p class="text-[11px] text-slate-500 font-medium tracking-wide">Lake Champlain Foosball Club</p>
         </div>
       </div>
+      <div class="flex items-center gap-2">
       <!-- Desktop nav -->
       <nav class="hidden sm:flex items-center gap-1 p-1 rounded-2xl glass">
         <button onclick="showView('home')" data-nav="home" class="nav-item px-4 py-2 rounded-xl text-sm font-medium">Tournaments</button>
         <button onclick="showView('players')" data-nav="players" class="nav-item px-4 py-2 rounded-xl text-sm font-medium">Players</button>
         <button onclick="showView('stats')" data-nav="stats" class="nav-item px-4 py-2 rounded-xl text-sm font-medium">Stats</button>
       </nav>
+      <!-- Color theme picker -->
+      <div id="theme-menu-wrap" class="relative">
+        <button id="theme-btn" type="button" onclick="toggleThemeMenu(event)" aria-haspopup="true" aria-expanded="false" aria-controls="theme-menu" aria-label="Color theme" title="Color theme" class="nav-item glass w-11 h-11 rounded-2xl flex items-center justify-center">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.7 1.8-1.7H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg>
+        </button>
+        <div id="theme-menu" class="hidden absolute right-0 top-full mt-2 z-50 w-[19rem] max-w-[calc(100vw-2rem)] rounded-2xl glass-strong p-2"></div>
+      </div>
+      </div>
     </header>
 
     <!-- Mobile bottom nav -->
@@ -286,7 +459,7 @@
         </p>
       </footer>
 
-      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.24 · Updated Sep 20, 2026</div>
+      <div id="home-version-watermark" class="pointer-events-none fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-10 text-[11px] font-medium tracking-wide text-slate-400/80 select-none" aria-hidden="true">v5.25 · Updated Sep 21, 2026</div>
     </div>
 
     <!-- PLAYERS VIEW -->
@@ -634,7 +807,7 @@
           </div>
           <div class="surface-card rounded-2xl p-4 lg:col-span-2 overflow-x-auto">
             <h4 class="text-xs font-semibold text-slate-700 mb-1">Event form heatmap</h4>
-            <p class="text-[11px] text-slate-500 mb-3">Points per event (darker = more points that night)</p>
+            <p class="text-[11px] text-slate-500 mb-3">Points per event (stronger color = more points that night)</p>
             <div id="chart-heatmap" class="min-w-0"></div>
           </div>
         </div>
@@ -885,7 +1058,7 @@
   </div>
 
   <!-- Player Modal -->
-  <div id="player-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(15,23,42,0.35);backdrop-filter:blur(8px)">
+  <div id="player-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
     <div class="surface-card rounded-3xl w-full max-w-md p-6 space-y-5 shadow-2xl">
       <h3 class="text-lg font-bold text-slate-900" id="player-modal-title">Add Player</h3>
       <div>
@@ -916,7 +1089,7 @@
   </div>
 
   <!-- Score Modal -->
-  <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(15,23,42,0.35);backdrop-filter:blur(8px)">
+  <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
     <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
       <h3 class="text-lg font-bold text-center text-slate-900" id="score-modal-title">Enter Score</h3>
       <div id="score-series-banner" class="hidden rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-center">
@@ -958,8 +1131,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.24';
-    const APP_UPDATED = 'Sep 20, 2026';
+    const APP_VERSION = '5.25';
+    const APP_UPDATED = 'Sep 21, 2026';
 
     let state = {
       players: [],
@@ -1002,8 +1175,8 @@
     function toast(msg, type = 'info') {
       const el = document.createElement('div');
       el.className = `toast px-4 py-3 rounded-2xl text-sm font-medium shadow-xl border ${
-        type === 'error' ? 'bg-red-500 border-red-400 text-slate-900 shadow-lg' :
-        type === 'success' ? 'bg-emerald-600 border-emerald-500 text-slate-900 shadow-lg' :
+        type === 'error' ? 'toast-error shadow-lg' :
+        type === 'success' ? 'toast-success shadow-lg' :
         'bg-white border-slate-200 text-slate-800 shadow-lg'
       }`;
       el.textContent = msg;
@@ -5578,10 +5751,40 @@
     // ==================== STATS CHARTS ====================
 
     const chartInstances = {};
-    const CHART_COLORS = [
-      '#059669', '#2563eb', '#d97706', '#db2777', '#7c3aed',
-      '#0891b2', '#ea580c', '#4f46e5', '#65a30d', '#e11d48'
-    ];
+    const CHART_BASE_COLORS = {
+      light: ['#059669', '#2563eb', '#d97706', '#db2777', '#7c3aed', '#0891b2', '#ea580c', '#4f46e5', '#65a30d', '#e11d48'],
+      dark:  ['#34d399', '#60a5fa', '#fbbf24', '#f472b6', '#a78bfa', '#22d3ee', '#fb923c', '#818cf8', '#a3e635', '#fb7185']
+    };
+    const CHART_FALLBACK_THEME = { dark: false, accent: '#059669', accentRGB: '5,150,105', grid: '#e2e8f0', text: '#64748b', heatText: '#064e3b' };
+
+    /** Current theme colors for canvas charts; also points Chart.js defaults (text, borders) at the theme. */
+    function chartTheme() {
+      const T = (window.LCFCTheme && window.LCFCTheme.colors()) || CHART_FALLBACK_THEME;
+      if (typeof Chart !== 'undefined') {
+        Chart.defaults.color = T.text;
+        Chart.defaults.borderColor = T.grid;
+      }
+      return T;
+    }
+
+    function hueOf(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+      if (!d) return 0;
+      let h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      h *= 60;
+      return h < 0 ? h + 360 : h;
+    }
+
+    /** Series colors: theme accent first, then the base palette minus shades too close to the accent's hue. */
+    function getChartColors() {
+      const T = chartTheme();
+      const base = CHART_BASE_COLORS[T.dark ? 'dark' : 'light'];
+      const ah = hueOf(T.accent);
+      const rest = base.filter(c => { const d = Math.abs(hueOf(c) - ah); return Math.min(d, 360 - d) > 25; });
+      return [T.accent, ...rest];
+    }
 
     function destroyChart(key) {
       if (chartInstances[key]) {
@@ -5606,9 +5809,10 @@
         .sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
 
       const top = ranked.slice(0, 8);
+      const palette = getChartColors();
       const series = top.map((p, i) => ({
         label: p.name,
-        color: CHART_COLORS[i % CHART_COLORS.length],
+        color: palette[i % palette.length],
         data: chronological.map(w => (byWeek[w] && byWeek[w][p.id] ? (byWeek[w][p.id].pts || 0) : 0))
       }));
       return { labels: chronological.map(weekKeyLabel), series, top };
@@ -5677,8 +5881,8 @@
             legend: { position: 'bottom', labels: { boxWidth: 10, font: chartFont() } }
           },
           scales: {
-            x: { ticks: { font: chartFont(), maxRotation: 45 }, grid: { color: '#e2e8f0' } },
-            y: { beginAtZero: true, ticks: { font: chartFont() }, grid: { color: '#e2e8f0' }, title: { display: true, text: 'Pts', font: chartFont() } }
+            x: { ticks: { font: chartFont(), maxRotation: 45 }, grid: { color: chartTheme().grid } },
+            y: { beginAtZero: true, ticks: { font: chartFont() }, grid: { color: chartTheme().grid }, title: { display: true, text: 'Pts', font: chartFont() } }
           }
         }
       });
@@ -5710,9 +5914,9 @@
           datasets: [{
             label: profile.name,
             data: profile.values,
-            borderColor: '#059669',
-            backgroundColor: 'rgba(5, 150, 105, 0.2)',
-            pointBackgroundColor: '#059669',
+            borderColor: chartTheme().accent,
+            backgroundColor: `rgba(${chartTheme().accentRGB}, 0.2)`,
+            pointBackgroundColor: chartTheme().accent,
             borderWidth: 2
           }]
         },
@@ -5726,7 +5930,7 @@
               max: 100,
               ticks: { display: false },
               pointLabels: { font: chartFont() },
-              grid: { color: '#e2e8f0' }
+              grid: { color: chartTheme().grid }
             }
           }
         }
@@ -5761,7 +5965,7 @@
           maintainAspectRatio: false,
           plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: chartFont() } } },
           scales: {
-            x: { stacked: true, ticks: { stepSize: 1, font: chartFont() }, grid: { color: '#e2e8f0' } },
+            x: { stacked: true, ticks: { stepSize: 1, font: chartFont() }, grid: { color: chartTheme().grid } },
             y: { stacked: true, ticks: { font: chartFont() }, grid: { display: false } }
           }
         }
@@ -5791,7 +5995,7 @@
           datasets: [{
             label: 'Ranking pts',
             data: rows.map(r => r.pts),
-            backgroundColor: rows.map(r => bandColor[r.label] || '#059669'),
+            backgroundColor: rows.map(r => bandColor[r.label] || chartTheme().accent),
             borderRadius: 4
           }]
         },
@@ -5811,7 +6015,7 @@
             x: {
               min: Math.min(1500, ...rows.map(r => r.pts)) - 50,
               ticks: { font: chartFont() },
-              grid: { color: '#e2e8f0' }
+              grid: { color: chartTheme().grid }
             },
             y: { ticks: { font: chartFont() }, grid: { display: false } }
           }
@@ -5845,8 +6049,8 @@
           datasets: [{
             label: 'Players',
             data: points,
-            backgroundColor: 'rgba(5, 150, 105, 0.45)',
-            borderColor: '#059669',
+            backgroundColor: `rgba(${chartTheme().accentRGB}, 0.45)`,
+            borderColor: chartTheme().accent,
             borderWidth: 1
           }]
         },
@@ -5868,7 +6072,7 @@
             x: {
               title: { display: true, text: 'Matches played', font: chartFont() },
               ticks: { font: chartFont() },
-              grid: { color: '#e2e8f0' },
+              grid: { color: chartTheme().grid },
               beginAtZero: true
             },
             y: {
@@ -5876,7 +6080,7 @@
               min: 0,
               max: 100,
               ticks: { font: chartFont() },
-              grid: { color: '#e2e8f0' }
+              grid: { color: chartTheme().grid }
             }
           }
         }
@@ -5922,11 +6126,13 @@
       const matrix = players.map(p => events.map(t => ptsInTournament(t, p.id)));
       const maxPts = Math.max(1, ...matrix.flat());
 
+      const T = chartTheme();
       const cell = (v) => {
-        if (v === 0) return 'background:#f8fafc;color:#94a3b8';
+        if (v === 0) return 'background:rgb(var(--c-slate-50));color:rgb(var(--c-slate-400))';
         const intensity = Math.min(1, v / maxPts);
         const alpha = 0.15 + intensity * 0.85;
-        return `background:rgba(5,150,105,${alpha.toFixed(2)});color:${intensity > 0.55 ? '#fff' : '#064e3b'}`;
+        const strongText = T.dark ? '#0b0f14' : '#fff';
+        return `background:rgba(${T.accentRGB},${alpha.toFixed(2)});color:${intensity > 0.55 ? strongText : T.heatText}`;
       };
 
       let html = '<table class="text-[11px] border-collapse w-full min-w-[480px]"><thead><tr>';
@@ -5953,6 +6159,7 @@
         return;
       }
       try {
+        chartTheme();
         renderWowPointsChart();
         renderRadarChart();
         renderPodiumChart();
@@ -6496,10 +6703,87 @@
       if (name === 'stats') renderStats();
     }
 
+    // ==================== THEME PICKER ====================
+    const THEME_CHECK_SVG = '<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 011.4-1.4l3.8 3.8 6.8-6.8a1 1 0 011.4 0z" clip-rule="evenodd"/></svg>';
+
+    function themeSwatchHtml(P) {
+      return `<span class="theme-swatch" style="background:${P.bg};border-color:${P.border}"><span class="theme-swatch-card" style="background:${P.raised};border-color:${P.border}"><i style="background:${P.accent};width:55%"></i><i style="background:${P.muted};width:80%"></i></span></span>`;
+    }
+
+    function renderThemeMenu() {
+      const menu = document.getElementById('theme-menu');
+      if (!menu || !window.LCFCTheme) return;
+      const cur = LCFCTheme.current();
+      const themes = LCFCTheme.list();
+      const opt = (t) => {
+        const on = cur.pref === t.id;
+        return `<button type="button" role="radio" aria-checked="${on}" onclick="chooseTheme('${t.id}')" class="theme-opt${on ? ' selected' : ''}">
+          ${themeSwatchHtml(LCFCTheme.preview(t))}
+          <span class="theme-opt-name"><span>${t.name}</span>${on ? THEME_CHECK_SVG : ''}</span>
+        </button>`;
+      };
+      const autoOn = cur.pref === 'auto';
+      const lightP = LCFCTheme.preview(themes.find(t => t.id === 'pitch'));
+      const darkP = LCFCTheme.preview(themes.find(t => t.id === 'night'));
+      const auto = `<button type="button" role="radio" aria-checked="${autoOn}" onclick="chooseTheme('auto')" class="theme-opt theme-opt-auto${autoOn ? ' selected' : ''}">
+          <span class="theme-swatch" style="background:linear-gradient(135deg, ${lightP.bg} 50%, ${darkP.bg} 50%);border-color:${lightP.border}"></span>
+          <span class="theme-opt-name" style="flex:1"><span>Match device<span class="block text-[11px] font-normal text-slate-500">Follows your device's light or dark setting</span></span>${autoOn ? THEME_CHECK_SVG : ''}</span>
+        </button>`;
+      menu.innerHTML = `<p class="px-2 pt-1 pb-2 text-xs font-semibold text-slate-500">Color theme</p>
+        <div role="radiogroup" aria-label="Color theme">
+          <div class="grid grid-cols-3 gap-1">${themes.map(opt).join('')}</div>
+          <div class="mt-1 pt-1 border-t border-slate-200">${auto}</div>
+        </div>`;
+    }
+
+    function chooseTheme(id) {
+      if (window.LCFCTheme) LCFCTheme.set(id);
+    }
+
+    function closeThemeMenu() {
+      const menu = document.getElementById('theme-menu');
+      const btn = document.getElementById('theme-btn');
+      if (menu) menu.classList.add('hidden');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleThemeMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('theme-menu');
+      const btn = document.getElementById('theme-btn');
+      if (!menu) return;
+      const opening = menu.classList.contains('hidden');
+      if (opening) renderThemeMenu();
+      menu.classList.toggle('hidden', !opening);
+      if (btn) btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    }
+
+    document.addEventListener('click', e => {
+      const path = e.composedPath ? e.composedPath() : [];
+      if (!path.some(n => n && n.id === 'theme-menu-wrap')) closeThemeMenu();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        const menu = document.getElementById('theme-menu');
+        if (menu && !menu.classList.contains('hidden')) {
+          closeThemeMenu();
+          const btn = document.getElementById('theme-btn');
+          if (btn) btn.focus();
+        }
+      }
+    });
+    // Re-draw things that don't follow CSS variables on their own (charts, heatmap)
+    document.addEventListener('lcfc-themechange', () => {
+      renderThemeMenu();
+      const sv = document.getElementById('view-stats');
+      if (sv && !sv.classList.contains('hidden')) renderStats();
+    });
+
     // ==================== INIT ====================
     loadState();
     showView('home');
     renderPlayers();
+    renderThemeMenu();
 
     // Keyboard: Enter in player modal
     document.getElementById('player-name')?.addEventListener('keydown', e => {
