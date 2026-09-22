@@ -477,7 +477,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.29 · Updated Sep 21, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.30 · Updated Sep 22, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1161,8 +1161,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.29';
-    const APP_UPDATED = 'Sep 21, 2026';
+    const APP_VERSION = '5.30';
+    const APP_UPDATED = 'Sep 22, 2026';
 
     let state = {
       players: [],
@@ -1857,11 +1857,12 @@
       if (input) input.value = String(n);
       if (n === (parseInt(t.tables, 10) || 2)) return;
       t.tables = n;
+      assignBracketTables(t);
       saveState();
       renderTournament();
       renderHome();
       const cap = n * 4;
-      toast(`Tables set to ${n} (max ${cap} playing in ranking rounds)`, 'success');
+      toast(`Tables set to ${n} (max ${cap} concurrent · ranking + bracket)`, 'success');
     }
 
     /** Mark event finished without a bracket (e.g. Monster ranking-only night), or reopen. */
@@ -3427,6 +3428,7 @@
       t.playoffs = buildBracket(entities, format, { shuffleSeeds: true });
       t.status = 'active';
       t.placements = t.playoffs.placements;
+      assignBracketTables(t);
       saveState();
       state.currentTab = 'bracket';
       renderTournament();
@@ -3535,6 +3537,7 @@
         }
         t.placements = t.playoffs.placements;
         t.status = 'active';
+        assignBracketTables(t);
         saveState();
         state.currentTab = 'bracket';
         renderTournament();
@@ -3557,6 +3560,7 @@
       t.playoffs = buildBracket(entities, format, { shuffleSeeds: false });
       t.placements = t.playoffs.placements;
       t.status = 'active';
+      assignBracketTables(t);
       saveState();
       state.currentTab = 'bracket';
       renderTournament();
@@ -3756,6 +3760,7 @@
         t.placements = t.playoffs.placements;
       }
       t.status = 'active';
+      assignBracketTables(t);
       saveState();
       renderTournament();
       toast('Bracket result cleared', 'success');
@@ -4302,6 +4307,7 @@
       }
 
       updatePlacementsFromBracket(t);
+      assignBracketTables(t);
       saveState();
       closeScoreModal();
       renderTournament();
@@ -4572,6 +4578,39 @@
       }
     }
 
+    /** Ready bracket match: both sides filled, not yet decided (not a bye auto-win). */
+    function isBracketMatchReady(m) {
+      if (!m || m.winner) return false;
+      if (m._byePropagated) return false;
+      const a = m.a?.entity || m.entityA;
+      const b = m.b?.entity || m.entityB;
+      return !!(a && b);
+    }
+
+    /**
+     * Assign table numbers to ready playoff/bracket matches.
+     * Concurrent capacity = event table count (one match per table).
+     * Order cycles T1…Tn; matches beyond the first wave are marked onDeck
+     * (e.g. 3 ready matches, 2 tables → T1 live, T2 live, T1 on deck).
+     */
+    function assignBracketTables(t) {
+      if (!t?.playoffs) return;
+      const tableCount = Math.max(1, parseInt(t.tables, 10) || 1);
+      const all = (typeof collectBracketMatches === 'function')
+        ? collectBracketMatches(t.playoffs)
+        : [];
+      all.forEach(m => {
+        if (!m) return;
+        delete m.table;
+        delete m.onDeck;
+      });
+      const ready = all.filter(isBracketMatchReady);
+      ready.forEach((m, i) => {
+        m.table = (i % tableCount) + 1;
+        m.onDeck = i >= tableCount;
+      });
+    }
+
     function matchCardHtml(m, accent = 'emerald') {
       const nameA = m.a?.entity?.name || (m.a?.entity === null && !m.a?.fromMatch ? 'BYE' : 'TBD');
       const nameB = m.b?.entity?.name || (m.b?.entity === null && !m.b?.fromMatch ? 'BYE' : 'TBD');
@@ -4586,6 +4625,11 @@
         : accent === 'violet'
           ? 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100'
           : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+      const tableBadge = (!m.winner && m.table)
+        ? (m.onDeck
+          ? `<div class="mt-1.5 flex flex-wrap gap-1 justify-center"><span class="badge px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">On deck · T${m.table}</span></div>`
+          : `<div class="mt-1.5 flex flex-wrap gap-1 justify-center"><span class="badge px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Table ${m.table}</span></div>`)
+        : '';
       return `
         <div class="surface-card rounded-xl p-3 text-sm ${m.winner ? 'opacity-90' : 'ring-1 ' + ring}">
           <div class="flex justify-between items-center py-1 gap-2 ${m.winner === 'a' ? win + ' font-semibold' : 'text-slate-700'}">
@@ -4597,6 +4641,7 @@
             <span class="truncate">${escapeHtml(nameB)}</span>
             ${m.winner === 'b' ? '<span class="text-[10px]">W</span>' : ''}
           </div>
+          ${tableBadge}
           ${score ? `<div class="text-center text-xs text-slate-500 mt-1.5 font-mono">${score}</div>` : ''}
           ${canScore ? `<button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-2 text-xs font-semibold rounded-lg border transition ${btn}">Enter score</button>` : ''}
           ${m.winner && hasBoth && !(m.scoreA === 0 && m.scoreB === 0) ? `
@@ -4620,6 +4665,8 @@
     }
 
     function renderBracket(t) {
+      // Keep table / on-deck badges current (tables count or newly ready matches)
+      if (t.playoffs) assignBracketTables(t);
       const container = document.getElementById('bracket-container');
       const actions = document.getElementById('bracket-actions');
       const isElim = t.format === 'single-elim' || t.format === 'double-elim';
@@ -6916,7 +6963,7 @@
         const entA = m.a?.entity || m.entityA;
         const entB = m.b?.entity || m.entityB;
         const proj = (!done && entA && entB) ? projectMatchWinPct(entA, entB) : null;
-        const row = { round: m.bracket || 'bracket', nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: null, done, proj };
+        const row = { round: m.bracket || 'bracket', nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table || null, done, proj, onDeck: !!m.onDeck };
         if (done && m.scoreA != null) recentDone.push(row);
         else if (!done && (m.a?.entity || m.b?.entity || m.entityA)) live.push(row);
       });
@@ -6926,7 +6973,7 @@
       } else {
         matchesEl.innerHTML = live.map(m => `
           <div class="rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2.5 sm:px-3.5 sm:py-3">
-            <div class="text-[10px] text-slate-500 mb-1.5">${m.table ? 'T' + m.table + ' · ' : ''}R${m.round}</div>
+            <div class="text-[10px] text-slate-500 mb-1.5">${m.onDeck ? 'On deck · ' : ''}${m.table ? 'T' + m.table + ' · ' : ''}${m.round}</div>
             <div class="space-y-0.5 text-center">
               <div class="spec-team-name font-semibold text-white leading-tight px-0.5" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
               <div class="text-slate-600 font-medium text-[10px] tracking-wide">vs</div>
