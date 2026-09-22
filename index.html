@@ -371,6 +371,39 @@
       border: 1px solid var(--border);
       color: var(--text-muted);
     }
+    #view-spectator .spec-match-meta {
+      gap: 0.35rem;
+    }
+    #view-spectator .spec-meta-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.4rem;
+      font-size: 0.8125rem; /* 13px — readable at TV distance */
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1.25;
+    }
+    @media (min-width: 640px) {
+      #view-spectator .spec-meta-chip { font-size: 0.9375rem; } /* 15px */
+    }
+    #view-spectator .spec-meta-table {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgb(var(--c-accent-500) / 0.35);
+    }
+    #view-spectator .spec-meta-deck {
+      background: rgb(var(--fg-rgb) / 0.06);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+    }
+    #view-spectator .spec-meta-round {
+      background: rgb(var(--fg-rgb) / 0.04);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-weight: 600;
+      text-transform: none;
+    }
 
     /* ---- Quick score tap targets ---- */
     .quick-chip {
@@ -514,7 +547,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.31 · Updated Sep 22, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.32 · Updated Sep 22, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1198,7 +1231,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.31';
+    const APP_VERSION = '5.32';
     const APP_UPDATED = 'Sep 22, 2026';
 
     let state = {
@@ -7008,9 +7041,21 @@
       if (!live.length) {
         matchesEl.innerHTML = '<div class="spec-empty rounded-2xl border p-6 text-center">No live matches — draw a round or enter scores</div>';
       } else {
-        matchesEl.innerHTML = live.map(m => `
+        matchesEl.innerHTML = live.map(m => {
+          const roundLabel = (m.round === 'winners' || m.round === 'losers' || m.round === 'gf' || m.round === 'gf2' || m.round === 'bracket')
+            ? String(m.round).replace('gf2', 'GF reset').replace('gf', 'Grand final').replace('winners', 'Winners').replace('losers', 'Losers').replace('bracket', 'Bracket')
+            : ('R' + m.round);
+          const tableChip = m.table
+            ? (m.onDeck
+              ? `<span class="spec-meta-chip spec-meta-deck">On deck · T${m.table}</span>`
+              : `<span class="spec-meta-chip spec-meta-table">Table ${m.table}</span>`)
+            : '';
+          return `
           <div class="spec-card px-3 py-2.5 sm:px-3.5 sm:py-3">
-            <div class="text-[10px] spec-muted mb-1.5">${m.onDeck ? 'On deck · ' : ''}${m.table ? 'T' + m.table + ' · ' : ''}${m.round}</div>
+            <div class="spec-match-meta mb-2 flex flex-wrap items-center justify-center gap-1.5">
+              ${tableChip}
+              <span class="spec-meta-chip spec-meta-round">${escapeHtml(roundLabel)}</span>
+            </div>
             <div class="space-y-0.5 text-center">
               <div class="spec-team-name font-semibold leading-tight px-0.5" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
               <div class="spec-vs font-medium text-[10px] tracking-wide">vs</div>
@@ -7020,8 +7065,8 @@
               ${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}
             </div>
             ${m.proj ? `<div class="mt-1 text-center text-[10px] spec-muted">Est. ${m.proj.pctA}% – ${m.proj.pctB}%</div>` : ''}
-          </div>
-        `).join('');
+          </div>`;
+        }).join('');
         // Shrink names so full text is visible on the card
         requestAnimationFrame(() => fitSpectatorTeamNames(matchesEl));
       }
