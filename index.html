@@ -547,7 +547,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.32 · Updated Sep 22, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.33 · Updated Sep 22, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -560,10 +560,13 @@
           <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Players</h2>
           <p class="text-sm text-slate-500 mt-1">Your roster for draws and rankings</p>
         </div>
-        <button onclick="openPlayerModal()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2 shrink-0">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-          Add
-        </button>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" onclick="openMergePlayersModal()" class="btn-ghost px-3 py-2.5 rounded-xl font-semibold text-sm text-slate-700">Merge</button>
+          <button onclick="openPlayerModal()" class="btn-primary px-4 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Add
+          </button>
+        </div>
       </div>
 
       <div class="surface-card rounded-2xl overflow-hidden">
@@ -1179,6 +1182,27 @@
     </div>
   </div>
 
+  <!-- Merge Players Modal -->
+  <div id="merge-players-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
+    <div class="surface-card rounded-3xl w-full max-w-md p-6 space-y-5 shadow-2xl">
+      <h3 class="text-lg font-bold text-slate-900">Merge players</h3>
+      <p class="text-sm text-slate-500 leading-relaxed">Combine two roster entries that are the same person (e.g. a typo). All matches, sit-outs, brackets, and ranking history from the duplicate are moved onto the player you keep. The duplicate is then removed.</p>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Keep (correct name)</label>
+        <select id="merge-keep-id" class="input-field w-full rounded-xl px-4 py-3 text-slate-800"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Merge away (duplicate / typo)</label>
+        <select id="merge-remove-id" class="input-field w-full rounded-xl px-4 py-3 text-slate-800"></select>
+      </div>
+      <p class="text-[11px] text-slate-500">Export a backup first if you can. Club ranking is rebuilt from bracket results after merge.</p>
+      <div class="flex gap-3 pt-1">
+        <button type="button" onclick="closeMergePlayersModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
+        <button type="button" onclick="confirmMergePlayers()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white">Merge</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Score Modal -->
   <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
     <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
@@ -1231,7 +1255,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.32';
+    const APP_VERSION = '5.33';
     const APP_UPDATED = 'Sep 22, 2026';
 
     let state = {
@@ -1748,6 +1772,241 @@
       renderPlayers();
       if (state.currentTournamentId) renderTournament();
       toast('Player deleted');
+    }
+
+    // ==================== MERGE PLAYERS ====================
+    function openMergePlayersModal() {
+      if ((state.players || []).length < 2) {
+        toast('Need at least 2 players to merge', 'error');
+        return;
+      }
+      const sorted = state.players.slice().sort((a, b) => a.name.localeCompare(b.name));
+      const opts = sorted.map(p =>
+        `<option value="${p.id}">${escapeHtml(p.name)}</option>`
+      ).join('');
+      const keepSel = document.getElementById('merge-keep-id');
+      const remSel = document.getElementById('merge-remove-id');
+      if (!keepSel || !remSel) return;
+      keepSel.innerHTML = opts;
+      remSel.innerHTML = opts;
+      // Default: first as keep, second as remove when possible
+      if (sorted.length >= 2) {
+        keepSel.value = sorted[0].id;
+        remSel.value = sorted[1].id;
+      }
+      document.getElementById('merge-players-modal').classList.remove('hidden');
+    }
+
+    function closeMergePlayersModal() {
+      const el = document.getElementById('merge-players-modal');
+      if (el) el.classList.add('hidden');
+    }
+
+    /** Dedupe id list, preserving first occurrence order. */
+    function dedupeIds(arr) {
+      if (!Array.isArray(arr)) return arr;
+      const seen = new Set();
+      const out = [];
+      arr.forEach(id => {
+        if (id == null || id === '') return;
+        if (seen.has(id)) return;
+        seen.add(id);
+        out.push(id);
+      });
+      return out;
+    }
+
+    function rewriteIdList(arr, fromId, toId) {
+      if (!Array.isArray(arr)) return arr;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i] === fromId) arr[i] = toId;
+      }
+      return dedupeIds(arr);
+    }
+
+    function refreshTeamNameFromRoster(team) {
+      if (!team || !Array.isArray(team.playerIds) || !team.playerIds.length) return;
+      if (typeof formatTeamDisplayName === 'function') {
+        team.name = formatTeamDisplayName(team.playerIds, team.positions);
+      } else {
+        team.name = team.playerIds.map(id => {
+          const p = state.players.find(x => x.id === id);
+          return p ? p.name : '?';
+        }).join(' + ');
+      }
+    }
+
+    /** Rewrite a match/placement entity that may use id and/or playerIds and name. */
+    function rewritePlayerEntity(ent, fromId, toId, keepName) {
+      if (!ent || typeof ent !== 'object') return;
+      if (ent.id === fromId) {
+        ent.id = toId;
+        if (ent.type === 'player' || (!ent.playerIds && keepName)) ent.name = keepName;
+      }
+      if (Array.isArray(ent.playerIds)) {
+        ent.playerIds = rewriteIdList(ent.playerIds, fromId, toId);
+        if (ent.playerIds.length >= 1) refreshTeamNameFromRoster(ent);
+      } else if (ent.name && typeof ent.name === 'string' && ent.name.includes('+')) {
+        // Name-only team label: swap display name fragments when exact match
+        // (ids handled via playoffTeams); light touch for leftover labels
+      }
+      if (ent.positions && typeof ent.positions === 'object' && ent.positions[fromId] != null) {
+        ent.positions[toId] = ent.positions[fromId];
+        delete ent.positions[fromId];
+      }
+      if (ent.tieredFrom) {
+        if (ent.tieredFrom.top === fromId) ent.tieredFrom.top = toId;
+        if (ent.tieredFrom.bottom === fromId) ent.tieredFrom.bottom = toId;
+      }
+    }
+
+    function rewriteBracketSide(side, fromId, toId, keepName) {
+      if (!side) return;
+      if (side.entity) rewritePlayerEntity(side.entity, fromId, toId, keepName);
+    }
+
+    function rewriteMatchPlayerIds(m, fromId, toId, keepName) {
+      if (!m) return;
+      rewritePlayerEntity(m.entityA, fromId, toId, keepName);
+      rewritePlayerEntity(m.entityB, fromId, toId, keepName);
+      rewriteBracketSide(m.a, fromId, toId, keepName);
+      rewriteBracketSide(m.b, fromId, toId, keepName);
+    }
+
+    /**
+     * Option A: merge removeId into keepId across the whole club dataset.
+     * All historical matches and events that referenced the duplicate now reference the kept player.
+     */
+    function mergePlayerRecords(keepId, removeId) {
+      const keep = state.players.find(p => p.id === keepId);
+      const remove = state.players.find(p => p.id === removeId);
+      if (!keep || !remove) throw new Error('Player not found');
+      if (keepId === removeId) throw new Error('Pick two different players');
+
+      const keepName = keep.name;
+
+      (state.tournaments || []).forEach(t => {
+        if (Array.isArray(t.playerIds)) t.playerIds = rewriteIdList(t.playerIds, removeId, keepId);
+        if (Array.isArray(t.absentIds)) t.absentIds = rewriteIdList(t.absentIds, removeId, keepId);
+        if (Array.isArray(t.currentSitOutIds)) t.currentSitOutIds = rewriteIdList(t.currentSitOutIds, removeId, keepId);
+
+        (t.rounds || []).forEach(r => {
+          if (Array.isArray(r.sitOutIds)) r.sitOutIds = rewriteIdList(r.sitOutIds, removeId, keepId);
+          (r.teams || []).forEach(team => {
+            if (Array.isArray(team.playerIds)) {
+              team.playerIds = rewriteIdList(team.playerIds, removeId, keepId);
+              refreshTeamNameFromRoster(team);
+            }
+          });
+          (r.matches || []).forEach(m => rewriteMatchPlayerIds(m, removeId, keepId, keepName));
+        });
+
+        (t.teams || []).forEach(team => {
+          if (Array.isArray(team.playerIds)) {
+            team.playerIds = rewriteIdList(team.playerIds, removeId, keepId);
+            refreshTeamNameFromRoster(team);
+          }
+        });
+        (t.playoffTeams || []).forEach(team => {
+          if (Array.isArray(team.playerIds)) {
+            team.playerIds = rewriteIdList(team.playerIds, removeId, keepId);
+            refreshTeamNameFromRoster(team);
+          }
+          if (team.tieredFrom) {
+            if (team.tieredFrom.top === removeId) team.tieredFrom.top = keepId;
+            if (team.tieredFrom.bottom === removeId) team.tieredFrom.bottom = keepId;
+          }
+        });
+
+        // Ranking deltas map: fold remove into keep (rebuild will fix totals)
+        if (t.rankingDeltas && typeof t.rankingDeltas === 'object') {
+          const a = Number(t.rankingDeltas[keepId]) || 0;
+          const b = Number(t.rankingDeltas[removeId]) || 0;
+          if (removeId in t.rankingDeltas) {
+            t.rankingDeltas[keepId] = a + b;
+            delete t.rankingDeltas[removeId];
+          }
+        }
+
+        // Placements
+        const pl = t.placements || t.playoffs?.placements;
+        if (pl) {
+          ['first', 'second', 'third'].forEach(k => {
+            if (pl[k]) rewritePlayerEntity(pl[k], removeId, keepId, keepName);
+          });
+        }
+        if (t.playoffs) {
+          if (t.placements && t.playoffs.placements && t.placements !== t.playoffs.placements) {
+            ['first', 'second', 'third'].forEach(k => {
+              if (t.playoffs.placements[k]) rewritePlayerEntity(t.playoffs.placements[k], removeId, keepId, keepName);
+            });
+          }
+          const all = (typeof collectBracketMatches === 'function')
+            ? collectBracketMatches(t.playoffs)
+            : [];
+          all.forEach(m => rewriteMatchPlayerIds(m, removeId, keepId, keepName));
+        }
+      });
+
+      // Drop duplicate roster row
+      state.players = state.players.filter(p => p.id !== removeId);
+
+      if (state.profilePlayerId === removeId) state.profilePlayerId = keepId;
+      if (state.editingPlayerId === removeId) state.editingPlayerId = null;
+
+      // Rebuild club ranking from bracket results so points are not double-counted
+      let ranked = 0;
+      if (typeof recalculateClubRankingsFromEvents === 'function') {
+        ranked = recalculateClubRankingsFromEvents() || 0;
+      }
+
+      return { keepName, removeName: remove.name, ranked };
+    }
+
+    function confirmMergePlayers() {
+      const keepId = document.getElementById('merge-keep-id')?.value;
+      const removeId = document.getElementById('merge-remove-id')?.value;
+      if (!keepId || !removeId) {
+        toast('Select both players', 'error');
+        return;
+      }
+      if (keepId === removeId) {
+        toast('Choose two different players', 'error');
+        return;
+      }
+      const keep = state.players.find(p => p.id === keepId);
+      const remove = state.players.find(p => p.id === removeId);
+      if (!keep || !remove) {
+        toast('Player not found', 'error');
+        return;
+      }
+      const msg =
+        `Merge "${remove.name}" into "${keep.name}"?\n\n` +
+        `• All of ${remove.name}'s matches, sit-outs, and bracket results become ${keep.name}'s\n` +
+        `• "${remove.name}" is removed from the roster\n` +
+        `• Club ranking is rebuilt from events\n\n` +
+        `This cannot be undone (export a backup first).`;
+      if (!confirm(msg)) return;
+      try {
+        const result = mergePlayerRecords(keepId, removeId);
+        saveState();
+        closeMergePlayersModal();
+        renderPlayers();
+        renderHome();
+        if (state.currentTournamentId) renderTournament();
+        if (typeof renderStats === 'function') {
+          const sv = document.getElementById('view-stats');
+          if (sv && !sv.classList.contains('hidden')) renderStats();
+        }
+        toast(
+          `Merged ${result.removeName} → ${result.keepName}` +
+            (result.ranked ? ` · ranking from ${result.ranked} event(s)` : ''),
+          'success'
+        );
+      } catch (e) {
+        console.error(e);
+        toast(e.message || 'Merge failed', 'error');
+      }
     }
 
     function renderPlayers() {
