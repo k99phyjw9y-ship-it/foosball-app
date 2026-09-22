@@ -83,13 +83,10 @@
         );
         return out;
       }
-      /* The live TV board is always dark, so it keeps the original (light-theme) scales whatever theme is picked. */
+      /* TV board uses the same theme tokens as the rest of the app (Pitch / Lake / Night / …). */
       function spectatorVars(t) {
-        var out = [];
-        emit('slate', PAL.slate, out);
-        emit('accent', PAL[t.accent], out);
-        ['amber', 'red', 'violet', 'sky'].forEach(function (k) { emit(k, PAL[k], out); });
-        return '#view-spectator{' + out.join(';') + '}';
+        /* No override palette — #view-spectator inherits :root from build(t). */
+        return '';
       }
       function find(id) { for (var i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) return THEMES[i]; return null; }
       function resolve(pref) {
@@ -335,6 +332,46 @@
     /* Light-mode readability helpers for common dark utility leftovers */
     .text-on-surface { color: var(--text); }
 
+    /* TV / spectator board follows active color theme */
+    #view-spectator {
+      background: var(--bg) !important;
+      color: var(--text);
+    }
+    #view-spectator .spec-kicker { color: var(--accent); }
+    #view-spectator .spec-muted { color: var(--text-muted); }
+    #view-spectator .spec-title { color: var(--text); }
+    #view-spectator .spec-control {
+      background: var(--raised);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
+      border-radius: 0.75rem;
+    }
+    #view-spectator .spec-control:hover { background: var(--overlay); }
+    #view-spectator .spec-card {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 20px -8px rgb(var(--ink) / 0.25);
+    }
+    #view-spectator .spec-score { color: var(--accent); }
+    #view-spectator .spec-vs { color: var(--text-muted); }
+    #view-spectator .spec-team-name { color: var(--text); }
+    #view-spectator .spec-standings-wrap {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      overflow: hidden;
+    }
+    #view-spectator .spec-standings-wrap table { color: var(--text); }
+    #view-spectator .spec-standings-wrap th { color: var(--text-muted); border-color: var(--border); }
+    #view-spectator .spec-standings-wrap td { border-color: var(--border); }
+    #view-spectator .spec-pts { color: var(--accent); font-weight: 700; }
+    #view-spectator .spec-empty {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
     /* ---- Quick score tap targets ---- */
     .quick-chip {
       height: 44px; border-radius: 12px; font-weight: 700; font-size: 1.05rem; line-height: 1;
@@ -477,7 +514,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.30 · Updated Sep 22, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.31 · Updated Sep 22, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -523,33 +560,33 @@
     </div>
 
     <!-- SPECTATOR / TV BOARD -->
-    <div id="view-spectator" class="hidden fixed inset-0 z-[100] bg-slate-950 text-white overflow-auto">
+    <div id="view-spectator" class="hidden fixed inset-0 z-[100] overflow-auto">
       <div class="min-h-full p-3 sm:p-4 max-w-[1800px] mx-auto">
         <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
           <div class="min-w-0">
-            <p class="text-[10px] font-semibold uppercase tracking-widest text-emerald-400/90">LCFC · Live</p>
-            <h2 class="text-xl sm:text-2xl font-bold tracking-tight mt-0.5 truncate" id="spec-title">Spectator</h2>
-            <p class="text-xs text-slate-500 mt-0.5" id="spec-meta"></p>
+            <p class="text-[10px] font-semibold uppercase tracking-widest spec-kicker">LCFC · Live</p>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight mt-0.5 truncate spec-title" id="spec-title">Spectator</h2>
+            <p class="text-xs spec-muted mt-0.5" id="spec-meta"></p>
           </div>
           <div class="flex flex-wrap gap-2">
-            <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="rounded-xl bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 text-sm max-w-[14rem]"></select>
-            <button type="button" onclick="toggleSpectatorFullscreen()" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-3 py-2 text-sm font-medium">Fullscreen</button>
-            <button type="button" onclick="closeSpectator()" class="rounded-xl bg-slate-800 hover:bg-slate-700 px-3 py-2 text-sm font-medium">Exit</button>
+            <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="spec-control px-3 py-2 text-sm max-w-[14rem]"></select>
+            <button type="button" onclick="toggleSpectatorFullscreen()" class="spec-control px-3 py-2 text-sm font-medium">Fullscreen</button>
+            <button type="button" onclick="closeSpectator()" class="spec-control px-3 py-2 text-sm font-medium">Exit</button>
           </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
           <div class="lg:col-span-8 space-y-2 min-w-0">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Now playing</h3>
+            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted">Now playing</h3>
             <div id="spec-matches" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
           </div>
           <div class="lg:col-span-4 space-y-2 min-w-0">
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Standings</h3>
-            <div id="spec-standings" class="rounded-xl bg-slate-900/80 border border-slate-800 overflow-hidden"></div>
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mt-3">Recent</h3>
+            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted">Standings</h3>
+            <div id="spec-standings" class="spec-standings-wrap"></div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mt-3">Recent</h3>
             <div id="spec-recent" class="space-y-1.5 text-sm leading-snug"></div>
           </div>
         </div>
-        <p class="text-center text-[11px] text-slate-600 mt-10">Auto-refreshes every 5s · read-only</p>
+        <p class="text-center text-[11px] spec-muted mt-10">Auto-refreshes every 5s · read-only · follows color theme</p>
       </div>
     </div>
 
@@ -1161,7 +1198,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.30';
+    const APP_VERSION = '5.31';
     const APP_UPDATED = 'Sep 22, 2026';
 
     let state = {
@@ -6969,20 +7006,20 @@
       });
 
       if (!live.length) {
-        matchesEl.innerHTML = '<div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-center text-slate-400">No live matches — draw a round or enter scores</div>';
+        matchesEl.innerHTML = '<div class="spec-empty rounded-2xl border p-6 text-center">No live matches — draw a round or enter scores</div>';
       } else {
         matchesEl.innerHTML = live.map(m => `
-          <div class="rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2.5 sm:px-3.5 sm:py-3">
-            <div class="text-[10px] text-slate-500 mb-1.5">${m.onDeck ? 'On deck · ' : ''}${m.table ? 'T' + m.table + ' · ' : ''}${m.round}</div>
+          <div class="spec-card px-3 py-2.5 sm:px-3.5 sm:py-3">
+            <div class="text-[10px] spec-muted mb-1.5">${m.onDeck ? 'On deck · ' : ''}${m.table ? 'T' + m.table + ' · ' : ''}${m.round}</div>
             <div class="space-y-0.5 text-center">
-              <div class="spec-team-name font-semibold text-white leading-tight px-0.5" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
-              <div class="text-slate-600 font-medium text-[10px] tracking-wide">vs</div>
-              <div class="spec-team-name font-semibold text-white leading-tight px-0.5" title="${escapeHtml(m.nameB)}">${escapeHtml(m.nameB)}</div>
+              <div class="spec-team-name font-semibold leading-tight px-0.5" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
+              <div class="spec-vs font-medium text-[10px] tracking-wide">vs</div>
+              <div class="spec-team-name font-semibold leading-tight px-0.5" title="${escapeHtml(m.nameB)}">${escapeHtml(m.nameB)}</div>
             </div>
-            <div class="mt-2 text-center text-xl sm:text-2xl font-black tracking-tight text-emerald-400">
+            <div class="mt-2 text-center text-xl sm:text-2xl font-black tracking-tight spec-score">
               ${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}
             </div>
-            ${m.proj ? `<div class="mt-1 text-center text-[10px] text-slate-500">Est. ${m.proj.pctA}% – ${m.proj.pctB}%</div>` : ''}
+            ${m.proj ? `<div class="mt-1 text-center text-[10px] spec-muted">Est. ${m.proj.pctA}% – ${m.proj.pctB}%</div>` : ''}
           </div>
         `).join('');
         // Shrink names so full text is visible on the card
@@ -6993,31 +7030,31 @@
       let standings = [];
       try { standings = typeof computeStandings === 'function' ? computeStandings(t) : []; } catch (e) {}
       if (!standings.length) {
-        standEl.innerHTML = '<p class="p-4 text-slate-500 text-sm">No standings yet</p>';
+        standEl.innerHTML = '<p class="p-4 spec-muted text-sm">No standings yet</p>';
       } else {
         standEl.innerHTML = `<table class="w-full text-sm sm:text-base leading-snug">
-          <thead><tr class="text-slate-400 text-left border-b border-slate-800">
+          <thead><tr class="text-left border-b">
             <th class="pl-3 pr-1 py-2.5 font-medium w-8">#</th>
             <th class="px-2 py-2.5 font-medium">Player</th>
             <th class="px-2 py-2.5 text-right font-medium">Pts</th>
             <th class="pl-2 pr-3 py-2.5 text-right font-medium">GD</th>
           </tr></thead>
           <tbody>${standings.slice(0, 14).map((s, i) => `
-            <tr class="border-t border-slate-800/80">
-              <td class="pl-3 pr-1 py-2.5 text-slate-500">${i + 1}</td>
-              <td class="px-2 py-2.5 font-semibold text-white break-words">${escapeHtml(s.name)}</td>
-              <td class="px-2 py-2.5 text-right text-emerald-400 font-bold">${s.pts}</td>
-              <td class="pl-2 pr-3 py-2.5 text-right text-slate-300">${s.gd > 0 ? '+' : ''}${s.gd}</td>
+            <tr class="border-t">
+              <td class="pl-3 pr-1 py-2.5 spec-muted">${i + 1}</td>
+              <td class="px-2 py-2.5 font-semibold break-words">${escapeHtml(s.name)}</td>
+              <td class="px-2 py-2.5 text-right spec-pts">${s.pts}</td>
+              <td class="pl-2 pr-3 py-2.5 text-right">${s.gd > 0 ? '+' : ''}${s.gd}</td>
             </tr>`).join('')}</tbody></table>`;
       }
 
       if (recentEl) {
         const recent = recentDone.slice(-8).reverse();
         recentEl.innerHTML = recent.length ? recent.map(m => `
-          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 text-slate-300 py-1.5 border-b border-slate-800/50">
-            <span class="min-w-0 leading-snug break-words">${escapeHtml(m.nameA)} <span class="text-slate-500">vs</span> ${escapeHtml(m.nameB)}</span>
-            <span class="font-semibold text-white shrink-0">${m.scoreA}–${m.scoreB}</span>
-          </div>`).join('') : '<p class="text-slate-500">No completed matches yet</p>';
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 py-1.5 border-b" style="border-color:var(--border)">
+            <span class="min-w-0 leading-snug break-words">${escapeHtml(m.nameA)} <span class="spec-muted">vs</span> ${escapeHtml(m.nameB)}</span>
+            <span class="font-semibold shrink-0">${m.scoreA}–${m.scoreB}</span>
+          </div>`).join('') : '<p class="spec-muted">No completed matches yet</p>';
       }
     }
 
@@ -7109,6 +7146,10 @@
       renderThemeMenu();
       const sv = document.getElementById('view-stats');
       if (sv && !sv.classList.contains('hidden')) renderStats();
+      const tv = document.getElementById('view-spectator');
+      if (tv && !tv.classList.contains('hidden')) {
+        try { renderSpectatorBoard(); } catch (e) {}
+      }
     });
 
     // ==================== INIT ====================
