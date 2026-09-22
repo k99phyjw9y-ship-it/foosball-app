@@ -547,7 +547,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.33 · Updated Sep 22, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.34 · Updated Sep 22, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1255,7 +1255,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.33';
+    const APP_VERSION = '5.34';
     const APP_UPDATED = 'Sep 22, 2026';
 
     let state = {
@@ -2187,6 +2187,7 @@
       if (n === (parseInt(t.tables, 10) || 2)) return;
       t.tables = n;
       assignBracketTables(t);
+      assignRankingRoundTables(t);
       saveState();
       renderTournament();
       renderHome();
@@ -3201,9 +3202,12 @@
           scoreA: null,
           scoreB: null,
           table: tableNum,
+          onDeck: matches.length >= tableCount,
           status: 'pending'
         });
       }
+      // Finalize table / on-deck for this wave of pending matches
+      assignRankingRoundTablesForMatches(matches, t);
 
       t.currentRound += 1;
       const sitOutIds = (t.type === 'monster' || t.type === 'dyp')
@@ -3922,6 +3926,32 @@
     }
 
     // ==================== MATCHES & SCORES ====================
+    /**
+     * Ranking / monster rounds: one live match per table.
+     * Pending matches beyond table count are On deck (same idea as bracket playoffs).
+     * Finished matches keep their last assigned table for history.
+     */
+    function assignRankingRoundTablesForMatches(matches, t) {
+      if (!matches || !matches.length) return;
+      const tableCount = Math.max(1, parseInt(t?.tables, 10) || 1);
+      const pending = matches.filter(m => m && m.status !== 'done');
+      pending.forEach((m, i) => {
+        m.table = (i % tableCount) + 1;
+        m.onDeck = i >= tableCount;
+      });
+      matches.forEach(m => {
+        if (m && m.status === 'done') delete m.onDeck;
+      });
+    }
+
+    function assignRankingRoundTables(t, roundNumber) {
+      if (!t?.rounds) return;
+      const rounds = roundNumber != null
+        ? t.rounds.filter(r => r.number === roundNumber)
+        : t.rounds;
+      rounds.forEach(r => assignRankingRoundTablesForMatches(r.matches || [], t));
+    }
+
     function renderMatches(t) {
       const container = document.getElementById('matches-list');
       const noMatches = document.getElementById('no-matches');
@@ -3933,6 +3963,9 @@
         return;
       }
       noMatches.classList.add('hidden');
+
+      // Keep on-deck badges in sync (e.g. after scores free a table)
+      assignRankingRoundTables(t);
 
       const isLatest = (num) => num === t.currentRound;
 
@@ -3950,12 +3983,19 @@
               : 'vs');
           const winnerA = done && ((tall ? tall.seriesA > tall.seriesB : m.scoreA > m.scoreB));
           const winnerB = done && ((tall ? tall.seriesB > tall.seriesA : m.scoreB > m.scoreA));
+          const tableBadge = done
+            ? `<span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">Table ${m.table || '—'}</span>`
+            : (m.onDeck
+              ? `<span class="badge px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">On deck · T${m.table}</span>`
+              : `<span class="badge px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Table ${m.table}</span>`);
+          const statusLabel = done ? 'Finished' : (m.onDeck ? 'On deck' : 'Playing');
+          const statusColor = done ? 'text-emerald-600' : (m.onDeck ? 'text-slate-500' : 'text-amber-600');
           return `
-            <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : 'ring-1 ring-emerald-200'}">
+            <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : (m.onDeck ? 'ring-1 ring-slate-200' : 'ring-1 ring-emerald-200')}">
               <div class="flex items-center justify-between mb-3">
-                <span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">Table ${m.table}</span>
+                ${tableBadge}
                 <div class="flex items-center gap-2">
-                  <span class="text-[11px] font-semibold ${done ? 'text-emerald-600' : 'text-amber-600'}">${done ? 'Finished' : 'Pending'}</span>
+                  <span class="text-[11px] font-semibold ${statusColor}">${statusLabel}</span>
                   <button onclick="deleteMatch(${round.number}, '${m.id}')" class="text-[11px] font-semibold text-red-500 hover:text-red-700 px-1.5 py-0.5 rounded hover:bg-red-50 transition" title="Delete match">Delete</button>
                 </div>
               </div>
@@ -7279,7 +7319,7 @@
           const nameB = m.entityB?.name || 'TBD';
           const done = m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB);
           const proj = (!done && m.entityA && m.entityB) ? projectMatchWinPct(m.entityA, m.entityB) : null;
-          const row = { round: r.number, nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table, done, proj };
+          const row = { round: r.number, nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table, done, proj, onDeck: !!m.onDeck };
           if (done) recentDone.push(row);
           else live.push(row);
         });
