@@ -547,7 +547,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.36 · Updated Sep 23, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.37 · Updated Sep 23, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1256,7 +1256,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.36';
+    const APP_VERSION = '5.37';
     const APP_UPDATED = 'Sep 23, 2026';
 
     let state = {
@@ -4089,30 +4089,86 @@
      * Finished matches keep their last assigned table for history.
      * Timers: only live matches; when a match leaves on-deck, start 30s grace then.
      */
+    /**
+     * Table assignment that does NOT reshuffle live matches.
+     * - Matches already playing keep their table + timer
+     * - When a table frees (score entered), the next on-deck match gets THAT table
+     * - Example: T1 finishes → next on-deck becomes active on T1; T2 still playing stays on T2
+     */
     function assignRankingRoundTablesForMatches(matches, t) {
       if (!matches || !matches.length) return;
       const tableCount = Math.max(1, parseInt(t?.tables, 10) || 1);
-      const pending = matches.filter(m => m && m.status !== 'done');
       const now = Date.now();
-      pending.forEach((m, i) => {
-        const wasOnDeck = !!m.onDeck;
-        const hadTimer = m.timerStartAt != null && !m.timerEndedAt;
-        m.table = (i % tableCount) + 1;
-        m.onDeck = i >= tableCount;
-        if (m.onDeck) {
-          // Still waiting — never run the clock
-          delete m.timerStartAt;
-          delete m.timerEndedAt;
-        } else if (wasOnDeck || !hadTimer) {
-          // Just got a table (or first assignment as live) — start grace from now
-          m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
-          delete m.timerEndedAt;
-        }
-        // else: already live with an active timer — leave it running
-      });
+
       matches.forEach(m => {
         if (m && m.status === 'done') delete m.onDeck;
       });
+
+      const pending = matches.filter(m => m && m.status !== 'done');
+      if (!pending.length) {
+        ensureMatchTimerTicker();
+        return;
+      }
+
+      // Live = already at a table (not marked on-deck), keep seats
+      const occupied = new Set();
+      const live = [];
+      pending.forEach(m => {
+        const tnum = parseInt(m.table, 10);
+        if (!m.onDeck && tnum >= 1 && tnum <= tableCount && !occupied.has(tnum)) {
+          occupied.add(tnum);
+          live.push(m);
+          m.onDeck = false;
+        }
+      });
+
+      // Queue = everyone still waiting (preserve draw order)
+      const queue = pending.filter(m => !live.includes(m));
+
+      // Fresh draw: nothing live yet — seat first wave on T1..Tn
+      if (!live.length) {
+        pending.forEach((m, i) => {
+          m.table = (i % tableCount) + 1;
+          m.onDeck = i >= tableCount;
+          if (m.onDeck) {
+            delete m.timerStartAt;
+            delete m.timerEndedAt;
+          } else {
+            m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
+            delete m.timerEndedAt;
+          }
+        });
+        ensureMatchTimerTicker();
+        return;
+      }
+
+      // Free tables in order (T1, T2, …) so a finished T1 opens T1 for next on-deck
+      const free = [];
+      for (let n = 1; n <= tableCount; n++) {
+        if (!occupied.has(n)) free.push(n);
+      }
+
+      free.forEach((tableNum, i) => {
+        const m = queue[i];
+        if (!m) return;
+        const wasOnDeck = !!m.onDeck;
+        m.table = tableNum;
+        m.onDeck = false;
+        if (wasOnDeck || !(m.timerStartAt && !m.timerEndedAt)) {
+          m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
+          delete m.timerEndedAt;
+        }
+      });
+
+      // Remaining stay on deck; label preferred next table for display
+      queue.slice(free.length).forEach((m, i) => {
+        m.onDeck = true;
+        // Hint: next free slot pattern (first waiter → first free table when available)
+        m.table = free.length ? free[i % free.length] : ((i % tableCount) + 1);
+        delete m.timerStartAt;
+        delete m.timerEndedAt;
+      });
+
       ensureMatchTimerTicker();
     }
 
@@ -5151,28 +5207,83 @@
       const all = (typeof collectBracketMatches === 'function')
         ? collectBracketMatches(t.playoffs)
         : [];
+      const now = Date.now();
+
+      // Clear table only for matches not ready / already finished
       all.forEach(m => {
         if (!m) return;
-        delete m.table;
-        delete m.onDeck;
-      });
-      const ready = all.filter(isBracketMatchReady);
-      const now = Date.now();
-      ready.forEach((m, i) => {
-        const wasOnDeck = !!m.onDeck;
-        const hadTimer = m.timerStartAt != null && !m.timerEndedAt;
-        m.table = (i % tableCount) + 1;
-        m.onDeck = i >= tableCount;
-        if (m.onDeck) {
-          // Waiting for a free table — do not start timer
+        if (m.winner || m._byePropagated) {
+          delete m.onDeck;
+          return;
+        }
+        if (!isBracketMatchReady(m)) {
+          delete m.table;
+          delete m.onDeck;
           delete m.timerStartAt;
           delete m.timerEndedAt;
-        } else if (wasOnDeck || !hadTimer) {
-          // Promoted from on-deck or newly live — 30s grace then clock
+        }
+      });
+
+      const ready = all.filter(isBracketMatchReady);
+      if (!ready.length) {
+        ensureMatchTimerTicker();
+        return;
+      }
+
+      const occupied = new Set();
+      const live = [];
+      ready.forEach(m => {
+        const tnum = parseInt(m.table, 10);
+        if (!m.onDeck && tnum >= 1 && tnum <= tableCount && !occupied.has(tnum)) {
+          occupied.add(tnum);
+          live.push(m);
+          m.onDeck = false;
+        }
+      });
+
+      const queue = ready.filter(m => !live.includes(m));
+
+      // Fresh bracket wave
+      if (!live.length) {
+        ready.forEach((m, i) => {
+          m.table = (i % tableCount) + 1;
+          m.onDeck = i >= tableCount;
+          if (m.onDeck) {
+            delete m.timerStartAt;
+            delete m.timerEndedAt;
+          } else if (!(m.timerStartAt && !m.timerEndedAt)) {
+            m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
+            delete m.timerEndedAt;
+          }
+        });
+        ensureMatchTimerTicker();
+        return;
+      }
+
+      const free = [];
+      for (let n = 1; n <= tableCount; n++) {
+        if (!occupied.has(n)) free.push(n);
+      }
+
+      free.forEach((tableNum, i) => {
+        const m = queue[i];
+        if (!m) return;
+        const wasOnDeck = !!m.onDeck;
+        m.table = tableNum;
+        m.onDeck = false;
+        if (wasOnDeck || !(m.timerStartAt && !m.timerEndedAt)) {
           m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
           delete m.timerEndedAt;
         }
       });
+
+      queue.slice(free.length).forEach((m, i) => {
+        m.onDeck = true;
+        m.table = free.length ? free[i % free.length] : ((i % tableCount) + 1);
+        delete m.timerStartAt;
+        delete m.timerEndedAt;
+      });
+
       ensureMatchTimerTicker();
     }
 
