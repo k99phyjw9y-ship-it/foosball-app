@@ -547,7 +547,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.35 · Updated Sep 23, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.36 · Updated Sep 23, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1256,7 +1256,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.35';
+    const APP_VERSION = '5.36';
     const APP_UPDATED = 'Sep 23, 2026';
 
     let state = {
@@ -3960,7 +3960,8 @@
      * phase: grace | running | done | none
      */
     function getMatchTimerState(match) {
-      if (!match || match.timerStartAt == null) return { phase: 'none', text: '', detail: '' };
+      if (!match || match.onDeck) return { phase: 'none', text: '', detail: '' };
+      if (match.timerStartAt == null) return { phase: 'none', text: '', detail: '' };
       const now = Date.now();
       const start = match.timerStartAt;
       if (match.status === 'done' || match.winner || match.timerEndedAt) {
@@ -4040,10 +4041,20 @@
       }, 1000);
     }
 
+    /**
+     * Arm match clocks only for live (not on-deck) matches.
+     * On-deck matches wait until a table frees (score entered) and they are promoted.
+     */
     function armTimersForNewMatches(matches, drawnAt) {
       const at = drawnAt || Date.now();
       (matches || []).forEach(m => {
         if (!m || m.status === 'done' || m.winner) return;
+        if (m.onDeck) {
+          // Waiting for a table — no clock yet
+          delete m.timerStartAt;
+          delete m.timerEndedAt;
+          return;
+        }
         m.timerStartAt = at + MATCH_TIMER_GRACE_MS;
         delete m.timerEndedAt;
       });
@@ -4059,6 +4070,11 @@
         const a = m.a?.entity || m.entityA;
         const b = m.b?.entity || m.entityB;
         if (!(a && b)) return;
+        if (m.onDeck) {
+          delete m.timerStartAt;
+          delete m.timerEndedAt;
+          return;
+        }
         if (m.timerStartAt && !m.timerEndedAt) return;
         m.timerStartAt = at + MATCH_TIMER_GRACE_MS;
         delete m.timerEndedAt;
@@ -4071,18 +4087,33 @@
      * Ranking / monster rounds: one live match per table.
      * Pending matches beyond table count are On deck (same idea as bracket playoffs).
      * Finished matches keep their last assigned table for history.
+     * Timers: only live matches; when a match leaves on-deck, start 30s grace then.
      */
     function assignRankingRoundTablesForMatches(matches, t) {
       if (!matches || !matches.length) return;
       const tableCount = Math.max(1, parseInt(t?.tables, 10) || 1);
       const pending = matches.filter(m => m && m.status !== 'done');
+      const now = Date.now();
       pending.forEach((m, i) => {
+        const wasOnDeck = !!m.onDeck;
+        const hadTimer = m.timerStartAt != null && !m.timerEndedAt;
         m.table = (i % tableCount) + 1;
         m.onDeck = i >= tableCount;
+        if (m.onDeck) {
+          // Still waiting — never run the clock
+          delete m.timerStartAt;
+          delete m.timerEndedAt;
+        } else if (wasOnDeck || !hadTimer) {
+          // Just got a table (or first assignment as live) — start grace from now
+          m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
+          delete m.timerEndedAt;
+        }
+        // else: already live with an active timer — leave it running
       });
       matches.forEach(m => {
         if (m && m.status === 'done') delete m.onDeck;
       });
+      ensureMatchTimerTicker();
     }
 
     function assignRankingRoundTables(t, roundNumber) {
@@ -5128,11 +5159,18 @@
       const ready = all.filter(isBracketMatchReady);
       const now = Date.now();
       ready.forEach((m, i) => {
+        const wasOnDeck = !!m.onDeck;
+        const hadTimer = m.timerStartAt != null && !m.timerEndedAt;
         m.table = (i % tableCount) + 1;
         m.onDeck = i >= tableCount;
-        // Arm clock 30s after match becomes ready (draw or advance)
-        if (!m.timerStartAt && !m.timerEndedAt) {
+        if (m.onDeck) {
+          // Waiting for a free table — do not start timer
+          delete m.timerStartAt;
+          delete m.timerEndedAt;
+        } else if (wasOnDeck || !hadTimer) {
+          // Promoted from on-deck or newly live — 30s grace then clock
           m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
+          delete m.timerEndedAt;
         }
       });
       ensureMatchTimerTicker();
