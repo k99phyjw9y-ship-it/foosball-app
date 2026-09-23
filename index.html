@@ -404,6 +404,35 @@
       font-weight: 600;
       text-transform: none;
     }
+    #view-spectator .spec-meta-timer,
+    #view-spectator .match-timer-badge {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.9375rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    @media (min-width: 640px) {
+      #view-spectator .spec-meta-timer,
+      #view-spectator .match-timer-badge { font-size: 1.05rem; }
+    }
+    #view-spectator .match-timer-badge.bg-amber-50,
+    #view-spectator .spec-meta-timer-grace {
+      background: rgb(var(--c-amber-500) / 0.15);
+      color: rgb(var(--c-amber-800));
+      border: 1px solid rgb(var(--c-amber-500) / 0.35);
+    }
+    #view-spectator .match-timer-badge.bg-sky-50,
+    #view-spectator .spec-meta-timer-run {
+      background: rgb(var(--c-sky-500) / 0.15);
+      color: rgb(var(--c-sky-800));
+      border: 1px solid rgb(var(--c-sky-500) / 0.35);
+    }
+    #view-spectator .match-timer-badge.bg-slate-50,
+    #view-spectator .spec-meta-timer-done {
+      background: rgb(var(--fg-rgb) / 0.06);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
 
     /* ---- Quick score tap targets ---- */
     .quick-chip {
@@ -547,7 +576,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.38 · Updated Sep 23, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.39 · Updated Sep 23, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1256,7 +1285,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.38';
+    const APP_VERSION = '5.39';
     const APP_UPDATED = 'Sep 23, 2026';
 
     let state = {
@@ -7527,6 +7556,7 @@
       document.body.style.overflow = 'hidden';
       populateSpectatorSelect();
       renderSpectatorBoard();
+      if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
       if (spectatorTimer) clearInterval(spectatorTimer);
       spectatorTimer = setInterval(() => {
         try { loadState(); } catch (e) {}
@@ -7633,7 +7663,11 @@
           const nameB = m.entityB?.name || 'TBD';
           const done = m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB);
           const proj = (!done && m.entityA && m.entityB) ? projectMatchWinPct(m.entityA, m.entityB) : null;
-          const row = { round: r.number, nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table, done, proj, onDeck: !!m.onDeck };
+          const row = {
+            round: r.number, nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table, done, proj,
+            onDeck: !!m.onDeck, matchId: m.id,
+            timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt, status: m.status || (done ? 'done' : 'pending')
+          };
           if (done) recentDone.push(row);
           else live.push(row);
         });
@@ -7646,7 +7680,11 @@
         const entA = m.a?.entity || m.entityA;
         const entB = m.b?.entity || m.entityB;
         const proj = (!done && entA && entB) ? projectMatchWinPct(entA, entB) : null;
-        const row = { round: m.bracket || 'bracket', nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table || null, done, proj, onDeck: !!m.onDeck };
+        const row = {
+          round: m.bracket || 'bracket', nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table || null, done, proj,
+          onDeck: !!m.onDeck, matchId: m.id,
+          timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt, status: done ? 'done' : 'pending', winner: m.winner || null
+        };
         if (done && m.scoreA != null) recentDone.push(row);
         else if (!done && (m.a?.entity || m.b?.entity || m.entityA)) live.push(row);
       });
@@ -7663,10 +7701,22 @@
               ? `<span class="spec-meta-chip spec-meta-deck">On deck · T${m.table}</span>`
               : `<span class="spec-meta-chip spec-meta-table">Table ${m.table}</span>`)
             : '';
+          // Live match timer (same clock as match cards / score modal)
+          const timerChip = (typeof matchTimerBadgeHtml === 'function')
+            ? matchTimerBadgeHtml({
+                id: m.matchId,
+                onDeck: m.onDeck,
+                timerStartAt: m.timerStartAt,
+                timerEndedAt: m.timerEndedAt,
+                status: m.status,
+                winner: m.winner || null
+              })
+            : '';
           return `
           <div class="spec-card px-3 py-2.5 sm:px-3.5 sm:py-3">
             <div class="spec-match-meta mb-2 flex flex-wrap items-center justify-center gap-1.5">
               ${tableChip}
+              ${timerChip}
               <span class="spec-meta-chip spec-meta-round">${escapeHtml(roundLabel)}</span>
             </div>
             <div class="space-y-0.5 text-center">
@@ -7682,6 +7732,8 @@
         }).join('');
         // Shrink names so full text is visible on the card
         requestAnimationFrame(() => fitSpectatorTeamNames(matchesEl));
+        if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
+        if (typeof refreshVisibleMatchTimers === 'function') refreshVisibleMatchTimers();
       }
 
       // Standings
