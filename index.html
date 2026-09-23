@@ -547,7 +547,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.37 · Updated Sep 23, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.38 · Updated Sep 23, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1256,7 +1256,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.37';
+    const APP_VERSION = '5.38';
     const APP_UPDATED = 'Sep 23, 2026';
 
     let state = {
@@ -4110,7 +4110,7 @@
         return;
       }
 
-      // Live = already at a table (not marked on-deck), keep seats
+      // Live matches keep their table; do not reshuffle
       const occupied = new Set();
       const live = [];
       pending.forEach(m => {
@@ -4122,10 +4122,10 @@
         }
       });
 
-      // Queue = everyone still waiting (preserve draw order)
       const queue = pending.filter(m => !live.includes(m));
 
-      // Fresh draw: nothing live yet — seat first wave on T1..Tn
+      // Fresh draw: assign T1..Tn live, then on-deck keeps the SAME table numbers and waits
+      // e.g. 2 tables: M0→T1 live, M1→T2 live, M2→On deck T1, M3→On deck T2
       if (!live.length) {
         pending.forEach((m, i) => {
           m.table = (i % tableCount) + 1;
@@ -4142,30 +4142,30 @@
         return;
       }
 
-      // Free tables in order (T1, T2, …) so a finished T1 opens T1 for next on-deck
+      // Ensure on-deck queue keeps a reserved table number (never steal another live table's number randomly)
+      queue.forEach((m, i) => {
+        const tnum = parseInt(m.table, 10);
+        if (!(tnum >= 1 && tnum <= tableCount)) {
+          m.table = (i % tableCount) + 1;
+        }
+        m.onDeck = true;
+        delete m.timerStartAt;
+        delete m.timerEndedAt;
+      });
+
+      // Free tables → promote only the on-deck match reserved for THAT table (FIFO if several wait for same T)
       const free = [];
       for (let n = 1; n <= tableCount; n++) {
         if (!occupied.has(n)) free.push(n);
       }
-
-      free.forEach((tableNum, i) => {
-        const m = queue[i];
+      const promoted = new Set();
+      free.forEach(tableNum => {
+        const m = queue.find(q => !promoted.has(q.id) && parseInt(q.table, 10) === tableNum);
         if (!m) return;
-        const wasOnDeck = !!m.onDeck;
+        promoted.add(m.id);
         m.table = tableNum;
         m.onDeck = false;
-        if (wasOnDeck || !(m.timerStartAt && !m.timerEndedAt)) {
-          m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
-          delete m.timerEndedAt;
-        }
-      });
-
-      // Remaining stay on deck; label preferred next table for display
-      queue.slice(free.length).forEach((m, i) => {
-        m.onDeck = true;
-        // Hint: next free slot pattern (first waiter → first free table when available)
-        m.table = free.length ? free[i % free.length] : ((i % tableCount) + 1);
-        delete m.timerStartAt;
+        m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
         delete m.timerEndedAt;
       });
 
@@ -5209,7 +5209,6 @@
         : [];
       const now = Date.now();
 
-      // Clear table only for matches not ready / already finished
       all.forEach(m => {
         if (!m) return;
         if (m.winner || m._byePropagated) {
@@ -5243,7 +5242,6 @@
 
       const queue = ready.filter(m => !live.includes(m));
 
-      // Fresh bracket wave
       if (!live.length) {
         ready.forEach((m, i) => {
           m.table = (i % tableCount) + 1;
@@ -5260,27 +5258,28 @@
         return;
       }
 
+      queue.forEach((m, i) => {
+        const tnum = parseInt(m.table, 10);
+        if (!(tnum >= 1 && tnum <= tableCount)) {
+          m.table = (i % tableCount) + 1;
+        }
+        m.onDeck = true;
+        delete m.timerStartAt;
+        delete m.timerEndedAt;
+      });
+
       const free = [];
       for (let n = 1; n <= tableCount; n++) {
         if (!occupied.has(n)) free.push(n);
       }
-
-      free.forEach((tableNum, i) => {
-        const m = queue[i];
+      const promoted = new Set();
+      free.forEach(tableNum => {
+        const m = queue.find(q => !promoted.has(q.id) && parseInt(q.table, 10) === tableNum);
         if (!m) return;
-        const wasOnDeck = !!m.onDeck;
+        promoted.add(m.id);
         m.table = tableNum;
         m.onDeck = false;
-        if (wasOnDeck || !(m.timerStartAt && !m.timerEndedAt)) {
-          m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
-          delete m.timerEndedAt;
-        }
-      });
-
-      queue.slice(free.length).forEach((m, i) => {
-        m.onDeck = true;
-        m.table = free.length ? free[i % free.length] : ((i % tableCount) + 1);
-        delete m.timerStartAt;
+        m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
         delete m.timerEndedAt;
       });
 
