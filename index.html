@@ -547,7 +547,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.34 · Updated Sep 22, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.35 · Updated Sep 23, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1207,6 +1207,7 @@
   <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
     <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
       <h3 class="text-lg font-bold text-center text-slate-900" id="score-modal-title">Enter Score</h3>
+      <div id="score-match-timer" class="hidden text-center font-mono text-sm font-semibold tracking-wide text-slate-600" aria-live="polite"></div>
       <div id="score-series-banner" class="hidden rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-center">
         <div class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80" id="score-series-label">Best of 3</div>
         <div class="text-sm font-bold text-slate-800 mt-0.5" id="score-series-score">Games 0 – 0</div>
@@ -1255,8 +1256,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.34';
-    const APP_UPDATED = 'Sep 22, 2026';
+    const APP_VERSION = '5.35';
+    const APP_UPDATED = 'Sep 23, 2026';
 
     let state = {
       players: [],
@@ -3208,6 +3209,7 @@
       }
       // Finalize table / on-deck for this wave of pending matches
       assignRankingRoundTablesForMatches(matches, t);
+      armTimersForNewMatches(matches);
 
       t.currentRound += 1;
       const sitOutIds = (t.type === 'monster' || t.type === 'dyp')
@@ -3762,6 +3764,7 @@
       t.status = 'active';
       t.placements = t.playoffs.placements;
       assignBracketTables(t);
+      armTimersForReadyBracketMatches(t);
       saveState();
       state.currentTab = 'bracket';
       renderTournament();
@@ -3871,6 +3874,7 @@
         t.placements = t.playoffs.placements;
         t.status = 'active';
         assignBracketTables(t);
+        armTimersForReadyBracketMatches(t);
         saveState();
         state.currentTab = 'bracket';
         renderTournament();
@@ -3894,6 +3898,7 @@
       t.placements = t.playoffs.placements;
       t.status = 'active';
       assignBracketTables(t);
+      armTimersForReadyBracketMatches(t);
       saveState();
       state.currentTab = 'bracket';
       renderTournament();
@@ -3923,6 +3928,142 @@
         playerIds: (team.playerIds || []).slice(),
         positions: team.positions ? { ...team.positions } : null
       }));
+    }
+
+    // ==================== MATCH TIMERS ====================
+    /** Grace period after draw before the match clock starts counting. */
+    const MATCH_TIMER_GRACE_MS = 30000;
+    let matchTimerTickId = null;
+    let scoreModalTimerMatch = null;
+
+    function scheduleMatchTimer(match, fromMs) {
+      if (!match || match.status === 'done' || match.winner) return;
+      const base = fromMs != null ? fromMs : Date.now();
+      if (match.timerStartAt && match.timerStartAt <= base + MATCH_TIMER_GRACE_MS) return;
+      match.timerStartAt = base + MATCH_TIMER_GRACE_MS;
+      delete match.timerEndedAt;
+    }
+
+    function stopMatchTimer(match) {
+      if (!match) return;
+      if (!match.timerEndedAt) match.timerEndedAt = Date.now();
+    }
+
+    function formatTimerMs(ms) {
+      const s = Math.max(0, Math.floor(ms / 1000));
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return m + ':' + String(r).padStart(2, '0');
+    }
+
+    /**
+     * phase: grace | running | done | none
+     */
+    function getMatchTimerState(match) {
+      if (!match || match.timerStartAt == null) return { phase: 'none', text: '', detail: '' };
+      const now = Date.now();
+      const start = match.timerStartAt;
+      if (match.status === 'done' || match.winner || match.timerEndedAt) {
+        const end = match.timerEndedAt || now;
+        const clock = end < start ? 0 : Math.max(0, end - start);
+        return { phase: 'done', text: formatTimerMs(clock), detail: 'Final' };
+      }
+      if (now < start) {
+        return { phase: 'grace', text: formatTimerMs(start - now), detail: 'Starts in' };
+      }
+      return { phase: 'running', text: formatTimerMs(now - start), detail: 'Elapsed' };
+    }
+
+    function matchTimerBadgeHtml(match) {
+      const st = getMatchTimerState(match);
+      if (st.phase === 'none') return '';
+      if (st.phase === 'grace') {
+        return `<span class="match-timer-badge badge px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-mono" data-match-timer="${match.id}">${st.detail} ${st.text}</span>`;
+      }
+      if (st.phase === 'running') {
+        return `<span class="match-timer-badge badge px-2 py-0.5 rounded-md bg-sky-50 text-sky-800 font-mono" data-match-timer="${match.id}">⏱ ${st.text}</span>`;
+      }
+      return `<span class="match-timer-badge badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 font-mono" data-match-timer="${match.id}">${st.text}</span>`;
+    }
+
+    function findMatchByIdAnywhere(matchId) {
+      for (const t of state.tournaments || []) {
+        for (const r of t.rounds || []) {
+          const m = (r.matches || []).find(x => x.id === matchId);
+          if (m) return m;
+        }
+        if (t.playoffs && typeof collectBracketMatches === 'function') {
+          const m = collectBracketMatches(t.playoffs).find(x => x && x.id === matchId);
+          if (m) return m;
+        }
+      }
+      return null;
+    }
+
+    function refreshVisibleMatchTimers() {
+      document.querySelectorAll('[data-match-timer]').forEach(el => {
+        const id = el.getAttribute('data-match-timer');
+        const match = findMatchByIdAnywhere(id);
+        if (!match) return;
+        const st = getMatchTimerState(match);
+        if (st.phase === 'none') { el.textContent = ''; return; }
+        if (st.phase === 'grace') el.textContent = st.detail + ' ' + st.text;
+        else if (st.phase === 'running') el.textContent = '⏱ ' + st.text;
+        else el.textContent = st.text;
+      });
+      const modalLine = document.getElementById('score-match-timer');
+      if (modalLine && scoreModalTimerMatch) {
+        const st = getMatchTimerState(scoreModalTimerMatch);
+        if (st.phase === 'none') {
+          modalLine.classList.add('hidden');
+          modalLine.textContent = '';
+        } else {
+          modalLine.classList.remove('hidden');
+          if (st.phase === 'grace') {
+            modalLine.textContent = st.detail + ' ' + st.text;
+            modalLine.className = 'text-center font-mono text-sm font-semibold tracking-wide text-amber-700';
+          } else if (st.phase === 'running') {
+            modalLine.textContent = 'Match time  ' + st.text;
+            modalLine.className = 'text-center font-mono text-sm font-semibold tracking-wide text-sky-700';
+          } else {
+            modalLine.textContent = 'Final time  ' + st.text;
+            modalLine.className = 'text-center font-mono text-sm font-semibold tracking-wide text-slate-500';
+          }
+        }
+      }
+    }
+
+    function ensureMatchTimerTicker() {
+      if (matchTimerTickId) return;
+      matchTimerTickId = setInterval(() => {
+        try { refreshVisibleMatchTimers(); } catch (e) {}
+      }, 1000);
+    }
+
+    function armTimersForNewMatches(matches, drawnAt) {
+      const at = drawnAt || Date.now();
+      (matches || []).forEach(m => {
+        if (!m || m.status === 'done' || m.winner) return;
+        m.timerStartAt = at + MATCH_TIMER_GRACE_MS;
+        delete m.timerEndedAt;
+      });
+      ensureMatchTimerTicker();
+    }
+
+    function armTimersForReadyBracketMatches(t, drawnAt) {
+      if (!t?.playoffs) return;
+      const at = drawnAt || Date.now();
+      const all = (typeof collectBracketMatches === 'function') ? collectBracketMatches(t.playoffs) : [];
+      all.forEach(m => {
+        if (!m || m.winner || m._byePropagated) return;
+        const a = m.a?.entity || m.entityA;
+        const b = m.b?.entity || m.entityB;
+        if (!(a && b)) return;
+        if (m.timerStartAt && !m.timerEndedAt) return;
+        m.timerStartAt = at + MATCH_TIMER_GRACE_MS;
+        delete m.timerEndedAt;
+      });
+      ensureMatchTimerTicker();
     }
 
     // ==================== MATCHES & SCORES ====================
@@ -3966,6 +4107,7 @@
 
       // Keep on-deck badges in sync (e.g. after scores free a table)
       assignRankingRoundTables(t);
+      ensureMatchTimerTicker();
 
       const isLatest = (num) => num === t.currentRound;
 
@@ -3988,12 +4130,13 @@
             : (m.onDeck
               ? `<span class="badge px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">On deck · T${m.table}</span>`
               : `<span class="badge px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Table ${m.table}</span>`);
+          const timerBadge = matchTimerBadgeHtml(m);
           const statusLabel = done ? 'Finished' : (m.onDeck ? 'On deck' : 'Playing');
           const statusColor = done ? 'text-emerald-600' : (m.onDeck ? 'text-slate-500' : 'text-amber-600');
           return `
             <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : (m.onDeck ? 'ring-1 ring-slate-200' : 'ring-1 ring-emerald-200')}">
-              <div class="flex items-center justify-between mb-3">
-                ${tableBadge}
+              <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
+                <div class="flex items-center gap-1.5 flex-wrap">${tableBadge}${timerBadge}</div>
                 <div class="flex items-center gap-2">
                   <span class="text-[11px] font-semibold ${statusColor}">${statusLabel}</span>
                   <button onclick="deleteMatch(${round.number}, '${m.id}')" class="text-[11px] font-semibold text-red-500 hover:text-red-700 px-1.5 py-0.5 rounded hover:bg-red-50 transition" title="Delete match">Delete</button>
@@ -4379,6 +4522,9 @@
       }
       updateSeriesBanner(t, match, 'ranking');
       updateScoreProjection(match.entityA, match.entityB);
+      scoreModalTimerMatch = match;
+      ensureMatchTimerTicker();
+      refreshVisibleMatchTimers();
       document.getElementById('score-modal').classList.remove('hidden');
       refreshQuickScore();
       requestAnimationFrame(() => { fitScoreTeamLabels(); focusScoreInput(); });
@@ -4493,6 +4639,9 @@
 
     function closeScoreModal() {
       document.getElementById('score-modal').classList.add('hidden');
+      scoreModalTimerMatch = null;
+      const st = document.getElementById('score-match-timer');
+      if (st) { st.classList.add('hidden'); st.textContent = ''; }
       state.scoreMatchId = null;
     }
 
@@ -4554,6 +4703,7 @@
         match.seriesA = scoreA > scoreB ? 1 : 0;
         match.seriesB = scoreB > scoreA ? 1 : 0;
         match.status = 'done';
+        stopMatchTimer(match);
         saveState();
         closeScoreModal();
         renderTournament();
@@ -4572,6 +4722,7 @@
 
       if (isSeriesComplete(tall.seriesA, tall.seriesB, bestOf)) {
         match.status = 'done';
+        stopMatchTimer(match);
         saveState();
         closeScoreModal();
         renderTournament();
@@ -4667,6 +4818,7 @@
         match.loser = tall.seriesA > tall.seriesB ? 'b' : 'a';
       }
       delete match._byePropagated;
+      stopMatchTimer(match);
 
       const winnerEntity = match.winner === 'a' ? match.a.entity : match.b.entity;
       const loserEntity = match.winner === 'a' ? match.b.entity : match.a.entity;
@@ -4974,10 +5126,16 @@
         delete m.onDeck;
       });
       const ready = all.filter(isBracketMatchReady);
+      const now = Date.now();
       ready.forEach((m, i) => {
         m.table = (i % tableCount) + 1;
         m.onDeck = i >= tableCount;
+        // Arm clock 30s after match becomes ready (draw or advance)
+        if (!m.timerStartAt && !m.timerEndedAt) {
+          m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
+        }
       });
+      ensureMatchTimerTicker();
     }
 
     function matchCardHtml(m, accent = 'emerald') {
@@ -4996,8 +5154,12 @@
           : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
       const tableBadge = (!m.winner && m.table)
         ? (m.onDeck
-          ? `<div class="mt-1.5 flex flex-wrap gap-1 justify-center"><span class="badge px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">On deck · T${m.table}</span></div>`
-          : `<div class="mt-1.5 flex flex-wrap gap-1 justify-center"><span class="badge px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Table ${m.table}</span></div>`)
+          ? `<span class="badge px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">On deck · T${m.table}</span>`
+          : `<span class="badge px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Table ${m.table}</span>`)
+        : '';
+      const timerBadge = matchTimerBadgeHtml(m);
+      const metaRow = (tableBadge || timerBadge)
+        ? `<div class="mt-1.5 flex flex-wrap gap-1 justify-center">${tableBadge}${timerBadge}</div>`
         : '';
       return `
         <div class="surface-card rounded-xl p-3 text-sm ${m.winner ? 'opacity-90' : 'ring-1 ' + ring}">
@@ -5010,7 +5172,7 @@
             <span class="truncate">${escapeHtml(nameB)}</span>
             ${m.winner === 'b' ? '<span class="text-[10px]">W</span>' : ''}
           </div>
-          ${tableBadge}
+          ${metaRow}
           ${score ? `<div class="text-center text-xs text-slate-500 mt-1.5 font-mono">${score}</div>` : ''}
           ${canScore ? `<button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-2 text-xs font-semibold rounded-lg border transition ${btn}">Enter score</button>` : ''}
           ${m.winner && hasBoth && !(m.scoreA === 0 && m.scoreB === 0) ? `
@@ -5036,6 +5198,7 @@
     function renderBracket(t) {
       // Keep table / on-deck badges current (tables count or newly ready matches)
       if (t.playoffs) assignBracketTables(t);
+      ensureMatchTimerTicker();
       const container = document.getElementById('bracket-container');
       const actions = document.getElementById('bracket-actions');
       const isElim = t.format === 'single-elim' || t.format === 'double-elim';
@@ -5230,6 +5393,9 @@
       }
       updateSeriesBanner(t, match, 'playoff');
       updateScoreProjection(match.a.entity, match.b.entity);
+      scoreModalTimerMatch = match;
+      ensureMatchTimerTicker();
+      refreshVisibleMatchTimers();
       document.getElementById('score-modal').classList.remove('hidden');
       refreshQuickScore();
       requestAnimationFrame(() => { fitScoreTeamLabels(); focusScoreInput(); });
