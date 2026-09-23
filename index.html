@@ -576,7 +576,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.39 · Updated Sep 23, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.40 · Updated Sep 23, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1285,7 +1285,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.39';
+    const APP_VERSION = '5.40';
     const APP_UPDATED = 'Sep 23, 2026';
 
     let state = {
@@ -4209,6 +4209,14 @@
       rounds.forEach(r => assignRankingRoundTablesForMatches(r.matches || [], t));
     }
 
+    /** Promote on-deck → live tables, then persist so TV board / other tabs see it. */
+    function syncTablesAndSave(t) {
+      if (!t) return;
+      if (typeof assignRankingRoundTables === 'function') assignRankingRoundTables(t);
+      if (typeof assignBracketTables === 'function') assignBracketTables(t);
+      saveState();
+    }
+
     function renderMatches(t) {
       const container = document.getElementById('matches-list');
       const noMatches = document.getElementById('no-matches');
@@ -4820,7 +4828,7 @@
         match.seriesB = scoreB > scoreA ? 1 : 0;
         match.status = 'done';
         stopMatchTimer(match);
-        saveState();
+        syncTablesAndSave(t);
         closeScoreModal();
         renderTournament();
         toast('Score saved', 'success');
@@ -4839,7 +4847,7 @@
       if (isSeriesComplete(tall.seriesA, tall.seriesB, bestOf)) {
         match.status = 'done';
         stopMatchTimer(match);
-        saveState();
+        syncTablesAndSave(t);
         closeScoreModal();
         renderTournament();
         toast(`Series over ${tall.seriesA}–${tall.seriesB}`, 'success');
@@ -4944,8 +4952,7 @@
       }
 
       updatePlacementsFromBracket(t);
-      assignBracketTables(t);
-      saveState();
+      syncTablesAndSave(t);
       closeScoreModal();
       renderTournament();
       let msg = bestOf > 1 ? `Series ${match.scoreA}–${match.scoreB}` : 'Score saved';
@@ -7558,10 +7565,23 @@
       renderSpectatorBoard();
       if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
       if (spectatorTimer) clearInterval(spectatorTimer);
+      // Poll often enough that on-deck → playing shows up soon after a score on another tab
       spectatorTimer = setInterval(() => {
         try { loadState(); } catch (e) {}
         renderSpectatorBoard();
-      }, 5000);
+      }, 2000);
+      // Instant update when the scoring tab writes localStorage
+      if (!window._lcfcSpecStorageHook) {
+        window._lcfcSpecStorageHook = true;
+        window.addEventListener('storage', (ev) => {
+          if (!ev) return;
+          if (ev.key !== STORAGE_KEY && ev.key !== CHANGE_KEY) return;
+          const view = document.getElementById('view-spectator');
+          if (!view || view.classList.contains('hidden')) return;
+          try { loadState(); } catch (e) {}
+          try { renderSpectatorBoard(); } catch (e) {}
+        });
+      }
     }
 
     function closeSpectator() {
@@ -7652,6 +7672,12 @@
       if (title) title.textContent = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
       if (meta) meta.textContent = `${typeLabel[t.type] || t.type} · Round ${t.currentRound || 0} · ${t.status} · ${t.playerIds?.length || 0} players`;
+
+      // Recompute live vs on-deck from latest scores (so TV picks up promotions immediately)
+      try {
+        if (typeof assignRankingRoundTables === 'function') assignRankingRoundTables(t);
+        if (typeof assignBracketTables === 'function') assignBracketTables(t);
+      } catch (e) {}
 
       // Live / open matches: incomplete in latest rounds + open bracket matches
       const live = [];
