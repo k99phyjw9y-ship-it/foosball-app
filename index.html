@@ -576,7 +576,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.42 · Updated Sep 24, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.43 · Updated Sep 24, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1285,7 +1285,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.42';
+    const APP_VERSION = '5.43';
     const APP_UPDATED = 'Sep 24, 2026';
 
     let state = {
@@ -6683,7 +6683,7 @@
         { emoji: '💀', label: 'Cursed Pair', desc: 'Worst partner pair (5+ together)', holder: cursed, detail: p => `${p.wr.toFixed(0)}% · ${p.wins}-${p.losses}`, isPair: true },
         // Match clocks (need timerStartAt / timerEndedAt on completed matches)
         { emoji: '🐇', label: 'Hare', desc: 'Shortest timed match', holder: speed.hare, detail: p => `${p.time} · ${p.eventName}`, isMatch: true },
-        { emoji: '🐢', label: 'Tourtoise', desc: 'Longest timed match', holder: speed.tortoise, detail: p => `${p.time} · ${p.eventName}`, isMatch: true },
+        { emoji: '🐢', label: 'Tortoise', desc: 'Longest timed match', holder: speed.tortoise, detail: p => `${p.time} · ${p.eventName}`, isMatch: true },
       ];
       return awards;
     }
