@@ -576,7 +576,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.40 · Updated Sep 23, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.41 · Updated Sep 24, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1285,8 +1285,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.40';
-    const APP_UPDATED = 'Sep 23, 2026';
+    const APP_VERSION = '5.41';
+    const APP_UPDATED = 'Sep 24, 2026';
 
     let state = {
       players: [],
@@ -6514,7 +6514,68 @@
       return wins;
     }
 
+    /**
+     * Completed matches with a recorded clock (timerStartAt → timerEndedAt).
+     * Duration is elapsed match time after the 30s grace (timerStartAt is when the clock starts).
+     */
+    function collectTimedCompletedMatches() {
+      const out = [];
+      const push = (t, m, nameA, nameB, entA, entB) => {
+        if (!m || m.void) return;
+        const done = m.status === 'done' || m.winner ||
+          (m.scoreA != null && m.scoreB != null && !(m.scoreA === 0 && m.scoreB === 0) && m.scoreA !== m.scoreB);
+        if (!done) return;
+        if (m.timerStartAt == null || m.timerEndedAt == null) return;
+        const ms = m.timerEndedAt - m.timerStartAt;
+        // Ignore negative / absurd (>3h) clocks
+        if (!(ms >= 0) || ms > 3 * 60 * 60 * 1000) return;
+        const aIds = (typeof entityPlayerIds === 'function') ? entityPlayerIds(entA) : [];
+        const bIds = (typeof entityPlayerIds === 'function') ? entityPlayerIds(entB) : [];
+        out.push({
+          ms,
+          nameA: nameA || 'TBD',
+          nameB: nameB || 'TBD',
+          label: (nameA || '?') + ' vs ' + (nameB || '?'),
+          eventName: t.name || 'Event',
+          playerIds: aIds.concat(bIds)
+        });
+      };
+      (state.tournaments || []).forEach(t => {
+        (t.rounds || []).forEach(r => {
+          (r.matches || []).forEach(m => {
+            push(t, m, m.entityA?.name, m.entityB?.name, m.entityA, m.entityB);
+          });
+        });
+        if (t.playoffs && typeof collectBracketMatches === 'function') {
+          collectBracketMatches(t.playoffs).forEach(m => {
+            if (!m) return;
+            const entA = m.a?.entity || m.entityA;
+            const entB = m.b?.entity || m.entityB;
+            push(t, m, entA?.name, entB?.name, entA, entB);
+          });
+        }
+      });
+      return out;
+    }
+
+    function computeSpeedAwards() {
+      const timed = collectTimedCompletedMatches();
+      if (!timed.length) return { hare: null, tortoise: null };
+      const byShort = timed.slice().sort((a, b) => a.ms - b.ms || a.label.localeCompare(b.label));
+      const byLong = timed.slice().sort((a, b) => b.ms - a.ms || a.label.localeCompare(b.label));
+      const fmt = (ms) => (typeof formatTimerMs === 'function') ? formatTimerMs(ms) : (Math.floor(ms / 60000) + ':' + String(Math.floor((ms % 60000) / 1000)).padStart(2, '0'));
+      const pack = (row) => row ? {
+        name: row.label,
+        ms: row.ms,
+        time: fmt(row.ms),
+        eventName: row.eventName,
+        isMatch: true
+      } : null;
+      return { hare: pack(byShort[0]), tortoise: pack(byLong[0]) };
+    }
+
     function computeCrazyAwards() {
+
       const { career } = computeAllPlayerStats();
       const podium = computePodiumStats();
       const sits = computeSitOutTotals();
@@ -6522,6 +6583,7 @@
       const partners = computePartnerMaps();
       const drama = computeDramaAndStreakStats();
       const playoffWins = computePlayoffWinCounts();
+      const speed = computeSpeedAwards();
 
       const players = state.players.map(p => {
         const s = career[p.id] || emptyPlayerStat();
@@ -6619,6 +6681,9 @@
         { emoji: '🏃', label: 'Deep Run', desc: 'Most playoffs entered', holder: pick(players.filter(p => p.playoffs > 0), p => p.playoffs), detail: p => `${p.playoffs} playoffs` },
         { emoji: '🤝', label: 'Dynamic Duo', desc: 'Best partner pair (5+ together)', holder: duo, detail: p => `${p.wr.toFixed(0)}% · ${p.wins}-${p.losses}`, isPair: true },
         { emoji: '💀', label: 'Cursed Pair', desc: 'Worst partner pair (5+ together)', holder: cursed, detail: p => `${p.wr.toFixed(0)}% · ${p.wins}-${p.losses}`, isPair: true },
+        // Match clocks (need timerStartAt / timerEndedAt on completed matches)
+        { emoji: '🐇', label: 'Hare', desc: 'Shortest timed match', holder: speed.hare, detail: p => `${p.time} · ${p.eventName}`, isMatch: true },
+        { emoji: '🐢', label: 'Tourtoise', desc: 'Longest timed match', holder: speed.tortoise, detail: p => `${p.time} · ${p.eventName}`, isMatch: true },
       ];
       return awards;
     }
