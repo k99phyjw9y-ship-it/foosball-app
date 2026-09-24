@@ -576,7 +576,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.41 · Updated Sep 24, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.42 · Updated Sep 24, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1285,7 +1285,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.41';
+    const APP_VERSION = '5.42';
     const APP_UPDATED = 'Sep 24, 2026';
 
     let state = {
@@ -6701,7 +6701,7 @@
           <div class="min-w-0">
             <div class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">${escapeHtml(a.label)}</div>
             <div class="text-xs text-slate-500">${escapeHtml(a.desc)}</div>
-            <div class="font-bold text-slate-900 mt-1 truncate" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+            <div class="font-bold text-slate-900 mt-1 leading-snug break-words" style="overflow-wrap:anywhere;word-break:break-word" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
             <div class="text-xs text-slate-600 mt-0.5">${escapeHtml(detail)}</div>
           </div>
         </div>`;
