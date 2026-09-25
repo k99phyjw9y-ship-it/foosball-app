@@ -362,10 +362,57 @@
       border-radius: 0.75rem;
       overflow: hidden;
     }
-    #view-spectator .spec-standings-wrap table { color: var(--text); }
-    #view-spectator .spec-standings-wrap th { color: var(--text-muted); border-color: var(--border); }
-    #view-spectator .spec-standings-wrap td { border-color: var(--border); }
+    #view-spectator .spec-standings-wrap table { color: var(--text); font-size: 0.75rem; }
+    @media (min-width: 640px) {
+      #view-spectator .spec-standings-wrap table { font-size: 0.8125rem; }
+    }
+    #view-spectator .spec-standings-wrap th {
+      color: var(--text-muted);
+      border-color: var(--border);
+      padding: 0.35rem 0.4rem !important;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    #view-spectator .spec-standings-wrap td {
+      border-color: var(--border);
+      padding: 0.3rem 0.4rem !important;
+      line-height: 1.25;
+    }
     #view-spectator .spec-pts { color: var(--accent); font-weight: 700; }
+    #view-spectator .spec-status-panel {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 0.65rem 0.75rem;
+    }
+    #view-spectator .spec-status-block + .spec-status-block {
+      margin-top: 0.55rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid var(--border);
+    }
+    #view-spectator .spec-status-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+    #view-spectator .spec-status-names {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--text);
+      word-break: break-word;
+    }
+    #view-spectator .spec-status-empty {
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    #view-spectator .spec-status-playing .spec-status-label { color: var(--accent); }
+    #view-spectator .spec-status-deck .spec-status-label { color: var(--text); }
+    #view-spectator .spec-status-sit .spec-status-label { color: rgb(var(--c-amber-600)); }
     #view-spectator .spec-empty {
       background: var(--raised);
       border: 1px solid var(--border);
@@ -576,7 +623,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.43 · Updated Sep 24, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.44 · Updated Sep 25, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -645,9 +692,11 @@
             <div id="spec-matches" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
           </div>
           <div class="lg:col-span-4 space-y-2 min-w-0">
-            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted">Standings</h3>
+            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted">Room</h3>
+            <div id="spec-room-status" class="spec-status-panel"></div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mt-2">Standings</h3>
             <div id="spec-standings" class="spec-standings-wrap"></div>
-            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mt-3">Recent</h3>
+            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mt-2">Recent</h3>
             <div id="spec-recent" class="space-y-1.5 text-sm leading-snug"></div>
           </div>
         </div>
@@ -1285,8 +1334,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.43';
-    const APP_UPDATED = 'Sep 24, 2026';
+    const APP_VERSION = '5.44';
+    const APP_UPDATED = 'Sep 25, 2026';
 
     let state = {
       players: [],
@@ -7827,25 +7876,77 @@
         if (typeof refreshVisibleMatchTimers === 'function') refreshVisibleMatchTimers();
       }
 
-      // Standings
+      // Room status: playing / on deck / sitting out (monster & DYP ranking rounds)
+      const roomEl = document.getElementById('spec-room-status');
+      if (roomEl) {
+        const playingNames = [];
+        const deckNames = [];
+        const seenPlay = new Set();
+        const seenDeck = new Set();
+        const addNames = (label, set, list) => {
+          const key = (label || '').trim().toLowerCase();
+          if (!key || key === 'tbd' || set.has(key)) return;
+          set.add(key);
+          list.push(label.trim());
+        };
+        live.forEach(m => {
+          if (m.onDeck) {
+            addNames(m.nameA, seenDeck, deckNames);
+            addNames(m.nameB, seenDeck, deckNames);
+          } else {
+            addNames(m.nameA, seenPlay, playingNames);
+            addNames(m.nameB, seenPlay, playingNames);
+          }
+        });
+        // Sit-outs: latest ranking round that has sitOutIds (monster/dyp)
+        let sitIds = [];
+        const rounds = (t.rounds || []).slice().sort((a, b) => (b.number || 0) - (a.number || 0));
+        for (const r of rounds) {
+          if (r.sitOutIds && r.sitOutIds.length) {
+            sitIds = r.sitOutIds.slice();
+            break;
+          }
+        }
+        if (!sitIds.length && Array.isArray(t.currentSitOutIds)) sitIds = t.currentSitOutIds.slice();
+        const sitNames = sitIds.map(id => state.players.find(p => p.id === id)?.name).filter(Boolean);
+
+        const block = (cls, label, names) => {
+          const body = names.length
+            ? `<div class="spec-status-names">${names.map(n => escapeHtml(n)).join(' · ')}</div>`
+            : `<div class="spec-status-names spec-status-empty">—</div>`;
+          return `<div class="spec-status-block ${cls}"><div class="spec-status-label">${label}</div>${body}</div>`;
+        };
+        roomEl.innerHTML =
+          block('spec-status-playing', 'Playing', playingNames) +
+          block('spec-status-deck', 'On deck', deckNames) +
+          block('spec-status-sit', 'Sitting out', sitNames);
+        // Hide entire panel if nothing useful (no live + no sits)
+        roomEl.style.display = (playingNames.length || deckNames.length || sitNames.length) ? '' : 'none';
+        const roomHead = roomEl.previousElementSibling;
+        if (roomHead && roomHead.tagName === 'H3') {
+          roomHead.style.display = roomEl.style.display;
+        }
+      }
+
+      // Standings (compact — fewer rows, tighter type)
       let standings = [];
       try { standings = typeof computeStandings === 'function' ? computeStandings(t) : []; } catch (e) {}
       if (!standings.length) {
-        standEl.innerHTML = '<p class="p-4 spec-muted text-sm">No standings yet</p>';
+        standEl.innerHTML = '<p class="p-2.5 spec-muted text-xs">No standings yet</p>';
       } else {
-        standEl.innerHTML = `<table class="w-full text-sm sm:text-base leading-snug">
+        standEl.innerHTML = `<table class="w-full leading-snug">
           <thead><tr class="text-left border-b">
-            <th class="pl-3 pr-1 py-2.5 font-medium w-8">#</th>
-            <th class="px-2 py-2.5 font-medium">Player</th>
-            <th class="px-2 py-2.5 text-right font-medium">Pts</th>
-            <th class="pl-2 pr-3 py-2.5 text-right font-medium">GD</th>
+            <th class="pl-2 pr-1 font-medium w-6">#</th>
+            <th class="px-1.5 font-medium">Player</th>
+            <th class="px-1.5 text-right font-medium">Pts</th>
+            <th class="pl-1 pr-2 text-right font-medium">GD</th>
           </tr></thead>
-          <tbody>${standings.slice(0, 14).map((s, i) => `
+          <tbody>${standings.slice(0, 10).map((s, i) => `
             <tr class="border-t">
-              <td class="pl-3 pr-1 py-2.5 spec-muted">${i + 1}</td>
-              <td class="px-2 py-2.5 font-semibold break-words">${escapeHtml(s.name)}</td>
-              <td class="px-2 py-2.5 text-right spec-pts">${s.pts}</td>
-              <td class="pl-2 pr-3 py-2.5 text-right">${s.gd > 0 ? '+' : ''}${s.gd}</td>
+              <td class="pl-2 pr-1 spec-muted">${i + 1}</td>
+              <td class="px-1.5 font-semibold break-words">${escapeHtml(s.name)}</td>
+              <td class="px-1.5 text-right spec-pts">${s.pts}</td>
+              <td class="pl-1 pr-2 text-right">${s.gd > 0 ? '+' : ''}${s.gd}</td>
             </tr>`).join('')}</tbody></table>`;
       }
 
