@@ -350,12 +350,53 @@
     #view-spectator .spec-card {
       background: var(--raised);
       border: 1px solid var(--border);
-      border-radius: 0.75rem;
+      border-radius: 0.85rem;
       box-shadow: 0 4px 20px -8px rgb(var(--ink) / 0.25);
+      padding: 0.85rem 1rem;
+      min-height: 7.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
-    #view-spectator .spec-score { color: var(--accent); }
-    #view-spectator .spec-vs { color: var(--text-muted); }
-    #view-spectator .spec-team-name { color: var(--text); }
+    #view-spectator .spec-card-live {
+      border-color: rgb(var(--c-accent-500) / 0.45);
+      box-shadow: 0 0 0 1px rgb(var(--c-accent-500) / 0.2), 0 8px 24px -12px rgb(var(--ink) / 0.35);
+    }
+    #view-spectator .spec-card-deck {
+      opacity: 0.92;
+      border-style: dashed;
+      background: rgb(var(--fg-rgb) / 0.03);
+    }
+    #view-spectator .spec-score {
+      color: var(--accent);
+      font-size: 1.65rem;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    #view-spectator .spec-vs {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin: 0.2rem 0;
+    }
+    #view-spectator .spec-team-name {
+      color: var(--text);
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    #view-spectator .spec-match-meta {
+      margin-bottom: 0.55rem;
+    }
+    #view-spectator .spec-section-empty {
+      grid-column: 1 / -1;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding: 0.75rem 0.5rem;
+    }
     #view-spectator .spec-standings-wrap {
       background: var(--raised);
       border: 1px solid var(--border);
@@ -635,7 +676,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.45 · Updated Sep 25, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.46 · Updated Sep 25, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -698,21 +739,29 @@
             <button type="button" onclick="closeSpectator()" class="spec-control px-3 py-2 text-sm font-medium">Exit</button>
           </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
-          <div class="lg:col-span-8 space-y-2 min-w-0">
-            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted">Now playing</h3>
-            <div id="spec-matches" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
+          <div class="lg:col-span-8 space-y-4 min-w-0">
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mb-2">Playing</h3>
+              <div id="spec-matches-live" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mb-2">On deck</h3>
+              <div id="spec-matches-deck" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            </div>
           </div>
-          <div class="lg:col-span-4 space-y-2 min-w-0">
-            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted">Room</h3>
-            <div id="spec-room-status" class="spec-status-panel"></div>
-            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mt-2">Standings</h3>
-            <div id="spec-standings" class="spec-standings-wrap"></div>
-            <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mt-2">Recent</h3>
-            <div id="spec-recent" class="space-y-1.5 text-sm leading-snug"></div>
+          <div class="lg:col-span-4 space-y-3 min-w-0 lg:sticky lg:top-3">
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mb-2">Room</h3>
+              <div id="spec-room-status" class="spec-status-panel"></div>
+            </div>
+            <div>
+              <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mb-2">Standings · Top 10</h3>
+              <div id="spec-standings" class="spec-standings-wrap"></div>
+            </div>
           </div>
         </div>
-        <p class="text-center text-[11px] spec-muted mt-10">Auto-refreshes every 5s · read-only · follows color theme</p>
+        <p class="text-center text-[11px] spec-muted mt-8">Auto-refreshes · read-only · follows color theme</p>
       </div>
     </div>
 
@@ -1346,7 +1395,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.45';
+    const APP_VERSION = '5.46';
     const APP_UPDATED = 'Sep 25, 2026';
 
     let state = {
@@ -7784,15 +7833,15 @@
       const t = state.tournaments.find(x => x.id === state.spectatorTournamentId);
       const title = document.getElementById('spec-title');
       const meta = document.getElementById('spec-meta');
-      const matchesEl = document.getElementById('spec-matches');
+      const matchesEl = document.getElementById('spec-matches-live') || document.getElementById('spec-matches');
       const standEl = document.getElementById('spec-standings');
-      const recentEl = document.getElementById('spec-recent');
       if (!matchesEl || !standEl) return;
       if (!t) {
         if (title) title.textContent = 'No event selected';
         matchesEl.innerHTML = '<p class="text-slate-500">Create or open a tournament first.</p>';
+        const deckEmpty = document.getElementById('spec-matches-deck');
+        if (deckEmpty) deckEmpty.innerHTML = '';
         standEl.innerHTML = '';
-        if (recentEl) recentEl.innerHTML = '';
         return;
       }
       if (title) title.textContent = t.name;
@@ -7841,52 +7890,66 @@
         else if (!done && (m.a?.entity || m.b?.entity || m.entityA)) live.push(row);
       });
 
-      if (!live.length) {
-        matchesEl.innerHTML = '<div class="spec-empty rounded-2xl border p-6 text-center">No live matches — draw a round or enter scores</div>';
-      } else {
-        matchesEl.innerHTML = live.map(m => {
-          const roundLabel = (m.round === 'winners' || m.round === 'losers' || m.round === 'gf' || m.round === 'gf2' || m.round === 'bracket')
-            ? String(m.round).replace('gf2', 'GF reset').replace('gf', 'Grand final').replace('winners', 'Winners').replace('losers', 'Losers').replace('bracket', 'Bracket')
-            : ('R' + m.round);
-          const tableChip = m.table
-            ? (m.onDeck
-              ? `<span class="spec-meta-chip spec-meta-deck">On deck · T${m.table}</span>`
-              : `<span class="spec-meta-chip spec-meta-table">Table ${m.table}</span>`)
-            : '';
-          // Live match timer (same clock as match cards / score modal)
-          const timerChip = (typeof matchTimerBadgeHtml === 'function')
-            ? matchTimerBadgeHtml({
-                id: m.matchId,
-                onDeck: m.onDeck,
-                timerStartAt: m.timerStartAt,
-                timerEndedAt: m.timerEndedAt,
-                status: m.status,
-                winner: m.winner || null
-              })
-            : '';
-          return `
-          <div class="spec-card px-3 py-2.5 sm:px-3.5 sm:py-3">
-            <div class="spec-match-meta mb-2 flex flex-wrap items-center justify-center gap-1.5">
+      const liveEl = document.getElementById('spec-matches-live') || matchesEl;
+      const deckEl = document.getElementById('spec-matches-deck');
+      const playingList = live.filter(m => !m.onDeck);
+      const deckList = live.filter(m => m.onDeck);
+
+      const cardHtml = (m, kind) => {
+        const roundLabel = (m.round === 'winners' || m.round === 'losers' || m.round === 'gf' || m.round === 'gf2' || m.round === 'bracket')
+          ? String(m.round).replace('gf2', 'GF reset').replace('gf', 'Grand final').replace('winners', 'Winners').replace('losers', 'Losers').replace('bracket', 'Bracket')
+          : ('R' + m.round);
+        const tableChip = m.table
+          ? (kind === 'deck'
+            ? `<span class="spec-meta-chip spec-meta-deck">On deck · Table ${m.table}</span>`
+            : `<span class="spec-meta-chip spec-meta-table">Table ${m.table}</span>`)
+          : '';
+        const timerChip = (typeof matchTimerBadgeHtml === 'function')
+          ? matchTimerBadgeHtml({
+              id: m.matchId,
+              onDeck: kind === 'deck',
+              timerStartAt: m.timerStartAt,
+              timerEndedAt: m.timerEndedAt,
+              status: m.status,
+              winner: m.winner || null
+            })
+          : '';
+        const scoreLine = kind === 'live'
+          ? `<div class="mt-2 text-center font-black tracking-tight spec-score">${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}</div>`
+          : `<div class="mt-2 text-center text-sm font-semibold spec-muted">Waiting for table</div>`;
+        return `
+          <div class="spec-card ${kind === 'live' ? 'spec-card-live' : 'spec-card-deck'}">
+            <div class="spec-match-meta flex flex-wrap items-center justify-center gap-1.5">
               ${tableChip}
               ${timerChip}
               <span class="spec-meta-chip spec-meta-round">${escapeHtml(roundLabel)}</span>
             </div>
-            <div class="space-y-0.5 text-center">
-              <div class="spec-team-name font-semibold leading-tight px-0.5" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
-              <div class="spec-vs font-medium text-[10px] tracking-wide">vs</div>
-              <div class="spec-team-name font-semibold leading-tight px-0.5" title="${escapeHtml(m.nameB)}">${escapeHtml(m.nameB)}</div>
+            <div class="text-center flex-1 flex flex-col justify-center py-1">
+              <div class="spec-team-name px-0.5" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
+              <div class="spec-vs">vs</div>
+              <div class="spec-team-name px-0.5" title="${escapeHtml(m.nameB)}">${escapeHtml(m.nameB)}</div>
             </div>
-            <div class="mt-2 text-center text-xl sm:text-2xl font-black tracking-tight spec-score">
-              ${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}
-            </div>
-            ${m.proj ? `<div class="mt-1 text-center text-[10px] spec-muted">Est. ${m.proj.pctA}% – ${m.proj.pctB}%</div>` : ''}
+            ${scoreLine}
           </div>`;
-        }).join('');
-        // Shrink names so full text is visible on the card
-        requestAnimationFrame(() => fitSpectatorTeamNames(matchesEl));
-        if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
-        if (typeof refreshVisibleMatchTimers === 'function') refreshVisibleMatchTimers();
+      };
+
+      if (liveEl) {
+        liveEl.innerHTML = playingList.length
+          ? playingList.map(m => cardHtml(m, 'live')).join('')
+          : '<div class="spec-section-empty">No matches at the tables</div>';
       }
+      if (deckEl) {
+        deckEl.innerHTML = deckList.length
+          ? deckList.map(m => cardHtml(m, 'deck')).join('')
+          : '<div class="spec-section-empty">No one on deck</div>';
+      }
+      if (matchesEl && matchesEl !== liveEl) matchesEl.innerHTML = '';
+      requestAnimationFrame(() => {
+        fitSpectatorTeamNames(liveEl);
+        fitSpectatorTeamNames(deckEl);
+      });
+      if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
+      if (typeof refreshVisibleMatchTimers === 'function') refreshVisibleMatchTimers();
 
       // Room status: playing / on deck / sitting out (monster & DYP ranking rounds)
       const roomEl = document.getElementById('spec-room-status');
