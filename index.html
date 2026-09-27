@@ -750,7 +750,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.51 · Updated Sep 26, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.52 · Updated Sep 26, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1470,7 +1470,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.51';
+    const APP_VERSION = '5.52';
     const APP_UPDATED = 'Sep 26, 2026';
 
     let state = {
@@ -2932,10 +2932,66 @@
       return !!getPlayerBusyInfo(playerId, excludeTournamentId);
     }
 
+    /** Draws/brackets include everyone present — conflict lock only holds tables. */
     function drawEligiblePlayerIds(t) {
-      const ids = activePlayerIds(t);
-      if (!isConflictLockEnabled()) return ids;
-      return ids.filter(id => !isPlayerBusyElsewhere(id, t.id));
+      return activePlayerIds(t);
+    }
+
+    /** Player ids on a ranking or bracket match side. */
+    function matchPlayerIdsFromEntities(entA, entB) {
+      const ids = [];
+      const add = (ent) => {
+        if (!ent) return;
+        if (Array.isArray(ent.playerIds) && ent.playerIds.length) {
+          ent.playerIds.forEach(id => { if (id && !ids.includes(id)) ids.push(id); });
+        } else if (ent.id && state.players.some(p => p.id === ent.id)) {
+          if (!ids.includes(ent.id)) ids.push(ent.id);
+        }
+      };
+      add(entA);
+      add(entB);
+      return ids;
+    }
+
+    /**
+     * If conflict lock is on, return busy-info for any player on this match
+     * who is still in an open match in another event. Otherwise null.
+     */
+    function getMatchCrossConflict(m, t, isBracket) {
+      if (!isConflictLockEnabled() || !m || !t) return null;
+      let entA, entB;
+      if (isBracket) {
+        entA = m.a?.entity || m.entityA;
+        entB = m.b?.entity || m.entityB;
+      } else {
+        entA = m.entityA;
+        entB = m.entityB;
+      }
+      for (const pid of matchPlayerIdsFromEntities(entA, entB)) {
+        const info = getPlayerBusyInfo(pid, t.id);
+        if (info) {
+          const pname = state.players.find(p => p.id === pid)?.name || 'Player';
+          return { ...info, playerId: pid, playerName: pname };
+        }
+      }
+      return null;
+    }
+
+    function applyCrossConflictFlag(m, t, isBracket) {
+      if (!m) return false;
+      try {
+        const info = getMatchCrossConflict(m, t, isBracket);
+        if (info) {
+          m.crossConflict = true;
+          m.crossConflictLabel = `${info.playerName} · ${info.tournamentName}${info.table ? (info.onDeck ? ' (deck T' + info.table + ')' : ' (T' + info.table + ')') : ''}`;
+          return true;
+        }
+      } catch (e) {
+        console.error('applyCrossConflictFlag', e);
+      }
+      delete m.crossConflict;
+      delete m.crossConflictLabel;
+      return false;
     }
 
     function countActiveParallelEvents() {
@@ -2950,7 +3006,7 @@
         on
           ? 'text-violet-700 border-violet-200 bg-violet-50 hover:bg-violet-100'
           : 'text-slate-500 border-slate-200 bg-slate-50 hover:bg-slate-100'
-      }" title="When ON, players already in a live or on-deck match in another active event are skipped in new draws and playoffs">${
+      }" title="When ON, matches wait (on deck) if a player is still busy in another active event — they stay in the bracket">${
         on ? 'Conflict lock ON' : 'Conflict lock OFF'
       }${n > 1 ? ` · ${n} active` : ''}${busyHere ? ` · ${busyHere} busy` : ''}</button>`;
     }
@@ -4508,7 +4564,7 @@
       }
 
       // Flag cross-event conflicts (do not start these matches yet)
-      pending.forEach(m => applyCrossConflictFlag(m, t, false));
+      pending.forEach(m => { if (typeof applyCrossConflictFlag === "function") applyCrossConflictFlag(m, t, false); });
 
       // Live = at a table, not on-deck, not cross-conflicted
       const occupied = new Set();
@@ -5666,7 +5722,7 @@
         return;
       }
 
-      ready.forEach(m => applyCrossConflictFlag(m, t, true));
+      ready.forEach(m => { if (typeof applyCrossConflictFlag === "function") applyCrossConflictFlag(m, t, true); });
 
       const occupied = new Set();
       const live = [];
