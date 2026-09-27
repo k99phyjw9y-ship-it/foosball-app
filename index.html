@@ -750,7 +750,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.52 · Updated Sep 26, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.53 · Updated Sep 26, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1470,7 +1470,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.52';
+    const APP_VERSION = '5.53';
     const APP_UPDATED = 'Sep 26, 2026';
 
     let state = {
@@ -2872,14 +2872,29 @@
     function rankingMatchIsOpen(m) {
       if (!m || m.void) return false;
       if (m.status === 'done') return false;
-      if (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB && !(m.scoreA === 0 && m.scoreB === 0)) return false;
+      // Decisive result (or bye) ⇒ free even if status was never set
+      if (m.scoreA != null && m.scoreB != null) {
+        if (m.scoreA === 0 && m.scoreB === 0) return false;
+        if (m.scoreA !== m.scoreB) return false;
+      }
+      // Series finished on series tallies
+      if (m.seriesA != null && m.seriesB != null && m.seriesA !== m.seriesB) {
+        const sa = m.seriesA, sb = m.seriesB;
+        if (sa >= 2 || sb >= 2) return false; // common Bo3 complete
+      }
+      // Only block if this match is actually queued/playing (has a table)
+      if (!(m.table >= 1) && !m.onDeck) return false;
       return true;
     }
 
     function bracketMatchIsOpen(m) {
       if (!m || m.void) return false;
       if (m.winner || m._byePropagated) return false;
-      return !!(m.a?.entity || m.b?.entity || m.entityA || m.entityB);
+      // TBD / unfilled sides do not lock a player
+      const a = m.a?.entity || m.entityA;
+      const b = m.b?.entity || m.entityB;
+      if (!(a && b)) return false;
+      return true;
     }
 
     function getPlayerBusyInfo(playerId, excludeTournamentId) {
@@ -4650,19 +4665,41 @@
     }
 
     /** Promote on-deck → live tables, then persist so TV board / other tabs see it. */
+    function refreshConflictAndTables(ev) {
+      if (!ev || ev.status === 'finished') return;
+      try {
+        // Clear stale flags first so release can take effect immediately
+        (ev.rounds || []).forEach(r => {
+          (r.matches || []).forEach(m => {
+            if (!m) return;
+            if (m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB)) {
+              delete m.crossConflict;
+              delete m.crossConflictLabel;
+            }
+          });
+        });
+        if (ev.playoffs && typeof collectBracketMatches === 'function') {
+          collectBracketMatches(ev.playoffs).forEach(m => {
+            if (!m) return;
+            if (m.winner || m._byePropagated) {
+              delete m.crossConflict;
+              delete m.crossConflictLabel;
+            }
+          });
+        }
+        if (typeof assignRankingRoundTables === 'function') assignRankingRoundTables(ev);
+        if (typeof assignBracketTables === 'function') assignBracketTables(ev);
+      } catch (e) {
+        console.error('refreshConflictAndTables', e);
+      }
+    }
+
     function syncTablesAndSave(t) {
-      const run = (ev) => {
-        if (!ev) return;
-        try {
-          if (typeof assignRankingRoundTables === 'function') assignRankingRoundTables(ev);
-          if (typeof assignBracketTables === 'function') assignBracketTables(ev);
-        } catch (e) {}
-      };
-      run(t);
-      // Unlock parallel events: finishing a match may free players waiting elsewhere
+      refreshConflictAndTables(t);
+      // Unlock parallel events: finishing a match frees players waiting elsewhere
       (state.tournaments || []).forEach(other => {
-        if (!other || (t && other.id === t.id) || other.status === 'finished') return;
-        run(other);
+        if (!other || (t && other.id === t.id)) return;
+        refreshConflictAndTables(other);
       });
       saveState();
     }
@@ -5724,6 +5761,15 @@
 
       ready.forEach(m => { if (typeof applyCrossConflictFlag === "function") applyCrossConflictFlag(m, t, true); });
 
+      // Anyone still flagged conflict must stay on hold (not live)
+      ready.forEach(m => {
+        if (m.crossConflict) {
+          m.onDeck = true;
+          delete m.timerStartAt;
+          delete m.timerEndedAt;
+        }
+      });
+
       const occupied = new Set();
       const live = [];
       ready.forEach(m => {
@@ -5738,10 +5784,20 @@
 
       const queue = ready.filter(m => !live.includes(m));
 
+      // No one live yet: fill tables from non-conflict matches first
       if (!live.length) {
         let liveSlots = 0;
-        ready.forEach((m, i) => {
-          m.table = (i % tableCount) + 1;
+        // Prefer matches that just cleared conflict (were on hold)
+        const ordered = ready.slice().sort((a, b) => {
+          const ac = a.crossConflict ? 1 : 0;
+          const bc = b.crossConflict ? 1 : 0;
+          if (ac !== bc) return ac - bc;
+          return 0;
+        });
+        ordered.forEach((m, i) => {
+          if (!m.table || m.table < 1 || m.table > tableCount) {
+            m.table = (i % tableCount) + 1;
+          }
           if (m.crossConflict) {
             m.onDeck = true;
             delete m.timerStartAt;
@@ -5781,6 +5837,7 @@
       }
       const promoted = new Set();
       free.forEach(tableNum => {
+        // Promote non-conflict matches first (just-released conflict holds)
         const m = queue.find(q =>
           !promoted.has(q.id) &&
           !q.crossConflict &&
@@ -5792,6 +5849,8 @@
         m.onDeck = false;
         m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
         delete m.timerEndedAt;
+        delete m.crossConflict;
+        delete m.crossConflictLabel;
       });
 
       ensureMatchTimerTicker();
