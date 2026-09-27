@@ -475,22 +475,22 @@
       }
     }
 
-    /* Bracket tree view — fixed slot heights, no overlap */
+    /* Bracket tree view — non-overlapping fixed slots */
     .bracket-tree {
       display: flex;
       flex-direction: row;
       align-items: flex-start;
-      gap: 0.75rem;
+      gap: 1rem;
       overflow-x: auto;
       overflow-y: visible;
-      padding: 0.5rem 0.25rem 1.25rem;
+      padding: 0.35rem 0.15rem 1.5rem;
       -webkit-overflow-scrolling: touch;
     }
     .bracket-tree-round {
       display: flex;
       flex-direction: column;
       flex: 0 0 auto;
-      width: 12.5rem;
+      width: 13rem;
       position: relative;
       z-index: 1;
     }
@@ -501,8 +501,8 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: rgb(100 116 139);
-      margin-bottom: 0.5rem;
-      padding: 0.25rem;
+      margin-bottom: 0.4rem;
+      padding: 0.2rem;
       flex: 0 0 auto;
     }
     .bracket-tree-slots {
@@ -518,20 +518,21 @@
       box-sizing: border-box;
       flex: 0 0 auto;
       position: relative;
-      padding: 0.25rem 0;
+      /* height set inline — must be >= node height so cards never overlap */
     }
     .bracket-tree-node {
       position: relative;
       z-index: 2;
       width: 100%;
-      max-width: 11rem;
-      border-radius: 0.65rem;
+      max-width: 11.5rem;
+      border-radius: 0.6rem;
       border: 1px solid rgb(226 232 240);
       background: #fff;
       box-shadow: 0 1px 3px rgb(15 23 42 / 0.06);
       overflow: hidden;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       pointer-events: auto;
+      flex: 0 0 auto;
     }
     .bracket-tree-node.done { opacity: 0.9; }
     .bracket-tree-node.live { border-color: rgb(16 185 129 / 0.6); box-shadow: 0 0 0 1px rgb(16 185 129 / 0.25); }
@@ -540,10 +541,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 0.35rem;
-      padding: 0.4rem 0.5rem;
-      line-height: 1.25;
-      min-height: 1.6rem;
+      gap: 0.3rem;
+      padding: 0.32rem 0.45rem;
+      line-height: 1.2;
+      min-height: 0;
     }
     .bracket-tree-side + .bracket-tree-side { border-top: 1px solid rgb(241 245 249); }
     .bracket-tree-side.win { background: rgb(236 253 245); font-weight: 700; color: rgb(4 120 87); }
@@ -560,20 +561,20 @@
       font-variant-numeric: tabular-nums;
       font-weight: 700;
       color: rgb(71 85 105);
-      min-width: 1rem;
+      min-width: 0.85rem;
       text-align: right;
     }
     .bracket-tree-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.2rem;
-      padding: 0.25rem 0.45rem;
+      gap: 0.15rem;
+      padding: 0.2rem 0.4rem;
       border-top: 1px solid rgb(241 245 249);
     }
     .bracket-tree-meta span {
-      font-size: 0.6rem;
+      font-size: 0.58rem;
       font-weight: 700;
-      padding: 0.1rem 0.35rem;
+      padding: 0.08rem 0.3rem;
       border-radius: 0.25rem;
       background: rgb(241 245 249);
       color: rgb(71 85 105);
@@ -582,11 +583,11 @@
     .bracket-tree-meta .deck { background: rgb(241 245 249); color: rgb(100 116 139); }
     .bracket-tree-meta .serve { background: rgb(238 242 255); color: rgb(67 56 202); }
     .bracket-tree-connector {
-      width: 0.75rem;
-      flex: 0 0 0.75rem;
+      width: 0.85rem;
+      flex: 0 0 0.85rem;
       height: 2px;
       background: rgb(203 213 225);
-      margin-left: 0.15rem;
+      margin-left: 0.2rem;
       align-self: center;
       border-radius: 1px;
     }
@@ -595,17 +596,20 @@
       width: 100%;
       font-size: 0.65rem;
       font-weight: 700;
-      padding: 0.4rem 0.35rem;
+      padding: 0.45rem 0.35rem;
+      min-height: 2rem;
       border: 0;
       border-top: 1px solid rgb(209 250 229);
       background: rgb(236 253 245);
       color: rgb(4 120 87);
       cursor: pointer;
       position: relative;
-      z-index: 3;
+      z-index: 5;
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
-    .bracket-tree-node button.tree-score-btn:hover { background: rgb(209 250 229); }
+    .bracket-tree-node button.tree-score-btn:hover,
+    .bracket-tree-node button.tree-score-btn:active { background: rgb(209 250 229); }
     .bracket-tree-empty {
       color: rgb(148 163 184);
       font-size: 0.8rem;
@@ -933,7 +937,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.61 · Updated Sep 27, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.62 · Updated Sep 27, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1662,7 +1666,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.61';
+    const APP_VERSION = '5.62';
     const APP_UPDATED = 'Sep 27, 2026';
 
     let state = {
@@ -6520,11 +6524,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
       </div>`;
     }
 
-    /** Traditional connected tree: fixed slot heights so cards never overlap. */
+    /** Traditional connected tree: each slot tall enough for a full card (no overlap). */
     function roundsTreeHtml(rounds, accent) {
       if (!rounds?.length) return '<p class="bracket-tree-empty">No bracket rounds</p>';
-      // First round sets the unit height; later rounds = unit * 2^roundIndex
-      const BASE = 96; // px per R1 match slot (fits node + score btn)
+      // Must be >= tallest tree node (2 names + meta + Enter score). Later rounds = BASE * 2^ri.
+      const BASE = 132;
       let html = '<div class="bracket-tree" role="region" aria-label="Bracket tree">';
       rounds.forEach((round, ri) => {
         const matches = round.matches || [];
@@ -6533,7 +6537,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         html += `<div class="bracket-tree-round-title">${escapeHtml(round.name || ('R' + (round.number || ri + 1)))}</div>`;
         html += `<div class="bracket-tree-slots">`;
         matches.forEach((m) => {
-          html += `<div class="bracket-tree-slot" style="height:${slotH}px;min-height:${slotH}px">`;
+          html += `<div class="bracket-tree-slot" style="height:${slotH}px;min-height:${slotH}px;max-height:${slotH}px">`;
           html += treeMatchNodeHtml(m, accent);
           if (ri < rounds.length - 1) {
             html += `<div class="bracket-tree-connector" aria-hidden="true"></div>`;
