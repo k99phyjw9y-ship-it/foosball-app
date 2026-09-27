@@ -750,7 +750,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.50 · Updated Sep 26, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.51 · Updated Sep 26, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1470,7 +1470,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.50';
+    const APP_VERSION = '5.51';
     const APP_UPDATED = 'Sep 26, 2026';
 
     let state = {
@@ -2884,9 +2884,11 @@
 
     function getPlayerBusyInfo(playerId, excludeTournamentId) {
       if (!playerId) return null;
-      for (const t of (state.tournaments || [])) {
-        if (!t || t.id === excludeTournamentId) continue;
-        if (t.status === 'finished') continue;
+      // Fast path: nothing to conflict with
+      const others = (state.tournaments || []).filter(t => t && t.id !== excludeTournamentId && t.status !== 'finished');
+      if (!others.length) return null;
+      for (const t of others) {
+        if (!t) continue;
         for (const r of (t.rounds || [])) {
           for (const m of (r.matches || [])) {
             if (!rankingMatchIsOpen(m)) continue;
@@ -3479,11 +3481,13 @@
       if (t.type === 'monster' && t.monsterPositions && !forBracket) {
         t.teams.forEach(assignRandomPositions);
       }
-      saveState();
-      renderTournament();
-      const sitMsg = sitOuts.length ? ` · sit-out: ${sitOuts.map(p => p.name).join(', ')}` : '';
-      const posMsg = (t.type === 'monster' && t.monsterPositions && !forBracket) ? ' · F/G randomized' : '';
-      toast(`Drew ${t.teams.length} teams${sitMsg}${posMsg}`, 'success');
+      if (!opts.silent) {
+        saveState();
+        renderTournament();
+        const sitMsg = sitOuts.length ? ` · sit-out: ${sitOuts.map(p => p.name).join(', ')}` : '';
+        const posMsg = (t.type === 'monster' && t.monsterPositions && !forBracket) ? ' · F/G randomized' : '';
+        toast(`Drew ${t.teams.length} teams${sitMsg}${posMsg}`, 'success');
+      }
     }
 
     function shuffle(arr) {
@@ -3602,7 +3606,8 @@
 
     function nextPowerOfTwo(n) {
       let p = 1;
-      while (p < n) p *= 2;
+      const target = Math.max(1, Math.min(64, Number(n) || 1)); // hard cap 64-slot bracket
+      while (p < target) p *= 2;
       return p;
     }
 
@@ -3872,34 +3877,37 @@
       const winnersRounds = [];
       let roundNum = 1;
       const totalWb = Math.log2(size) || 1;
-      let current = null;
+      let current = [];
 
       // Round 1: arrange so byes never face byes
       {
         const pairs = arrangeFirstRoundSides(list, size);
         const matches = pairs.map(([a, b]) => makeMatch(a, b, { bracket: 'winners' }));
-        const isFinal = matches.length === 1;
-        winnersRounds.push({
-          number: roundNum,
-          name: isFinal ? 'Winners Final' : (roundNum === totalWb - 1 ? 'Winners SF' : `Winners R${roundNum}`),
-          matches
-        });
-        current = matches.map(m => ({
-          seed: 0,
-          entity: m.winner === 'a' ? m.a.entity : (m.winner === 'b' ? m.b.entity : null),
-          score: null,
-          fromMatch: m.id,
-          fromLoser: false
-        }));
-        roundNum++;
-        if (matches.length === 1) current = [];
+        if (matches.length) {
+          const isFinal = matches.length === 1;
+          winnersRounds.push({
+            number: roundNum,
+            name: isFinal ? 'Winners Final' : (roundNum === totalWb - 1 ? 'Winners SF' : `Winners R${roundNum}`),
+            matches
+          });
+          current = matches.length === 1 ? [] : matches.map(m => ({
+            seed: 0,
+            entity: m.winner === 'a' ? m.a.entity : (m.winner === 'b' ? m.b.entity : null),
+            score: null,
+            fromMatch: m.id,
+            fromLoser: false
+          }));
+          roundNum++;
+        }
       }
 
-      while (current.length >= 2) {
+      let wbGuard = 0;
+      while (current && current.length >= 2 && wbGuard++ < 16) {
         const matches = [];
         for (let i = 0; i < current.length; i += 2) {
           matches.push(makeMatch(current[i], current[i + 1] || makeSide(null), { bracket: 'winners' }));
         }
+        if (!matches.length) break;
         const isFinal = matches.length === 1;
         winnersRounds.push({
           number: roundNum,
@@ -4017,7 +4025,12 @@
           const nextWbCount = wr + 1 < winnersRounds.length
             ? winnersRounds[wr + 1].matches.filter(producesLoser).length || 1
             : 1;
-          while (losersRounds.length && losersRounds[losersRounds.length - 1].matches.length > nextWbCount) {
+          let lbConsolGuard = 0;
+          while (
+            losersRounds.length &&
+            losersRounds[losersRounds.length - 1].matches.length > nextWbCount &&
+            lbConsolGuard++ < 16
+          ) {
             const src = losersRounds[losersRounds.length - 1].matches;
             const consol = [];
             for (let i = 0; i < src.length; i += 2) {
@@ -4103,53 +4116,56 @@
 
     function startBracketTournament() {
       const t = getCurrentTournament();
-      if (t.playoffs && (t.playoffs.rounds?.length || t.playoffs.winnersRounds?.length)) {
-        if (!confirm('A bracket already exists. Replace it and reset placements?')) return;
-      }
+      if (!t) return;
+      try {
+        if (t.playoffs && (t.playoffs.rounds?.length || t.playoffs.winnersRounds?.length)) {
+          if (!confirm('A bracket already exists. Replace it and reset placements?')) return;
+        }
 
-      // Team events: pair EVERY active player (no table-capacity sits). Odd field sits 1 only.
-      // 6 → 3 teams, 10 → 5, 14 → 7; bracket expands with byes (4 / 8 / 8).
-      if (t.type === 'dyp' || t.type === 'monster') {
-        drawPartners({ forBracket: true });
-        if (!t.teams || t.teams.length < 2) {
-          toast('Need at least 2 teams — add players or mark Present', 'error');
+        // Team events: pair every active player (conflict lock does not exclude from bracket)
+        if (t.type === 'dyp' || t.type === 'monster') {
+          drawPartners({ forBracket: true, silent: true });
+          if (!t.teams || t.teams.length < 2) {
+            toast('Need at least 2 teams — add players or mark Present', 'error');
+            return;
+          }
+        } else if (!ensureTeamsReady(t)) {
           return;
         }
-      } else if (!ensureTeamsReady(t)) {
-        return;
-      }
 
-      let entities = getMatchEntities(t);
-      if (isConflictLockEnabled()) {
-        const before = entities.length;
-        entities = entities.filter(e => {
-          const pids = (e.playerIds && e.playerIds.length) ? e.playerIds : (e.id ? [e.id] : []);
-          return pids.every(pid => !isPlayerBusyElsewhere(pid, t.id));
-        });
-        if (before > entities.length) {
-          toast(`Conflict lock: ${before - entities.length} left out (busy in other events)`, 'success');
+        const entities = getMatchEntities(t);
+        if (entities.length < 2) {
+          toast('Need at least 2 players or teams', 'error');
+          return;
         }
-      }
-      if (entities.length < 2) {
-        toast('Need at least 2 free players or teams', 'error');
-        return;
-      }
+        if (entities.length > 64) {
+          toast('Bracket supports at most 64 players/teams', 'error');
+          return;
+        }
 
-      const format = (t.format === 'double-elim') ? 'double-elim' : 'single-elim';
-      t.playoffs = buildBracket(entities, format, { shuffleSeeds: true });
-      t.status = 'active';
-      t.placements = t.playoffs.placements;
-      assignBracketTables(t);
-      armTimersForReadyBracketMatches(t);
-      saveState();
-      state.currentTab = 'bracket';
-      renderTournament();
-      const label = format === 'double-elim' ? 'Double-elim bracket' : 'Single-elim bracket';
-      const bracketSize = t.playoffs?.size || nextPowerOfTwo(entities.length);
-      const byes = Math.max(0, bracketSize - entities.length);
-      const unit = t.type === 'singles' ? 'players' : 'teams';
-      const byeNote = byes ? ` · ${byes} bye${byes > 1 ? 's' : ''} → bracket of ${bracketSize}` : '';
-      toast(`${label} · ${entities.length} ${unit}${byeNote}`, 'success');
+        const format = (t.format === 'double-elim') ? 'double-elim' : 'single-elim';
+        t.playoffs = buildBracket(entities, format, { shuffleSeeds: true });
+        if (!t.playoffs) {
+          toast('Could not build bracket', 'error');
+          return;
+        }
+        t.status = 'active';
+        t.placements = t.playoffs.placements || { first: null, second: null, third: null };
+        try { assignBracketTables(t); } catch (e) { console.error('assignBracketTables', e); }
+        try { armTimersForReadyBracketMatches(t); } catch (e) { console.error('armTimers', e); }
+        saveState();
+        state.currentTab = 'bracket';
+        renderTournament();
+        const label = format === 'double-elim' ? 'Double-elim bracket' : 'Single-elim bracket';
+        const bracketSize = t.playoffs?.size || nextPowerOfTwo(entities.length);
+        const byes = Math.max(0, bracketSize - entities.length);
+        const unit = t.type === 'singles' ? 'players' : 'teams';
+        const byeNote = byes ? ` · ${byes} bye${byes > 1 ? 's' : ''} → bracket of ${bracketSize}` : '';
+        toast(`${label} · ${entities.length} ${unit}${byeNote}`, 'success');
+      } catch (e) {
+        console.error('startBracketTournament', e);
+        toast('Bracket failed: ' + (e && e.message ? e.message : 'unknown error'), 'error');
+      }
     }
 
     /**
@@ -4250,8 +4266,8 @@
         }
         t.placements = t.playoffs.placements;
         t.status = 'active';
-        assignBracketTables(t);
-        armTimersForReadyBracketMatches(t);
+        try { assignBracketTables(t); } catch (e) { console.error(e); }
+        try { armTimersForReadyBracketMatches(t); } catch (e) { console.error(e); }
         saveState();
         state.currentTab = 'bracket';
         renderTournament();
@@ -4264,20 +4280,10 @@
       }
 
       // Singles / Doubles: every active player or formed team enters; bracket expands with byes
-      // (6 → 8, 10 → 16, 14 → 16, 3 teams → 4, 5 teams → 8, 7 teams → 8)
-      let entities = getMatchEntities(t);
-      if (isConflictLockEnabled()) {
-        const before = entities.length;
-        entities = entities.filter(e => {
-          const pids = (e.playerIds && e.playerIds.length) ? e.playerIds : (e.id ? [e.id] : []);
-          return pids.every(pid => !isPlayerBusyElsewhere(pid, t.id));
-        });
-        if (before > entities.length) {
-          toast(`Conflict lock: ${before - entities.length} left out (busy in other events)`, 'success');
-        }
-      }
+      // Conflict lock holds tables only — does not remove anyone from the bracket
+      const entities = getMatchEntities(t);
       if (entities.length < 2) {
-        toast('Need at least 2 free teams/players for playoffs', 'error');
+        toast('Need at least 2 teams/players for playoffs', 'error');
         return;
       }
       const format = t.format === 'double-elim' ? 'double-elim' : 'single-elim';
