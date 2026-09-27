@@ -391,6 +391,19 @@
     #view-spectator .spec-match-meta {
       margin-bottom: 0.55rem;
     }
+    /* TV board serve indicator */
+    #view-spectator .spec-serve-team { color: #c7d2fe; }
+    #view-spectator .spec-serve-tag {
+      display: inline-block; margin-left: 0.25rem;
+      font-size: 0.55em; font-weight: 800; letter-spacing: 0.06em;
+      vertical-align: middle; padding: 0.1em 0.35em; border-radius: 0.25rem;
+      background: rgba(99, 102, 241, 0.35); color: #e0e7ff;
+      border: 1px solid rgba(165, 180, 252, 0.5);
+    }
+    #view-spectator .spec-serve-line {
+      text-align: center; font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.04em; color: #a5b4fc; margin-top: 0.25rem;
+    }
     /* Coin toss */
     .coin-toss-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
     .coin-face {
@@ -782,7 +795,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.57 · Updated Sep 27, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.59 · Updated Sep 27, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1511,7 +1524,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.57';
+    const APP_VERSION = '5.59';
     const APP_UPDATED = 'Sep 27, 2026';
 
     let state = {
@@ -3166,10 +3179,10 @@
       return `<span class="serve-badge" title="Serving team">Serve ${who}</span>`;
     }
 
-    function coinTossCompactHtml(match, isBracket, flipFn) {
+        function coinTossCompactHtml(match, isBracket, flipFn) {
       if (!match || match.status === 'done' || match.winner) {
         if (match?.coinToss?.serveSide) {
-          return `<span class="text-[10px] text-slate-500">Served: ${match.coinToss.serveSide === 'a' ? 'A' : 'B'}</span>`;
+          return `<div class="mt-2 text-center text-[11px] font-semibold text-indigo-700">Served: ${escapeHtml(coinSideLabel(match, match.coinToss.serveSide, isBracket))}</div>`;
         }
         return '';
       }
@@ -3182,7 +3195,7 @@
         : `<span class="text-[11px] text-slate-500">Tap flip for serve</span>`;
       return `<div class="coin-toss-wrap w-full mt-2 pt-2 border-t border-slate-100">
         <div class="text-[10px] text-slate-500">${coinTossAssignText(match, isBracket)}</div>
-        <div class="flex items-center justify-center gap-2 mt-1">
+        <div class="flex items-center justify-center gap-2 mt-1 flex-wrap">
           <div class="${faceClass}" style="width:2rem;height:2rem;font-size:0.65rem">${face}</div>
           <button type="button" onclick="${flipFn}" class="px-2 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition">${ct.result ? 'Re-flip' : 'Flip'}</button>
           ${serveBadgeHtml(match)}
@@ -3191,7 +3204,7 @@
       </div>`;
     }
 
-    function flipRankingMatchCoin(roundNum, matchId) {
+function flipRankingMatchCoin(roundNum, matchId) {
       const t = getCurrentTournament();
       if (!t) return;
       const round = (t.rounds || []).find(r => r.number === parseInt(roundNum, 10));
@@ -5065,7 +5078,7 @@
               </div>
               ${!done ? formatProjectionBadge(m.entityA, m.entityB) : ''}
               ${(bestOf > 1 && games.length) ? `<div class="mt-1.5 text-center text-[10px] text-slate-500">${games.map((g,i)=>`G${i+1} ${g.scoreA}–${g.scoreB}`).join(' · ')}${!done ? ' · in progress' : ''}</div>` : ''}
-              ${!done ? coinTossCompactHtml(m, false, `flipRankingMatchCoin(${round.number},'${m.id}')`) : (m.coinToss && m.coinToss.serveSide ? `<div class="mt-2 text-center text-[10px] text-slate-500">Served: ${escapeHtml(coinSideLabel(m, m.coinToss.serveSide, false))}</div>` : '')}
+              ${!done ? coinTossCompactHtml(m, false, `flipRankingMatchCoin(${round.number},'${m.id}')`) : (m.coinToss && m.coinToss.serveSide ? `<div class="mt-2 text-center text-[11px] font-semibold text-indigo-700">Served: ${escapeHtml(coinSideLabel(m, m.coinToss.serveSide, false))}</div>` : '')}
               <div class="mt-3 flex gap-2">
                 ${!done ? `
                 <button onclick="openScoreModal('${round.number}','${m.id}')" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
@@ -6214,7 +6227,7 @@
           </div>
           ${metaRow}
           ${score ? `<div class="text-center text-xs text-slate-500 mt-1.5 font-mono">${score}</div>` : ''}
-          ${canScore ? coinTossCompactHtml(m, true, `flipBracketMatchCoin('${m.id}')`) : (m.coinToss && m.coinToss.serveSide ? `<div class="mt-1.5 text-center text-[10px] text-slate-500">Served: ${escapeHtml(coinSideLabel(m, m.coinToss.serveSide, true))}</div>` : '')}
+          ${canScore ? coinTossCompactHtml(m, true, `flipBracketMatchCoin('${m.id}')`) : (m.coinToss && m.coinToss.serveSide ? `<div class="mt-1.5 text-center text-[11px] font-semibold text-indigo-700">Served: ${escapeHtml(coinSideLabel(m, m.coinToss.serveSide, true))}</div>` : '')}
           ${canScore ? `<button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-2 text-xs font-semibold rounded-lg border transition ${btn}">Enter score</button>` : ''}
           ${m.winner && hasBoth && !(m.scoreA === 0 && m.scoreB === 0) ? `
             <button onclick="openPlayoffScore('${m.id}')" class="mt-1.5 w-full py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-700 transition">Edit score</button>
@@ -8763,10 +8776,13 @@
           const nameB = m.entityB?.name || 'TBD';
           const done = m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB);
           const proj = (!done && m.entityA && m.entityB) ? projectMatchWinPct(m.entityA, m.entityB) : null;
+          const serveSide = m.coinToss && m.coinToss.serveSide ? m.coinToss.serveSide : null;
+          const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
           const row = {
             round: r.number, nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table, done, proj,
             onDeck: !!m.onDeck, matchId: m.id,
-            timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt, status: m.status || (done ? 'done' : 'pending')
+            timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt, status: m.status || (done ? 'done' : 'pending'),
+            serveSide, serveName
           };
           if (done) recentDone.push(row);
           else live.push(row);
@@ -8780,10 +8796,13 @@
         const entA = m.a?.entity || m.entityA;
         const entB = m.b?.entity || m.entityB;
         const proj = (!done && entA && entB) ? projectMatchWinPct(entA, entB) : null;
+        const serveSide = m.coinToss && m.coinToss.serveSide ? m.coinToss.serveSide : null;
+        const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
         const row = {
           round: m.bracket || 'bracket', nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table || null, done, proj,
           onDeck: !!m.onDeck, matchId: m.id,
-          timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt, status: done ? 'done' : 'pending', winner: m.winner || null
+          timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt, status: done ? 'done' : 'pending', winner: m.winner || null,
+          serveSide, serveName
         };
         if (done && m.scoreA != null) recentDone.push(row);
         else if (!done && (m.a?.entity || m.b?.entity || m.entityA)) live.push(row);
@@ -8824,10 +8843,11 @@
               <span class="spec-meta-chip spec-meta-round">${escapeHtml(roundLabel)}</span>
             </div>
             <div class="text-center flex-1 flex flex-col justify-center py-1">
-              <div class="spec-team-name px-0.5" title="${escapeHtml(m.nameA)}">${escapeHtml(m.nameA)}</div>
+              <div class="spec-team-name px-0.5 ${m.serveSide === 'a' ? 'spec-serve-team' : ''}" title="${escapeHtml(m.nameA)}${m.serveSide === 'a' ? ' · Serve' : ''}">${escapeHtml(m.nameA)}${m.serveSide === 'a' ? ' <span class="spec-serve-tag">SERVE</span>' : ''}</div>
               <div class="spec-vs">vs</div>
-              <div class="spec-team-name px-0.5" title="${escapeHtml(m.nameB)}">${escapeHtml(m.nameB)}</div>
+              <div class="spec-team-name px-0.5 ${m.serveSide === 'b' ? 'spec-serve-team' : ''}" title="${escapeHtml(m.nameB)}${m.serveSide === 'b' ? ' · Serve' : ''}">${escapeHtml(m.nameB)}${m.serveSide === 'b' ? ' <span class="spec-serve-tag">SERVE</span>' : ''}</div>
             </div>
+            ${m.serveName ? `<div class="spec-serve-line">Serve · ${escapeHtml(m.serveName)}</div>` : ''}
             ${scoreLine}
           </div>`;
       };
