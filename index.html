@@ -750,7 +750,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.54 · Updated Sep 26, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.56 · Updated Sep 27, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1470,8 +1470,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.54';
-    const APP_UPDATED = 'Sep 26, 2026';
+    const APP_VERSION = '5.56';
+    const APP_UPDATED = 'Sep 27, 2026';
 
     let state = {
       players: [],
@@ -2993,14 +2993,19 @@
         entA = m.entityA;
         entB = m.entityB;
       }
+      const conflicts = [];
       for (const pid of matchPlayerIdsFromEntities(entA, entB)) {
         const info = getPlayerBusyInfo(pid, t.id);
         if (info) {
           const pname = state.players.find(p => p.id === pid)?.name || 'Player';
-          return { ...info, playerId: pid, playerName: pname };
+          conflicts.push({ ...info, playerId: pid, playerName: pname });
         }
       }
-      return null;
+      if (!conflicts.length) return null;
+      const primary = conflicts[0];
+      primary.playerIds = conflicts.map(c => c.playerId);
+      primary.playerNames = conflicts.map(c => c.playerName);
+      return primary;
     }
 
     function applyCrossConflictFlag(m, t, isBracket) {
@@ -3008,8 +3013,11 @@
       try {
         const info = getMatchCrossConflict(m, t, isBracket);
         if (info) {
+          if (!m.crossConflict) m.conflictSince = Date.now(); // start wait clock once
           m.crossConflict = true;
-          m.crossConflictLabel = `${info.playerName} · ${info.tournamentName}${info.table ? (info.onDeck ? ' (deck T' + info.table + ')' : ' (T' + info.table + ')') : ''}`;
+          m.crossConflictPlayerIds = (info.playerIds || [info.playerId]).filter(Boolean);
+          const who = (info.playerNames || [info.playerName]).filter(Boolean).join(', ');
+          m.crossConflictLabel = `${who} · ${info.tournamentName}${info.table ? (info.onDeck ? ' (deck T' + info.table + ')' : ' (T' + info.table + ')') : ''}`;
           return true;
         }
       } catch (e) {
@@ -3017,7 +3025,50 @@
       }
       delete m.crossConflict;
       delete m.crossConflictLabel;
+      delete m.crossConflictPlayerIds;
+      delete m.conflictSince;
       return false;
+    }
+
+    /** Oldest conflict-wait timestamp in an event (for fair multi-event priority). */
+    function eventOldestConflictSince(ev) {
+      if (!ev) return null;
+      let oldest = null;
+      const note = (m) => {
+        if (!m || !m.crossConflict || !m.conflictSince) return;
+        if (oldest == null || m.conflictSince < oldest) oldest = m.conflictSince;
+      };
+      (ev.rounds || []).forEach(r => (r.matches || []).forEach(note));
+      if (ev.playoffs && typeof collectBracketMatches === 'function') {
+        try { collectBracketMatches(ev.playoffs).forEach(note); } catch (e) {}
+      }
+      return oldest;
+    }
+
+    /** Side name HTML; conflicted players in purple. */
+    function formatSideNameHtml(ent, conflictPlayerIds, extraClass) {
+      if (!ent) return `<span class="${extraClass || 'text-slate-400'}">TBD</span>`;
+      const conf = new Set(conflictPlayerIds || []);
+      const pids = (ent.playerIds && ent.playerIds.length)
+        ? ent.playerIds.slice()
+        : (ent.id && state.players.some(p => p.id === ent.id) ? [ent.id] : []);
+      if (pids.length >= 2) {
+        const parts = pids.map(pid => {
+          const p = state.players.find(x => x.id === pid);
+          const nm = p ? p.name : (ent.name || '?');
+          if (conf.has(pid)) {
+            return `<span class="text-violet-700 font-semibold">${escapeHtml(nm)}</span>`;
+          }
+          return `<span class="text-slate-700">${escapeHtml(nm)}</span>`;
+        });
+        return `<span class="${extraClass || ''}">${parts.join(' <span class="text-slate-400">+</span> ')}</span>`;
+      }
+      const name = ent.name || 'TBD';
+      const isConf = pids.length === 1 ? conf.has(pids[0]) : conf.has(ent.id);
+      if (isConf) {
+        return `<span class="text-violet-700 font-semibold ${extraClass || ''}">${escapeHtml(name)}</span>`;
+      }
+      return `<span class="${extraClass || 'text-slate-700'}">${escapeHtml(name)}</span>`;
     }
 
     function countActiveParallelEvents() {
@@ -4650,18 +4701,28 @@
       }
       const promoted = new Set();
       free.forEach(tableNum => {
-        // Prefer match reserved for this table that is NOT cross-conflicted
         const m = queue.find(q =>
           !promoted.has(q.id) &&
           !q.crossConflict &&
           parseInt(q.table, 10) === tableNum
         ) || queue.find(q => !promoted.has(q.id) && !q.crossConflict);
         if (!m) return;
+        // Final conflict check right before going live (other events may have claimed players)
+        if (typeof applyCrossConflictFlag === 'function' && applyCrossConflictFlag(m, t, false)) {
+          m.onDeck = true;
+          delete m.timerStartAt;
+          delete m.timerEndedAt;
+          return;
+        }
         promoted.add(m.id);
         m.table = tableNum;
         m.onDeck = false;
         m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
         delete m.timerEndedAt;
+        delete m.crossConflict;
+        delete m.crossConflictLabel;
+        delete m.crossConflictPlayerIds;
+        delete m.conflictSince;
       });
 
       ensureMatchTimerTicker();
@@ -4686,6 +4747,7 @@
             if (m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB)) {
               delete m.crossConflict;
               delete m.crossConflictLabel;
+              delete m.crossConflictPlayerIds;
             }
           });
         });
@@ -4695,6 +4757,7 @@
             if (m.winner || m._byePropagated) {
               delete m.crossConflict;
               delete m.crossConflictLabel;
+              delete m.crossConflictPlayerIds;
             }
           });
         }
@@ -4706,12 +4769,25 @@
     }
 
     function syncTablesAndSave(t) {
-      refreshConflictAndTables(t);
-      // Unlock parallel events: finishing a match frees players waiting elsewhere
-      (state.tournaments || []).forEach(other => {
-        if (!other || (t && other.id === t.id)) return;
-        refreshConflictAndTables(other);
+      // Fair multi-event order:
+      // 1) Other events (longest-waiting first) claim free players
+      // 2) The event that just scored fills only what is still free
+      // 3) Re-check others so they hold if step 2 took someone
+      // This stops Event 1 bracket from always re-grabbing players before 2 & 3.
+      const others = (state.tournaments || []).filter(
+        o => o && (!t || o.id !== t.id) && o.status !== 'finished'
+      );
+      others.sort((a, b) => {
+        const aa = eventOldestConflictSince(a);
+        const bb = eventOldestConflictSince(b);
+        if (aa == null && bb == null) return (a.createdAt || 0) - (b.createdAt || 0);
+        if (aa == null) return 1;
+        if (bb == null) return -1;
+        return aa - bb; // oldest wait first
       });
+      others.forEach(refreshConflictAndTables);
+      refreshConflictAndTables(t);
+      others.forEach(refreshConflictAndTables);
       saveState();
     }
 
@@ -4759,7 +4835,7 @@
           const statusLabel = done ? 'Finished' : (m.crossConflict ? 'Waiting · conflict' : (m.onDeck ? 'On deck' : 'Playing'));
           const statusColor = done ? 'text-emerald-600' : (m.crossConflict ? 'text-violet-600' : (m.onDeck ? 'text-slate-500' : 'text-amber-600'));
           return `
-            <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : (m.onDeck ? 'ring-1 ring-slate-200' : 'ring-1 ring-emerald-200')}">
+            <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : (m.crossConflict ? 'ring-1 ring-violet-300 bg-violet-50/40' : (m.onDeck ? 'ring-1 ring-slate-200' : 'ring-1 ring-emerald-200'))}">
               <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
                 <div class="flex items-center gap-1.5 flex-wrap">${conflictBadge}${tableBadge}${timerBadge}</div>
                 <div class="flex items-center gap-2">
@@ -4768,9 +4844,9 @@
                 </div>
               </div>
               <div class="flex items-center justify-between gap-3">
-                <div class="flex-1 text-right text-sm ${winnerA ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">${escapeHtml(m.entityA.name)}</div>
+                <div class="flex-1 text-right text-sm min-w-0">${formatSideNameHtml(m.entityA, (!done && m.crossConflict) ? m.crossConflictPlayerIds : null, winnerA ? 'text-emerald-700 font-semibold' : '')}</div>
                 <div class="px-3 py-1.5 rounded-xl font-mono text-base min-w-[72px] text-center ${done ? 'bg-slate-100 text-slate-900' : 'bg-slate-50 text-slate-400'}">${scoreText}</div>
-                <div class="flex-1 text-sm ${winnerB ? 'text-emerald-700 font-semibold' : 'text-slate-700'}">${escapeHtml(m.entityB.name)}</div>
+                <div class="flex-1 text-sm min-w-0">${formatSideNameHtml(m.entityB, (!done && m.crossConflict) ? m.crossConflictPlayerIds : null, winnerB ? 'text-emerald-700 font-semibold' : '')}</div>
               </div>
               ${!done ? formatProjectionBadge(m.entityA, m.entityB) : ''}
               ${(bestOf > 1 && games.length) ? `<div class="mt-1.5 text-center text-[10px] text-slate-500">${games.map((g,i)=>`G${i+1} ${g.scoreA}–${g.scoreB}`).join(' · ')}${!done ? ' · in progress' : ''}</div>` : ''}
@@ -5848,13 +5924,18 @@
       }
       const promoted = new Set();
       free.forEach(tableNum => {
-        // Promote non-conflict matches first (just-released conflict holds)
         const m = queue.find(q =>
           !promoted.has(q.id) &&
           !q.crossConflict &&
           parseInt(q.table, 10) === tableNum
         ) || queue.find(q => !promoted.has(q.id) && !q.crossConflict);
         if (!m) return;
+        if (typeof applyCrossConflictFlag === 'function' && applyCrossConflictFlag(m, t, true)) {
+          m.onDeck = true;
+          delete m.timerStartAt;
+          delete m.timerEndedAt;
+          return;
+        }
         promoted.add(m.id);
         m.table = tableNum;
         m.onDeck = false;
@@ -5862,6 +5943,8 @@
         delete m.timerEndedAt;
         delete m.crossConflict;
         delete m.crossConflictLabel;
+        delete m.crossConflictPlayerIds;
+        delete m.conflictSince;
       });
 
       ensureMatchTimerTicker();
@@ -5893,15 +5976,23 @@
       const metaRow = (conflictBadge || tableBadge || timerBadge)
         ? `<div class="mt-1.5 flex flex-wrap gap-1 justify-center">${conflictBadge}${tableBadge}${timerBadge}</div>`
         : '';
+      const confIds = (!m.winner && m.crossConflict) ? (m.crossConflictPlayerIds || []) : [];
+      const sideAHtml = m.a?.entity
+        ? formatSideNameHtml(m.a.entity, confIds, m.winner === 'a' ? win + ' font-semibold' : 'text-slate-700')
+        : `<span class="${m.winner === 'a' ? win + ' font-semibold' : 'text-slate-700'}">${escapeHtml(nameA)}</span>`;
+      const sideBHtml = m.b?.entity
+        ? formatSideNameHtml(m.b.entity, confIds, m.winner === 'b' ? win + ' font-semibold' : 'text-slate-700')
+        : `<span class="${m.winner === 'b' ? win + ' font-semibold' : 'text-slate-700'}">${escapeHtml(nameB)}</span>`;
+      const cardRing = m.winner ? '' : (m.crossConflict ? 'ring-1 ring-violet-300 bg-violet-50/30' : 'ring-1 ' + ring);
       return `
-        <div class="surface-card rounded-xl p-3 text-sm ${m.winner ? 'opacity-90' : 'ring-1 ' + ring}">
-          <div class="flex justify-between items-center py-1 gap-2 ${m.winner === 'a' ? win + ' font-semibold' : 'text-slate-700'}">
-            <span class="truncate">${escapeHtml(nameA)}</span>
+        <div class="surface-card rounded-xl p-3 text-sm ${m.winner ? 'opacity-90' : cardRing}">
+          <div class="flex justify-between items-center py-1 gap-2 min-w-0">
+            <span class="truncate min-w-0">${sideAHtml}</span>
             ${m.winner === 'a' ? '<span class="text-[10px]">W</span>' : ''}
           </div>
           <div class="border-t border-slate-200 my-1"></div>
-          <div class="flex justify-between items-center py-1 gap-2 ${m.winner === 'b' ? win + ' font-semibold' : 'text-slate-700'}">
-            <span class="truncate">${escapeHtml(nameB)}</span>
+          <div class="flex justify-between items-center py-1 gap-2 min-w-0">
+            <span class="truncate min-w-0">${sideBHtml}</span>
             ${m.winner === 'b' ? '<span class="text-[10px]">W</span>' : ''}
           </div>
           ${metaRow}
