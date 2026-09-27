@@ -391,6 +391,38 @@
     #view-spectator .spec-match-meta {
       margin-bottom: 0.55rem;
     }
+    /* Coin toss */
+    .coin-toss-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+    .coin-face {
+      width: 3.25rem; height: 3.25rem; border-radius: 9999px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.7rem; letter-spacing: 0.04em;
+      border: 2px solid rgb(251 191 36);
+      background: linear-gradient(145deg, #fde68a, #f59e0b);
+      color: #78350f;
+      box-shadow: 0 2px 8px rgb(245 158 11 / 0.35);
+      user-select: none;
+    }
+    .coin-face.tails {
+      background: linear-gradient(145deg, #e2e8f0, #94a3b8);
+      border-color: #64748b;
+      color: #1e293b;
+      box-shadow: 0 2px 8px rgb(100 116 139 / 0.3);
+    }
+    .coin-face.flipping {
+      animation: coin-flip 0.7s ease-in-out;
+    }
+    @keyframes coin-flip {
+      0% { transform: rotateY(0) scale(1); }
+      40% { transform: rotateY(720deg) scale(1.12); }
+      100% { transform: rotateY(1440deg) scale(1); }
+    }
+    .serve-badge {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.03em;
+      padding: 0.15rem 0.45rem; border-radius: 0.375rem;
+      background: rgb(238 242 255); color: rgb(67 56 202);
+      border: 1px solid rgb(199 210 254);
+    }
     /* Bracket view layouts */
     .bracket-view-picker {
       display: flex;
@@ -750,7 +782,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.56 · Updated Sep 27, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.57 · Updated Sep 27, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1422,6 +1454,15 @@
     <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
       <h3 class="text-lg font-bold text-center text-slate-900" id="score-modal-title">Enter Score</h3>
       <div id="score-match-timer" class="hidden text-center font-mono text-sm font-semibold tracking-wide text-slate-600" aria-live="polite"></div>
+      <div id="score-coin-toss" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-center space-y-1.5">
+        <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Coin toss · serve</div>
+        <div id="score-coin-assign" class="text-[11px] text-slate-600 leading-snug"></div>
+        <div class="flex items-center justify-center gap-3">
+          <div id="score-coin-face" class="coin-face" aria-hidden="true">H</div>
+          <button type="button" id="score-coin-flip-btn" onclick="flipScoreModalCoin()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition">Flip</button>
+        </div>
+        <div id="score-coin-result" class="text-xs font-semibold text-indigo-700 min-h-[1.1rem]"></div>
+      </div>
       <div id="score-series-banner" class="hidden rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-center">
         <div class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80" id="score-series-label">Best of 3</div>
         <div class="text-sm font-bold text-slate-800 mt-0.5" id="score-series-score">Games 0 – 0</div>
@@ -1470,7 +1511,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.56';
+    const APP_VERSION = '5.57';
     const APP_UPDATED = 'Sep 27, 2026';
 
     let state = {
@@ -3069,6 +3110,180 @@
         return `<span class="text-violet-700 font-semibold ${extraClass || ''}">${escapeHtml(name)}</span>`;
       }
       return `<span class="${extraClass || 'text-slate-700'}">${escapeHtml(name)}</span>`;
+    }
+
+    // ==================== COIN TOSS / SERVE ====================
+    /**
+     * Ensure match has heads/tails sides. headsSide = 'a' | 'b' (that side is Heads).
+     * result = 'heads' | 'tails' | null. serveSide = 'a' | 'b' | null.
+     */
+    function ensureCoinToss(match) {
+      if (!match) return null;
+      if (!match.coinToss || (match.coinToss.headsSide !== 'a' && match.coinToss.headsSide !== 'b')) {
+        match.coinToss = {
+          headsSide: Math.random() < 0.5 ? 'a' : 'b',
+          result: null,
+          serveSide: null,
+          flippedAt: null
+        };
+      }
+      return match.coinToss;
+    }
+
+    function coinSideLabel(match, side, isBracket) {
+      if (!match) return side === 'a' ? 'Side A' : 'Side B';
+      if (isBracket) {
+        const ent = side === 'a' ? (match.a?.entity || match.entityA) : (match.b?.entity || match.entityB);
+        return ent?.name || (side === 'a' ? 'Side A' : 'Side B');
+      }
+      const ent = side === 'a' ? match.entityA : match.entityB;
+      return ent?.name || (side === 'a' ? 'Side A' : 'Side B');
+    }
+
+    function coinTossAssignText(match, isBracket) {
+      const ct = ensureCoinToss(match);
+      if (!ct) return '';
+      const headsName = coinSideLabel(match, ct.headsSide, isBracket);
+      const tailsSide = ct.headsSide === 'a' ? 'b' : 'a';
+      const tailsName = coinSideLabel(match, tailsSide, isBracket);
+      return `<span class="text-amber-800 font-semibold">H</span> ${escapeHtml(headsName)} · <span class="text-slate-600 font-semibold">T</span> ${escapeHtml(tailsName)}`;
+    }
+
+    function flipCoinToss(match) {
+      const ct = ensureCoinToss(match);
+      if (!ct) return null;
+      const result = Math.random() < 0.5 ? 'heads' : 'tails';
+      ct.result = result;
+      ct.serveSide = result === 'heads' ? ct.headsSide : (ct.headsSide === 'a' ? 'b' : 'a');
+      ct.flippedAt = Date.now();
+      return ct;
+    }
+
+    function serveBadgeHtml(match) {
+      const ct = match && match.coinToss;
+      if (!ct || !ct.serveSide) return '';
+      const who = ct.serveSide === 'a' ? 'A' : 'B';
+      return `<span class="serve-badge" title="Serving team">Serve ${who}</span>`;
+    }
+
+    function coinTossCompactHtml(match, isBracket, flipFn) {
+      if (!match || match.status === 'done' || match.winner) {
+        if (match?.coinToss?.serveSide) {
+          return `<span class="text-[10px] text-slate-500">Served: ${match.coinToss.serveSide === 'a' ? 'A' : 'B'}</span>`;
+        }
+        return '';
+      }
+      ensureCoinToss(match);
+      const ct = match.coinToss;
+      const face = ct.result === 'tails' ? 'T' : 'H';
+      const faceClass = ct.result === 'tails' ? 'coin-face tails' : 'coin-face';
+      const resultLine = ct.serveSide
+        ? `<span class="text-[11px] font-semibold text-indigo-700">Serve → ${escapeHtml(coinSideLabel(match, ct.serveSide, isBracket))}</span>`
+        : `<span class="text-[11px] text-slate-500">Tap flip for serve</span>`;
+      return `<div class="coin-toss-wrap w-full mt-2 pt-2 border-t border-slate-100">
+        <div class="text-[10px] text-slate-500">${coinTossAssignText(match, isBracket)}</div>
+        <div class="flex items-center justify-center gap-2 mt-1">
+          <div class="${faceClass}" style="width:2rem;height:2rem;font-size:0.65rem">${face}</div>
+          <button type="button" onclick="${flipFn}" class="px-2 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition">${ct.result ? 'Re-flip' : 'Flip'}</button>
+          ${serveBadgeHtml(match)}
+        </div>
+        <div class="mt-0.5">${resultLine}</div>
+      </div>`;
+    }
+
+    function flipRankingMatchCoin(roundNum, matchId) {
+      const t = getCurrentTournament();
+      if (!t) return;
+      const round = (t.rounds || []).find(r => r.number === parseInt(roundNum, 10));
+      const match = round?.matches?.find(m => m.id === matchId);
+      if (!match) return;
+      flipCoinToss(match);
+      saveState();
+      renderTournament();
+      const ct = match.coinToss;
+      toast(`Toss: ${ct.result} · ${coinSideLabel(match, ct.serveSide, false)} serves`, 'success');
+    }
+
+    function flipBracketMatchCoin(matchId) {
+      const t = getCurrentTournament();
+      if (!t?.playoffs) return;
+      const found = typeof findBracketMatch === 'function' ? findBracketMatch(t, matchId) : null;
+      const match = found?.match;
+      if (!match) return;
+      flipCoinToss(match);
+      saveState();
+      renderTournament();
+      const ct = match.coinToss;
+      toast(`Toss: ${ct.result} · ${coinSideLabel(match, ct.serveSide, true)} serves`, 'success');
+    }
+
+    function refreshScoreModalCoin() {
+      const box = document.getElementById('score-coin-toss');
+      if (!box) return;
+      const t = getCurrentTournament();
+      const sm = state.scoreMatchId;
+      if (!t || !sm) { box.classList.add('hidden'); return; }
+      let match = null;
+      let isBracket = false;
+      if (sm.mode === 'bracket') {
+        isBracket = true;
+        match = findBracketMatch(t, sm.matchId)?.match;
+      } else {
+        const round = (t.rounds || []).find(r => r.number === sm.roundNum);
+        match = round?.matches?.find(m => m.id === sm.matchId);
+      }
+      if (!match || match.status === 'done' || match.winner) {
+        // Still show result if flipped
+        if (!match?.coinToss?.serveSide) { box.classList.add('hidden'); return; }
+      }
+      box.classList.remove('hidden');
+      ensureCoinToss(match);
+      const ct = match.coinToss;
+      const assignEl = document.getElementById('score-coin-assign');
+      const faceEl = document.getElementById('score-coin-face');
+      const resultEl = document.getElementById('score-coin-result');
+      if (assignEl) assignEl.innerHTML = coinTossAssignText(match, isBracket);
+      if (faceEl) {
+        faceEl.textContent = ct.result === 'tails' ? 'T' : 'H';
+        faceEl.className = 'coin-face' + (ct.result === 'tails' ? ' tails' : '');
+      }
+      if (resultEl) {
+        resultEl.textContent = ct.serveSide
+          ? `${ct.result === 'tails' ? 'Tails' : 'Heads'} · ${coinSideLabel(match, ct.serveSide, isBracket)} serves`
+          : 'Flip to choose serve';
+      }
+    }
+
+    function flipScoreModalCoin() {
+      const t = getCurrentTournament();
+      const sm = state.scoreMatchId;
+      if (!t || !sm) return;
+      let match = null;
+      let isBracket = sm.mode === 'bracket';
+      if (isBracket) match = findBracketMatch(t, sm.matchId)?.match;
+      else {
+        const round = (t.rounds || []).find(r => r.number === sm.roundNum);
+        match = round?.matches?.find(m => m.id === sm.matchId);
+      }
+      if (!match) return;
+      const faceEl = document.getElementById('score-coin-face');
+      if (faceEl) {
+        faceEl.classList.remove('flipping');
+        void faceEl.offsetWidth;
+        faceEl.classList.add('flipping');
+      }
+      setTimeout(() => {
+        flipCoinToss(match);
+        saveState();
+        refreshScoreModalCoin();
+        const ct = match.coinToss;
+        toast(`Toss: ${ct.result} · ${coinSideLabel(match, ct.serveSide, isBracket)} serves`, 'success');
+        // Refresh cards behind modal without closing
+        try {
+          if (isBracket) renderBracket(t);
+          else renderMatches(t);
+        } catch (e) {}
+      }, 350);
     }
 
     function countActiveParallelEvents() {
@@ -4850,6 +5065,7 @@
               </div>
               ${!done ? formatProjectionBadge(m.entityA, m.entityB) : ''}
               ${(bestOf > 1 && games.length) ? `<div class="mt-1.5 text-center text-[10px] text-slate-500">${games.map((g,i)=>`G${i+1} ${g.scoreA}–${g.scoreB}`).join(' · ')}${!done ? ' · in progress' : ''}</div>` : ''}
+              ${!done ? coinTossCompactHtml(m, false, `flipRankingMatchCoin(${round.number},'${m.id}')`) : (m.coinToss && m.coinToss.serveSide ? `<div class="mt-2 text-center text-[10px] text-slate-500">Served: ${escapeHtml(coinSideLabel(m, m.coinToss.serveSide, false))}</div>` : '')}
               <div class="mt-3 flex gap-2">
                 ${!done ? `
                 <button onclick="openScoreModal('${round.number}','${m.id}')" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
@@ -5228,6 +5444,7 @@
       refreshVisibleMatchTimers();
       document.getElementById('score-modal').classList.remove('hidden');
       refreshQuickScore();
+      refreshScoreModalCoin();
       requestAnimationFrame(() => { fitScoreTeamLabels(); focusScoreInput(); });
     }
 
@@ -5997,6 +6214,7 @@
           </div>
           ${metaRow}
           ${score ? `<div class="text-center text-xs text-slate-500 mt-1.5 font-mono">${score}</div>` : ''}
+          ${canScore ? coinTossCompactHtml(m, true, `flipBracketMatchCoin('${m.id}')`) : (m.coinToss && m.coinToss.serveSide ? `<div class="mt-1.5 text-center text-[10px] text-slate-500">Served: ${escapeHtml(coinSideLabel(m, m.coinToss.serveSide, true))}</div>` : '')}
           ${canScore ? `<button onclick="openPlayoffScore('${m.id}')" class="mt-2 w-full py-2 text-xs font-semibold rounded-lg border transition ${btn}">Enter score</button>` : ''}
           ${m.winner && hasBoth && !(m.scoreA === 0 && m.scoreB === 0) ? `
             <button onclick="openPlayoffScore('${m.id}')" class="mt-1.5 w-full py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-700 transition">Edit score</button>
@@ -6367,6 +6585,7 @@
       refreshVisibleMatchTimers();
       document.getElementById('score-modal').classList.remove('hidden');
       refreshQuickScore();
+      refreshScoreModalCoin();
       requestAnimationFrame(() => { fitScoreTeamLabels(); focusScoreInput(); });
     }
 
