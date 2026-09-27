@@ -391,7 +391,81 @@
     #view-spectator .spec-match-meta {
       margin-bottom: 0.55rem;
     }
+    /* Bracket view layouts */
+    .bracket-view-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+    .bracket-view-picker button {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.35rem 0.65rem;
+      border-radius: 0.5rem;
+      border: 1px solid rgb(226 232 240);
+      background: #fff;
+      color: rgb(100 116 139);
+      transition: all 0.15s;
+    }
+    .bracket-view-picker button:hover {
+      border-color: rgb(16 185 129 / 0.4);
+      color: rgb(4 120 87);
+    }
+    .bracket-view-picker button.active {
+      background: rgb(236 253 245);
+      border-color: rgb(16 185 129 / 0.5);
+      color: rgb(4 120 87);
+    }
+    .bracket-dual-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 900px) {
+      .bracket-dual-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        align-items: start;
+      }
+    }
+    .bracket-stack-round {
+      margin-bottom: 1.25rem;
+    }
+    .bracket-stack-matches {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    @media (min-width: 640px) {
+      .bracket-stack-matches {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    .bracket-list table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+    }
+    .bracket-list th {
+      text-align: left;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: rgb(100 116 139);
+      padding: 0.4rem 0.5rem;
+      border-bottom: 1px solid rgb(226 232 240);
+    }
+    .bracket-list td {
+      padding: 0.5rem;
+      border-bottom: 1px solid rgb(241 245 249);
+      vertical-align: middle;
+    }
+    .bracket-list tr:hover td {
+      background: rgb(248 250 252);
+    }
     #view-spectator .spec-section-empty {
+
       grid-column: 1 / -1;
       font-size: 0.85rem;
       color: var(--text-muted);
@@ -676,7 +750,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.46 · Updated Sep 25, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.48 · Updated Sep 26, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1167,6 +1241,7 @@
           <div class="min-w-0">
             <input type="text" id="td-name" onchange="setTournamentName(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}" class="w-full text-xl font-bold tracking-tight text-slate-900 bg-transparent border border-transparent hover:border-slate-200 focus:border-emerald-300 rounded-lg px-1.5 py-0.5 -ml-1.5 outline-none transition" title="Click to edit name" />
             <p class="text-xs text-slate-500 mt-0.5 truncate" id="td-meta"></p>
+            <div id="td-conflict-lock" class="mt-1.5"></div>
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1.5">
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider shrink-0" for="td-event-date">Event date</label>
@@ -1395,8 +1470,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.46';
-    const APP_UPDATED = 'Sep 25, 2026';
+    const APP_VERSION = '5.48';
+    const APP_UPDATED = 'Sep 26, 2026';
 
     let state = {
       players: [],
@@ -2552,6 +2627,29 @@
         return;
       }
       empty.classList.add('hidden');
+      const activeN = countActiveParallelEvents();
+      let parallelNote = document.getElementById('parallel-events-note');
+      if (!parallelNote) {
+        const list = document.getElementById('tournament-list');
+        if (list && list.parentElement) {
+          parallelNote = document.createElement('p');
+          parallelNote.id = 'parallel-events-note';
+          parallelNote.className = 'text-xs text-slate-500 mb-2';
+          list.parentElement.insertBefore(parallelNote, list);
+        }
+      }
+      if (parallelNote) {
+        if (activeN > 1 && isConflictLockEnabled()) {
+          parallelNote.innerHTML = `<span class="text-violet-700 font-semibold">Parallel events:</span> ${activeN} active · conflict lock keeps players from two matches at once. Toggle inside any event.`;
+          parallelNote.classList.remove('hidden');
+        } else if (activeN > 1) {
+          parallelNote.innerHTML = `<span class="text-amber-700 font-semibold">Parallel events:</span> ${activeN} active · conflict lock is OFF (players can be double-booked).`;
+          parallelNote.classList.remove('hidden');
+        } else {
+          parallelNote.textContent = '';
+          parallelNote.classList.add('hidden');
+        }
+      }
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
       const typeIcon = {singles:'👤', doubles:'👥', dyp:'🎲', monster:'👹'};
       const sorted = state.tournaments.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -2602,6 +2700,8 @@
       document.getElementById('td-name').value = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
       document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · Bo${getTournamentBestOf(t, 'ranking')}${t.type === 'monster' && t.playoffs ? ' · Playoffs Bo3' : ''} · ${t.tables} table${t.tables>1?'s':''}${t.type === 'monster' && t.monsterPositions ? ' · F/G on' : ''}`;
+      const lockEl = document.getElementById('td-conflict-lock');
+      if (lockEl) lockEl.innerHTML = conflictLockSummaryHtml(t);
       const posWrap = document.getElementById('td-positions-wrap');
       if (posWrap) {
         posWrap.classList.toggle('hidden', t.type !== 'monster');
@@ -2775,11 +2875,17 @@
         const p = state.players.find(x => x.id === pid);
         if (!p) return '';
         const absent = isPlayerAbsent(t, pid);
+        const busy = !absent && isPlayerBusyElsewhere(pid, t.id);
+        const busyInfo = busy ? getPlayerBusyInfo(pid, t.id) : null;
+        const busyTitle = busyInfo
+          ? `In ${busyInfo.tournamentName}${busyInfo.table ? (busyInfo.onDeck ? ' · on deck T' + busyInfo.table : ' · T' + busyInfo.table) : ''}`
+          : '';
         return `
           <div class="flex items-center justify-between surface-card rounded-xl px-4 py-3 ${absent ? 'opacity-60' : ''}">
             <div class="min-w-0">
               <span class="font-medium text-slate-900">${escapeHtml(p.name)}</span>
               ${absent ? '<span class="ml-2 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">Absent</span>' : ''}
+              ${busy ? `<span class="ml-2 text-[11px] font-semibold text-violet-700 bg-violet-50 border border-violet-200 px-1.5 py-0.5 rounded" title="${escapeHtml(busyTitle)}">Busy elsewhere</span>` : ''}
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <button onclick="togglePlayerAbsent('${pid}')" class="text-xs font-semibold px-2 py-1 rounded-lg border transition ${absent ? 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100' : 'text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100'}">${absent ? 'Present' : 'Absent'}</button>
@@ -3892,9 +3998,19 @@
         return;
       }
 
-      const entities = getMatchEntities(t);
+      let entities = getMatchEntities(t);
+      if (isConflictLockEnabled()) {
+        const before = entities.length;
+        entities = entities.filter(e => {
+          const pids = (e.playerIds && e.playerIds.length) ? e.playerIds : (e.id ? [e.id] : []);
+          return pids.every(pid => !isPlayerBusyElsewhere(pid, t.id));
+        });
+        if (before > entities.length) {
+          toast(`Conflict lock: ${before - entities.length} left out (busy in other events)`, 'success');
+        }
+      }
       if (entities.length < 2) {
-        toast('Need at least 2 players or teams', 'error');
+        toast('Need at least 2 free players or teams', 'error');
         return;
       }
 
@@ -3923,12 +4039,13 @@
     function buildTieredPlayoffTeams(t, standings) {
       const absent = new Set(ensureAbsentIds(t));
       const byId = new Map(standings.map(s => [s.id, s]));
-      // Active players only, ordered by standings (unranked actives go to the end)
+      // Free players only (absent + conflict lock), ordered by standings
+      const eligible = new Set(drawEligiblePlayerIds(t));
       const ranked = [];
       standings.forEach(s => {
-        if (!absent.has(s.id) && activePlayerIds(t).includes(s.id)) ranked.push(s);
+        if (!absent.has(s.id) && eligible.has(s.id)) ranked.push(s);
       });
-      activePlayerIds(t).forEach(id => {
+      eligible.forEach(id => {
         if (!ranked.find(s => s.id === id)) {
           const p = state.players.find(x => x.id === id);
           if (p) ranked.push({ id: p.id, name: p.name, pts: 0, gd: 0, wins: 0, played: 0 });
@@ -4027,9 +4144,19 @@
 
       // Singles / Doubles: every active player or formed team enters; bracket expands with byes
       // (6 → 8, 10 → 16, 14 → 16, 3 teams → 4, 5 teams → 8, 7 teams → 8)
-      const entities = getMatchEntities(t);
+      let entities = getMatchEntities(t);
+      if (isConflictLockEnabled()) {
+        const before = entities.length;
+        entities = entities.filter(e => {
+          const pids = (e.playerIds && e.playerIds.length) ? e.playerIds : (e.id ? [e.id] : []);
+          return pids.every(pid => !isPlayerBusyElsewhere(pid, t.id));
+        });
+        if (before > entities.length) {
+          toast(`Conflict lock: ${before - entities.length} left out (busy in other events)`, 'success');
+        }
+      }
       if (entities.length < 2) {
-        toast('Need at least 2 teams/players for playoffs', 'error');
+        toast('Need at least 2 free teams/players for playoffs', 'error');
         return;
       }
       const format = t.format === 'double-elim' ? 'double-elim' : 'single-elim';
@@ -5476,6 +5603,39 @@
         </div>`;
     }
 
+    const BRACKET_VIEW_KEY = 'lcfc_bracket_view_v1';
+    const BRACKET_VIEWS = [
+      { id: 'columns', label: 'Columns', hint: 'Classic rounds left → right' },
+      { id: 'stacked', label: 'Stacked', hint: 'Rounds top → bottom (phone)' },
+      { id: 'dual', label: 'Dual', hint: 'Winners | Losers side by side' },
+      { id: 'list', label: 'List', hint: 'Compact table for fast scoring' }
+    ];
+
+    function getBracketView() {
+      try {
+        const v = localStorage.getItem(BRACKET_VIEW_KEY);
+        if (BRACKET_VIEWS.some(x => x.id === v)) return v;
+      } catch (e) {}
+      return 'columns';
+    }
+
+    function setBracketView(id) {
+      if (!BRACKET_VIEWS.some(x => x.id === id)) return;
+      try { localStorage.setItem(BRACKET_VIEW_KEY, id); } catch (e) {}
+      const t = getCurrentTournament();
+      if (t) renderBracket(t);
+    }
+
+    function bracketViewPickerHtml(isDE) {
+      const cur = getBracketView();
+      const opts = BRACKET_VIEWS.filter(v => isDE || v.id !== 'dual');
+      return `<div class="bracket-view-picker w-full sm:w-auto" role="group" aria-label="Bracket layout">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mr-1">View</span>
+        ${opts.map(v => `<button type="button" class="${v.id === cur ? 'active' : ''}" onclick="setBracketView('${v.id}')" title="${escapeHtml(v.hint)}">${escapeHtml(v.label)}</button>`).join('')}
+      </div>`;
+    }
+
+    /** Classic horizontal columns (one column per round). */
     function roundsRowHtml(rounds, accent) {
       if (!rounds?.length) return '';
       let html = '<div class="flex gap-4 min-w-max items-stretch">';
@@ -5486,6 +5646,141 @@
         html += '</div>';
       });
       html += '</div>';
+      return html;
+    }
+
+    /** Vertical stack of rounds (mobile-friendly). */
+    function roundsStackHtml(rounds, accent) {
+      if (!rounds?.length) return '';
+      let html = '';
+      rounds.forEach((round) => {
+        html += `<div class="bracket-stack-round">
+          <div class="text-[11px] text-slate-500 font-semibold uppercase tracking-wider mb-2">${escapeHtml(round.name || ('R' + round.number))}</div>
+          <div class="bracket-stack-matches">`;
+        (round.matches || []).forEach(m => { html += matchCardHtml(m, accent); });
+        html += `</div></div>`;
+      });
+      return html;
+    }
+
+    /** Flat list / table of matches for quick scoring. */
+    function roundsListHtml(rounds, accent, sectionLabel) {
+      if (!rounds?.length) return '';
+      const rows = [];
+      rounds.forEach((round) => {
+        (round.matches || []).forEach(m => {
+          const nameA = m.a?.entity?.name || (m.a?.entity === null && !m.a?.fromMatch ? 'BYE' : 'TBD');
+          const nameB = m.b?.entity?.name || (m.b?.entity === null && !m.b?.fromMatch ? 'BYE' : 'TBD');
+          const hasBoth = m.a?.entity && m.b?.entity;
+          const score = (m.winner && hasBoth && m.scoreA != null) ? `${m.scoreA}–${m.scoreB}` : (m.winner && (!m.a?.entity || !m.b?.entity) ? 'bye' : '—');
+          const table = m.table ? (m.onDeck ? `Deck T${m.table}` : `T${m.table}`) : '—';
+          const canScore = !m.winner && hasBoth;
+          const winA = m.winner === 'a' ? 'font-semibold text-emerald-700' : '';
+          const winB = m.winner === 'b' ? 'font-semibold text-emerald-700' : '';
+          rows.push(`<tr>
+            <td class="text-slate-500 whitespace-nowrap">${escapeHtml(round.name || '')}</td>
+            <td class="${winA} break-words max-w-[10rem]">${escapeHtml(nameA)}</td>
+            <td class="text-center text-slate-400 text-xs">vs</td>
+            <td class="${winB} break-words max-w-[10rem]">${escapeHtml(nameB)}</td>
+            <td class="font-mono text-center">${score}</td>
+            <td class="text-xs text-slate-500 whitespace-nowrap">${table}</td>
+            <td class="text-right">${canScore
+              ? `<button type="button" onclick="openPlayoffScore('${m.id}')" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">Score</button>`
+              : (m.winner && hasBoth
+                ? `<button type="button" onclick="openPlayoffScore('${m.id}')" class="px-2 py-1 text-[11px] font-semibold text-slate-500 hover:text-slate-700">Edit</button>`
+                : '')}</td>
+          </tr>`);
+        });
+      });
+      if (!rows.length) return '';
+      return `<div class="bracket-list surface-card rounded-xl overflow-hidden mb-4">
+        ${sectionLabel ? `<div class="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-100">${escapeHtml(sectionLabel)}</div>` : ''}
+        <div class="overflow-x-auto">
+          <table>
+            <thead><tr>
+              <th>Round</th><th>Side A</th><th></th><th>Side B</th><th>Score</th><th>Table</th><th></th>
+            </tr></thead>
+            <tbody>${rows.join('')}</tbody>
+          </table>
+        </div>
+      </div>`;
+    }
+
+    function renderBracketSections(b, isDE, view) {
+      const wb = b.winnersRounds || b.rounds || [];
+      let html = '';
+      const mode = view || getBracketView();
+
+      if (mode === 'list') {
+        if (isDE || b.type === 'double-elim') {
+          html += roundsListHtml(wb, 'emerald', 'Winners bracket');
+          if (b.losersRounds?.length) html += roundsListHtml(b.losersRounds, 'amber', 'Losers bracket');
+        } else {
+          html += roundsListHtml(wb, 'emerald', 'Bracket');
+        }
+        if (b.grandFinal) {
+          html += roundsListHtml([{ name: 'Grand Final', matches: [b.grandFinal] }], 'violet', 'Grand Final');
+        }
+        if (b.gfResetActive && b.grandFinal2) {
+          html += roundsListHtml([{ name: 'GF Reset', matches: [b.grandFinal2] }], 'violet', 'Grand Final Reset');
+        }
+        if (b.bronze) {
+          html += roundsListHtml([{ name: '3rd Place', matches: [b.bronze] }], 'amber', '3rd Place Match');
+        }
+        return html;
+      }
+
+      const renderRounds = (rounds, accent) =>
+        mode === 'stacked' ? roundsStackHtml(rounds, accent) : roundsRowHtml(rounds, accent);
+
+      if (mode === 'dual' && (isDE || b.type === 'double-elim')) {
+        html += `<div class="bracket-dual-grid">
+          <div>
+            <div class="mb-2 text-xs font-semibold text-emerald-600 uppercase tracking-wider">Winners bracket</div>
+            ${renderRounds(wb, 'emerald')}
+          </div>
+          <div>
+            <div class="mb-2 text-xs font-semibold text-amber-600 uppercase tracking-wider">Losers bracket</div>
+            ${b.losersRounds?.length ? renderRounds(b.losersRounds, 'amber') : '<p class="text-sm text-slate-500">No losers matches yet</p>'}
+          </div>
+        </div>`;
+        if (b.grandFinal) {
+          html += `<div class="mt-6 mb-2 text-xs font-semibold text-violet-600 uppercase tracking-wider">Grand Final</div>`;
+          html += `<div class="max-w-sm">${matchCardHtml(b.grandFinal, 'violet')}</div>`;
+        }
+        if (b.gfResetActive && b.grandFinal2) {
+          html += `<div class="mt-4 mb-2 text-xs font-semibold text-violet-600 uppercase tracking-wider">Grand Final Reset</div>`;
+          html += `<div class="max-w-sm">${matchCardHtml(b.grandFinal2, 'violet')}</div>`;
+        }
+        return html;
+      }
+
+      // columns or stacked (default path)
+      if (b.type === 'double-elim') {
+        html += `<div class="mb-2 text-xs font-semibold text-emerald-600 uppercase tracking-wider">Winners bracket</div>`;
+        html += renderRounds(wb, 'emerald');
+        if (b.losersRounds?.length) {
+          html += `<div class="mt-8 mb-2 text-xs font-semibold text-amber-600 uppercase tracking-wider">Losers bracket</div>`;
+          html += renderRounds(b.losersRounds, 'amber');
+        }
+        if (b.grandFinal) {
+          html += `<div class="mt-8 mb-2 text-xs font-semibold text-violet-600 uppercase tracking-wider">Grand Final</div>`;
+          html += `<div class="max-w-xs">${matchCardHtml(b.grandFinal, 'violet')}</div>`;
+        }
+        if (b.gfResetActive && b.grandFinal2) {
+          html += `<div class="mt-4 mb-2 text-xs font-semibold text-violet-600 uppercase tracking-wider">Grand Final Reset (bracket reset)</div>`;
+          html += `<div class="max-w-xs">${matchCardHtml(b.grandFinal2, 'violet')}</div>`;
+          html += `<p class="text-xs text-slate-500 mt-2">Losers-bracket champion took the first GF — winner of this match is the champion.</p>`;
+        }
+      } else {
+        html += renderRounds(wb, 'emerald');
+        if (b.bronze) {
+          html += `<div class="mt-6 max-w-xs">
+            <div class="text-[11px] text-slate-500 font-semibold uppercase tracking-wider mb-2">3rd Place Match</div>
+            ${matchCardHtml(b.bronze, 'amber')}
+          </div>`;
+        }
+      }
       return html;
     }
 
@@ -5511,6 +5806,7 @@
               ${b ? '↺ Reset bracket' : '▶ Start bracket'}
             </button>
             <span class="text-xs text-slate-500 self-center">${isDE ? 'Double elimination · winners + losers + grand final' : 'Single elimination · 3rd place match'}</span>
+            ${b ? bracketViewPickerHtml(isDE) : ''}
           `;
         } else {
           const playoffLabel = (t.type === 'monster' || t.type === 'dyp')
@@ -5524,6 +5820,7 @@
               ${playoffLabel}
             </button>
             <span class="text-xs text-slate-500 self-center">${playoffHint}</span>
+            ${b ? bracketViewPickerHtml(isDE || b?.type === 'double-elim') : ''}
           `;
         }
       }
@@ -5558,31 +5855,7 @@
         </div>`;
       }
 
-      if (b.type === 'double-elim') {
-        html += `<div class="mb-2 text-xs font-semibold text-emerald-400/80 uppercase tracking-wider">Winners bracket</div>`;
-        html += roundsRowHtml(wb, 'emerald');
-        if (b.losersRounds?.length) {
-          html += `<div class="mt-8 mb-2 text-xs font-semibold text-amber-600/80 uppercase tracking-wider">Losers bracket</div>`;
-          html += roundsRowHtml(b.losersRounds, 'amber');
-        }
-        if (b.grandFinal) {
-          html += `<div class="mt-8 mb-2 text-xs font-semibold text-violet-300/90 uppercase tracking-wider">Grand Final</div>`;
-          html += `<div class="max-w-xs">${matchCardHtml(b.grandFinal, 'violet')}</div>`;
-        }
-        if (b.gfResetActive && b.grandFinal2) {
-          html += `<div class="mt-4 mb-2 text-xs font-semibold text-violet-300/90 uppercase tracking-wider">Grand Final Reset (bracket reset)</div>`;
-          html += `<div class="max-w-xs">${matchCardHtml(b.grandFinal2, 'violet')}</div>`;
-          html += `<p class="text-xs text-slate-500 mt-2">Losers-bracket champion took the first GF — winner of this match is the champion.</p>`;
-        }
-      } else {
-        html += roundsRowHtml(wb, 'emerald');
-        if (b.bronze) {
-          html += `<div class="mt-6 max-w-xs">
-            <div class="text-[11px] text-slate-500 font-semibold uppercase tracking-wider mb-2">3rd Place Match</div>
-            ${matchCardHtml(b.bronze, 'amber')}
-          </div>`;
-        }
-      }
+      html += renderBracketSections(b, isDE, getBracketView());
 
       const p = b.placements || {};
       if (p.first || p.second || p.third) {
