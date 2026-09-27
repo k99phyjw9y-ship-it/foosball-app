@@ -474,6 +474,164 @@
         align-items: start;
       }
     }
+
+    /* Bracket tree view */
+    .bracket-tree {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 0;
+      overflow-x: auto;
+      padding: 0.5rem 0.25rem 1rem;
+      min-height: 12rem;
+    }
+    .bracket-tree-round {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      min-width: 11.5rem;
+      max-width: 14rem;
+      flex: 0 0 auto;
+      position: relative;
+    }
+    .bracket-tree-round-title {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      text-align: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgb(100 116 139);
+      margin-bottom: 0.5rem;
+      background: rgb(248 250 252 / 0.92);
+      padding: 0.25rem;
+      border-radius: 0.35rem;
+    }
+    .bracket-tree-slot {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      flex: 1 1 0;
+      min-height: 4.5rem;
+      padding: 0.35rem 0;
+      position: relative;
+    }
+    .bracket-tree-node {
+      flex: 1 1 auto;
+      width: 100%;
+      border-radius: 0.65rem;
+      border: 1px solid rgb(226 232 240);
+      background: #fff;
+      box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+      overflow: hidden;
+      font-size: 0.72rem;
+    }
+    .bracket-tree-node.done { opacity: 0.88; }
+    .bracket-tree-node.live { border-color: rgb(16 185 129 / 0.55); box-shadow: 0 0 0 1px rgb(16 185 129 / 0.2); }
+    .bracket-tree-node.hold { border-color: rgb(167 139 250 / 0.55); }
+    .bracket-tree-side {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.5rem;
+      line-height: 1.25;
+    }
+    .bracket-tree-side + .bracket-tree-side { border-top: 1px solid rgb(241 245 249); }
+    .bracket-tree-side.win { background: rgb(236 253 245); font-weight: 700; color: rgb(4 120 87); }
+    .bracket-tree-side.lose { color: rgb(148 163 184); }
+    .bracket-tree-name {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .bracket-tree-score {
+      flex: 0 0 auto;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      color: rgb(71 85 105);
+      min-width: 1rem;
+      text-align: right;
+    }
+    .bracket-tree-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.2rem;
+      padding: 0.2rem 0.45rem 0.35rem;
+      border-top: 1px solid rgb(241 245 249);
+    }
+    .bracket-tree-meta span {
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.25rem;
+      background: rgb(241 245 249);
+      color: rgb(71 85 105);
+    }
+    .bracket-tree-meta .tbl { background: rgb(236 253 245); color: rgb(4 120 87); }
+    .bracket-tree-meta .deck { background: rgb(241 245 249); color: rgb(100 116 139); }
+    .bracket-tree-meta .serve { background: rgb(238 242 255); color: rgb(67 56 202); }
+    .bracket-tree-connector {
+      width: 1rem;
+      flex: 0 0 1rem;
+      align-self: stretch;
+      position: relative;
+    }
+    .bracket-tree-round:not(:last-child) .bracket-tree-connector::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      border-top: 2px solid rgb(203 213 225);
+    }
+    .bracket-tree-round:not(:first-child) .bracket-tree-slot::before {
+      content: '';
+      position: absolute;
+      left: -0.5rem;
+      top: 50%;
+      width: 0.5rem;
+      border-top: 2px solid rgb(203 213 225);
+    }
+    /* Pair vertical join for even/odd slots */
+    .bracket-tree-round:not(:last-child) .bracket-tree-slot:nth-child(odd of .bracket-tree-slot) .bracket-tree-connector::after,
+    .bracket-tree-round:not(:last-child) .bracket-tree-slot:nth-child(even of .bracket-tree-slot) .bracket-tree-connector::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      width: 2px;
+      background: rgb(203 213 225);
+    }
+    .bracket-tree-round:not(:last-child) .bracket-tree-slot:nth-child(odd of .bracket-tree-slot) .bracket-tree-connector::after {
+      top: 50%;
+      bottom: -50%;
+    }
+    .bracket-tree-round:not(:last-child) .bracket-tree-slot:nth-child(even of .bracket-tree-slot) .bracket-tree-connector::after {
+      top: -50%;
+      bottom: 50%;
+    }
+    .bracket-tree-node button.tree-score-btn {
+      width: 100%;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 0.25rem;
+      border: 0;
+      border-top: 1px solid rgb(209 250 229);
+      background: rgb(236 253 245);
+      color: rgb(4 120 87);
+      cursor: pointer;
+    }
+    .bracket-tree-node button.tree-score-btn:hover { background: rgb(209 250 229); }
+    .bracket-tree-empty {
+      color: rgb(148 163 184);
+      font-size: 0.8rem;
+      padding: 1rem;
+    }
+
     .bracket-stack-round {
       margin-bottom: 1.25rem;
     }
@@ -795,7 +953,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.59 · Updated Sep 27, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.60 · Updated Sep 27, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1524,7 +1682,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.59';
+    const APP_VERSION = '5.60';
     const APP_UPDATED = 'Sep 27, 2026';
 
     let state = {
@@ -6238,6 +6396,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     const BRACKET_VIEW_KEY = 'lcfc_bracket_view_v1';
     const BRACKET_VIEWS = [
+      { id: 'tree', label: 'Tree', hint: 'Connected bracket tree' },
       { id: 'columns', label: 'Columns', hint: 'Classic rounds left → right' },
       { id: 'stacked', label: 'Stacked', hint: 'Rounds top → bottom (phone)' },
       { id: 'dual', label: 'Dual', hint: 'Winners | Losers side by side' },
@@ -6339,10 +6498,99 @@ function flipRankingMatchCoin(roundNum, matchId) {
       </div>`;
     }
 
+
+    /** Compact node for tree view (linked columns). */
+    function treeMatchNodeHtml(m, accent) {
+      if (!m) return '';
+      const nameA = m.a?.entity?.name || (m.a?.entity === null && !m.a?.fromMatch ? 'BYE' : 'TBD');
+      const nameB = m.b?.entity?.name || (m.b?.entity === null && !m.b?.fromMatch ? 'BYE' : 'TBD');
+      const hasBoth = !!(m.a?.entity && m.b?.entity);
+      const done = !!m.winner;
+      const live = !done && hasBoth && !m.onDeck && !m.crossConflict;
+      const hold = !done && !!m.crossConflict;
+      const cls = done ? 'done' : (hold ? 'hold' : (live ? 'live' : ''));
+      const scoreA = (done && m.scoreA != null) ? m.scoreA : '';
+      const scoreB = (done && m.scoreB != null) ? m.scoreB : '';
+      const winA = m.winner === 'a';
+      const winB = m.winner === 'b';
+      let meta = '';
+      if (!done && m.table) {
+        meta += m.onDeck
+          ? `<span class="deck">${m.crossConflict ? 'Hold' : 'Deck'} T${m.table}</span>`
+          : `<span class="tbl">T${m.table}</span>`;
+      }
+      if (!done && m.coinToss && m.coinToss.serveSide) {
+        const sn = m.coinToss.serveSide === 'a' ? nameA : nameB;
+        meta += `<span class="serve">Serve ${escapeHtml((sn || '').split(/[+&]/)[0].trim().slice(0, 12))}</span>`;
+      }
+      if (m.crossConflict) meta += `<span class="deck">Conflict</span>`;
+      const canScore = !done && hasBoth;
+      return `<div class="bracket-tree-node ${cls}">
+        <div class="bracket-tree-side ${winA ? 'win' : (done ? 'lose' : '')}">
+          <span class="bracket-tree-name" title="${escapeHtml(nameA)}">${escapeHtml(nameA)}</span>
+          <span class="bracket-tree-score">${scoreA}</span>
+        </div>
+        <div class="bracket-tree-side ${winB ? 'win' : (done ? 'lose' : '')}">
+          <span class="bracket-tree-name" title="${escapeHtml(nameB)}">${escapeHtml(nameB)}</span>
+          <span class="bracket-tree-score">${scoreB}</span>
+        </div>
+        ${meta ? `<div class="bracket-tree-meta">${meta}</div>` : ''}
+        ${canScore ? `<button type="button" class="tree-score-btn" onclick="openPlayoffScore('${m.id}')">Enter score</button>` : ''}
+        ${done && hasBoth && !(m.scoreA === 0 && m.scoreB === 0) ? `<button type="button" class="tree-score-btn" style="background:#f8fafc;border-top-color:#e2e8f0;color:#64748b" onclick="openPlayoffScore('${m.id}')">Edit</button>` : ''}
+      </div>`;
+    }
+
+    /** Traditional connected tree: rounds as columns, slots spaced for parent alignment. */
+    function roundsTreeHtml(rounds, accent) {
+      if (!rounds?.length) return '<p class="bracket-tree-empty">No bracket rounds</p>';
+      let html = '<div class="bracket-tree" role="img" aria-label="Bracket tree">';
+      rounds.forEach((round, ri) => {
+        const matches = round.matches || [];
+        html += `<div class="bracket-tree-round">`;
+        html += `<div class="bracket-tree-round-title">${escapeHtml(round.name || ('R' + (round.number || ri + 1)))}</div>`;
+        matches.forEach((m) => {
+          html += `<div class="bracket-tree-slot">`;
+          html += treeMatchNodeHtml(m, accent);
+          if (ri < rounds.length - 1) html += `<div class="bracket-tree-connector" aria-hidden="true"></div>`;
+          html += `</div>`;
+        });
+        // Pad empty slots so later rounds stay vertically centered when fewer matches
+        html += `</div>`;
+      });
+      html += '</div>';
+      return html;
+    }
+
     function renderBracketSections(b, isDE, view) {
       const wb = b.winnersRounds || b.rounds || [];
       let html = '';
       const mode = view || getBracketView();
+
+      if (mode === 'tree') {
+        if (isDE || b.type === 'double-elim') {
+          html += `<div class="mb-2 text-xs font-semibold text-emerald-600 uppercase tracking-wider">Winners bracket</div>`;
+          html += roundsTreeHtml(wb, 'emerald');
+          if (b.losersRounds?.length) {
+            html += `<div class="mt-6 mb-2 text-xs font-semibold text-amber-600 uppercase tracking-wider">Losers bracket</div>`;
+            html += roundsTreeHtml(b.losersRounds, 'amber');
+          }
+        } else {
+          html += roundsTreeHtml(wb, 'emerald');
+        }
+        if (b.grandFinal) {
+          html += `<div class="mt-6 mb-2 text-xs font-semibold text-violet-600 uppercase tracking-wider">Grand Final</div>`;
+          html += `<div class="max-w-xs">${treeMatchNodeHtml(b.grandFinal, 'violet')}</div>`;
+        }
+        if (b.gfResetActive && b.grandFinal2) {
+          html += `<div class="mt-4 mb-2 text-xs font-semibold text-violet-600 uppercase tracking-wider">Grand Final Reset</div>`;
+          html += `<div class="max-w-xs">${treeMatchNodeHtml(b.grandFinal2, 'violet')}</div>`;
+        }
+        if (b.bronze) {
+          html += `<div class="mt-6 mb-2 text-xs font-semibold text-amber-600 uppercase tracking-wider">3rd Place</div>`;
+          html += `<div class="max-w-xs">${treeMatchNodeHtml(b.bronze, 'amber')}</div>`;
+        }
+        return html;
+      }
 
       if (mode === 'list') {
         if (isDE || b.type === 'double-elim') {
