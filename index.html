@@ -750,7 +750,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.49 · Updated Sep 26, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.50 · Updated Sep 26, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1470,7 +1470,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.49';
+    const APP_VERSION = '5.50';
     const APP_UPDATED = 'Sep 26, 2026';
 
     let state = {
@@ -2640,7 +2640,7 @@
       }
       if (parallelNote) {
         if (activeN > 1 && isConflictLockEnabled()) {
-          parallelNote.innerHTML = `<span class="text-violet-700 font-semibold">Parallel events:</span> ${activeN} active · conflict lock keeps players from two matches at once. Toggle inside any event.`;
+          parallelNote.innerHTML = `<span class="text-violet-700 font-semibold">Parallel events:</span> ${activeN} active · conflict lock holds their next table until the other match ends. Toggle inside any event.`;
           parallelNote.classList.remove('hidden');
         } else if (activeN > 1) {
           parallelNote.innerHTML = `<span class="text-amber-700 font-semibold">Parallel events:</span> ${activeN} active · conflict lock is OFF (players can be double-booked).`;
@@ -4488,7 +4488,11 @@
       const now = Date.now();
 
       matches.forEach(m => {
-        if (m && m.status === 'done') delete m.onDeck;
+        if (m && m.status === 'done') {
+          delete m.onDeck;
+          delete m.crossConflict;
+          delete m.crossConflictLabel;
+        }
       });
 
       const pending = matches.filter(m => m && m.status !== 'done');
@@ -4497,10 +4501,14 @@
         return;
       }
 
-      // Live matches keep their table; do not reshuffle
+      // Flag cross-event conflicts (do not start these matches yet)
+      pending.forEach(m => applyCrossConflictFlag(m, t, false));
+
+      // Live = at a table, not on-deck, not cross-conflicted
       const occupied = new Set();
       const live = [];
       pending.forEach(m => {
+        if (m.crossConflict) return;
         const tnum = parseInt(m.table, 10);
         if (!m.onDeck && tnum >= 1 && tnum <= tableCount && !occupied.has(tnum)) {
           occupied.add(tnum);
@@ -4511,17 +4519,26 @@
 
       const queue = pending.filter(m => !live.includes(m));
 
-      // Fresh draw: assign T1..Tn live, then on-deck keeps the SAME table numbers and waits
-      // e.g. 2 tables: M0→T1 live, M1→T2 live, M2→On deck T1, M3→On deck T2
+      // Fresh wave: only non-conflict matches can take live tables
       if (!live.length) {
+        let liveSlots = 0;
         pending.forEach((m, i) => {
           m.table = (i % tableCount) + 1;
-          m.onDeck = i >= tableCount;
-          if (m.onDeck) {
+          const blocked = !!m.crossConflict;
+          if (blocked) {
+            m.onDeck = true;
             delete m.timerStartAt;
             delete m.timerEndedAt;
-          } else {
+            return;
+          }
+          if (liveSlots < tableCount) {
+            m.onDeck = false;
             m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
+            delete m.timerEndedAt;
+            liveSlots++;
+          } else {
+            m.onDeck = true;
+            delete m.timerStartAt;
             delete m.timerEndedAt;
           }
         });
@@ -4529,7 +4546,6 @@
         return;
       }
 
-      // Ensure on-deck queue keeps a reserved table number (never steal another live table's number randomly)
       queue.forEach((m, i) => {
         const tnum = parseInt(m.table, 10);
         if (!(tnum >= 1 && tnum <= tableCount)) {
@@ -4540,14 +4556,18 @@
         delete m.timerEndedAt;
       });
 
-      // Free tables → promote only the on-deck match reserved for THAT table (FIFO if several wait for same T)
       const free = [];
       for (let n = 1; n <= tableCount; n++) {
         if (!occupied.has(n)) free.push(n);
       }
       const promoted = new Set();
       free.forEach(tableNum => {
-        const m = queue.find(q => !promoted.has(q.id) && parseInt(q.table, 10) === tableNum);
+        // Prefer match reserved for this table that is NOT cross-conflicted
+        const m = queue.find(q =>
+          !promoted.has(q.id) &&
+          !q.crossConflict &&
+          parseInt(q.table, 10) === tableNum
+        ) || queue.find(q => !promoted.has(q.id) && !q.crossConflict);
         if (!m) return;
         promoted.add(m.id);
         m.table = tableNum;
@@ -4569,9 +4589,19 @@
 
     /** Promote on-deck → live tables, then persist so TV board / other tabs see it. */
     function syncTablesAndSave(t) {
-      if (!t) return;
-      if (typeof assignRankingRoundTables === 'function') assignRankingRoundTables(t);
-      if (typeof assignBracketTables === 'function') assignBracketTables(t);
+      const run = (ev) => {
+        if (!ev) return;
+        try {
+          if (typeof assignRankingRoundTables === 'function') assignRankingRoundTables(ev);
+          if (typeof assignBracketTables === 'function') assignBracketTables(ev);
+        } catch (e) {}
+      };
+      run(t);
+      // Unlock parallel events: finishing a match may free players waiting elsewhere
+      (state.tournaments || []).forEach(other => {
+        if (!other || (t && other.id === t.id) || other.status === 'finished') return;
+        run(other);
+      });
       saveState();
     }
 
@@ -4607,18 +4637,21 @@
               : 'vs');
           const winnerA = done && ((tall ? tall.seriesA > tall.seriesB : m.scoreA > m.scoreB));
           const winnerB = done && ((tall ? tall.seriesB > tall.seriesA : m.scoreB > m.scoreA));
+          const conflictBadge = (!done && m.crossConflict)
+            ? `<span class="badge px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 border border-violet-200" title="${escapeHtml(m.crossConflictLabel || '')}">Waiting · conflict</span>`
+            : '';
           const tableBadge = done
             ? `<span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">Table ${m.table || '—'}</span>`
             : (m.onDeck
-              ? `<span class="badge px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">On deck · T${m.table}</span>`
+              ? `<span class="badge px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">${m.crossConflict ? 'Hold · T' : 'On deck · T'}${m.table}</span>`
               : `<span class="badge px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Table ${m.table}</span>`);
-          const timerBadge = matchTimerBadgeHtml(m);
-          const statusLabel = done ? 'Finished' : (m.onDeck ? 'On deck' : 'Playing');
-          const statusColor = done ? 'text-emerald-600' : (m.onDeck ? 'text-slate-500' : 'text-amber-600');
+          const timerBadge = (!done && m.crossConflict) ? '' : matchTimerBadgeHtml(m);
+          const statusLabel = done ? 'Finished' : (m.crossConflict ? 'Waiting · conflict' : (m.onDeck ? 'On deck' : 'Playing'));
+          const statusColor = done ? 'text-emerald-600' : (m.crossConflict ? 'text-violet-600' : (m.onDeck ? 'text-slate-500' : 'text-amber-600'));
           return `
             <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : (m.onDeck ? 'ring-1 ring-slate-200' : 'ring-1 ring-emerald-200')}">
               <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
-                <div class="flex items-center gap-1.5 flex-wrap">${tableBadge}${timerBadge}</div>
+                <div class="flex items-center gap-1.5 flex-wrap">${conflictBadge}${tableBadge}${timerBadge}</div>
                 <div class="flex items-center gap-2">
                   <span class="text-[11px] font-semibold ${statusColor}">${statusLabel}</span>
                   <button onclick="deleteMatch(${round.number}, '${m.id}')" class="text-[11px] font-semibold text-red-500 hover:text-red-700 px-1.5 py-0.5 rounded hover:bg-red-50 transition" title="Delete match">Delete</button>
@@ -5607,6 +5640,8 @@
         if (!m) return;
         if (m.winner || m._byePropagated) {
           delete m.onDeck;
+          delete m.crossConflict;
+          delete m.crossConflictLabel;
           return;
         }
         if (!isBracketMatchReady(m)) {
@@ -5614,6 +5649,8 @@
           delete m.onDeck;
           delete m.timerStartAt;
           delete m.timerEndedAt;
+          delete m.crossConflict;
+          delete m.crossConflictLabel;
         }
       });
 
@@ -5623,9 +5660,12 @@
         return;
       }
 
+      ready.forEach(m => applyCrossConflictFlag(m, t, true));
+
       const occupied = new Set();
       const live = [];
       ready.forEach(m => {
+        if (m.crossConflict) return;
         const tnum = parseInt(m.table, 10);
         if (!m.onDeck && tnum >= 1 && tnum <= tableCount && !occupied.has(tnum)) {
           occupied.add(tnum);
@@ -5637,14 +5677,25 @@
       const queue = ready.filter(m => !live.includes(m));
 
       if (!live.length) {
+        let liveSlots = 0;
         ready.forEach((m, i) => {
           m.table = (i % tableCount) + 1;
-          m.onDeck = i >= tableCount;
-          if (m.onDeck) {
+          if (m.crossConflict) {
+            m.onDeck = true;
             delete m.timerStartAt;
             delete m.timerEndedAt;
-          } else if (!(m.timerStartAt && !m.timerEndedAt)) {
-            m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
+            return;
+          }
+          if (liveSlots < tableCount) {
+            m.onDeck = false;
+            if (!(m.timerStartAt && !m.timerEndedAt)) {
+              m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
+              delete m.timerEndedAt;
+            }
+            liveSlots++;
+          } else {
+            m.onDeck = true;
+            delete m.timerStartAt;
             delete m.timerEndedAt;
           }
         });
@@ -5668,7 +5719,11 @@
       }
       const promoted = new Set();
       free.forEach(tableNum => {
-        const m = queue.find(q => !promoted.has(q.id) && parseInt(q.table, 10) === tableNum);
+        const m = queue.find(q =>
+          !promoted.has(q.id) &&
+          !q.crossConflict &&
+          parseInt(q.table, 10) === tableNum
+        ) || queue.find(q => !promoted.has(q.id) && !q.crossConflict);
         if (!m) return;
         promoted.add(m.id);
         m.table = tableNum;
@@ -5694,14 +5749,17 @@
         : accent === 'violet'
           ? 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100'
           : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+      const conflictBadge = (!m.winner && m.crossConflict)
+        ? `<span class="badge px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 border border-violet-200" title="${escapeHtml(m.crossConflictLabel || 'Busy in another event')}">Waiting · conflict</span>`
+        : '';
       const tableBadge = (!m.winner && m.table)
         ? (m.onDeck
-          ? `<span class="badge px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">On deck · T${m.table}</span>`
+          ? `<span class="badge px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">${m.crossConflict ? 'Hold · T' : 'On deck · T'}${m.table}</span>`
           : `<span class="badge px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">Table ${m.table}</span>`)
         : '';
-      const timerBadge = matchTimerBadgeHtml(m);
-      const metaRow = (tableBadge || timerBadge)
-        ? `<div class="mt-1.5 flex flex-wrap gap-1 justify-center">${tableBadge}${timerBadge}</div>`
+      const timerBadge = m.crossConflict ? '' : matchTimerBadgeHtml(m);
+      const metaRow = (conflictBadge || tableBadge || timerBadge)
+        ? `<div class="mt-1.5 flex flex-wrap gap-1 justify-center">${conflictBadge}${tableBadge}${timerBadge}</div>`
         : '';
       return `
         <div class="surface-card rounded-xl p-3 text-sm ${m.winner ? 'opacity-90' : 'ring-1 ' + ring}">
