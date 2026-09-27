@@ -475,29 +475,26 @@
       }
     }
 
-    /* Bracket tree view */
+    /* Bracket tree view — fixed slot heights, no overlap */
     .bracket-tree {
       display: flex;
       flex-direction: row;
-      align-items: stretch;
-      gap: 0;
+      align-items: flex-start;
+      gap: 0.75rem;
       overflow-x: auto;
-      padding: 0.5rem 0.25rem 1rem;
-      min-height: 12rem;
+      overflow-y: visible;
+      padding: 0.5rem 0.25rem 1.25rem;
+      -webkit-overflow-scrolling: touch;
     }
     .bracket-tree-round {
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
-      min-width: 11.5rem;
-      max-width: 14rem;
       flex: 0 0 auto;
+      width: 12.5rem;
       position: relative;
+      z-index: 1;
     }
     .bracket-tree-round-title {
-      position: sticky;
-      top: 0;
-      z-index: 2;
       text-align: center;
       font-size: 0.65rem;
       font-weight: 700;
@@ -505,39 +502,48 @@
       letter-spacing: 0.06em;
       color: rgb(100 116 139);
       margin-bottom: 0.5rem;
-      background: rgb(248 250 252 / 0.92);
       padding: 0.25rem;
-      border-radius: 0.35rem;
+      flex: 0 0 auto;
+    }
+    .bracket-tree-slots {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 auto;
     }
     .bracket-tree-slot {
       display: flex;
       flex-direction: row;
       align-items: center;
-      flex: 1 1 0;
-      min-height: 4.5rem;
-      padding: 0.35rem 0;
+      justify-content: flex-start;
+      box-sizing: border-box;
+      flex: 0 0 auto;
       position: relative;
+      padding: 0.25rem 0;
     }
     .bracket-tree-node {
-      flex: 1 1 auto;
+      position: relative;
+      z-index: 2;
       width: 100%;
+      max-width: 11rem;
       border-radius: 0.65rem;
       border: 1px solid rgb(226 232 240);
       background: #fff;
-      box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+      box-shadow: 0 1px 3px rgb(15 23 42 / 0.06);
       overflow: hidden;
       font-size: 0.72rem;
+      pointer-events: auto;
     }
-    .bracket-tree-node.done { opacity: 0.88; }
-    .bracket-tree-node.live { border-color: rgb(16 185 129 / 0.55); box-shadow: 0 0 0 1px rgb(16 185 129 / 0.2); }
+    .bracket-tree-node.done { opacity: 0.9; }
+    .bracket-tree-node.live { border-color: rgb(16 185 129 / 0.6); box-shadow: 0 0 0 1px rgb(16 185 129 / 0.25); }
     .bracket-tree-node.hold { border-color: rgb(167 139 250 / 0.55); }
     .bracket-tree-side {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 0.35rem;
-      padding: 0.35rem 0.5rem;
+      padding: 0.4rem 0.5rem;
       line-height: 1.25;
+      min-height: 1.6rem;
     }
     .bracket-tree-side + .bracket-tree-side { border-top: 1px solid rgb(241 245 249); }
     .bracket-tree-side.win { background: rgb(236 253 245); font-weight: 700; color: rgb(4 120 87); }
@@ -561,7 +567,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 0.2rem;
-      padding: 0.2rem 0.45rem 0.35rem;
+      padding: 0.25rem 0.45rem;
       border-top: 1px solid rgb(241 245 249);
     }
     .bracket-tree-meta span {
@@ -576,54 +582,28 @@
     .bracket-tree-meta .deck { background: rgb(241 245 249); color: rgb(100 116 139); }
     .bracket-tree-meta .serve { background: rgb(238 242 255); color: rgb(67 56 202); }
     .bracket-tree-connector {
-      width: 1rem;
-      flex: 0 0 1rem;
-      align-self: stretch;
-      position: relative;
-    }
-    .bracket-tree-round:not(:last-child) .bracket-tree-connector::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: 100%;
-      border-top: 2px solid rgb(203 213 225);
-    }
-    .bracket-tree-round:not(:first-child) .bracket-tree-slot::before {
-      content: '';
-      position: absolute;
-      left: -0.5rem;
-      top: 50%;
-      width: 0.5rem;
-      border-top: 2px solid rgb(203 213 225);
-    }
-    /* Pair vertical join for even/odd slots */
-    .bracket-tree-round:not(:last-child) .bracket-tree-slot:nth-child(odd of .bracket-tree-slot) .bracket-tree-connector::after,
-    .bracket-tree-round:not(:last-child) .bracket-tree-slot:nth-child(even of .bracket-tree-slot) .bracket-tree-connector::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      width: 2px;
+      width: 0.75rem;
+      flex: 0 0 0.75rem;
+      height: 2px;
       background: rgb(203 213 225);
-    }
-    .bracket-tree-round:not(:last-child) .bracket-tree-slot:nth-child(odd of .bracket-tree-slot) .bracket-tree-connector::after {
-      top: 50%;
-      bottom: -50%;
-    }
-    .bracket-tree-round:not(:last-child) .bracket-tree-slot:nth-child(even of .bracket-tree-slot) .bracket-tree-connector::after {
-      top: -50%;
-      bottom: 50%;
+      margin-left: 0.15rem;
+      align-self: center;
+      border-radius: 1px;
     }
     .bracket-tree-node button.tree-score-btn {
+      display: block;
       width: 100%;
-      font-size: 0.6rem;
+      font-size: 0.65rem;
       font-weight: 700;
-      padding: 0.25rem;
+      padding: 0.4rem 0.35rem;
       border: 0;
       border-top: 1px solid rgb(209 250 229);
       background: rgb(236 253 245);
       color: rgb(4 120 87);
       cursor: pointer;
+      position: relative;
+      z-index: 3;
+      -webkit-tap-highlight-color: transparent;
     }
     .bracket-tree-node button.tree-score-btn:hover { background: rgb(209 250 229); }
     .bracket-tree-empty {
@@ -953,7 +933,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.60 · Updated Sep 27, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.61 · Updated Sep 27, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1682,7 +1662,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.60';
+    const APP_VERSION = '5.61';
     const APP_UPDATED = 'Sep 27, 2026';
 
     let state = {
@@ -6540,22 +6520,27 @@ function flipRankingMatchCoin(roundNum, matchId) {
       </div>`;
     }
 
-    /** Traditional connected tree: rounds as columns, slots spaced for parent alignment. */
+    /** Traditional connected tree: fixed slot heights so cards never overlap. */
     function roundsTreeHtml(rounds, accent) {
       if (!rounds?.length) return '<p class="bracket-tree-empty">No bracket rounds</p>';
-      let html = '<div class="bracket-tree" role="img" aria-label="Bracket tree">';
+      // First round sets the unit height; later rounds = unit * 2^roundIndex
+      const BASE = 96; // px per R1 match slot (fits node + score btn)
+      let html = '<div class="bracket-tree" role="region" aria-label="Bracket tree">';
       rounds.forEach((round, ri) => {
         const matches = round.matches || [];
+        const slotH = BASE * Math.pow(2, ri);
         html += `<div class="bracket-tree-round">`;
         html += `<div class="bracket-tree-round-title">${escapeHtml(round.name || ('R' + (round.number || ri + 1)))}</div>`;
+        html += `<div class="bracket-tree-slots">`;
         matches.forEach((m) => {
-          html += `<div class="bracket-tree-slot">`;
+          html += `<div class="bracket-tree-slot" style="height:${slotH}px;min-height:${slotH}px">`;
           html += treeMatchNodeHtml(m, accent);
-          if (ri < rounds.length - 1) html += `<div class="bracket-tree-connector" aria-hidden="true"></div>`;
+          if (ri < rounds.length - 1) {
+            html += `<div class="bracket-tree-connector" aria-hidden="true"></div>`;
+          }
           html += `</div>`;
         });
-        // Pad empty slots so later rounds stay vertically centered when fewer matches
-        html += `</div>`;
+        html += `</div></div>`;
       });
       html += '</div>';
       return html;
