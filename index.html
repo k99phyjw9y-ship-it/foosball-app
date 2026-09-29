@@ -937,7 +937,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.62 · Updated Sep 27, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.63 · Updated Sep 29, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1666,8 +1666,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.62';
-    const APP_UPDATED = 'Sep 27, 2026';
+    const APP_VERSION = '5.63';
+    const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
       players: [],
@@ -1905,14 +1905,32 @@
       assign(placements.second, 2);
       assign(placements.third, 3);
 
-      // Non-podium bracket players: places 4, 5, … by standings then name
+      // Non-podium: more bracket losses = eliminated earlier = worse place
+      const lossCount = {};
+      bracketPlayers.forEach(id => { lossCount[id] = 0; });
+      try {
+        if (t.playoffs && typeof collectBracketMatches === 'function') {
+          collectBracketMatches(t.playoffs).forEach(m => {
+            if (!m || !m.winner) return;
+            const loserSide = m.winner === 'a' ? (m.b?.entity || m.entityB) : (m.a?.entity || m.entityA);
+            const ids = typeof rankingEntityPlayerIds === 'function' ? rankingEntityPlayerIds(t, loserSide) : [];
+            ids.forEach(id => { if (bracketPlayers.has(id)) lossCount[id] = (lossCount[id] || 0) + 1; });
+          });
+        }
+      } catch (e) {}
       const standings = (typeof computeStandings === 'function') ? computeStandings(t) : [];
-      const rest = [];
-      standings.forEach(s => {
-        if (bracketPlayers.has(s.id) && placeOf[s.id] == null) rest.push(s.id);
-      });
-      [...bracketPlayers].forEach(id => {
-        if (placeOf[id] == null && !rest.includes(id)) rest.push(id);
+      const standIdx = {};
+      standings.forEach((s, i) => { standIdx[s.id] = i; });
+      const rest = [...bracketPlayers].filter(id => placeOf[id] == null);
+      rest.sort((a, b) => {
+        const la = lossCount[a] || 0, lb = lossCount[b] || 0;
+        if (lb !== la) return lb - la;
+        const sa = standIdx[a] != null ? standIdx[a] : 999;
+        const sb = standIdx[b] != null ? standIdx[b] : 999;
+        if (sa !== sb) return sa - sb;
+        const na = state.players.find(p => p.id === a)?.name || '';
+        const nb = state.players.find(p => p.id === b)?.name || '';
+        return na.localeCompare(nb);
       });
       rest.forEach((id, i) => { placeOf[id] = 4 + i; });
 
@@ -2815,6 +2833,7 @@
     }
 
     function renderHome() {
+      if (typeof maybeNudgeConflictLock === 'function') maybeNudgeConflictLock();
       const list = document.getElementById('tournament-list');
       const empty = document.getElementById('empty-tournaments');
       if (state.tournaments.length === 0) {
@@ -3048,14 +3067,53 @@
       } catch (e) {}
     }
 
+
+    let _conflictLockNudged = false;
+    function maybeNudgeConflictLock() {
+      if (_conflictLockNudged) return;
+      const n = (state.tournaments || []).filter(t => t && t.status !== 'finished').length;
+      if (n < 2) return;
+      _conflictLockNudged = true;
+      if (!isConflictLockEnabled()) {
+        setConflictLockEnabled(true);
+        toast('Conflict lock turned ON — 2+ active events (tables shared; live players held)', 'info');
+      }
+    }
+
     function toggleConflictLock() {
       setConflictLockEnabled(!isConflictLockEnabled());
       toast(
         isConflictLockEnabled()
-          ? 'Conflict lock ON — players in a live match are skipped in other active events'
+          ? 'Conflict lock ON — live players held elsewhere; table numbers shared across events'
           : 'Conflict lock OFF — parallel events can double-book players',
         'success'
       );
+    }
+
+    function getGlobalLiveTableSet(excludeTournamentId) {
+      const occupied = new Set();
+      if (typeof isConflictLockEnabled === 'function' && !isConflictLockEnabled()) return occupied;
+      (state.tournaments || []).forEach(ev => {
+        if (!ev || ev.id === excludeTournamentId || ev.status === 'finished') return;
+        (ev.rounds || []).forEach(r => {
+          (r.matches || []).forEach(m => {
+            if (!m || m.status === 'done' || m.void || m.onDeck || m.crossConflict) return;
+            const tn = parseInt(m.table, 10);
+            if (tn >= 1) occupied.add(tn);
+          });
+        });
+        if (ev.playoffs && typeof collectBracketMatches === 'function') {
+          try {
+            collectBracketMatches(ev.playoffs).forEach(m => {
+              if (!m || m.winner || m._byePropagated || m.onDeck || m.crossConflict) return;
+              if (typeof isBracketMatchReady === 'function' && !isBracketMatchReady(m)) return;
+              const tn = parseInt(m.table, 10);
+              if (tn >= 1) occupied.add(tn);
+            });
+          } catch (e) {}
+        }
+      });
+      return occupied;
     }
 
     function entityIncludesPlayer(ent, playerId) {
@@ -3079,9 +3137,7 @@
         if (m.scoreA === 0 && m.scoreB === 0) return false;
         if (m.scoreA !== m.scoreB) return false;
       }
-      if (m.seriesA != null && m.seriesB != null && m.seriesA !== m.seriesB) {
-        if (m.seriesA >= 2 || m.seriesB >= 2) return false;
-      }
+      // Mid-series stays busy until status === done (Bo5-safe)
       // Must be actively assigned to a live table
       const tnum = parseInt(m.table, 10);
       if (!(tnum >= 1)) return false;
@@ -3728,22 +3784,39 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (lastRound?.sitOutIds?.length) {
         lastRound.sitOutIds.forEach(id => lastSit.add(id));
       }
+      // Ring order: players who have sat least, in prior sit-queue order, then others
+      if (!Array.isArray(t.sitOutQueue)) t.sitOutQueue = [];
+      const queueIds = t.sitOutQueue.filter(id => players.some(p => p.id === id));
 
       const remaining = [...players];
       const chosen = [];
 
       while (chosen.length < needed && remaining.length) {
         const minC = Math.min(...remaining.map(p => counts[p.id] || 0));
-        // Only players still at the global minimum among those not yet chosen
+        // Strict: only minimum sit-count players
         let tier = remaining.filter(p => (counts[p.id] || 0) === minC);
         const notLast = tier.filter(p => !lastSit.has(p.id));
         if (notLast.length) tier = notLast;
-        shuffle(tier);
+        // Prefer front of sit-out ring (those who have been waiting longest to sit)
+        tier.sort((a, b) => {
+          const ia = queueIds.indexOf(a.id);
+          const ib = queueIds.indexOf(b.id);
+          const ra = ia < 0 ? 9999 : ia;
+          const rb = ib < 0 ? 9999 : ib;
+          if (ra !== rb) return ra - rb;
+          return 0;
+        });
+        // Light shuffle only among equal ring position
         const pick = tier[0];
         chosen.push(pick);
         const idx = remaining.findIndex(p => p.id === pick.id);
         if (idx >= 0) remaining.splice(idx, 1);
       }
+      // Rotate ring: chosen go to the end
+      const chosenIds = chosen.map(p => p.id);
+      const restQ = (t.sitOutQueue || []).filter(id => !chosenIds.includes(id) && players.some(p => p.id === id));
+      const newbies = players.map(p => p.id).filter(id => !restQ.includes(id) && !chosenIds.includes(id));
+      t.sitOutQueue = restQ.concat(newbies).concat(chosenIds);
       return chosen;
     }
 
@@ -3862,15 +3935,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const { counts, byPlayer } = getPartnershipData(t);
       let best = null;
       let bestMetric = { rematches: Infinity, score: Infinity };
-      const trials = Math.min(80, 12 + active.length * 6);
+      const trials = Math.min(120, 20 + active.length * 8);
 
       for (let i = 0; i < trials; i++) {
         const pairs = buildOnePairing(t, active, counts, byPlayer);
         if (pairs.length < Math.floor(active.length / 2)) continue;
+        // Prefer pairings that only use allowed partners
+        let forbidden = 0;
+        pairs.forEach(([a, b]) => {
+          if (!isPartnerAllowed(t, counts, byPlayer, a.id, b.id)) forbidden++;
+        });
         const metric = scorePairing(pairs, counts);
+        metric.forbidden = forbidden;
         if (
-          metric.rematches < bestMetric.rematches ||
-          (metric.rematches === bestMetric.rematches && metric.score < bestMetric.score)
+          forbidden < (bestMetric.forbidden != null ? bestMetric.forbidden : Infinity) ||
+          (forbidden === (bestMetric.forbidden || 0) && metric.rematches < bestMetric.rematches) ||
+          (forbidden === (bestMetric.forbidden || 0) && metric.rematches === bestMetric.rematches && metric.score < bestMetric.score)
         ) {
           bestMetric = metric;
           best = pairs;
@@ -3921,12 +4001,29 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }));
     }
 
+    function latestRankingRoundHasScores(t) {
+      const rounds = t?.rounds || [];
+      if (!rounds.length) return false;
+      const r = rounds[rounds.length - 1];
+      return (r.matches || []).some(m => {
+        if (!m || m.void) return false;
+        if (m.status === 'done') return true;
+        if (m.games && m.games.length) return true;
+        if (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB) return true;
+        return false;
+      });
+    }
+
     function drawPartners(opts = {}) {
       const t = getCurrentTournament();
       const players = activePlayerIds(t).map(id => state.players.find(p => p.id === id)).filter(Boolean);
       if (players.length < 4) {
         toast('Need at least 4 active players for doubles/DYP (mark Present or add players)', 'error');
         return;
+      }
+
+      if (!opts.forBracket && !opts.force && latestRankingRoundHasScores(t) && (t.teams || []).length) {
+        if (!confirm('This round already has scores. Redraw partners anyway?')) return;
       }
 
       // Fresh partner randomization each draw (does not erase sit-out history on rounds)
@@ -5013,8 +5110,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       // Flag cross-event conflicts (do not start these matches yet)
       pending.forEach(m => { if (typeof applyCrossConflictFlag === "function") applyCrossConflictFlag(m, t, false); });
 
-      // Live = at a table, not on-deck, not cross-conflicted
-      const occupied = new Set();
+      // Live tables; merge global occupancy when conflict lock is on
+      const globalBusy = typeof getGlobalLiveTableSet === 'function' ? getGlobalLiveTableSet(t?.id) : new Set();
+      const occupied = new Set(globalBusy);
       const live = [];
       pending.forEach(m => {
         if (m.crossConflict) return;
@@ -5023,6 +5121,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
           occupied.add(tnum);
           live.push(m);
           m.onDeck = false;
+        } else if (!m.onDeck && tnum >= 1 && globalBusy.has(tnum)) {
+          m.onDeck = true;
+          delete m.timerStartAt;
+          delete m.timerEndedAt;
         }
       });
 
@@ -5319,7 +5421,18 @@ function flipRankingMatchCoin(roundNum, matchId) {
       m.loser = null;
       m.scoreA = null;
       m.scoreB = null;
+      m.seriesA = null;
+      m.seriesB = null;
+      if (Array.isArray(m.games)) m.games = [];
       delete m._byePropagated;
+      delete m.table;
+      delete m.onDeck;
+      delete m.timerStartAt;
+      delete m.timerEndedAt;
+      delete m.crossConflict;
+      delete m.crossConflictLabel;
+      delete m.crossConflictPlayerIds;
+      delete m.coinToss;
       // Clear entities that were fed from this match in later rounds (they become TBD again)
       const clearFeed = (side) => {
         if (side?.fromMatch === matchId) {
@@ -6220,7 +6333,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       ready.forEach(m => { if (typeof applyCrossConflictFlag === "function") applyCrossConflictFlag(m, t, true); });
 
-      // Anyone still flagged conflict must stay on hold (not live)
       ready.forEach(m => {
         if (m.crossConflict) {
           m.onDeck = true;
@@ -6229,7 +6341,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
       });
 
-      const occupied = new Set();
+      const globalBusyB = typeof getGlobalLiveTableSet === 'function' ? getGlobalLiveTableSet(t?.id) : new Set();
+      const occupied = new Set(globalBusyB);
       const live = [];
       ready.forEach(m => {
         if (m.crossConflict) return;
@@ -6238,6 +6351,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
           occupied.add(tnum);
           live.push(m);
           m.onDeck = false;
+        } else if (!m.onDeck && tnum >= 1 && globalBusyB.has(tnum)) {
+          m.onDeck = true;
+          delete m.timerStartAt;
+          delete m.timerEndedAt;
         }
       });
 
@@ -6528,7 +6645,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     function roundsTreeHtml(rounds, accent) {
       if (!rounds?.length) return '<p class="bracket-tree-empty">No bracket rounds</p>';
       // Must be >= tallest tree node (2 names + meta + Enter score). Later rounds = BASE * 2^ri.
-      const BASE = 132;
+      const BASE = 148;
       let html = '<div class="bracket-tree" role="region" aria-label="Bracket tree">';
       rounds.forEach((round, ri) => {
         const matches = round.matches || [];
@@ -6537,7 +6654,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         html += `<div class="bracket-tree-round-title">${escapeHtml(round.name || ('R' + (round.number || ri + 1)))}</div>`;
         html += `<div class="bracket-tree-slots">`;
         matches.forEach((m) => {
-          html += `<div class="bracket-tree-slot" style="height:${slotH}px;min-height:${slotH}px;max-height:${slotH}px">`;
+          html += `<div class="bracket-tree-slot" style="min-height:${slotH}px">`;
           html += treeMatchNodeHtml(m, accent);
           if (ri < rounds.length - 1) {
             html += `<div class="bracket-tree-connector" aria-hidden="true"></div>`;
