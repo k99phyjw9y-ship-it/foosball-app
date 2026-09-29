@@ -1534,7 +1534,7 @@
         </div>
         <div class="flex flex-wrap gap-2">
           <button type="button" id="td-finish-btn" onclick="toggleTournamentFinished()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="Mark ranking-only night as finished (no bracket required)">Mark finished</button>
-          <button type="button" onclick="openSpectator(state.currentTournamentId)" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-emerald-700" title="Read-only live board for TVs">TV Board</button>
+          <button type="button" onclick="state.spectatorSource='event'; openSpectator(state.currentTournamentId)" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-emerald-700" title="Read-only live board for TVs">TV Board</button>
           <button onclick="exportTournamentJson()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="Download this event as JSON">Export event</button>
           <button onclick="exportStandings()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-700" title="CSV standings">CSV</button>
           <button onclick="confirmDeleteTournament()" class="px-3 py-1.5 text-sm rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition">Delete</button>
@@ -1753,7 +1753,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.69';
+    const APP_VERSION = '5.70';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -9105,32 +9105,33 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     function openSpectatorFromHome() {
       const active = (state.tournaments || []).filter(t => t && t.status !== 'finished');
-      if (!active.length && !(state.tournaments || []).length) {
-        toast('No tournaments yet — create an event first', 'error');
+      if (!active.length) {
+        toast(active.length === 0 && (state.tournaments || []).length
+          ? 'No active events — finish/create an event first'
+          : 'No tournaments yet — create an event first', 'error');
         return;
       }
-      // Default: all active events when 2+; otherwise the only / most recent event
-      if (active.length > 1) {
-        state.spectatorTournamentId = '__all__';
-      } else if (active.length === 1) {
-        state.spectatorTournamentId = active[0].id;
-      } else {
-        // Only finished events — show most recent
-        const list = (state.tournaments || []).slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        state.spectatorTournamentId = list[0]?.id || null;
-      }
-      openSpectator(state.spectatorTournamentId);
+      // Home TV board: always all active events (no single-event picker)
+      state.spectatorSource = 'home';
+      state.spectatorTournamentId = '__all__';
+      openSpectator('__all__');
     }
 
     function openSpectator(tournamentId) {
-      if (tournamentId === '__all__') {
+      // Event-detail entry sets source unless already coming from home
+      if (tournamentId !== '__all__' || state.spectatorSource !== 'home') {
+        if (tournamentId && tournamentId !== '__all__') {
+          state.spectatorSource = 'event';
+        }
+      }
+      if (state.spectatorSource === 'home') {
+        state.spectatorTournamentId = '__all__';
+      } else if (tournamentId === '__all__') {
         state.spectatorTournamentId = '__all__';
       } else if (tournamentId) {
         state.spectatorTournamentId = tournamentId;
-      } else if (state.spectatorTournamentId === '__all__') {
-        // keep all-events mode
       } else {
-        state.spectatorTournamentId = state.currentTournamentId || state.tournaments[0]?.id || null;
+        state.spectatorTournamentId = state.currentTournamentId || null;
       }
       const view = document.getElementById('view-spectator');
       if (!view) return;
@@ -9173,27 +9174,49 @@ function flipRankingMatchCoin(roundNum, matchId) {
     function populateSpectatorSelect() {
       const sel = document.getElementById('spec-tournament-select');
       if (!sel) return;
-      const list = state.tournaments.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      const active = list.filter(t => t && t.status !== 'finished');
+      const active = (state.tournaments || [])
+        .filter(t => t && t.status !== 'finished')
+        .slice()
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      // Home TV board: all events only — lock the selector
+      if (state.spectatorSource === 'home') {
+        state.spectatorTournamentId = '__all__';
+        sel.innerHTML = `<option value="__all__">All active events (${active.length})</option>`;
+        sel.value = '__all__';
+        sel.disabled = true;
+        sel.title = 'Home TV board always shows all active events';
+        sel.classList.add('opacity-80');
+        return;
+      }
+
+      // From an event: list active events only (plus All when 2+)
+      sel.disabled = false;
+      sel.title = '';
+      sel.classList.remove('opacity-80');
       const opts = [];
       if (active.length > 1) {
         opts.push(`<option value="__all__">All active events (${active.length})</option>`);
       }
-      list.forEach(t => {
-        const mark = t.status === 'finished' ? ' · done' : '';
-        opts.push(`<option value="${t.id}">${escapeHtml(t.name || 'Event')}${mark}</option>`);
+      active.forEach(t => {
+        opts.push(`<option value="${t.id}">${escapeHtml(t.name || 'Event')}</option>`);
       });
-      sel.innerHTML = opts.join('') || '<option value="">No events</option>';
-      if (state.spectatorTournamentId === '__all__' && active.length > 1) {
+      sel.innerHTML = opts.join('') || '<option value="">No active events</option>';
+
+      const id = state.spectatorTournamentId;
+      if (id === '__all__' && active.length > 1) {
         sel.value = '__all__';
-      } else if (state.spectatorTournamentId && list.some(t => t.id === state.spectatorTournamentId)) {
-        sel.value = state.spectatorTournamentId;
+      } else if (id && active.some(t => t.id === id)) {
+        sel.value = id;
+      } else if (state.currentTournamentId && active.some(t => t.id === state.currentTournamentId)) {
+        state.spectatorTournamentId = state.currentTournamentId;
+        sel.value = state.currentTournamentId;
+      } else if (active.length === 1) {
+        state.spectatorTournamentId = active[0].id;
+        sel.value = active[0].id;
       } else if (active.length > 1) {
         state.spectatorTournamentId = '__all__';
         sel.value = '__all__';
-      } else if (list[0]) {
-        state.spectatorTournamentId = list[0].id;
-        sel.value = list[0].id;
       }
     }
 
