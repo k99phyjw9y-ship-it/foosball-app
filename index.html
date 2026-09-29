@@ -1676,7 +1676,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.64';
+    const APP_VERSION = '5.65';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -9016,23 +9016,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
       renderSpectatorBoard();
       if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
       if (spectatorTimer) clearInterval(spectatorTimer);
-      // Poll often enough that on-deck → playing shows up soon after a score on another tab
+      // TV board refresh every 5s (also covered by global app refresh)
       spectatorTimer = setInterval(() => {
         try { loadState(); } catch (e) {}
-        renderSpectatorBoard();
-      }, 2000);
-      // Instant update when the scoring tab writes localStorage
-      if (!window._lcfcSpecStorageHook) {
-        window._lcfcSpecStorageHook = true;
-        window.addEventListener('storage', (ev) => {
-          if (!ev) return;
-          if (ev.key !== STORAGE_KEY && ev.key !== CHANGE_KEY) return;
-          const view = document.getElementById('view-spectator');
-          if (!view || view.classList.contains('hidden')) return;
-          try { loadState(); } catch (e) {}
-          try { renderSpectatorBoard(); } catch (e) {}
-        });
-      }
+        try { renderSpectatorBoard(); } catch (e) {}
+      }, 5000);
+      if (typeof ensureAppAutoRefresh === 'function') ensureAppAutoRefresh();
     }
 
     function closeSpectator() {
@@ -9368,6 +9357,91 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
     }
 
+
+    // ==================== AUTO REFRESH (multi-tab / multi-event) ====================
+    const APP_REFRESH_MS = 5000;
+    let appRefreshTimer = null;
+    let lastSeenChangeKey = null;
+
+    function isScoreModalOpen() {
+      const el = document.getElementById('score-modal');
+      return el && !el.classList.contains('hidden');
+    }
+
+    function isViewVisible(id) {
+      const el = document.getElementById(id);
+      return el && !el.classList.contains('hidden');
+    }
+
+    /** Reload state from localStorage and re-render the open page (skip while scoring). */
+    function tickAppAutoRefresh() {
+      try {
+        if (isScoreModalOpen()) return;
+        if (document.hidden) return; // tab in background — storage event still updates when focused
+
+        let change = null;
+        try { change = localStorage.getItem(CHANGE_KEY); } catch (e) {}
+        // Always reload when change key moves; otherwise still soft-refresh live views
+        const changed = change != null && change !== lastSeenChangeKey;
+        if (changed) {
+          lastSeenChangeKey = change;
+          try { loadState(); } catch (e) {}
+        } else if (!isViewVisible('view-spectator') && !isViewVisible('view-tournament')) {
+          return;
+        } else {
+          // Soft reload so other tabs' saves are picked up even if CHANGE_KEY missed
+          try { loadState(); } catch (e) {}
+        }
+
+        if (isViewVisible('view-spectator')) {
+          try { populateSpectatorSelect(); } catch (e) {}
+          try { renderSpectatorBoard(); } catch (e) {}
+          return;
+        }
+        if (isViewVisible('view-tournament') && state.currentTournamentId) {
+          try { renderTournament(); } catch (e) {}
+          return;
+        }
+        if (isViewVisible('view-home') || (document.getElementById('view-home') && !document.getElementById('view-home').classList.contains('hidden'))) {
+          // home id may vary
+        }
+        const home = document.getElementById('view-home');
+        if (home && !home.classList.contains('hidden')) {
+          try { renderHome(); } catch (e) {}
+          return;
+        }
+        const players = document.getElementById('view-players');
+        if (players && !players.classList.contains('hidden')) {
+          try { renderPlayers(); } catch (e) {}
+          return;
+        }
+        const stats = document.getElementById('view-stats');
+        if (stats && !stats.classList.contains('hidden')) {
+          try { renderStats(); } catch (e) {}
+        }
+      } catch (e) {
+        console.error('tickAppAutoRefresh', e);
+      }
+    }
+
+    function ensureAppAutoRefresh() {
+      if (appRefreshTimer) return;
+      try { lastSeenChangeKey = localStorage.getItem(CHANGE_KEY); } catch (e) {}
+      appRefreshTimer = setInterval(tickAppAutoRefresh, APP_REFRESH_MS);
+      // Cross-tab instant update (same origin)
+      if (!window._lcfcAppStorageHook) {
+        window._lcfcAppStorageHook = true;
+        window.addEventListener('storage', (ev) => {
+          if (!ev) return;
+          if (ev.key !== STORAGE_KEY && ev.key !== CHANGE_KEY) return;
+          if (isScoreModalOpen()) return;
+          try { loadState(); } catch (e) {}
+          try { lastSeenChangeKey = localStorage.getItem(CHANGE_KEY); } catch (e) {}
+          tickAppAutoRefresh();
+        });
+      }
+    }
+
     function showView(name) {
       if (name !== 'spectator') closeSpectator();
       ['home', 'players', 'create', 'tournament', 'stats'].forEach(v => {
@@ -9465,6 +9539,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     // ==================== INIT ====================
     loadState();
     showView('home');
+    if (typeof ensureAppAutoRefresh === 'function') ensureAppAutoRefresh();
     renderPlayers();
     renderThemeMenu();
 
