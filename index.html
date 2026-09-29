@@ -908,7 +908,11 @@
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
             <span>Create tournament</span>
           </button>
-          <div class="flex gap-2 w-full sm:w-auto">
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto sm:justify-end">
+            <button type="button" onclick="openSpectatorFromHome()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700 inline-flex items-center justify-center gap-1.5" title="TV board · all active events">
+              <svg class="w-3.5 h-3.5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              TV board
+            </button>
             <button type="button" onclick="document.getElementById('import-file-input').click()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700">Import</button>
             <button type="button" onclick="exportAllData()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700">Export all</button>
           </div>
@@ -947,7 +951,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.63 · Updated Sep 29, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.66 · Updated Sep 29, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1676,7 +1680,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.65';
+    const APP_VERSION = '5.66';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -9006,8 +9010,35 @@ function flipRankingMatchCoin(roundNum, matchId) {
     // ==================== SPECTATOR / TV BOARD ====================
     let spectatorTimer = null;
 
+    function openSpectatorFromHome() {
+      const active = (state.tournaments || []).filter(t => t && t.status !== 'finished');
+      if (!active.length && !(state.tournaments || []).length) {
+        toast('No tournaments yet — create an event first', 'error');
+        return;
+      }
+      // Default: all active events when 2+; otherwise the only / most recent event
+      if (active.length > 1) {
+        state.spectatorTournamentId = '__all__';
+      } else if (active.length === 1) {
+        state.spectatorTournamentId = active[0].id;
+      } else {
+        // Only finished events — show most recent
+        const list = (state.tournaments || []).slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        state.spectatorTournamentId = list[0]?.id || null;
+      }
+      openSpectator(state.spectatorTournamentId);
+    }
+
     function openSpectator(tournamentId) {
-      state.spectatorTournamentId = tournamentId || state.currentTournamentId || state.tournaments[0]?.id || null;
+      if (tournamentId === '__all__') {
+        state.spectatorTournamentId = '__all__';
+      } else if (tournamentId) {
+        state.spectatorTournamentId = tournamentId;
+      } else if (state.spectatorTournamentId === '__all__') {
+        // keep all-events mode
+      } else {
+        state.spectatorTournamentId = state.currentTournamentId || state.tournaments[0]?.id || null;
+      }
       const view = document.getElementById('view-spectator');
       if (!view) return;
       view.classList.remove('hidden');
