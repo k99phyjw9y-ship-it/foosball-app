@@ -400,6 +400,16 @@
       background: rgba(99, 102, 241, 0.35); color: #e0e7ff;
       border: 1px solid rgba(165, 180, 252, 0.5);
     }
+    #view-spectator .spec-meta-event {
+      background: rgb(var(--c-accent-500) / 0.18);
+      color: var(--accent);
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      max-width: 11rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     #view-spectator .spec-serve-line {
       text-align: center; font-size: 0.72rem; font-weight: 700;
       letter-spacing: 0.04em; color: #a5b4fc; margin-top: 0.25rem;
@@ -1666,7 +1676,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.63';
+    const APP_VERSION = '5.64';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -9051,10 +9061,23 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const sel = document.getElementById('spec-tournament-select');
       if (!sel) return;
       const list = state.tournaments.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      sel.innerHTML = list.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('')
-        || '<option value="">No events</option>';
-      if (state.spectatorTournamentId && list.some(t => t.id === state.spectatorTournamentId)) {
+      const active = list.filter(t => t && t.status !== 'finished');
+      const opts = [];
+      if (active.length > 1) {
+        opts.push(`<option value="__all__">All active events (${active.length})</option>`);
+      }
+      list.forEach(t => {
+        const mark = t.status === 'finished' ? ' · done' : '';
+        opts.push(`<option value="${t.id}">${escapeHtml(t.name || 'Event')}${mark}</option>`);
+      });
+      sel.innerHTML = opts.join('') || '<option value="">No events</option>';
+      if (state.spectatorTournamentId === '__all__' && active.length > 1) {
+        sel.value = '__all__';
+      } else if (state.spectatorTournamentId && list.some(t => t.id === state.spectatorTournamentId)) {
         sel.value = state.spectatorTournamentId;
+      } else if (active.length > 1) {
+        state.spectatorTournamentId = '__all__';
+        sel.value = '__all__';
       } else if (list[0]) {
         state.spectatorTournamentId = list[0].id;
         sel.value = list[0].id;
@@ -9095,71 +9118,105 @@ function flipRankingMatchCoin(roundNum, matchId) {
       });
     }
 
-    function renderSpectatorBoard() {
-      const t = state.tournaments.find(x => x.id === state.spectatorTournamentId);
-      const title = document.getElementById('spec-title');
-      const meta = document.getElementById('spec-meta');
-      const matchesEl = document.getElementById('spec-matches-live') || document.getElementById('spec-matches');
-      const standEl = document.getElementById('spec-standings');
-      if (!matchesEl || !standEl) return;
-      if (!t) {
-        if (title) title.textContent = 'No event selected';
-        matchesEl.innerHTML = '<p class="text-slate-500">Create or open a tournament first.</p>';
-        const deckEmpty = document.getElementById('spec-matches-deck');
-        if (deckEmpty) deckEmpty.innerHTML = '';
-        standEl.innerHTML = '';
-        return;
-      }
-      if (title) title.textContent = t.name;
-      const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
-      if (meta) meta.textContent = `${typeLabel[t.type] || t.type} · Round ${t.currentRound || 0} · ${t.status} · ${t.playerIds?.length || 0} players`;
 
-      // Recompute live vs on-deck from latest scores (so TV picks up promotions immediately)
+    /** Open ranking + bracket rows for TV board from one event. */
+    function collectSpectatorMatchRows(t) {
+      const live = [];
+      if (!t) return live;
       try {
         if (typeof assignRankingRoundTables === 'function') assignRankingRoundTables(t);
         if (typeof assignBracketTables === 'function') assignBracketTables(t);
       } catch (e) {}
-
-      // Live / open matches: incomplete in latest rounds + open bracket matches
-      const live = [];
-      const recentDone = [];
+      const eventName = t.name || 'Event';
       (t.rounds || []).forEach(r => {
         (r.matches || []).forEach(m => {
           if (!m || m.void) return;
           const nameA = m.entityA?.name || 'TBD';
           const nameB = m.entityB?.name || 'TBD';
           const done = m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB);
-          const proj = (!done && m.entityA && m.entityB) ? projectMatchWinPct(m.entityA, m.entityB) : null;
-          const serveSide = m.coinToss && m.coinToss.serveSide ? m.coinToss.serveSide : null;
+          if (done) return;
+          const serveSide = m.coinToss?.serveSide || null;
           const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
-          const row = {
-            round: r.number, nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table, done, proj,
+          live.push({
+            eventId: t.id, eventName, eventType: t.type || '',
+            round: r.number, nameA, nameB,
+            scoreA: m.scoreA, scoreB: m.scoreB, table: m.table,
             onDeck: !!m.onDeck, matchId: m.id,
-            timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt, status: m.status || (done ? 'done' : 'pending'),
-            serveSide, serveName
-          };
-          if (done) recentDone.push(row);
-          else live.push(row);
+            timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt,
+            status: m.status || 'pending', serveSide, serveName
+          });
         });
       });
-      collectBracketMatches(t.playoffs).forEach(m => {
-        if (!m || m.void) return;
-        const nameA = m.a?.entity?.name || m.entityA?.name || 'TBD';
-        const nameB = m.b?.entity?.name || m.entityB?.name || 'TBD';
-        const done = !!(m.winner || (m.scoreA != null && m.scoreB != null && !(m.scoreA === 0 && m.scoreB === 0)));
-        const entA = m.a?.entity || m.entityA;
-        const entB = m.b?.entity || m.entityB;
-        const proj = (!done && entA && entB) ? projectMatchWinPct(entA, entB) : null;
-        const serveSide = m.coinToss && m.coinToss.serveSide ? m.coinToss.serveSide : null;
-        const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
-        const row = {
-          round: m.bracket || 'bracket', nameA, nameB, scoreA: m.scoreA, scoreB: m.scoreB, table: m.table || null, done, proj,
-          onDeck: !!m.onDeck, matchId: m.id,
-          timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt, status: done ? 'done' : 'pending', winner: m.winner || null,
-          serveSide, serveName
-        };
-        if (done && m.scoreA != null) recentDone.push(row);
-        else if (!done && (m.a?.entity || m.b?.entity || m.entityA)) live.push(row);
+      if (t.playoffs && typeof collectBracketMatches === 'function') {
+        try {
+          collectBracketMatches(t.playoffs).forEach(m => {
+            if (!m || m.void || m.winner) return;
+            const nameA = m.a?.entity?.name || m.entityA?.name || 'TBD';
+            const nameB = m.b?.entity?.name || m.entityB?.name || 'TBD';
+            if (!(m.a?.entity || m.b?.entity || m.entityA || m.entityB)) return;
+            if (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB && !(m.scoreA === 0 && m.scoreB === 0)) return;
+            const serveSide = m.coinToss?.serveSide || null;
+            const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
+            live.push({
+              eventId: t.id, eventName, eventType: t.type || '',
+              round: m.bracket || 'bracket', nameA, nameB,
+              scoreA: m.scoreA, scoreB: m.scoreB, table: m.table || null,
+              onDeck: !!m.onDeck, matchId: m.id,
+              timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt,
+              status: 'pending', winner: null, serveSide, serveName
+            });
+          });
+        } catch (e) {}
+      }
+      return live;
+    }
+
+    function renderSpectatorBoard() {
+      const title = document.getElementById('spec-title');
+      const meta = document.getElementById('spec-meta');
+      const matchesEl = document.getElementById('spec-matches-live') || document.getElementById('spec-matches');
+      const standEl = document.getElementById('spec-standings');
+      if (!matchesEl || !standEl) return;
+
+      const typeLabel = { singles: 'Singles', doubles: 'Doubles', dyp: 'DYP', monster: 'Monster DYP' };
+      const allMode = state.spectatorTournamentId === '__all__';
+      let events = [];
+      if (allMode) {
+        events = (state.tournaments || []).filter(x => x && x.status !== 'finished');
+      } else {
+        const one = (state.tournaments || []).find(x => x.id === state.spectatorTournamentId);
+        if (one) events = [one];
+      }
+
+      if (!events.length) {
+        if (title) title.textContent = 'No event selected';
+        if (meta) meta.textContent = '';
+        matchesEl.innerHTML = '<p class="text-slate-500">Create or open a tournament first.</p>';
+        const deckEmpty = document.getElementById('spec-matches-deck');
+        if (deckEmpty) deckEmpty.innerHTML = '';
+        standEl.innerHTML = '';
+        return;
+      }
+
+      const t = events[0];
+      if (allMode) {
+        if (title) title.textContent = 'All active events';
+        if (meta) meta.textContent = events.map(e => e.name).join(' · ');
+      } else {
+        if (title) title.textContent = t.name;
+        if (meta) meta.textContent = `${typeLabel[t.type] || t.type} · Round ${t.currentRound || 0} · ${t.status} · ${t.playerIds?.length || 0} players`;
+      }
+
+      const live = [];
+      events.forEach(ev => {
+        collectSpectatorMatchRows(ev).forEach(row => live.push(row));
+      });
+      live.sort((a, b) => {
+        const ta = parseInt(a.table, 10) || 99;
+        const tb = parseInt(b.table, 10) || 99;
+        if (a.onDeck !== b.onDeck) return a.onDeck ? 1 : -1;
+        if (ta !== tb) return ta - tb;
+        return (a.eventName || '').localeCompare(b.eventName || '');
       });
 
       const liveEl = document.getElementById('spec-matches-live') || matchesEl;
@@ -9192,6 +9249,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return `
           <div class="spec-card ${kind === 'live' ? 'spec-card-live' : 'spec-card-deck'}">
             <div class="spec-match-meta flex flex-wrap items-center justify-center gap-1.5">
+              ${m.eventName ? `<span class="spec-meta-chip spec-meta-event" title="${escapeHtml(m.eventName)}">${escapeHtml(m.eventName)}</span>` : ''}
               ${tableChip}
               ${timerChip}
               <span class="spec-meta-chip spec-meta-round">${escapeHtml(roundLabel)}</span>
@@ -9284,7 +9342,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (!standings.length) {
         standEl.innerHTML = '<p class="p-2.5 spec-muted text-xs">No standings yet</p>';
       } else {
-        standEl.innerHTML = `<table class="w-full leading-snug">
+        standEl.innerHTML = `${(typeof allMode !== 'undefined' && allMode) ? `<p class="text-[10px] spec-muted px-2 pb-1">Standings · ${escapeHtml(t.name)}</p>` : ''}<table class="w-full leading-snug">
           <thead><tr class="text-left border-b">
             <th class="pl-2 pr-1 font-medium w-6">#</th>
             <th class="px-1.5 font-medium">Player</th>
