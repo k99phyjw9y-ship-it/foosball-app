@@ -22,17 +22,24 @@
         orange: ['#fff7ed','#ffedd5','#fed7aa','#fdba74','#fb923c','#f97316','#ea580c','#c2410c','#9a3412','#7c2d12'],
         violet: ['#f5f3ff','#ede9fe','#ddd6fe','#c4b5fd','#a78bfa','#8b5cf6','#7c3aed','#6d28d9','#5b21b6','#4c1d95'],
         indigo: ['#eef2ff','#e0e7ff','#c7d2fe','#a5b4fc','#818cf8','#6366f1','#4f46e5','#4338ca','#3730a3','#312e81'],
+        teal:   ['#f0fdfa','#ccfbf1','#99f6e4','#5eead4','#2dd4bf','#14b8a6','#0d9488','#0f766e','#115e59','#134e4a'],
+        cyan:   ['#ecfeff','#cffafe','#a5f3fc','#67e8f9','#22d3ee','#06b6d4','#0891b2','#0e7490','#155e75','#164e63'],
         amber:  ['#fffbeb','#fef3c7','#fde68a','#fcd34d','#fbbf24','#f59e0b','#d97706','#b45309','#92400e','#78350f'],
-        red:    ['#fef2f2','#fee2e2','#fecaca','#fca5a5','#f87171','#ef4444','#dc2626','#b91c1c','#991b1b','#7f1d1d']
+        red:    ['#fef2f2','#fee2e2','#fecaca','#fca5a5','#f87171','#ef4444','#dc2626','#b91c1c','#991b1b','#7f1d1d'],
+        /* Arena dark neutrals (warm charcoal) */
+        arenaN: ['#1a1714','#221e1a','#2e2924','#3d3730','#7a7268','#a39b90','#b8b0a5','#d0c9be','#e8e2d9','#f5f1eb','#faf8f5']
       };
       /* btn = which accent shades (500/600/700 …) form the primary-button gradient */
       var THEMES = [
         { id: 'pitch',    name: 'Pitch',    dark: false, accent: 'emerald', neutral: 'slate',     bg: '#f4f7f5', raised: '#ffffff', overlay: '#eef2f0', btn: [5, 6] },
         { id: 'lake',     name: 'Lake',     dark: false, accent: 'sky',     neutral: 'slate',     bg: '#f1f6fa', raised: '#ffffff', overlay: '#e8f0f6', btn: [6, 7] },
+        { id: 'tornado',  name: 'Tornado',  dark: false, accent: 'teal',    neutral: 'slate',     bg: '#f0f5f4', raised: '#ffffff', overlay: '#e6efed', btn: [5, 6] },
+        { id: 'fog',      name: 'Fog',      dark: false, accent: 'slate',   neutral: 'gray',      bg: '#f3f4f6', raised: '#ffffff', overlay: '#eaeaee', btn: [6, 7] },
         { id: 'sunset',   name: 'Sunset',   dark: false, accent: 'orange',  neutral: 'stone',     bg: '#faf6f1', raised: '#ffffff', overlay: '#f3ede5', btn: [6, 7] },
         { id: 'grape',    name: 'Grape',    dark: false, accent: 'violet',  neutral: 'gray',      bg: '#f6f4fa', raised: '#ffffff', overlay: '#eeeaf5', btn: [5, 6] },
         { id: 'night',    name: 'Night',    dark: true,  accent: 'emerald', neutral: 'nightN',    bg: '#0c1411', raised: '#131d19', overlay: '#182420', btn: [6, 7] },
-        { id: 'midnight', name: 'Midnight', dark: true,  accent: 'indigo',  neutral: 'midnightN', bg: '#0b0f1c', raised: '#121829', overlay: '#171e33', btn: [5, 6] }
+        { id: 'midnight', name: 'Midnight', dark: true,  accent: 'indigo',  neutral: 'midnightN', bg: '#0b0f1c', raised: '#121829', overlay: '#171e33', btn: [5, 6] },
+        { id: 'arena',    name: 'Arena',    dark: true,  accent: 'amber',   neutral: 'arenaN',    bg: '#12100e', raised: '#1a1714', overlay: '#221e1a', btn: [5, 6] }
       ];
       var cur = { pref: 'pitch', theme: THEMES[0] };
 
@@ -146,6 +153,35 @@
         else if (mq.addListener) mq.addListener(onChange);
       }
     })();
+
+    /* ===== Font preference (DM Sans default) ===== */
+    (function () {
+      var KEY = 'lcfc_font_v1';
+      var FONTS = [
+        { id: 'dm-sans', name: 'DM Sans', stack: "'DM Sans', Inter, system-ui, sans-serif" },
+        { id: 'jakarta', name: 'Plus Jakarta', stack: "'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif" },
+        { id: 'plex', name: 'IBM Plex', stack: "'IBM Plex Sans', 'DM Sans', system-ui, sans-serif" }
+      ];
+      function find(id) {
+        for (var i = 0; i < FONTS.length; i++) if (FONTS[i].id === id) return FONTS[i];
+        return FONTS[0];
+      }
+      function apply(id) {
+        var f = find(id);
+        document.documentElement.style.setProperty('--app-font', f.stack);
+        document.documentElement.setAttribute('data-font', f.id);
+        try { localStorage.setItem(KEY, f.id); } catch (e) {}
+      }
+      var saved = 'dm-sans';
+      try { saved = localStorage.getItem(KEY) || 'dm-sans'; } catch (e) {}
+      apply(saved);
+      window.LCFCFont = {
+        list: function () { return FONTS.slice(); },
+        current: function () { return find((function () { try { return localStorage.getItem(KEY) || 'dm-sans'; } catch (e) { return 'dm-sans'; } })()).id; },
+        set: function (id) { apply(id); }
+      };
+    })();
+
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -188,14 +224,14 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <style>
     /* Theme variables (--bg, --raised, --accent, --c-*-NNN …) are written by the theme engine in <head>. */
     html { color-scheme: light; }
     html[data-mode="dark"] { color-scheme: dark; }
     * { -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: 'DM Sans', Inter, system-ui, sans-serif;
+      font-family: var(--app-font, 'DM Sans', Inter, system-ui, sans-serif);
       background: var(--bg);
       background-image:
         radial-gradient(ellipse 80% 50% at 50% -20%, rgb(var(--c-accent-500) / var(--glow-1)), transparent),
@@ -886,7 +922,7 @@
         <button id="theme-btn" type="button" onclick="toggleThemeMenu(event)" aria-haspopup="true" aria-expanded="false" aria-controls="theme-menu" aria-label="Color theme" title="Color theme" class="nav-item glass w-11 h-11 rounded-2xl flex items-center justify-center">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.7 1.8-1.7H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg>
         </button>
-        <div id="theme-menu" class="hidden absolute right-0 top-full mt-2 z-50 w-[19rem] max-w-[calc(100vw-2rem)] rounded-2xl glass-strong p-2"></div>
+        <div id="theme-menu" class="hidden absolute right-0 top-full mt-2 z-50 w-[21rem] max-w-[calc(100vw-2rem)] max-h-[min(80vh,36rem)] overflow-y-auto rounded-2xl glass-strong p-2"></div>
       </div>
       </div>
     </header>
@@ -1717,7 +1753,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.67';
+    const APP_VERSION = '5.68';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -9564,21 +9600,41 @@ function flipRankingMatchCoin(roundNum, matchId) {
         </button>`;
       };
       const autoOn = cur.pref === 'auto';
-      const lightP = LCFCTheme.preview(themes.find(t => t.id === 'pitch'));
-      const darkP = LCFCTheme.preview(themes.find(t => t.id === 'night'));
+      const lightP = LCFCTheme.preview(themes.find(t => t.id === 'pitch') || themes[0]);
+      const darkP = LCFCTheme.preview(themes.find(t => t.id === 'night') || themes.find(t => t.dark) || themes[0]);
       const auto = `<button type="button" role="radio" aria-checked="${autoOn}" onclick="chooseTheme('auto')" class="theme-opt theme-opt-auto${autoOn ? ' selected' : ''}">
           <span class="theme-swatch" style="background:linear-gradient(135deg, ${lightP.bg} 50%, ${darkP.bg} 50%);border-color:${lightP.border}"></span>
           <span class="theme-opt-name" style="flex:1"><span>Match device<span class="block text-[11px] font-normal text-slate-500">Follows your device's light or dark setting</span></span>${autoOn ? THEME_CHECK_SVG : ''}</span>
         </button>`;
+      let fontHtml = '';
+      if (window.LCFCFont) {
+        const fid = LCFCFont.current();
+        const fonts = LCFCFont.list();
+        fontHtml = `<p class="px-2 pt-3 pb-2 text-xs font-semibold text-slate-500 border-t border-slate-200 mt-2">Font</p>
+          <div role="radiogroup" aria-label="App font" class="grid grid-cols-1 gap-1 px-0.5">
+            ${fonts.map(f => {
+              const on = fid === f.id;
+              return `<button type="button" role="radio" aria-checked="${on}" onclick="chooseFont('${f.id}')" class="theme-opt${on ? ' selected' : ''}" style="font-family:${f.stack.replace(/"/g, '')}">
+                <span class="theme-opt-name" style="flex:1;padding:6px 4px"><span>${f.name}${f.id === 'dm-sans' ? ' <span class="text-[10px] font-normal text-slate-500">(default)</span>' : ''}</span>${on ? THEME_CHECK_SVG : ''}</span>
+              </button>`;
+            }).join('')}
+          </div>`;
+      }
       menu.innerHTML = `<p class="px-2 pt-1 pb-2 text-xs font-semibold text-slate-500">Color theme</p>
         <div role="radiogroup" aria-label="Color theme">
           <div class="grid grid-cols-3 gap-1">${themes.map(opt).join('')}</div>
           <div class="mt-1 pt-1 border-t border-slate-200">${auto}</div>
-        </div>`;
+        </div>${fontHtml}`;
     }
 
     function chooseTheme(id) {
       if (window.LCFCTheme) LCFCTheme.set(id);
+      renderThemeMenu();
+    }
+
+    function chooseFont(id) {
+      if (window.LCFCFont) LCFCFont.set(id);
+      renderThemeMenu();
     }
 
     function closeThemeMenu() {
