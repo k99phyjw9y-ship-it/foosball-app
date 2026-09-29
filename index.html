@@ -1397,10 +1397,8 @@
       </p>
     </div>
 
-    </div>
-
     <!-- CREATE / EDIT TOURNAMENT -->
-    <div id="view-create" class="hidden space-y-6">
+    <div id="view-create" class="hidden space-y-4">
       <div class="flex items-center gap-3">
         <button onclick="showView('home')" class="btn-ghost w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -1408,7 +1406,7 @@
         <h2 class="text-2xl font-bold tracking-tight text-slate-900" id="create-title">New Tournament</h2>
       </div>
 
-      <div class="surface-card rounded-2xl p-5 sm:p-6 space-y-6">
+      <div class="surface-card rounded-2xl p-4 sm:p-5 space-y-4">
         <div>
           <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tournament Name</label>
           <input id="t-name" type="text" placeholder="Friday Night Monster DYP" class="input-field w-full rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400" />
@@ -1499,9 +1497,11 @@
           </div>
         </div>
 
-        <button onclick="saveTournament()" class="btn-primary w-full py-3.5 rounded-xl font-bold text-base text-white">
-          Create Tournament
-        </button>
+        <div class="pt-2 sticky bottom-20 sm:bottom-4 z-10">
+          <button type="button" onclick="saveTournament()" class="btn-primary w-full py-3.5 rounded-xl font-bold text-base text-white shadow-lg">
+            Create Tournament
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1753,7 +1753,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.68';
+    const APP_VERSION = '5.69';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
