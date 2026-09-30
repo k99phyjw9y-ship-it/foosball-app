@@ -1780,7 +1780,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.73';
+    const APP_VERSION = '5.74';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -3228,6 +3228,34 @@
         }
       });
       return occupied;
+    }
+
+    /** Physical table numbers available club-wide when conflict lock shares tables. */
+    function getSharedTablePoolSize(fallback) {
+      let max = Math.max(1, parseInt(fallback, 10) || 1);
+      if (typeof isConflictLockEnabled === 'function' && !isConflictLockEnabled()) return max;
+      (state.tournaments || []).forEach(ev => {
+        if (!ev || ev.status === 'finished') return;
+        max = Math.max(max, parseInt(ev.tables, 10) || 1);
+      });
+      return max;
+    }
+
+    /** Free table numbers not held by any other live match (and not already taken this pass). */
+    function listFreeTables(occupied, tableCount, eventId) {
+      const pool = getSharedTablePoolSize(tableCount);
+      const free = [];
+      for (let n = 1; n <= pool; n++) {
+        if (!occupied.has(n)) free.push(n);
+      }
+      // Prefer numbers within this event's configured table count first
+      free.sort((a, b) => {
+        const ae = a <= tableCount ? 0 : 1;
+        const be = b <= tableCount ? 0 : 1;
+        if (ae !== be) return ae - be;
+        return a - b;
+      });
+      return free;
     }
 
     function entityIncludesPlayer(ent, playerId) {
@@ -5247,18 +5275,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const queue = pending.filter(m => !live.includes(m));
 
       if (!live.length) {
-        let liveSlots = 0;
+        // Respect tables already live in OTHER events (globalBusy)
+        const freeStart = listFreeTables(occupied, tableCount, t?.id);
+        let fi = 0;
         pending.forEach((m, i) => {
-          m.table = (i % tableCount) + 1;
           if (m.crossConflict) {
+            m.table = (i % tableCount) + 1;
             m.onDeck = true;
             return;
           }
-          if (liveSlots < tableCount) {
+          if (fi < freeStart.length) {
+            m.table = freeStart[fi++];
+            occupied.add(m.table);
             m.onDeck = false;
             ensureLiveMatchTimer(m, now);
-            liveSlots++;
           } else {
+            m.table = (i % tableCount) + 1;
             m.onDeck = true;
           }
         });
@@ -5274,10 +5306,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         m.onDeck = true;
       });
 
-      const free = [];
-      for (let n = 1; n <= tableCount; n++) {
-        if (!occupied.has(n)) free.push(n);
-      }
+      const free = listFreeTables(occupied, tableCount, t?.id);
       const promoted = new Set();
       free.forEach(tableNum => {
         const m = queue.find(q =>
@@ -6461,28 +6490,29 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       const queue = ready.filter(m => !live.includes(m));
 
-      // No one live yet: fill tables from non-conflict matches first
+      // No one live yet: fill only tables free club-wide
       if (!live.length) {
-        let liveSlots = 0;
         const ordered = ready.slice().sort((a, b) => {
           const ac = a.crossConflict ? 1 : 0;
           const bc = b.crossConflict ? 1 : 0;
           if (ac !== bc) return ac - bc;
           return 0;
         });
+        const freeStart = listFreeTables(occupied, tableCount, t?.id);
+        let fi = 0;
         ordered.forEach((m, i) => {
-          if (!m.table || m.table < 1 || m.table > tableCount) {
-            m.table = (i % tableCount) + 1;
-          }
           if (m.crossConflict) {
+            if (!m.table || m.table < 1) m.table = (i % tableCount) + 1;
             m.onDeck = true;
             return;
           }
-          if (liveSlots < tableCount) {
+          if (fi < freeStart.length) {
+            m.table = freeStart[fi++];
+            occupied.add(m.table);
             m.onDeck = false;
             ensureLiveMatchTimer(m, now);
-            liveSlots++;
           } else {
+            if (!m.table || m.table < 1) m.table = (i % tableCount) + 1;
             m.onDeck = true;
           }
         });
@@ -6498,10 +6528,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         m.onDeck = true;
       });
 
-      const free = [];
-      for (let n = 1; n <= tableCount; n++) {
-        if (!occupied.has(n)) free.push(n);
-      }
+      const free = listFreeTables(occupied, tableCount, t?.id);
       const promoted = new Set();
       free.forEach(tableNum => {
         const m = queue.find(q =>
