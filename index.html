@@ -572,16 +572,17 @@
       width: 100%;
       max-width: 11.5rem;
       border-radius: 0.6rem;
-      border: 1px solid rgb(226 232 240);
-      background: #fff;
+      border: 1px solid var(--border, rgb(226 232 240));
+      background: var(--raised, #fff);
+      color: var(--text, rgb(15 23 42));
       box-shadow: 0 1px 3px rgb(15 23 42 / 0.06);
       overflow: hidden;
       font-size: 0.7rem;
       pointer-events: auto;
       flex: 0 0 auto;
     }
-    .bracket-tree-node.done { opacity: 0.9; }
-    .bracket-tree-node.live { border-color: rgb(16 185 129 / 0.6); box-shadow: 0 0 0 1px rgb(16 185 129 / 0.25); }
+    .bracket-tree-node.done { opacity: 0.92; }
+    .bracket-tree-node.live { border-color: rgb(var(--c-accent-500) / 0.65); box-shadow: 0 0 0 1px rgb(var(--c-accent-500) / 0.28); }
     .bracket-tree-node.hold { border-color: rgb(167 139 250 / 0.55); }
     .bracket-tree-side {
       display: flex;
@@ -591,51 +592,75 @@
       padding: 0.32rem 0.45rem;
       line-height: 1.2;
       min-height: 0;
+      color: inherit;
     }
-    .bracket-tree-side + .bracket-tree-side { border-top: 1px solid rgb(241 245 249); }
-    .bracket-tree-side.win { background: rgb(236 253 245); font-weight: 700; color: rgb(4 120 87); }
-    .bracket-tree-side.lose { color: rgb(148 163 184); }
+    .bracket-tree-side + .bracket-tree-side { border-top: 1px solid var(--border, rgb(241 245 249)); }
+    .bracket-tree-side.win {
+      background: rgb(var(--c-accent-500) / 0.14);
+      font-weight: 700;
+      color: var(--accent, rgb(4 120 87));
+    }
+    .bracket-tree-side.lose { color: var(--text-muted, rgb(148 163 184)); opacity: 0.9; }
     .bracket-tree-name {
       flex: 1 1 auto;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: inherit;
+      font-weight: 600;
     }
     .bracket-tree-score {
       flex: 0 0 auto;
       font-variant-numeric: tabular-nums;
       font-weight: 700;
-      color: rgb(71 85 105);
+      color: var(--text-muted, rgb(71 85 105));
       min-width: 0.85rem;
       text-align: right;
     }
+    .bracket-tree-side.win .bracket-tree-score { color: inherit; }
     .bracket-tree-meta {
       display: flex;
       flex-wrap: wrap;
       gap: 0.15rem;
       padding: 0.2rem 0.4rem;
-      border-top: 1px solid rgb(241 245 249);
+      border-top: 1px solid var(--border, rgb(241 245 249));
     }
     .bracket-tree-meta span {
       font-size: 0.58rem;
       font-weight: 700;
       padding: 0.08rem 0.3rem;
       border-radius: 0.25rem;
-      background: rgb(241 245 249);
-      color: rgb(71 85 105);
+      background: rgb(var(--fg-rgb, 15 23 42) / 0.08);
+      color: var(--text-muted, rgb(71 85 105));
     }
-    .bracket-tree-meta .tbl { background: rgb(236 253 245); color: rgb(4 120 87); }
-    .bracket-tree-meta .deck { background: rgb(241 245 249); color: rgb(100 116 139); }
-    .bracket-tree-meta .serve { background: rgb(238 242 255); color: rgb(67 56 202); }
+    .bracket-tree-meta .tbl {
+      background: rgb(var(--c-accent-500) / 0.16);
+      color: var(--accent, rgb(4 120 87));
+    }
+    .bracket-tree-meta .deck {
+      background: rgb(var(--fg-rgb, 15 23 42) / 0.08);
+      color: var(--text-muted, rgb(100 116 139));
+    }
+    .bracket-tree-meta .serve {
+      background: rgb(99 102 241 / 0.18);
+      color: rgb(129 140 248);
+    }
+    html[data-mode="light"] .bracket-tree-meta .serve {
+      background: rgb(238 242 255);
+      color: rgb(67 56 202);
+    }
     .bracket-tree-connector {
       width: 0.85rem;
       flex: 0 0 0.85rem;
       height: 2px;
-      background: rgb(203 213 225);
+      background: rgb(var(--fg-rgb, 148 163 184) / 0.35);
       margin-left: 0.2rem;
       align-self: center;
       border-radius: 1px;
+    }
+    .bracket-tree-round-title {
+      color: var(--text-muted, rgb(100 116 139));
     }
     .bracket-tree-node button.tree-score-btn {
       display: block;
@@ -645,9 +670,9 @@
       padding: 0.45rem 0.35rem;
       min-height: 2rem;
       border: 0;
-      border-top: 1px solid rgb(209 250 229);
-      background: rgb(236 253 245);
-      color: rgb(4 120 87);
+      border-top: 1px solid rgb(var(--c-accent-500) / 0.25);
+      background: rgb(var(--c-accent-500) / 0.14);
+      color: var(--accent, rgb(4 120 87));
       cursor: pointer;
       position: relative;
       z-index: 5;
@@ -655,9 +680,11 @@
       touch-action: manipulation;
     }
     .bracket-tree-node button.tree-score-btn:hover,
-    .bracket-tree-node button.tree-score-btn:active { background: rgb(209 250 229); }
+    .bracket-tree-node button.tree-score-btn:active {
+      background: rgb(var(--c-accent-500) / 0.24);
+    }
     .bracket-tree-empty {
-      color: rgb(148 163 184);
+      color: var(--text-muted, rgb(148 163 184));
       font-size: 0.8rem;
       padding: 1rem;
     }
@@ -1753,7 +1780,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.70';
+    const APP_VERSION = '5.71';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
