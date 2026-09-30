@@ -1780,7 +1780,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.71';
+    const APP_VERSION = '5.72';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -5156,14 +5156,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const at = drawnAt || Date.now();
       (matches || []).forEach(m => {
         if (!m || m.status === 'done' || m.winner) return;
-        if (m.onDeck) {
-          // Waiting for a table — no clock yet
-          delete m.timerStartAt;
-          delete m.timerEndedAt;
-          return;
-        }
-        m.timerStartAt = at + MATCH_TIMER_GRACE_MS;
-        delete m.timerEndedAt;
+        if (m.onDeck) return;
+        ensureLiveMatchTimer(m, at);
       });
       ensureMatchTimerTicker();
     }
@@ -5177,14 +5171,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const a = m.a?.entity || m.entityA;
         const b = m.b?.entity || m.entityB;
         if (!(a && b)) return;
-        if (m.onDeck) {
-          delete m.timerStartAt;
-          delete m.timerEndedAt;
-          return;
-        }
-        if (m.timerStartAt && !m.timerEndedAt) return;
-        m.timerStartAt = at + MATCH_TIMER_GRACE_MS;
-        delete m.timerEndedAt;
+        if (m.onDeck) return;
+        ensureLiveMatchTimer(m, at);
       });
       ensureMatchTimerTicker();
     }
@@ -5221,10 +5209,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return;
       }
 
-      // Flag cross-event conflicts (do not start these matches yet)
       pending.forEach(m => { if (typeof applyCrossConflictFlag === "function") applyCrossConflictFlag(m, t, false); });
 
-      // Live tables; merge global occupancy when conflict lock is on
       const globalBusy = typeof getGlobalLiveTableSet === 'function' ? getGlobalLiveTableSet(t?.id) : new Set();
       const occupied = new Set(globalBusy);
       const live = [];
@@ -5235,36 +5221,29 @@ function flipRankingMatchCoin(roundNum, matchId) {
           occupied.add(tnum);
           live.push(m);
           m.onDeck = false;
+          ensureLiveMatchTimer(m, now);
         } else if (!m.onDeck && tnum >= 1 && globalBusy.has(tnum)) {
+          // Another event holds this physical table — park; keep clock
           m.onDeck = true;
-          delete m.timerStartAt;
-          delete m.timerEndedAt;
         }
       });
 
       const queue = pending.filter(m => !live.includes(m));
 
-      // Fresh wave: only non-conflict matches can take live tables
       if (!live.length) {
         let liveSlots = 0;
         pending.forEach((m, i) => {
           m.table = (i % tableCount) + 1;
-          const blocked = !!m.crossConflict;
-          if (blocked) {
+          if (m.crossConflict) {
             m.onDeck = true;
-            delete m.timerStartAt;
-            delete m.timerEndedAt;
             return;
           }
           if (liveSlots < tableCount) {
             m.onDeck = false;
-            m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
-            delete m.timerEndedAt;
+            ensureLiveMatchTimer(m, now);
             liveSlots++;
           } else {
             m.onDeck = true;
-            delete m.timerStartAt;
-            delete m.timerEndedAt;
           }
         });
         ensureMatchTimerTicker();
@@ -5277,8 +5256,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
           m.table = (i % tableCount) + 1;
         }
         m.onDeck = true;
-        delete m.timerStartAt;
-        delete m.timerEndedAt;
       });
 
       const free = [];
@@ -5293,18 +5270,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
           parseInt(q.table, 10) === tableNum
         ) || queue.find(q => !promoted.has(q.id) && !q.crossConflict);
         if (!m) return;
-        // Final conflict check right before going live (other events may have claimed players)
         if (typeof applyCrossConflictFlag === 'function' && applyCrossConflictFlag(m, t, false)) {
           m.onDeck = true;
-          delete m.timerStartAt;
-          delete m.timerEndedAt;
           return;
         }
         promoted.add(m.id);
         m.table = tableNum;
         m.onDeck = false;
-        m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
-        delete m.timerEndedAt;
+        ensureLiveMatchTimer(m, now);
         delete m.crossConflict;
         delete m.crossConflictLabel;
         delete m.crossConflictPlayerIds;
@@ -6432,8 +6405,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (!isBracketMatchReady(m)) {
           delete m.table;
           delete m.onDeck;
-          delete m.timerStartAt;
-          delete m.timerEndedAt;
+          // Not ready yet — no clock
+          clearMatchTimer(m);
           delete m.crossConflict;
           delete m.crossConflictLabel;
         }
@@ -6450,8 +6423,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       ready.forEach(m => {
         if (m.crossConflict) {
           m.onDeck = true;
-          delete m.timerStartAt;
-          delete m.timerEndedAt;
+          // keep timerStartAt if any
         }
       });
 
@@ -6465,10 +6437,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
           occupied.add(tnum);
           live.push(m);
           m.onDeck = false;
+          ensureLiveMatchTimer(m, now);
         } else if (!m.onDeck && tnum >= 1 && globalBusyB.has(tnum)) {
           m.onDeck = true;
-          delete m.timerStartAt;
-          delete m.timerEndedAt;
         }
       });
 
@@ -6477,7 +6448,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
       // No one live yet: fill tables from non-conflict matches first
       if (!live.length) {
         let liveSlots = 0;
-        // Prefer matches that just cleared conflict (were on hold)
         const ordered = ready.slice().sort((a, b) => {
           const ac = a.crossConflict ? 1 : 0;
           const bc = b.crossConflict ? 1 : 0;
@@ -6490,21 +6460,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
           }
           if (m.crossConflict) {
             m.onDeck = true;
-            delete m.timerStartAt;
-            delete m.timerEndedAt;
             return;
           }
           if (liveSlots < tableCount) {
             m.onDeck = false;
-            if (!(m.timerStartAt && !m.timerEndedAt)) {
-              m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
-              delete m.timerEndedAt;
-            }
+            ensureLiveMatchTimer(m, now);
             liveSlots++;
           } else {
             m.onDeck = true;
-            delete m.timerStartAt;
-            delete m.timerEndedAt;
           }
         });
         ensureMatchTimerTicker();
@@ -6517,8 +6480,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
           m.table = (i % tableCount) + 1;
         }
         m.onDeck = true;
-        delete m.timerStartAt;
-        delete m.timerEndedAt;
       });
 
       const free = [];
@@ -6535,15 +6496,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (!m) return;
         if (typeof applyCrossConflictFlag === 'function' && applyCrossConflictFlag(m, t, true)) {
           m.onDeck = true;
-          delete m.timerStartAt;
-          delete m.timerEndedAt;
           return;
         }
         promoted.add(m.id);
         m.table = tableNum;
         m.onDeck = false;
-        m.timerStartAt = now + MATCH_TIMER_GRACE_MS;
-        delete m.timerEndedAt;
+        ensureLiveMatchTimer(m, now);
         delete m.crossConflict;
         delete m.crossConflictLabel;
         delete m.crossConflictPlayerIds;
