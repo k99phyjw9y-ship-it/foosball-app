@@ -1780,7 +1780,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.74';
+    const APP_VERSION = '5.75';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -3208,7 +3208,8 @@
       const occupied = new Set();
       if (typeof isConflictLockEnabled === 'function' && !isConflictLockEnabled()) return occupied;
       (state.tournaments || []).forEach(ev => {
-        if (!ev || ev.id === excludeTournamentId || ev.status === 'finished') return;
+        if (!ev || ev.status === 'finished') return;
+        if (excludeTournamentId && ev.id === excludeTournamentId) return;
         (ev.rounds || []).forEach(r => {
           (r.matches || []).forEach(m => {
             if (!m || m.status === 'done' || m.void || m.onDeck || m.crossConflict) return;
@@ -3257,6 +3258,114 @@
       });
       return free;
     }
+
+    function stampQueueSince(m) {
+      if (!m) return;
+      if (m.queueSince == null) m.queueSince = Date.now();
+    }
+
+    function clearQueueSince(m) {
+      if (!m) return;
+      delete m.queueSince;
+    }
+
+    /** On-deck, playable matches across all active events (conflict lock fair queue). */
+    function collectClubOnDeckEntries() {
+      const entries = [];
+      (state.tournaments || []).forEach(ev => {
+        if (!ev || ev.status === 'finished') return;
+        (ev.rounds || []).forEach(r => {
+          (r.matches || []).forEach(m => {
+            if (!m || m.status === 'done' || m.void) return;
+            if (!m.onDeck || m.crossConflict) return;
+            stampQueueSince(m);
+            entries.push({ event: ev, match: m, kind: 'ranking', preferred: parseInt(m.table, 10) || 0 });
+          });
+        });
+        if (ev.playoffs && typeof collectBracketMatches === 'function') {
+          try {
+            collectBracketMatches(ev.playoffs).forEach(m => {
+              if (!m || m.winner || m._byePropagated) return;
+              if (typeof isBracketMatchReady === 'function' && !isBracketMatchReady(m)) return;
+              if (!m.onDeck || m.crossConflict) return;
+              stampQueueSince(m);
+              entries.push({ event: ev, match: m, kind: 'bracket', preferred: parseInt(m.table, 10) || 0 });
+            });
+          } catch (e) {}
+        }
+      });
+      return entries;
+    }
+
+    /**
+     * Fair multi-event promote: free physical tables go to the longest-waiting
+     * on-deck match club-wide. Tie-break: prefer match already labeled for that
+     * table, then alternate events (avoid one event monopolizing).
+     */
+    function fairPromoteAcrossEvents() {
+      if (typeof isConflictLockEnabled === 'function' && !isConflictLockEnabled()) return;
+      const occupied = getGlobalLiveTableSet(null);
+      const pool = getSharedTablePoolSize(2);
+      const free = [];
+      for (let n = 1; n <= pool; n++) {
+        if (!occupied.has(n)) free.push(n);
+      }
+      if (!free.length) return;
+
+      let lastEventId = state._fairLastEventId || null;
+      const taken = new Set();
+
+      free.forEach(tableNum => {
+        const entries = collectClubOnDeckEntries().filter(e => !taken.has(e.match.id));
+        if (!entries.length) return;
+
+        // Sort: oldest queueSince first; prefer preferred table; mild alternate-event bias
+        entries.sort((a, b) => {
+          const qa = a.match.queueSince || 0;
+          const qb = b.match.queueSince || 0;
+          if (qa !== qb) return qa - qb;
+          const pa = a.preferred === tableNum ? 0 : 1;
+          const pb = b.preferred === tableNum ? 0 : 1;
+          if (pa !== pb) return pa - pb;
+          // Prefer different event than last promoted
+          const aa = a.event.id === lastEventId ? 1 : 0;
+          const bb = b.event.id === lastEventId ? 1 : 0;
+          if (aa !== bb) return aa - bb;
+          return (a.event.createdAt || 0) - (b.event.createdAt || 0);
+        });
+
+        let chosen = null;
+        for (const e of entries) {
+          const m = e.match;
+          const isBr = e.kind === 'bracket';
+          if (typeof applyCrossConflictFlag === 'function' && applyCrossConflictFlag(m, e.event, isBr)) {
+            m.onDeck = true;
+            stampQueueSince(m);
+            continue;
+          }
+          chosen = e;
+          break;
+        }
+        if (!chosen) return;
+
+        const m = chosen.match;
+        taken.add(m.id);
+        occupied.add(tableNum);
+        m.table = tableNum;
+        m.onDeck = false;
+        clearQueueSince(m);
+        ensureLiveMatchTimer(m, Date.now());
+        delete m.crossConflict;
+        delete m.crossConflictLabel;
+        delete m.crossConflictPlayerIds;
+        delete m.conflictSince;
+        lastEventId = chosen.event.id;
+        state._fairLastEventId = lastEventId;
+      });
+
+      if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
+    }
+
 
     function entityIncludesPlayer(ent, playerId) {
       if (!ent || !playerId) return false;
@@ -5275,23 +5384,35 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const queue = pending.filter(m => !live.includes(m));
 
       if (!live.length) {
-        // Respect tables already live in OTHER events (globalBusy)
+        const lockOn = typeof isConflictLockEnabled === 'function' && isConflictLockEnabled();
+        if (lockOn) {
+          pending.forEach((m, i) => {
+            m.table = (i % tableCount) + 1;
+            m.onDeck = true;
+            stampQueueSince(m);
+          });
+          ensureMatchTimerTicker();
+          return;
+        }
         const freeStart = listFreeTables(occupied, tableCount, t?.id);
         let fi = 0;
         pending.forEach((m, i) => {
           if (m.crossConflict) {
             m.table = (i % tableCount) + 1;
             m.onDeck = true;
+            stampQueueSince(m);
             return;
           }
           if (fi < freeStart.length) {
             m.table = freeStart[fi++];
             occupied.add(m.table);
             m.onDeck = false;
+            clearQueueSince(m);
             ensureLiveMatchTimer(m, now);
           } else {
             m.table = (i % tableCount) + 1;
             m.onDeck = true;
+            stampQueueSince(m);
           }
         });
         ensureMatchTimerTicker();
@@ -5304,30 +5425,36 @@ function flipRankingMatchCoin(roundNum, matchId) {
           m.table = (i % tableCount) + 1;
         }
         m.onDeck = true;
+        stampQueueSince(m);
       });
 
-      const free = listFreeTables(occupied, tableCount, t?.id);
-      const promoted = new Set();
-      free.forEach(tableNum => {
-        const m = queue.find(q =>
-          !promoted.has(q.id) &&
-          !q.crossConflict &&
-          parseInt(q.table, 10) === tableNum
-        ) || queue.find(q => !promoted.has(q.id) && !q.crossConflict);
-        if (!m) return;
-        if (typeof applyCrossConflictFlag === 'function' && applyCrossConflictFlag(m, t, false)) {
-          m.onDeck = true;
-          return;
-        }
-        promoted.add(m.id);
-        m.table = tableNum;
-        m.onDeck = false;
-        ensureLiveMatchTimer(m, now);
-        delete m.crossConflict;
-        delete m.crossConflictLabel;
-        delete m.crossConflictPlayerIds;
-        delete m.conflictSince;
-      });
+      // With conflict lock, free tables are claimed club-wide in fairPromoteAcrossEvents
+      if (!(typeof isConflictLockEnabled === 'function' && isConflictLockEnabled())) {
+        const free = listFreeTables(occupied, tableCount, t?.id);
+        const promoted = new Set();
+        free.forEach(tableNum => {
+          const m = queue.find(q =>
+            !promoted.has(q.id) &&
+            !q.crossConflict &&
+            parseInt(q.table, 10) === tableNum
+          ) || queue.find(q => !promoted.has(q.id) && !q.crossConflict);
+          if (!m) return;
+          if (typeof applyCrossConflictFlag === 'function' && applyCrossConflictFlag(m, t, false)) {
+            m.onDeck = true;
+            stampQueueSince(m);
+            return;
+          }
+          promoted.add(m.id);
+          m.table = tableNum;
+          m.onDeck = false;
+          clearQueueSince(m);
+          ensureLiveMatchTimer(m, now);
+          delete m.crossConflict;
+          delete m.crossConflictLabel;
+          delete m.crossConflictPlayerIds;
+          delete m.conflictSince;
+        });
+      }
 
       ensureMatchTimerTicker();
     }
@@ -5390,8 +5517,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return aa - bb; // oldest wait first
       });
       others.forEach(refreshConflictAndTables);
-      refreshConflictAndTables(t);
+      if (t) refreshConflictAndTables(t);
       others.forEach(refreshConflictAndTables);
+      // Club-wide fair queue: longest wait wins free tables (then mild event alternate)
+      if (typeof fairPromoteAcrossEvents === 'function') fairPromoteAcrossEvents();
       saveState();
     }
 
@@ -6490,7 +6619,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       const queue = ready.filter(m => !live.includes(m));
 
-      // No one live yet: fill only tables free club-wide
+      // No one live yet
       if (!live.length) {
         const ordered = ready.slice().sort((a, b) => {
           const ac = a.crossConflict ? 1 : 0;
@@ -6498,22 +6627,35 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (ac !== bc) return ac - bc;
           return 0;
         });
+        const lockOn = typeof isConflictLockEnabled === 'function' && isConflictLockEnabled();
+        if (lockOn) {
+          ordered.forEach((m, i) => {
+            if (!m.table || m.table < 1) m.table = (i % tableCount) + 1;
+            m.onDeck = true;
+            stampQueueSince(m);
+          });
+          ensureMatchTimerTicker();
+          return;
+        }
         const freeStart = listFreeTables(occupied, tableCount, t?.id);
         let fi = 0;
         ordered.forEach((m, i) => {
           if (m.crossConflict) {
             if (!m.table || m.table < 1) m.table = (i % tableCount) + 1;
             m.onDeck = true;
+            stampQueueSince(m);
             return;
           }
           if (fi < freeStart.length) {
             m.table = freeStart[fi++];
             occupied.add(m.table);
             m.onDeck = false;
+            clearQueueSince(m);
             ensureLiveMatchTimer(m, now);
           } else {
             if (!m.table || m.table < 1) m.table = (i % tableCount) + 1;
             m.onDeck = true;
+            stampQueueSince(m);
           }
         });
         ensureMatchTimerTicker();
@@ -6526,30 +6668,35 @@ function flipRankingMatchCoin(roundNum, matchId) {
           m.table = (i % tableCount) + 1;
         }
         m.onDeck = true;
+        stampQueueSince(m);
       });
 
-      const free = listFreeTables(occupied, tableCount, t?.id);
-      const promoted = new Set();
-      free.forEach(tableNum => {
-        const m = queue.find(q =>
-          !promoted.has(q.id) &&
-          !q.crossConflict &&
-          parseInt(q.table, 10) === tableNum
-        ) || queue.find(q => !promoted.has(q.id) && !q.crossConflict);
-        if (!m) return;
-        if (typeof applyCrossConflictFlag === 'function' && applyCrossConflictFlag(m, t, true)) {
-          m.onDeck = true;
-          return;
-        }
-        promoted.add(m.id);
-        m.table = tableNum;
-        m.onDeck = false;
-        ensureLiveMatchTimer(m, now);
-        delete m.crossConflict;
-        delete m.crossConflictLabel;
-        delete m.crossConflictPlayerIds;
-        delete m.conflictSince;
-      });
+      if (!(typeof isConflictLockEnabled === 'function' && isConflictLockEnabled())) {
+        const free = listFreeTables(occupied, tableCount, t?.id);
+        const promoted = new Set();
+        free.forEach(tableNum => {
+          const m = queue.find(q =>
+            !promoted.has(q.id) &&
+            !q.crossConflict &&
+            parseInt(q.table, 10) === tableNum
+          ) || queue.find(q => !promoted.has(q.id) && !q.crossConflict);
+          if (!m) return;
+          if (typeof applyCrossConflictFlag === 'function' && applyCrossConflictFlag(m, t, true)) {
+            m.onDeck = true;
+            stampQueueSince(m);
+            return;
+          }
+          promoted.add(m.id);
+          m.table = tableNum;
+          m.onDeck = false;
+          clearQueueSince(m);
+          ensureLiveMatchTimer(m, now);
+          delete m.crossConflict;
+          delete m.crossConflictLabel;
+          delete m.crossConflictPlayerIds;
+          delete m.conflictSince;
+        });
+      }
 
       ensureMatchTimerTicker();
     }
