@@ -451,6 +451,15 @@
       letter-spacing: 0.04em; color: #a5b4fc; margin-top: 0.25rem;
     }
     /* Coin toss */
+    /* score modal compact */
+    #score-modal .quick-chip {
+      height: 2.15rem !important;
+      min-height: 2.15rem !important;
+      padding: 0.15rem 0.1rem !important;
+      font-size: 0.8rem !important;
+      border-radius: 0.45rem !important;
+    }
+    #score-modal .score-input { min-height: 0; }
     .coin-toss-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
     .coin-face {
       width: 3.25rem; height: 3.25rem; border-radius: 9999px;
@@ -1718,52 +1727,53 @@
     </div>
   </div>
 
-  <!-- Score Modal -->
-  <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
-    <div class="surface-card rounded-3xl w-full max-w-sm p-5 space-y-3 shadow-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
-      <h3 class="text-lg font-bold text-center text-slate-900" id="score-modal-title">Enter Score</h3>
-      <div id="score-match-timer" class="hidden text-center font-mono text-sm font-semibold tracking-wide text-slate-600" aria-live="polite"></div>
-      <div id="score-series-banner" class="hidden rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-center">
-        <div class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80" id="score-series-label">Best of 3</div>
-        <div class="text-sm font-bold text-slate-800 mt-0.5" id="score-series-score">Games 0 – 0</div>
-        <div class="text-xs text-slate-500 mt-0.5" id="score-series-game">Game 1 of 3</div>
-        <div class="text-[11px] text-slate-500 mt-1 leading-snug" id="score-series-history"></div>
-      </div>
-      <div class="flex items-start justify-center gap-3 text-center">
-        <div class="flex-1 min-w-0 max-w-[42%]">
-          <div class="score-team-label text-[12px] font-medium text-slate-600 mb-2 px-0.5 leading-snug" id="score-team-a" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line"></div>
-          <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300 mx-auto block" />
+  <!-- Score Modal — compact; footer always visible (no scroll for Save) -->
+  <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-2 sm:p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
+    <div class="surface-card rounded-2xl sm:rounded-3xl w-full max-w-sm shadow-2xl flex flex-col max-h-[min(92dvh,36rem)] overflow-hidden">
+      <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pt-3 pb-2 space-y-2">
+        <h3 class="text-base font-bold text-center text-slate-900 leading-tight" id="score-modal-title">Enter Score</h3>
+        <div id="score-match-timer" class="hidden text-center font-mono text-xs font-semibold tracking-wide text-slate-600" aria-live="polite"></div>
+        <div id="score-series-banner" class="hidden rounded-lg bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 text-center">
+          <div class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80" id="score-series-label">Best of 3</div>
+          <div class="text-sm font-bold text-slate-800" id="score-series-score">Games 0 – 0</div>
+          <div class="text-[11px] text-slate-500" id="score-series-game">Game 1 of 3</div>
+          <div class="text-[10px] text-slate-500 mt-0.5 leading-snug line-clamp-2" id="score-series-history"></div>
         </div>
-        <div class="text-2xl text-slate-500 font-light pt-6 shrink-0">–</div>
-        <div class="flex-1 min-w-0 max-w-[42%]">
-          <div class="score-team-label text-[12px] font-medium text-slate-600 mb-2 px-0.5 leading-snug" id="score-team-b" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line"></div>
-          <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-20 text-3xl font-bold text-center rounded-2xl py-3 text-slate-900 placeholder-slate-300 mx-auto block" />
+        <div class="flex items-start justify-center gap-2 text-center">
+          <div class="flex-1 min-w-0 max-w-[42%]">
+            <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-a" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:2.6em;overflow:hidden"></div>
+            <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-[4.25rem] text-2xl font-bold text-center rounded-xl py-2 text-slate-900 placeholder-slate-300 mx-auto block" />
+          </div>
+          <div class="text-xl text-slate-500 font-light pt-5 shrink-0">–</div>
+          <div class="flex-1 min-w-0 max-w-[42%]">
+            <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-b" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:2.6em;overflow:hidden"></div>
+            <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-[4.25rem] text-2xl font-bold text-center rounded-xl py-2 text-slate-900 placeholder-slate-300 mx-auto block" />
+          </div>
+        </div>
+        <div id="quick-score">
+          <div id="quick-score-rows" class="space-y-1.5"></div>
+          <p id="quick-score-hint" class="mt-1 text-center text-[11px] text-slate-500 leading-snug min-h-0"></p>
+          <label class="mt-1.5 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 cursor-pointer select-none">
+            <input type="checkbox" id="quick-autosave" onchange="setQuickAutosave(this.checked)" class="accent-emerald-500 w-3.5 h-3.5" />
+            <span>Auto-save on tap</span>
+          </label>
+        </div>
+        <div id="score-projection" class="hidden rounded-lg bg-slate-50 border border-slate-200 px-2 py-1.5 text-center">
+          <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
+            <span class="text-[9px] font-semibold uppercase tracking-wider text-slate-400">Est.</span>
+            <span id="score-proj-a" class="text-emerald-700">50%</span>
+            <span class="text-slate-400 font-medium text-[10px]">–</span>
+            <span id="score-proj-b" class="text-slate-600">50%</span>
+          </div>
+          <div class="mt-1 h-1 rounded-full bg-slate-200 overflow-hidden flex">
+            <div id="score-proj-bar-a" class="h-full bg-emerald-500 transition-all" style="width:50%"></div>
+            <div id="score-proj-bar-b" class="h-full bg-slate-400 transition-all" style="width:50%"></div>
+          </div>
         </div>
       </div>
-      <!-- Quick score: tap the winner's row, then the loser's goals -->
-      <div id="quick-score">
-        <div id="quick-score-rows" class="space-y-2.5"></div>
-        <p id="quick-score-hint" class="mt-2 text-center text-[12px] text-slate-500 min-h-[1rem]"></p>
-        <label class="mt-2.5 flex items-center gap-2 text-[12px] text-slate-500 cursor-pointer select-none">
-          <input type="checkbox" id="quick-autosave" onchange="setQuickAutosave(this.checked)" class="accent-emerald-500 w-4 h-4" />
-          <span>Save as soon as I tap a score</span>
-        </label>
-      </div>
-      <div id="score-projection" class="hidden rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-center">
-        <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Projected series winner (estimate)</div>
-        <div class="flex items-center justify-center gap-2 text-sm font-bold text-slate-800">
-          <span id="score-proj-a" class="text-emerald-700">50%</span>
-          <span class="text-slate-400 font-medium text-xs">vs</span>
-          <span id="score-proj-b" class="text-slate-600">50%</span>
-        </div>
-        <div class="mt-1.5 h-1.5 rounded-full bg-slate-200 overflow-hidden flex">
-          <div id="score-proj-bar-a" class="h-full bg-emerald-500 transition-all" style="width:50%"></div>
-          <div id="score-proj-bar-b" class="h-full bg-slate-400 transition-all" style="width:50%"></div>
-        </div>
-      </div>
-      <div class="flex gap-3">
-        <button onclick="closeScoreModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
-        <button onclick="submitScore()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white" id="score-save-btn">Save game</button>
+      <div class="flex-shrink-0 flex gap-2 px-4 py-2.5 border-t border-slate-200/80 bg-[var(--raised,#fff)]" style="padding-bottom:max(0.65rem,env(safe-area-inset-bottom))">
+        <button type="button" onclick="closeScoreModal()" class="btn-ghost flex-1 py-2.5 rounded-xl text-slate-700 font-medium text-sm">Cancel</button>
+        <button type="button" onclick="submitScore()" class="btn-primary flex-1 py-2.5 rounded-xl font-semibold text-white text-sm" id="score-save-btn">Save game</button>
       </div>
     </div>
   </div>
@@ -1771,7 +1781,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.77';
+    const APP_VERSION = '5.78';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -5974,8 +5984,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           return `<button type="button" onclick="quickScore('${side}', ${n})" aria-pressed="${on}" aria-label="${escapeHtml(name)} scored ${n}" class="quick-chip${n === R ? ' win' : ''}${on ? ' selected' : ''}">${n}</button>`;
         }).join('');
         return `<div>
-          <div class="mb-1 px-0.5 truncate text-[12px] font-semibold text-slate-700">${escapeHtml(name)}</div>
-          <div class="grid gap-1.5" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${chips}</div>
+          <div class="mb-0.5 px-0.5 truncate text-[11px] font-semibold text-slate-700">${escapeHtml(name)}</div>
+          <div class="grid gap-1" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${chips}</div>
         </div>`;
       };
       box.innerHTML = row('a', a) + row('b', b);
