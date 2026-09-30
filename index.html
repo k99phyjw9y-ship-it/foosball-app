@@ -1780,7 +1780,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.75';
+    const APP_VERSION = '5.76';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -3302,8 +3302,14 @@
      * on-deck match club-wide. Tie-break: prefer match already labeled for that
      * table, then alternate events (avoid one event monopolizing).
      */
+
+    function isMultiEventTableShare() {
+      if (typeof isConflictLockEnabled === 'function' && !isConflictLockEnabled()) return false;
+      const n = (state.tournaments || []).filter(t => t && t.status !== 'finished').length;
+      return n >= 2;
+    }
     function fairPromoteAcrossEvents() {
-      if (typeof isConflictLockEnabled === 'function' && !isConflictLockEnabled()) return;
+      if (!isMultiEventTableShare()) return;
       const occupied = getGlobalLiveTableSet(null);
       const pool = getSharedTablePoolSize(2);
       const free = [];
@@ -5384,8 +5390,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const queue = pending.filter(m => !live.includes(m));
 
       if (!live.length) {
-        const lockOn = typeof isConflictLockEnabled === 'function' && isConflictLockEnabled();
-        if (lockOn) {
+        if (typeof isMultiEventTableShare === 'function' && isMultiEventTableShare()) {
           pending.forEach((m, i) => {
             m.table = (i % tableCount) + 1;
             m.onDeck = true;
@@ -5428,8 +5433,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         stampQueueSince(m);
       });
 
-      // With conflict lock, free tables are claimed club-wide in fairPromoteAcrossEvents
-      if (!(typeof isConflictLockEnabled === 'function' && isConflictLockEnabled())) {
+      // Multi-event share: free tables claimed club-wide in fairPromoteAcrossEvents
+      if (!(typeof isMultiEventTableShare === 'function' && isMultiEventTableShare())) {
         const free = listFreeTables(occupied, tableCount, t?.id);
         const promoted = new Set();
         free.forEach(tableNum => {
@@ -5465,6 +5470,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
         ? t.rounds.filter(r => r.number === roundNumber)
         : t.rounds;
       rounds.forEach(r => assignRankingRoundTablesForMatches(r.matches || [], t));
+      if (typeof isMultiEventTableShare === 'function' && isMultiEventTableShare()
+          && typeof fairPromoteAcrossEvents === 'function') {
+        fairPromoteAcrossEvents();
+      }
     }
 
     /** Promote on-deck → live tables, then persist so TV board / other tabs see it. */
@@ -5538,6 +5547,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       // Keep on-deck badges in sync (e.g. after scores free a table)
       assignRankingRoundTables(t);
+      if (typeof fairPromoteAcrossEvents === 'function') fairPromoteAcrossEvents();
       ensureMatchTimerTicker();
 
       const isLatest = (num) => num === t.currentRound;
@@ -6627,8 +6637,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (ac !== bc) return ac - bc;
           return 0;
         });
-        const lockOn = typeof isConflictLockEnabled === 'function' && isConflictLockEnabled();
-        if (lockOn) {
+        if (typeof isMultiEventTableShare === 'function' && isMultiEventTableShare()) {
           ordered.forEach((m, i) => {
             if (!m.table || m.table < 1) m.table = (i % tableCount) + 1;
             m.onDeck = true;
@@ -6671,7 +6680,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         stampQueueSince(m);
       });
 
-      if (!(typeof isConflictLockEnabled === 'function' && isConflictLockEnabled())) {
+      if (!(typeof isMultiEventTableShare === 'function' && isMultiEventTableShare())) {
         const free = listFreeTables(occupied, tableCount, t?.id);
         const promoted = new Set();
         free.forEach(tableNum => {
