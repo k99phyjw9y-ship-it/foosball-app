@@ -1720,18 +1720,9 @@
 
   <!-- Score Modal -->
   <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
-    <div class="surface-card rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
+    <div class="surface-card rounded-3xl w-full max-w-sm p-5 space-y-3 shadow-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto">
       <h3 class="text-lg font-bold text-center text-slate-900" id="score-modal-title">Enter Score</h3>
       <div id="score-match-timer" class="hidden text-center font-mono text-sm font-semibold tracking-wide text-slate-600" aria-live="polite"></div>
-      <div id="score-coin-toss" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-center space-y-1.5">
-        <div class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Coin toss · serve</div>
-        <div id="score-coin-assign" class="text-[11px] text-slate-600 leading-snug"></div>
-        <div class="flex items-center justify-center gap-3">
-          <div id="score-coin-face" class="coin-face" aria-hidden="true">H</div>
-          <button type="button" id="score-coin-flip-btn" onclick="flipScoreModalCoin()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition">Flip</button>
-        </div>
-        <div id="score-coin-result" class="text-xs font-semibold text-indigo-700 min-h-[1.1rem]"></div>
-      </div>
       <div id="score-series-banner" class="hidden rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-center">
         <div class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80" id="score-series-label">Best of 3</div>
         <div class="text-sm font-bold text-slate-800 mt-0.5" id="score-series-score">Games 0 – 0</div>
@@ -1780,7 +1771,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.76';
+    const APP_VERSION = '5.77';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -3686,72 +3677,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     function refreshScoreModalCoin() {
-      const box = document.getElementById('score-coin-toss');
-      if (!box) return;
-      const t = getCurrentTournament();
-      const sm = state.scoreMatchId;
-      if (!t || !sm) { box.classList.add('hidden'); return; }
-      let match = null;
-      let isBracket = false;
-      if (sm.mode === 'bracket') {
-        isBracket = true;
-        match = findBracketMatch(t, sm.matchId)?.match;
-      } else {
-        const round = (t.rounds || []).find(r => r.number === sm.roundNum);
-        match = round?.matches?.find(m => m.id === sm.matchId);
-      }
-      if (!match || match.status === 'done' || match.winner) {
-        // Still show result if flipped
-        if (!match?.coinToss?.serveSide) { box.classList.add('hidden'); return; }
-      }
-      box.classList.remove('hidden');
-      ensureCoinToss(match);
-      const ct = match.coinToss;
-      const assignEl = document.getElementById('score-coin-assign');
-      const faceEl = document.getElementById('score-coin-face');
-      const resultEl = document.getElementById('score-coin-result');
-      if (assignEl) assignEl.innerHTML = coinTossAssignText(match, isBracket);
-      if (faceEl) {
-        faceEl.textContent = ct.result === 'tails' ? 'T' : 'H';
-        faceEl.className = 'coin-face' + (ct.result === 'tails' ? ' tails' : '');
-      }
-      if (resultEl) {
-        resultEl.textContent = ct.serveSide
-          ? `${ct.result === 'tails' ? 'Tails' : 'Heads'} · ${coinSideLabel(match, ct.serveSide, isBracket)} serves`
-          : 'Flip to choose serve';
-      }
+      // Coin toss is on match cards only — keeps score modal short (no scroll)
     }
 
     function flipScoreModalCoin() {
-      const t = getCurrentTournament();
-      const sm = state.scoreMatchId;
-      if (!t || !sm) return;
-      let match = null;
-      let isBracket = sm.mode === 'bracket';
-      if (isBracket) match = findBracketMatch(t, sm.matchId)?.match;
-      else {
-        const round = (t.rounds || []).find(r => r.number === sm.roundNum);
-        match = round?.matches?.find(m => m.id === sm.matchId);
-      }
-      if (!match) return;
-      const faceEl = document.getElementById('score-coin-face');
-      if (faceEl) {
-        faceEl.classList.remove('flipping');
-        void faceEl.offsetWidth;
-        faceEl.classList.add('flipping');
-      }
-      setTimeout(() => {
-        flipCoinToss(match);
-        saveState();
-        refreshScoreModalCoin();
-        const ct = match.coinToss;
-        toast(`Toss: ${ct.result} · ${coinSideLabel(match, ct.serveSide, isBracket)} serves`, 'success');
-        // Refresh cards behind modal without closing
-        try {
-          if (isBracket) renderBracket(t);
-          else renderMatches(t);
-        } catch (e) {}
-      }, 350);
+      // no-op — flip from the match card
     }
 
     function countActiveParallelEvents() {
