@@ -1780,7 +1780,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.72';
+    const APP_VERSION = '5.73';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -5045,9 +5045,25 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     function scheduleMatchTimer(match, fromMs) {
       if (!match || match.status === 'done' || match.winner) return;
+      // Never restart an already-armed / running clock
+      if (match.timerStartAt != null && !match.timerEndedAt) return;
       const base = fromMs != null ? fromMs : Date.now();
-      if (match.timerStartAt && match.timerStartAt <= base + MATCH_TIMER_GRACE_MS) return;
       match.timerStartAt = base + MATCH_TIMER_GRACE_MS;
+      delete match.timerEndedAt;
+    }
+
+    /** Arm 30s grace only the first time a match becomes live. */
+    function ensureLiveMatchTimer(match, now) {
+      if (!match || match.onDeck || match.status === 'done' || match.winner || match.void) return;
+      if (match.timerStartAt != null && !match.timerEndedAt) return;
+      match.timerStartAt = (now != null ? now : Date.now()) + MATCH_TIMER_GRACE_MS;
+      delete match.timerEndedAt;
+    }
+
+    /** Clear timer when match is not ready / voided — not for temporary on-deck. */
+    function clearMatchTimer(match) {
+      if (!match) return;
+      delete match.timerStartAt;
       delete match.timerEndedAt;
     }
 
