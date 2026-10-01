@@ -1815,7 +1815,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.79';
+    const APP_VERSION = '5.80';
     const APP_UPDATED = 'Sep 29, 2026';
 
     let state = {
@@ -4250,11 +4250,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const players = activePlayerIds(t).map(id => state.players.find(p => p.id === id)).filter(Boolean);
       if (players.length < 4) {
         toast('Need at least 4 active players for doubles/DYP (mark Present or add players)', 'error');
-        return;
+        return false;
       }
 
       if (!opts.forBracket && !opts.force && latestRankingRoundHasScores(t) && (t.teams || []).length) {
-        if (!confirm('This round already has scores. Redraw partners anyway?')) return;
+        if (!confirm('This round already has scores. Redraw partners anyway?')) return false;
       }
 
       // Fresh partner randomization each draw (does not erase sit-out history on rounds)
@@ -4319,6 +4319,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const posMsg = (t.type === 'monster' && t.monsterPositions && !forBracket) ? ' · F/G randomized' : '';
         toast(`Drew ${t.teams.length} teams${sitMsg}${posMsg}`, 'success');
       }
+      return true;
     }
 
     function shuffle(arr) {
@@ -4327,6 +4328,78 @@ function flipRankingMatchCoin(roundNum, matchId) {
         [arr[i], arr[j]] = [arr[j], arr[i]];
       }
       return arr;
+    }
+
+
+    /**
+     * How often players on side A have faced players on side B in prior ranking rounds.
+     * Lower is better when choosing opponents for a new round.
+     */
+    function rankingOpponentOverlap(t, entA, entB) {
+      const setA = (typeof entityPlayerIds === 'function') ? entityPlayerIds(entA) : [];
+      const setB = (typeof entityPlayerIds === 'function') ? entityPlayerIds(entB) : [];
+      if (!setA.length || !setB.length) return 0;
+      let score = 0;
+      (t.rounds || []).forEach(r => {
+        (r.matches || []).forEach(m => {
+          if (!m || m.void) return;
+          const done = m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB);
+          if (!done) return;
+          const sideA = entityPlayerIds(m.entityA);
+          const sideB = entityPlayerIds(m.entityB);
+          const cross = (x, y) => {
+            for (const id of x) {
+              if (sideA.includes(id)) {
+                for (const id2 of y) if (sideB.includes(id2)) score += 1;
+              }
+              if (sideB.includes(id)) {
+                for (const id2 of y) if (sideA.includes(id2)) score += 1;
+              }
+            }
+          };
+          cross(setA, setB);
+        });
+      });
+      return score;
+    }
+
+    /**
+     * Build ranking matches: Swiss-ish — prefer opponents not faced recently.
+     */
+    function pairRankingEntities(t, ranked) {
+      const tableCount = Math.max(1, parseInt(t.tables, 10) || 2);
+      const remaining = ranked.slice();
+      const matches = [];
+      while (remaining.length >= 2) {
+        const a = remaining.shift();
+        // Prefer lowest opponent overlap; shuffle among equals
+        let best = null;
+        let bestScore = Infinity;
+        const candidates = [];
+        for (let i = 0; i < remaining.length; i++) {
+          const sc = rankingOpponentOverlap(t, a, remaining[i]);
+          if (sc < bestScore) {
+            bestScore = sc;
+            candidates.length = 0;
+            candidates.push(i);
+          } else if (sc === bestScore) {
+            candidates.push(i);
+          }
+        }
+        const pick = candidates[Math.floor(Math.random() * candidates.length)];
+        const b = remaining.splice(pick, 1)[0];
+        matches.push({
+          id: uid(),
+          entityA: a,
+          entityB: b,
+          scoreA: null,
+          scoreB: null,
+          table: (matches.length % tableCount) + 1,
+          onDeck: matches.length >= tableCount,
+          status: 'pending'
+        });
+      }
+      return matches;
     }
 
     // ==================== GENERATE ROUND ====================
@@ -4348,20 +4421,15 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return;
       }
 
-      // For monster / dyp we need teams
-      if ((t.type === 'dyp' || t.type === 'monster' || t.type === 'doubles') && (!t.teams || t.teams.length < 2)) {
-        if (t.type === 'monster' || t.type === 'dyp') {
-          drawPartners();
-        }
-        if (!t.teams || t.teams.length < 2) {
-          toast(t.type === 'doubles' ? 'Form teams first' : 'Draw partners first', 'error');
+      // Monster / DYP: always new partners for each ranking round (force — no "same teams" reuse)
+      if (t.type === 'monster' || t.type === 'dyp') {
+        if (!drawPartners({ force: true })) {
+          toast('Partner draw cancelled or failed', 'error');
           return;
         }
-      }
-
-      // For Monster DYP: always redraw partners for the new round
-      if (t.type === 'monster') {
-        drawPartners();
+      } else if (t.type === 'doubles' && (!t.teams || t.teams.length < 2)) {
+        toast('Form teams first', 'error');
+        return;
       }
 
       const entities = getMatchEntities(t);
@@ -4371,43 +4439,18 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
 
       const standings = computeStandings(t);
+      // Sort by standings, shuffle within tied groups so #1 vs #2 is not frozen forever
       const ranked = entities.slice().sort((a, b) => {
         const sa = standings.find(s => s.id === a.id) || { pts: 0, gd: 0 };
         const sb = standings.find(s => s.id === b.id) || { pts: 0, gd: 0 };
         if (sb.pts !== sa.pts) return sb.pts - sa.pts;
-        return sb.gd - sa.gd;
+        if (sb.gd !== sa.gd) return sb.gd - sa.gd;
+        return Math.random() - 0.5;
       });
-
       if (t.currentRound === 0) shuffle(ranked);
 
-      const matches = [];
-      const used = new Set();
-      for (let i = 0; i < ranked.length - 1; i++) {
-        if (used.has(ranked[i].id)) continue;
-        let opponent = null;
-        for (let j = i + 1; j < ranked.length; j++) {
-          if (!used.has(ranked[j].id)) {
-            opponent = ranked[j];
-            break;
-          }
-        }
-        if (!opponent) break;
-        used.add(ranked[i].id);
-        used.add(opponent.id);
-
-        const tableCount = Math.max(1, parseInt(t.tables, 10) || 2);
-        const tableNum = (matches.length % tableCount) + 1;
-        matches.push({
-          id: uid(),
-          entityA: ranked[i],
-          entityB: opponent,
-          scoreA: null,
-          scoreB: null,
-          table: tableNum,
-          onDeck: matches.length >= tableCount,
-          status: 'pending'
-        });
-      }
+      // Pair with opponent-history avoidance (Monster/DYP teams change; avoid same 4-player rematch)
+      const matches = pairRankingEntities(t, ranked);
       // Finalize table / on-deck for this wave of pending matches
       assignRankingRoundTablesForMatches(matches, t);
       armTimersForNewMatches(matches);
