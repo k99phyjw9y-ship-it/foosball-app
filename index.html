@@ -1815,8 +1815,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.80';
-    const APP_UPDATED = 'Sep 29, 2026';
+    const APP_VERSION = '5.82';
+    const APP_UPDATED = 'Oct 1, 2026';
 
     let state = {
       players: [],
@@ -3662,6 +3662,24 @@
       return ct;
     }
 
+    /**
+     * Auto coin toss as soon as a match has both sides (draw / advance).
+     * Does not re-flip if serve already decided. Works for ranking + bracket.
+     */
+    function autoCoinTossMatch(match) {
+      if (!match || match.winner || match.status === 'done' || match._byePropagated || match.void) return;
+      const a = match.entityA || match.a?.entity;
+      const b = match.entityB || match.b?.entity;
+      if (!a || !b) return;
+      ensureCoinToss(match);
+      if (match.coinToss && match.coinToss.serveSide) return;
+      flipCoinToss(match);
+    }
+
+    function autoCoinTossMatches(list) {
+      (list || []).forEach(autoCoinTossMatch);
+    }
+
     function serveBadgeHtml(match) {
       const ct = match && match.coinToss;
       if (!ct || !ct.serveSide) return '';
@@ -4451,6 +4469,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       // Pair with opponent-history avoidance (Monster/DYP teams change; avoid same 4-player rematch)
       const matches = pairRankingEntities(t, ranked);
+      autoCoinTossMatches(matches);
       // Finalize table / on-deck for this wave of pending matches
       assignRankingRoundTablesForMatches(matches, t);
       armTimersForNewMatches(matches);
@@ -4553,6 +4572,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
         ...extra
       };
       resolveBye(match);
+      if (!match.winner && match.a?.entity && match.b?.entity) {
+        autoCoinTossMatch(match);
+      }
       return match;
     }
 
@@ -5332,6 +5354,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const at = drawnAt || Date.now();
       (matches || []).forEach(m => {
         if (!m || m.status === 'done' || m.winner) return;
+        autoCoinTossMatch(m); // toss as soon as drawn (including on-deck)
         if (m.onDeck) return;
         ensureLiveMatchTimer(m, at);
       });
@@ -5347,6 +5370,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const a = m.a?.entity || m.entityA;
         const b = m.b?.entity || m.entityB;
         if (!(a && b)) return;
+        autoCoinTossMatch(m); // toss when both sides known
         if (m.onDeck) return;
         ensureLiveMatchTimer(m, at);
       });
@@ -6533,6 +6557,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       touched.forEach(m => {
         if (!m.winner) resolveBye(m);
+        // Both sides known (or after bye resolve) → automatic serve toss
+        if (typeof autoCoinTossMatch === 'function') autoCoinTossMatch(m);
         if (m.winner && m.scoreA === 0 && m.scoreB === 0 && !m._byePropagated) {
           const w = m.winner === 'a' ? m.a?.entity : m.b?.entity;
           const l = m.winner === 'a' ? m.b?.entity : m.a?.entity;
@@ -6555,6 +6581,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
             b.grandFinal2.scoreA = null;
             b.grandFinal2.scoreB = null;
             delete b.grandFinal2._byePropagated;
+            delete b.grandFinal2.coinToss;
+            if (typeof autoCoinTossMatch === 'function') autoCoinTossMatch(b.grandFinal2);
           }
         } else {
           b.gfResetRequired = false;
@@ -6724,6 +6752,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         });
       }
 
+      // Coin toss for any newly-ready bracket matches (both sides filled)
+      (ready || []).forEach(m => { if (typeof autoCoinTossMatch === 'function') autoCoinTossMatch(m); });
       ensureMatchTimerTicker();
     }
 
