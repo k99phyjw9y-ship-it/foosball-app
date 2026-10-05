@@ -395,21 +395,26 @@
       justify-content: space-between;
     }
     #view-spectator .spec-card-live {
-      border-color: rgb(var(--c-accent-500) / 0.45);
+      /* Avoid border-color shorthand — it overwrote the event left band */
+      border-top-color: rgb(var(--c-accent-500) / 0.45);
+      border-right-color: rgb(var(--c-accent-500) / 0.45);
+      border-bottom-color: rgb(var(--c-accent-500) / 0.45);
       box-shadow: 0 0 0 1px rgb(var(--c-accent-500) / 0.2), 0 8px 24px -12px rgb(var(--ink) / 0.35);
     }
     #view-spectator .spec-card-deck {
       opacity: 0.92;
-      border-style: dashed;
+      border-top-style: dashed;
+      border-right-style: dashed;
+      border-bottom-style: dashed;
       background: rgb(var(--fg-rgb) / 0.03);
     }
-    /* Event color bands (Option A) */
-    #view-spectator .spec-card.spec-ec-0 { border-left: 5px solid #34d399; }
-    #view-spectator .spec-card.spec-ec-1 { border-left: 5px solid #60a5fa; }
-    #view-spectator .spec-card.spec-ec-2 { border-left: 5px solid #fbbf24; }
-    #view-spectator .spec-card.spec-ec-3 { border-left: 5px solid #f472b6; }
-    #view-spectator .spec-card.spec-ec-4 { border-left: 5px solid #a78bfa; }
-    #view-spectator .spec-card.spec-ec-5 { border-left: 5px solid #2dd4bf; }
+    /* Event color bands pinned on left; same color on deck and live */
+    #view-spectator .spec-card.spec-ec-0 { border-left: 5px solid #34d399 !important; border-left-style: solid !important; }
+    #view-spectator .spec-card.spec-ec-1 { border-left: 5px solid #60a5fa !important; border-left-style: solid !important; }
+    #view-spectator .spec-card.spec-ec-2 { border-left: 5px solid #fbbf24 !important; border-left-style: solid !important; }
+    #view-spectator .spec-card.spec-ec-3 { border-left: 5px solid #f472b6 !important; border-left-style: solid !important; }
+    #view-spectator .spec-card.spec-ec-4 { border-left: 5px solid #a78bfa !important; border-left-style: solid !important; }
+    #view-spectator .spec-card.spec-ec-5 { border-left: 5px solid #2dd4bf !important; border-left-style: solid !important; }
     #view-spectator .spec-event-title {
       font-size: 0.82rem;
       font-weight: 800;
@@ -1905,7 +1910,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.84';
+    const APP_VERSION = '5.85';
     const APP_UPDATED = 'Oct 1, 2026';
 
     let state = {
@@ -9600,13 +9605,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (done) return;
           const serveSide = m.coinToss?.serveSide || null;
           const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
+          // Pin event color on the match so it stays identical on deck → live
+          if (!m.tvColorClass) m.tvColorClass = specEventColorClass(t.id);
           live.push({
             eventId: t.id, eventName, eventType: t.type || '',
             round: r.number, nameA, nameB,
             scoreA: m.scoreA, scoreB: m.scoreB, table: m.table,
             onDeck: !!m.onDeck, matchId: m.id,
             timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt,
-            status: m.status || 'pending', serveSide, serveName
+            status: m.status || 'pending', serveSide, serveName,
+            tvColorClass: m.tvColorClass
           });
         });
       });
@@ -9620,13 +9628,15 @@ function flipRankingMatchCoin(roundNum, matchId) {
             if (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB && !(m.scoreA === 0 && m.scoreB === 0)) return;
             const serveSide = m.coinToss?.serveSide || null;
             const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
+            if (!m.tvColorClass) m.tvColorClass = specEventColorClass(t.id);
             live.push({
               eventId: t.id, eventName, eventType: t.type || '',
               round: m.bracket || 'bracket', nameA, nameB,
               scoreA: m.scoreA, scoreB: m.scoreB, table: m.table || null,
               onDeck: !!m.onDeck, matchId: m.id,
               timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt,
-              status: 'pending', winner: null, serveSide, serveName
+              status: 'pending', winner: null, serveSide, serveName,
+              tvColorClass: m.tvColorClass
             });
           });
         } catch (e) {}
@@ -9726,7 +9736,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       const cardHtml = (m, kind, opts = {}) => {
         const hideEventOnCard = !!opts.hideEventOnCard;
-        const ec = specEventColorClass(m.eventId);
+        const ec = m.tvColorClass || specEventColorClass(m.eventId);
         const roundLabel = (m.round === 'winners' || m.round === 'losers' || m.round === 'gf' || m.round === 'gf2' || m.round === 'bracket')
           ? String(m.round).replace('gf2', 'GF reset').replace('gf', 'Grand final').replace('winners', 'Winners').replace('losers', 'Losers').replace('bracket', 'Bracket')
           : ('R' + m.round);
