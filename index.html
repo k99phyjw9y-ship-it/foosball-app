@@ -1161,7 +1161,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.66 · Updated Sep 29, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.85 · Updated Oct 1, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -10160,6 +10160,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
     // ==================== INIT ====================
     loadState();
     showView('home');
+    // Always stamp watermark from APP_VERSION (HTML fallback can lag)
+    (function stampVersionWatermark() {
+      const vw = document.getElementById('home-version-watermark');
+      if (vw) vw.textContent = 'v' + APP_VERSION + ' · Updated ' + APP_UPDATED;
+    })();
     if (typeof ensureAppAutoRefresh === 'function') ensureAppAutoRefresh();
     renderPlayers();
     renderThemeMenu();
