@@ -1,10 +1,16 @@
 <!DOCTYPE html>
+<!-- LCFC_MANAGER_BUILD v5.87 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
-  <title>LCFC Manager – Lake Champlain Foosball Club</title>
+  <meta name="application-name" content="LCFC Manager" />
+  <meta name="lcfc-build" content="5.87" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>LCFC Manager v5.87 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1161,7 +1167,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.86 · Updated Oct 5, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.87 · Updated Oct 5, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1910,7 +1916,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.86';
+    const APP_VERSION = '5.87';
     const APP_UPDATED = 'Oct 5, 2026';
 
     let state = {
@@ -10164,6 +10170,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
     (function stampVersionWatermark() {
       const vw = document.getElementById('home-version-watermark');
       if (vw) vw.textContent = 'v' + APP_VERSION + ' · Updated ' + APP_UPDATED;
+      try {
+        document.title = 'LCFC Manager v' + APP_VERSION + ' – Lake Champlain Foosball Club';
+        document.documentElement.setAttribute('data-lcfc-build', APP_VERSION);
+      } catch (e) {}
     })();
     if (typeof ensureAppAutoRefresh === 'function') ensureAppAutoRefresh();
     renderPlayers();
