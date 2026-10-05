@@ -1134,17 +1134,17 @@
           </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
-          <div class="lg:col-span-8 space-y-4 min-w-0">
+          <div id="spec-main-col" class="lg:col-span-8 space-y-4 min-w-0">
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mb-2">Playing</h3>
-              <div id="spec-matches-live" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+              <div id="spec-matches-live" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"></div>
             </div>
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mb-2">On deck</h3>
-              <div id="spec-matches-deck" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+              <div id="spec-matches-deck" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"></div>
             </div>
           </div>
-          <div class="lg:col-span-4 space-y-3 min-w-0 lg:sticky lg:top-3">
+          <div id="spec-sidebar" class="lg:col-span-4 space-y-3 min-w-0 lg:sticky lg:top-3">
             <div>
               <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mb-2">Room</h3>
               <div id="spec-room-status" class="spec-status-panel"></div>
@@ -1815,7 +1815,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.82';
+    const APP_VERSION = '5.83';
     const APP_UPDATED = 'Oct 1, 2026';
 
     let state = {
@@ -9568,6 +9568,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const deckEmpty = document.getElementById('spec-matches-deck');
         if (deckEmpty) deckEmpty.innerHTML = '';
         standEl.innerHTML = '';
+        const roomEmpty = document.getElementById('spec-room-status');
+        if (roomEmpty) roomEmpty.innerHTML = '';
         return;
       }
 
@@ -9660,6 +9662,26 @@ function flipRankingMatchCoin(roundNum, matchId) {
       });
       if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
       if (typeof refreshVisibleMatchTimers === 'function') refreshVisibleMatchTimers();
+
+      // All-events TV: hide Room + Standings for a cleaner playing / on-deck board
+      const sidebar = document.getElementById('spec-sidebar');
+      const mainCol = document.getElementById('spec-main-col');
+      if (allMode) {
+        if (sidebar) sidebar.classList.add('hidden');
+        if (mainCol) {
+          mainCol.classList.remove('lg:col-span-8');
+          mainCol.classList.add('lg:col-span-12');
+        }
+        const roomClear = document.getElementById('spec-room-status');
+        if (roomClear) roomClear.innerHTML = '';
+        standEl.innerHTML = '';
+        return;
+      }
+      if (sidebar) sidebar.classList.remove('hidden');
+      if (mainCol) {
+        mainCol.classList.add('lg:col-span-8');
+        mainCol.classList.remove('lg:col-span-12');
+      }
 
       // Room status: playing / on deck / sitting out (monster & DYP ranking rounds)
       const roomEl = document.getElementById('spec-room-status');
