@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.88 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.89 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.88" />
+  <meta name="lcfc-build" content="5.89" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.88 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.89 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -414,13 +414,13 @@
       border-bottom-style: dashed;
       background: rgb(var(--fg-rgb) / 0.03);
     }
-    /* Fixed event-type color bands: Singles green, BYP/doubles blue, DYP red, Monster orange */
+    /* Fixed event-type color bands: Singles green, BYP/doubles blue, DYP yellow, Monster orange */
     #view-spectator .spec-card.spec-ec-singles,
     .event-band-singles { border-left: 5px solid #34d399 !important; border-left-style: solid !important; }
     #view-spectator .spec-card.spec-ec-doubles,
     .event-band-doubles { border-left: 5px solid #3b82f6 !important; border-left-style: solid !important; }
     #view-spectator .spec-card.spec-ec-dyp,
-    .event-band-dyp { border-left: 5px solid #ef4444 !important; border-left-style: solid !important; }
+    .event-band-dyp { border-left: 5px solid #eab308 !important; border-left-style: solid !important; }
     #view-spectator .spec-card.spec-ec-monster,
     .event-band-monster { border-left: 5px solid #f97316 !important; border-left-style: solid !important; }
     #view-spectator .spec-event-title {
@@ -434,11 +434,11 @@
     }
     #view-spectator .spec-card.spec-ec-singles .spec-event-title { color: #34d399; }
     #view-spectator .spec-card.spec-ec-doubles .spec-event-title { color: #60a5fa; }
-    #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #f87171; }
+    #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #facc15; }
     #view-spectator .spec-card.spec-ec-monster .spec-event-title { color: #fb923c; }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-singles .spec-event-title { color: #059669; }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-doubles .spec-event-title { color: #2563eb; }
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #dc2626; }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #ca8a04; }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster .spec-event-title { color: #ea580c; }
     /* Group by event (Option B) */
     #view-spectator .spec-event-group { margin-bottom: 1.15rem; }
@@ -459,7 +459,7 @@
     }
     #view-spectator .spec-event-header.spec-ec-singles .spec-event-header-title { color: #34d399; }
     #view-spectator .spec-event-header.spec-ec-doubles .spec-event-header-title { color: #60a5fa; }
-    #view-spectator .spec-event-header.spec-ec-dyp .spec-event-header-title { color: #f87171; }
+    #view-spectator .spec-event-header.spec-ec-dyp .spec-event-header-title { color: #facc15; }
     #view-spectator .spec-event-header.spec-ec-monster .spec-event-header-title { color: #fb923c; }
     #view-spectator .spec-event-header-line {
       flex: 1;
@@ -469,7 +469,7 @@
     }
     #view-spectator .spec-event-header.spec-ec-singles .spec-event-header-line { color: #34d399; }
     #view-spectator .spec-event-header.spec-ec-doubles .spec-event-header-line { color: #60a5fa; }
-    #view-spectator .spec-event-header.spec-ec-dyp .spec-event-header-line { color: #f87171; }
+    #view-spectator .spec-event-header.spec-ec-dyp .spec-event-header-line { color: #facc15; }
     #view-spectator .spec-event-header.spec-ec-monster .spec-event-header-line { color: #fb923c; }
     #view-spectator .spec-event-header-count {
       font-size: 0.7rem;
@@ -1161,7 +1161,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.88 · Updated Oct 5, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.89 · Updated Oct 5, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1910,7 +1910,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.88';
+    const APP_VERSION = '5.89';
     const APP_UPDATED = 'Oct 5, 2026';
 
     let state = {
@@ -2770,7 +2770,7 @@
         tables,
         drawStyle,
         monsterPositions: state.selectedType === 'monster' && !!document.getElementById('t-monster-positions')?.checked,
-        colorBand: eventTypeColorClass(state.selectedType), // fixed: singles green, doubles blue, dyp red, monster orange
+        colorBand: eventTypeColorClass(state.selectedType), // fixed: singles green, doubles blue, dyp yellow, monster orange
         playerIds: [],
         absentIds: [],       // players who left early (kept on roster/standings, skipped in draws & playoffs)
         teams: [],           // for doubles / dyp: [{id, playerIds: [a,b], name}]
@@ -3135,7 +3135,7 @@
               <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${
                 t.type === 'singles' ? 'bg-emerald-500/15' :
                 t.type === 'doubles' ? 'bg-blue-500/15' :
-                t.type === 'dyp' ? 'bg-red-500/15' :
+                t.type === 'dyp' ? 'bg-yellow-500/15' :
                 t.type === 'monster' ? 'bg-orange-500/15' : 'bg-emerald-500/10'
               }">${typeIcon[t.type] || '⚽'}</div>
               <div class="min-w-0">
@@ -9682,7 +9682,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     /**
      * Fixed color band by event type (set at create, used in-event + TV).
-     * Singles=green, BYP/doubles=blue, DYP=red, Monster=orange.
+     * Singles=green, BYP/doubles=blue, DYP=yellow, Monster=orange.
      */
     function eventTypeColorClass(type) {
       const t = String(type || '').toLowerCase();
