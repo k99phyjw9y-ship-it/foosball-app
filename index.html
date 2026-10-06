@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.92 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.93 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.92" />
+  <meta name="lcfc-build" content="5.93" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.92 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.93 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1179,6 +1179,8 @@
             </button>
             <button type="button" onclick="document.getElementById('import-file-input').click()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700">Import</button>
             <button type="button" onclick="exportAllData()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700">Export all</button>
+            <button type="button" onclick="reloadClubSnapshot(true)" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700" title="Fetch data/latest.json from this site">Load club file</button>
+            <button type="button" id="btn-operator-mode" onclick="toggleOperatorMode()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700" title="When on, this device keeps local data and skips auto-load of the club file">Operator mode</button>
           </div>
         </div>
         <input type="file" id="import-file-input" accept="application/json,.json" class="hidden" onchange="importDataFromFile(event)" />
@@ -1215,9 +1217,10 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.92 · Updated Oct 6, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.93 · Updated Oct 6, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
+        <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
       </div>
     </div>
 
@@ -1964,7 +1967,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.92';
+    const APP_VERSION = '5.93';
     const APP_UPDATED = 'Oct 6, 2026';
 
     let state = {
@@ -2002,7 +2005,169 @@
       try { localStorage.setItem(CHANGE_KEY, String(Date.now())); } catch (e) {}
     }
 
+    // ==================== CLUB SNAPSHOT (GitHub Pages) ====================
+    /**
+     * Put your full backup JSON here in the repo (same folder as index.html's parent):
+     *   data/latest.json
+     * On GitHub: repo root (or docs/) → create folder "data" → upload file as "latest.json"
+     * Pages URL example: https://USER.github.io/REPO/data/latest.json
+     */
+    const CLUB_SNAPSHOT_PATH = 'data/latest.json';
+    const OPERATOR_MODE_KEY = 'lcfc_operator_mode_v1';
+    let clubSnapshotMeta = { status: 'pending', message: 'Club file: checking…', exportedAt: null };
+
+    function isOperatorMode() {
+      try { return localStorage.getItem(OPERATOR_MODE_KEY) === '1'; } catch (e) { return false; }
+    }
+
+    function setOperatorMode(on) {
+      try { localStorage.setItem(OPERATOR_MODE_KEY, on ? '1' : '0'); } catch (e) {}
+      syncOperatorModeButton();
+      renderClubSnapshotStatus();
+    }
+
+    function toggleOperatorMode() {
+      setOperatorMode(!isOperatorMode());
+      toast(isOperatorMode()
+        ? 'Operator mode ON — this device keeps local data; club file not auto-loaded'
+        : 'Operator mode OFF — club file loads on open when available', 'success');
+    }
+
+    function syncOperatorModeButton() {
+      const btn = document.getElementById('btn-operator-mode');
+      if (!btn) return;
+      const on = isOperatorMode();
+      btn.textContent = on ? 'Operator mode · ON' : 'Operator mode';
+      btn.classList.toggle('ring-1', on);
+      btn.classList.toggle('ring-emerald-400', on);
+      btn.classList.toggle('text-emerald-700', on);
+    }
+
+    function renderClubSnapshotStatus() {
+      const el = document.getElementById('home-club-snapshot-status');
+      if (!el) return;
+      el.textContent = clubSnapshotMeta.message || '';
+      if (isOperatorMode()) {
+        el.textContent = (clubSnapshotMeta.message || 'Club file') + ' · operator mode (local data kept)';
+      }
+    }
+
+    function clubSnapshotUrl() {
+      // Relative to current page so GitHub Pages project sites work ( /repo/data/latest.json )
+      const base = (typeof location !== 'undefined' && location.href) ? location.href : '';
+      try {
+        const u = new URL(CLUB_SNAPSHOT_PATH, base);
+        u.searchParams.set('v', String(Date.now())); // cache-bust
+        return u.toString();
+      } catch (e) {
+        return CLUB_SNAPSHOT_PATH + '?v=' + Date.now();
+      }
+    }
+
+    /** Apply a full backup payload into state (replace). Returns true on success. */
+    function applyFullBackupData(data, opts) {
+      opts = opts || {};
+      if (!data || typeof data !== 'object') return false;
+      const hasFull = data.type === 'full' || (Array.isArray(data.players) && Array.isArray(data.tournaments) && !data.tournament);
+      if (!hasFull) return false;
+      state.players = Array.isArray(data.players) ? data.players : [];
+      state.tournaments = Array.isArray(data.tournaments) ? data.tournaments : [];
+      state.currentTournamentId = null;
+      (state.tournaments || []).forEach(t => {
+        if (t) { delete t.rankingApplied; delete t.rankingDeltas; }
+      });
+      try { migratePlayerRankings(); } catch (e) {}
+      try { backfillRankingFromTournaments(); } catch (e) {}
+      let ranked = 0;
+      try { ranked = recalculateClubRankingsFromEvents() || 0; } catch (e) {}
+      if (!opts.skipSave) {
+        try { saveState(); } catch (e) {}
+      }
+      if (!opts.silent) {
+        toast('Club data loaded' + (data.exportedAt ? (' · ' + String(data.exportedAt).slice(0, 10)) : ''), 'success');
+      }
+      return true;
+    }
+
+    function formatClubExportedAt(iso) {
+      if (!iso) return '';
+      try {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return String(iso).slice(0, 16);
+        return d.toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      } catch (e) { return String(iso).slice(0, 16); }
+    }
+
+    /**
+     * Fetch data/latest.json from the same host as the app (GitHub Pages).
+     * force=true: load even in operator mode (manual "Load club file").
+     */
+    async function reloadClubSnapshot(force) {
+      const statusEl = document.getElementById('home-club-snapshot-status');
+      if (statusEl) statusEl.textContent = 'Club file: loading…';
+      try {
+        const res = await fetch(clubSnapshotUrl(), { cache: 'no-store' });
+        if (res.status === 404) {
+          clubSnapshotMeta = { status: 'missing', message: 'Club file: not found (add data/latest.json on GitHub)', exportedAt: null };
+          renderClubSnapshotStatus();
+          if (force) toast('No data/latest.json on this site yet', 'error');
+          return false;
+        }
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        const okShape = data && (data.type === 'full' || (Array.isArray(data.players) && Array.isArray(data.tournaments)));
+        if (!okShape) {
+          clubSnapshotMeta = { status: 'invalid', message: 'Club file: invalid format (need full backup JSON)', exportedAt: null };
+          renderClubSnapshotStatus();
+          if (force) toast('Club file is not a full LCFC backup', 'error');
+          return false;
+        }
+        clubSnapshotMeta = {
+          status: 'ok',
+          message: 'Club file: ' + formatClubExportedAt(data.exportedAt || data.exported_at) + ' · data/latest.json',
+          exportedAt: data.exportedAt || data.exported_at || null
+        };
+        if (!force && isOperatorMode()) {
+          renderClubSnapshotStatus();
+          return false;
+        }
+        // Query ?local=1 keeps device data
+        try {
+          const q = new URLSearchParams(location.search || '');
+          if (!force && q.get('local') === '1') {
+            clubSnapshotMeta.message += ' · skipped (?local=1)';
+            renderClubSnapshotStatus();
+            return false;
+          }
+        } catch (e) {}
+
+        applyFullBackupData(data, { silent: !force });
+        renderClubSnapshotStatus();
+        try { renderHome(); } catch (e) {}
+        try { renderPlayers(); } catch (e) {}
+        try { if (typeof renderStats === 'function') renderStats(); } catch (e) {}
+        return true;
+      } catch (e) {
+        console.warn('Club snapshot fetch failed', e);
+        clubSnapshotMeta = {
+          status: 'error',
+          message: 'Club file: unavailable (offline or not published)',
+          exportedAt: null
+        };
+        renderClubSnapshotStatus();
+        if (force) toast('Could not load club file', 'error');
+        return false;
+      }
+    }
+
+    async function bootClubSnapshot() {
+      syncOperatorModeButton();
+      // Always probe so status line is accurate; apply only if not operator
+      await reloadClubSnapshot(false);
+    }
+
     // ==================== BACKUP REMINDER ====================
+
     const BACKUP_KEY = 'lcfc_last_backup_v1';
     const CHANGE_KEY = 'lcfc_last_change_v1';
     const BACKUP_STALE_DAYS = 7; // nudge when data changed since a backup older than this
@@ -7563,7 +7728,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       };
       downloadJson(`LCFC_Manager_backup_${new Date().toISOString().slice(0, 10)}.json`, payload);
       markBackupDone();
-      toast('Full backup exported', 'success');
+      toast('Full backup exported — upload to GitHub as data/latest.json for members', 'success');
     }
 
     function exportStandings() {
@@ -10357,6 +10522,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
         document.documentElement.setAttribute('data-lcfc-build', APP_VERSION);
       } catch (e) {}
     })();
+    syncOperatorModeButton();
+    renderClubSnapshotStatus();
+    // Fetch data/latest.json from GitHub Pages (or same host) for members
+    if (typeof bootClubSnapshot === 'function') {
+      bootClubSnapshot().catch(function () {});
+    }
     if (typeof ensureAppAutoRefresh === 'function') ensureAppAutoRefresh();
     renderPlayers();
     renderThemeMenu();
