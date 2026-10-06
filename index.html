@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.89 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.90 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.89" />
+  <meta name="lcfc-build" content="5.90" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.89 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.90 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -423,23 +423,62 @@
     .event-band-dyp { border-left: 5px solid #eab308 !important; border-left-style: solid !important; }
     #view-spectator .spec-card.spec-ec-monster,
     .event-band-monster { border-left: 5px solid #f97316 !important; border-left-style: solid !important; }
+    /* Monster playoff: orange band + gold top accent bar */
+    #view-spectator .spec-card.spec-ec-monster-po,
+    .event-band-monster-po {
+      border-left: 5px solid #f97316 !important;
+      border-left-style: solid !important;
+      box-shadow: inset 0 3px 0 0 #fbbf24, 0 4px 20px -8px rgb(var(--ink) / 0.25);
+    }
+    #view-spectator .spec-card-live.spec-ec-monster-po {
+      box-shadow: inset 0 3px 0 0 #fbbf24, 0 0 0 1px rgb(var(--c-accent-500) / 0.2), 0 8px 24px -12px rgb(var(--ink) / 0.35);
+    }
     #view-spectator .spec-event-title {
       font-size: 0.82rem;
       font-weight: 800;
       letter-spacing: 0.02em;
       text-align: center;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.15rem;
       line-height: 1.25;
       overflow-wrap: anywhere;
     }
+    #view-spectator .spec-phase-sub {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-align: center;
+      margin-bottom: 0.35rem;
+      color: var(--text-muted);
+    }
+    #view-spectator .spec-card.spec-ec-monster-po .spec-phase-sub {
+      color: #fbbf24;
+    }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster-po .spec-phase-sub {
+      color: #d97706;
+    }
+    .event-band-monster-po {
+      box-shadow: inset 0 3px 0 0 #fbbf24;
+    }
+    .match-phase-sub {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 0.35rem;
+    }
+    .match-phase-sub.phase-playoff { color: #d97706; }
     #view-spectator .spec-card.spec-ec-singles .spec-event-title { color: #34d399; }
     #view-spectator .spec-card.spec-ec-doubles .spec-event-title { color: #60a5fa; }
     #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #facc15; }
-    #view-spectator .spec-card.spec-ec-monster .spec-event-title { color: #fb923c; }
+    #view-spectator .spec-card.spec-ec-monster .spec-event-title,
+    #view-spectator .spec-card.spec-ec-monster-po .spec-event-title { color: #fb923c; }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-singles .spec-event-title { color: #059669; }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-doubles .spec-event-title { color: #2563eb; }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #ca8a04; }
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster .spec-event-title { color: #ea580c; }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster .spec-event-title,
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster-po .spec-event-title { color: #ea580c; }
     /* Group by event (Option B) */
     #view-spectator .spec-event-group { margin-bottom: 1.15rem; }
     #view-spectator .spec-event-header {
@@ -1161,7 +1200,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.89 · Updated Oct 5, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.90 · Updated Oct 5, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1910,7 +1949,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.89';
+    const APP_VERSION = '5.90';
     const APP_UPDATED = 'Oct 5, 2026';
 
     let state = {
@@ -5724,11 +5763,15 @@ function flipRankingMatchCoin(roundNum, matchId) {
           const timerBadge = (!done && m.crossConflict) ? '' : matchTimerBadgeHtml(m);
           const statusLabel = done ? 'Finished' : (m.crossConflict ? 'Waiting · conflict' : (m.onDeck ? 'On deck' : 'Playing'));
           const statusColor = done ? 'text-emerald-600' : (m.crossConflict ? 'text-violet-600' : (m.onDeck ? 'text-slate-500' : 'text-amber-600'));
-          const bandCls = (typeof ensureTournamentColorBand === 'function')
-            ? ensureTournamentColorBand(t).replace('spec-ec-', 'event-band-')
+          const bandCls = (typeof matchPhaseColorClass === 'function')
+            ? matchPhaseColorClass(t, 'ranking').replace('spec-ec-', 'event-band-')
             : 'event-band-singles';
+          const phaseSub = (typeof matchPhaseLabel === 'function')
+            ? matchPhaseLabel('ranking', round.number)
+            : ('Ranking · R' + round.number);
           return `
             <div class="surface-card rounded-2xl p-4 ${bandCls} ${done ? 'opacity-75' : (m.crossConflict ? 'ring-1 ring-violet-300 bg-violet-50/40' : (m.onDeck ? 'ring-1 ring-slate-200' : 'ring-1 ring-emerald-200'))}">
+              <div class="match-phase-sub">${escapeHtml(phaseSub)}</div>
               <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
                 <div class="flex items-center gap-1.5 flex-wrap">${conflictBadge}${tableBadge}${timerBadge}</div>
                 <div class="flex items-center gap-2">
@@ -6901,11 +6944,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
         : `<span class="${m.winner === 'b' ? win + ' font-semibold' : 'text-slate-700'}">${escapeHtml(nameB)}</span>`;
       const cardRing = m.winner ? '' : (m.crossConflict ? 'ring-1 ring-violet-300 bg-violet-50/30' : 'ring-1 ' + ring);
       const _bt = (typeof getCurrentTournament === 'function') ? getCurrentTournament() : null;
-      const bandCls = _bt && typeof ensureTournamentColorBand === 'function'
-        ? ensureTournamentColorBand(_bt).replace('spec-ec-', 'event-band-')
-        : '';
+      const bandCls = _bt && typeof matchPhaseColorClass === 'function'
+        ? matchPhaseColorClass(_bt, 'playoff').replace('spec-ec-', 'event-band-')
+        : (_bt && typeof ensureTournamentColorBand === 'function'
+          ? ensureTournamentColorBand(_bt).replace('spec-ec-', 'event-band-') : '');
+      const phaseSub = (typeof matchPhaseLabel === 'function')
+        ? matchPhaseLabel('playoff', m.bracket || m.round || 'bracket')
+        : 'Playoffs';
       return `
         <div class="surface-card rounded-xl p-3 text-sm ${bandCls} ${m.winner ? 'opacity-90' : cardRing}">
+          <div class="match-phase-sub phase-playoff">${escapeHtml(phaseSub)}</div>
           <div class="flex justify-between items-center py-1 gap-2 min-w-0">
             <span class="truncate min-w-0">${sideAHtml}</span>
             ${m.winner === 'a' ? '<span class="text-[10px]">W</span>' : ''}
@@ -9624,10 +9672,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
           const serveSide = m.coinToss?.serveSide || null;
           const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
           // Pin event color on the match so it stays identical on deck → live
-          const band = ensureTournamentColorBand(t);
-          m.tvColorClass = band; // always type band (may upgrade old hash-based values)
+          const phase = 'ranking';
+          const band = matchPhaseColorClass(t, phase);
+          m.tvColorClass = band;
           live.push({
             eventId: t.id, eventName, eventType: t.type || '',
+            phase, phaseLabel: 'Ranking',
             round: r.number, nameA, nameB,
             scoreA: m.scoreA, scoreB: m.scoreB, table: m.table,
             onDeck: !!m.onDeck, matchId: m.id,
@@ -9647,10 +9697,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
             if (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB && !(m.scoreA === 0 && m.scoreB === 0)) return;
             const serveSide = m.coinToss?.serveSide || null;
             const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
-            const band = ensureTournamentColorBand(t);
+            const phase = 'playoff';
+            const band = matchPhaseColorClass(t, phase);
             m.tvColorClass = band;
             live.push({
               eventId: t.id, eventName, eventType: t.type || '',
+              phase, phaseLabel: 'Playoffs',
               round: m.bracket || 'bracket', nameA, nameB,
               scoreA: m.scoreA, scoreB: m.scoreB, table: m.table || null,
               onDeck: !!m.onDeck, matchId: m.id,
@@ -9698,6 +9750,31 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (!t) return 'spec-ec-singles';
       t.colorBand = eventTypeColorClass(t.type);
       return t.colorBand;
+    }
+
+    /**
+     * Band class for a match: Monster playoffs get orange + gold accent variant.
+     * phase: 'ranking' | 'playoff'
+     */
+    function matchPhaseColorClass(t, phase) {
+      const base = ensureTournamentColorBand(t);
+      if ((t?.type === 'monster') && phase === 'playoff') return 'spec-ec-monster-po';
+      return base;
+    }
+
+    function matchPhaseLabel(phase, roundInfo) {
+      if (phase === 'playoff') {
+        if (roundInfo === 'winners') return 'Playoffs · Winners';
+        if (roundInfo === 'losers') return 'Playoffs · Losers';
+        if (roundInfo === 'gf' || roundInfo === 'grandFinal') return 'Playoffs · Grand final';
+        if (roundInfo === 'gf2') return 'Playoffs · GF reset';
+        if (roundInfo === 'bronze') return 'Playoffs · Bronze';
+        return 'Playoffs';
+      }
+      if (roundInfo != null && roundInfo !== '' && !isNaN(Number(roundInfo))) {
+        return 'Ranking · R' + roundInfo;
+      }
+      return 'Ranking';
     }
 
     /** Alias used by TV board — always type-based, not per-id hash. */
@@ -9782,6 +9859,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const cardHtml = (m, kind, opts = {}) => {
         const hideEventOnCard = !!opts.hideEventOnCard;
         const ec = m.tvColorClass || eventTypeColorClass(m.eventType) || specEventColorClass(m.eventId);
+        const phase = m.phase || (typeof m.round === 'string' && /winners|losers|gf|bracket|bronze/i.test(String(m.round)) ? 'playoff' : 'ranking');
+        const phaseSub = m.phaseLabel || matchPhaseLabel(phase, m.round);
         const roundLabel = (m.round === 'winners' || m.round === 'losers' || m.round === 'gf' || m.round === 'gf2' || m.round === 'bracket')
           ? String(m.round).replace('gf2', 'GF reset').replace('gf', 'Grand final').replace('winners', 'Winners').replace('losers', 'Losers').replace('bracket', 'Bracket')
           : ('R' + m.round);
@@ -9806,9 +9885,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const eventTitle = (!hideEventOnCard && m.eventName)
           ? `<div class="spec-event-title" title="${escapeHtml(m.eventName)}">${escapeHtml(m.eventName)}</div>`
           : '';
+        // Phase subtitle always (even when event name hidden in group mode)
+        const phaseHtml = `<div class="spec-phase-sub">${escapeHtml(phaseSub)}</div>`;
         return `
           <div class="spec-card ${kind === 'live' ? 'spec-card-live' : 'spec-card-deck'} ${ec}">
             ${eventTitle}
+            ${phaseHtml}
             <div class="spec-match-meta flex flex-wrap items-center justify-center gap-1.5">
               ${tableChip}
               ${timerChip}
