@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.87 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.88 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.87" />
+  <meta name="lcfc-build" content="5.88" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.87 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.88 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -414,13 +414,15 @@
       border-bottom-style: dashed;
       background: rgb(var(--fg-rgb) / 0.03);
     }
-    /* Event color bands pinned on left; same color on deck and live */
-    #view-spectator .spec-card.spec-ec-0 { border-left: 5px solid #34d399 !important; border-left-style: solid !important; }
-    #view-spectator .spec-card.spec-ec-1 { border-left: 5px solid #60a5fa !important; border-left-style: solid !important; }
-    #view-spectator .spec-card.spec-ec-2 { border-left: 5px solid #fbbf24 !important; border-left-style: solid !important; }
-    #view-spectator .spec-card.spec-ec-3 { border-left: 5px solid #f472b6 !important; border-left-style: solid !important; }
-    #view-spectator .spec-card.spec-ec-4 { border-left: 5px solid #a78bfa !important; border-left-style: solid !important; }
-    #view-spectator .spec-card.spec-ec-5 { border-left: 5px solid #2dd4bf !important; border-left-style: solid !important; }
+    /* Fixed event-type color bands: Singles green, BYP/doubles blue, DYP red, Monster orange */
+    #view-spectator .spec-card.spec-ec-singles,
+    .event-band-singles { border-left: 5px solid #34d399 !important; border-left-style: solid !important; }
+    #view-spectator .spec-card.spec-ec-doubles,
+    .event-band-doubles { border-left: 5px solid #3b82f6 !important; border-left-style: solid !important; }
+    #view-spectator .spec-card.spec-ec-dyp,
+    .event-band-dyp { border-left: 5px solid #ef4444 !important; border-left-style: solid !important; }
+    #view-spectator .spec-card.spec-ec-monster,
+    .event-band-monster { border-left: 5px solid #f97316 !important; border-left-style: solid !important; }
     #view-spectator .spec-event-title {
       font-size: 0.82rem;
       font-weight: 800;
@@ -430,18 +432,14 @@
       line-height: 1.25;
       overflow-wrap: anywhere;
     }
-    #view-spectator .spec-card.spec-ec-0 .spec-event-title { color: #34d399; }
-    #view-spectator .spec-card.spec-ec-1 .spec-event-title { color: #60a5fa; }
-    #view-spectator .spec-card.spec-ec-2 .spec-event-title { color: #fbbf24; }
-    #view-spectator .spec-card.spec-ec-3 .spec-event-title { color: #f472b6; }
-    #view-spectator .spec-card.spec-ec-4 .spec-event-title { color: #a78bfa; }
-    #view-spectator .spec-card.spec-ec-5 .spec-event-title { color: #2dd4bf; }
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-0 .spec-event-title { color: #059669; }
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-1 .spec-event-title { color: #2563eb; }
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-2 .spec-event-title { color: #d97706; }
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-3 .spec-event-title { color: #db2777; }
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-4 .spec-event-title { color: #7c3aed; }
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-5 .spec-event-title { color: #0d9488; }
+    #view-spectator .spec-card.spec-ec-singles .spec-event-title { color: #34d399; }
+    #view-spectator .spec-card.spec-ec-doubles .spec-event-title { color: #60a5fa; }
+    #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #f87171; }
+    #view-spectator .spec-card.spec-ec-monster .spec-event-title { color: #fb923c; }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-singles .spec-event-title { color: #059669; }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-doubles .spec-event-title { color: #2563eb; }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #dc2626; }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster .spec-event-title { color: #ea580c; }
     /* Group by event (Option B) */
     #view-spectator .spec-event-group { margin-bottom: 1.15rem; }
     #view-spectator .spec-event-header {
@@ -459,24 +457,20 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    #view-spectator .spec-event-header.spec-ec-0 .spec-event-header-title { color: #34d399; }
-    #view-spectator .spec-event-header.spec-ec-1 .spec-event-header-title { color: #60a5fa; }
-    #view-spectator .spec-event-header.spec-ec-2 .spec-event-header-title { color: #fbbf24; }
-    #view-spectator .spec-event-header.spec-ec-3 .spec-event-header-title { color: #f472b6; }
-    #view-spectator .spec-event-header.spec-ec-4 .spec-event-header-title { color: #a78bfa; }
-    #view-spectator .spec-event-header.spec-ec-5 .spec-event-header-title { color: #2dd4bf; }
+    #view-spectator .spec-event-header.spec-ec-singles .spec-event-header-title { color: #34d399; }
+    #view-spectator .spec-event-header.spec-ec-doubles .spec-event-header-title { color: #60a5fa; }
+    #view-spectator .spec-event-header.spec-ec-dyp .spec-event-header-title { color: #f87171; }
+    #view-spectator .spec-event-header.spec-ec-monster .spec-event-header-title { color: #fb923c; }
     #view-spectator .spec-event-header-line {
       flex: 1;
       height: 2px;
       background: linear-gradient(90deg, currentColor, transparent);
       opacity: 0.35;
     }
-    #view-spectator .spec-event-header.spec-ec-0 .spec-event-header-line { color: #34d399; }
-    #view-spectator .spec-event-header.spec-ec-1 .spec-event-header-line { color: #60a5fa; }
-    #view-spectator .spec-event-header.spec-ec-2 .spec-event-header-line { color: #fbbf24; }
-    #view-spectator .spec-event-header.spec-ec-3 .spec-event-header-line { color: #f472b6; }
-    #view-spectator .spec-event-header.spec-ec-4 .spec-event-header-line { color: #a78bfa; }
-    #view-spectator .spec-event-header.spec-ec-5 .spec-event-header-line { color: #2dd4bf; }
+    #view-spectator .spec-event-header.spec-ec-singles .spec-event-header-line { color: #34d399; }
+    #view-spectator .spec-event-header.spec-ec-doubles .spec-event-header-line { color: #60a5fa; }
+    #view-spectator .spec-event-header.spec-ec-dyp .spec-event-header-line { color: #f87171; }
+    #view-spectator .spec-event-header.spec-ec-monster .spec-event-header-line { color: #fb923c; }
     #view-spectator .spec-event-header-count {
       font-size: 0.7rem;
       font-weight: 600;
@@ -1167,7 +1161,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.87 · Updated Oct 5, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.88 · Updated Oct 5, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1916,7 +1910,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.87';
+    const APP_VERSION = '5.88';
     const APP_UPDATED = 'Oct 5, 2026';
 
     let state = {
@@ -2776,6 +2770,7 @@
         tables,
         drawStyle,
         monsterPositions: state.selectedType === 'monster' && !!document.getElementById('t-monster-positions')?.checked,
+        colorBand: eventTypeColorClass(state.selectedType), // fixed: singles green, doubles blue, dyp red, monster orange
         playerIds: [],
         absentIds: [],       // players who left early (kept on roster/standings, skipped in draws & playoffs)
         teams: [],           // for doubles / dyp: [{id, playerIds: [a,b], name}]
@@ -3129,10 +3124,20 @@
           ? `<div class="mt-3 pt-3 border-t border-slate-100 min-w-0 flex gap-2 sm:gap-3 items-start">${cells}</div>`
           : '';
         return `
-        <div onclick="openTournament('${t.id}')" class="card-interactive surface-card rounded-2xl p-5 cursor-pointer">
+        <div onclick="openTournament('${t.id}')" class="card-interactive surface-card rounded-2xl p-5 cursor-pointer ${
+          t.type === 'singles' ? 'event-band-singles' :
+          t.type === 'doubles' ? 'event-band-doubles' :
+          t.type === 'dyp' ? 'event-band-dyp' :
+          t.type === 'monster' ? 'event-band-monster' : 'event-band-singles'
+        }">
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-start gap-3 min-w-0">
-              <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-lg shrink-0">${typeIcon[t.type] || '⚽'}</div>
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${
+                t.type === 'singles' ? 'bg-emerald-500/15' :
+                t.type === 'doubles' ? 'bg-blue-500/15' :
+                t.type === 'dyp' ? 'bg-red-500/15' :
+                t.type === 'monster' ? 'bg-orange-500/15' : 'bg-emerald-500/10'
+              }">${typeIcon[t.type] || '⚽'}</div>
               <div class="min-w-0">
                 <h3 class="font-semibold text-slate-900 truncate">${escapeHtml(t.name)}</h3>
                 <p class="text-xs text-slate-500 mt-1">${typeLabel[t.type] || t.type} · Race to ${t.raceTo}</p>
@@ -5719,8 +5724,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
           const timerBadge = (!done && m.crossConflict) ? '' : matchTimerBadgeHtml(m);
           const statusLabel = done ? 'Finished' : (m.crossConflict ? 'Waiting · conflict' : (m.onDeck ? 'On deck' : 'Playing'));
           const statusColor = done ? 'text-emerald-600' : (m.crossConflict ? 'text-violet-600' : (m.onDeck ? 'text-slate-500' : 'text-amber-600'));
+          const bandCls = (typeof ensureTournamentColorBand === 'function')
+            ? ensureTournamentColorBand(t).replace('spec-ec-', 'event-band-')
+            : 'event-band-singles';
           return `
-            <div class="surface-card rounded-2xl p-4 ${done ? 'opacity-75' : (m.crossConflict ? 'ring-1 ring-violet-300 bg-violet-50/40' : (m.onDeck ? 'ring-1 ring-slate-200' : 'ring-1 ring-emerald-200'))}">
+            <div class="surface-card rounded-2xl p-4 ${bandCls} ${done ? 'opacity-75' : (m.crossConflict ? 'ring-1 ring-violet-300 bg-violet-50/40' : (m.onDeck ? 'ring-1 ring-slate-200' : 'ring-1 ring-emerald-200'))}">
               <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
                 <div class="flex items-center gap-1.5 flex-wrap">${conflictBadge}${tableBadge}${timerBadge}</div>
                 <div class="flex items-center gap-2">
@@ -6892,8 +6900,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
         ? formatSideNameHtml(m.b.entity, confIds, m.winner === 'b' ? win + ' font-semibold' : 'text-slate-700')
         : `<span class="${m.winner === 'b' ? win + ' font-semibold' : 'text-slate-700'}">${escapeHtml(nameB)}</span>`;
       const cardRing = m.winner ? '' : (m.crossConflict ? 'ring-1 ring-violet-300 bg-violet-50/30' : 'ring-1 ' + ring);
+      const _bt = (typeof getCurrentTournament === 'function') ? getCurrentTournament() : null;
+      const bandCls = _bt && typeof ensureTournamentColorBand === 'function'
+        ? ensureTournamentColorBand(_bt).replace('spec-ec-', 'event-band-')
+        : '';
       return `
-        <div class="surface-card rounded-xl p-3 text-sm ${m.winner ? 'opacity-90' : cardRing}">
+        <div class="surface-card rounded-xl p-3 text-sm ${bandCls} ${m.winner ? 'opacity-90' : cardRing}">
           <div class="flex justify-between items-center py-1 gap-2 min-w-0">
             <span class="truncate min-w-0">${sideAHtml}</span>
             ${m.winner === 'a' ? '<span class="text-[10px]">W</span>' : ''}
@@ -9612,7 +9624,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           const serveSide = m.coinToss?.serveSide || null;
           const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
           // Pin event color on the match so it stays identical on deck → live
-          if (!m.tvColorClass) m.tvColorClass = specEventColorClass(t.id);
+          const band = ensureTournamentColorBand(t);
+          m.tvColorClass = band; // always type band (may upgrade old hash-based values)
           live.push({
             eventId: t.id, eventName, eventType: t.type || '',
             round: r.number, nameA, nameB,
@@ -9620,7 +9633,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             onDeck: !!m.onDeck, matchId: m.id,
             timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt,
             status: m.status || 'pending', serveSide, serveName,
-            tvColorClass: m.tvColorClass
+            tvColorClass: band
           });
         });
       });
@@ -9634,7 +9647,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
             if (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB && !(m.scoreA === 0 && m.scoreB === 0)) return;
             const serveSide = m.coinToss?.serveSide || null;
             const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
-            if (!m.tvColorClass) m.tvColorClass = specEventColorClass(t.id);
+            const band = ensureTournamentColorBand(t);
+            m.tvColorClass = band;
             live.push({
               eventId: t.id, eventName, eventType: t.type || '',
               round: m.bracket || 'bracket', nameA, nameB,
@@ -9642,7 +9656,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
               onDeck: !!m.onDeck, matchId: m.id,
               timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt,
               status: 'pending', winner: null, serveSide, serveName,
-              tvColorClass: m.tvColorClass
+              tvColorClass: band
             });
           });
         } catch (e) {}
@@ -9666,11 +9680,36 @@ function flipRankingMatchCoin(roundNum, matchId) {
       renderSpectatorBoard();
     }
 
-    function specEventColorClass(eventId) {
-      const s = String(eventId || 'x');
-      let h = 0;
-      for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-      return 'spec-ec-' + (Math.abs(h) % 6);
+    /**
+     * Fixed color band by event type (set at create, used in-event + TV).
+     * Singles=green, BYP/doubles=blue, DYP=red, Monster=orange.
+     */
+    function eventTypeColorClass(type) {
+      const t = String(type || '').toLowerCase();
+      if (t === 'singles') return 'spec-ec-singles';
+      if (t === 'doubles' || t === 'byp') return 'spec-ec-doubles';
+      if (t === 'dyp') return 'spec-ec-dyp';
+      if (t === 'monster') return 'spec-ec-monster';
+      return 'spec-ec-singles';
+    }
+
+    /** Ensure tournament has colorBand from its type; returns class string. */
+    function ensureTournamentColorBand(t) {
+      if (!t) return 'spec-ec-singles';
+      t.colorBand = eventTypeColorClass(t.type);
+      return t.colorBand;
+    }
+
+    /** Alias used by TV board — always type-based, not per-id hash. */
+    function specEventColorClass(eventIdOrType, typeHint) {
+      if (typeHint) return eventTypeColorClass(typeHint);
+      // If looks like a known type string
+      const s = String(eventIdOrType || '');
+      if (/^(singles|doubles|dyp|monster|byp)$/i.test(s)) return eventTypeColorClass(s);
+      // Look up tournament by id
+      const ev = (state.tournaments || []).find(x => x && x.id === eventIdOrType);
+      if (ev) return ensureTournamentColorBand(ev);
+      return 'spec-ec-singles';
     }
 
     function syncSpectatorGroupToggleBtn() {
@@ -9742,7 +9781,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       const cardHtml = (m, kind, opts = {}) => {
         const hideEventOnCard = !!opts.hideEventOnCard;
-        const ec = m.tvColorClass || specEventColorClass(m.eventId);
+        const ec = m.tvColorClass || eventTypeColorClass(m.eventType) || specEventColorClass(m.eventId);
         const roundLabel = (m.round === 'winners' || m.round === 'losers' || m.round === 'gf' || m.round === 'gf2' || m.round === 'bracket')
           ? String(m.round).replace('gf2', 'GF reset').replace('gf', 'Grand final').replace('winners', 'Winners').replace('losers', 'Losers').replace('bracket', 'Bracket')
           : ('R' + m.round);
@@ -9806,8 +9845,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
             const liveM = playingList.filter(m => m.eventId === eid);
             const deckM = deckList.filter(m => m.eventId === eid);
             if (!liveM.length && !deckM.length) return '';
-            const name = (liveM[0] || deckM[0]).eventName || 'Event';
-            const ec = specEventColorClass(eid);
+            const sample = liveM[0] || deckM[0];
+            const name = sample.eventName || 'Event';
+            const ec = sample.tvColorClass || eventTypeColorClass(sample.eventType);
             const nLive = liveM.length;
             const nDeck = deckM.length;
             const countBits = [];
