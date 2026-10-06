@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.94 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.95 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.94" />
+  <meta name="lcfc-build" content="5.95" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.94 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.95 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1177,8 +1177,8 @@
               <svg class="w-3.5 h-3.5 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
               TV board
             </button>
-            <button type="button" onclick="document.getElementById('import-file-input').click()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700">Import</button>
-            <button type="button" onclick="exportAllData()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700">Export all</button>
+            <button type="button" id="btn-import-data" onclick="document.getElementById('import-file-input').click()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700 hidden">Import</button>
+            <button type="button" id="btn-export-all" onclick="exportAllData()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700 hidden">Export all</button>
             <button type="button" onclick="reloadClubSnapshot(true)" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700" title="Fetch data/latest.json from this site">Load club file</button>
             <button type="button" id="btn-operator-mode" onclick="toggleOperatorMode()" class="btn-ghost flex-1 sm:flex-none px-3 py-2 rounded-xl font-semibold text-xs sm:text-sm text-slate-700" title="When on, this device keeps local data and skips auto-load of the club file">Operator mode</button>
           </div>
@@ -1217,7 +1217,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.94 · Updated Oct 6, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.95 · Updated Oct 6, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1967,7 +1967,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.94';
+    const APP_VERSION = '5.95';
     const APP_UPDATED = 'Oct 6, 2026';
 
     let state = {
@@ -2046,13 +2046,21 @@
     }
 
     function syncOperatorModeButton() {
-      const btn = document.getElementById('btn-operator-mode');
-      if (!btn) return;
       const on = isOperatorMode();
-      btn.textContent = on ? 'Operator mode · ON' : 'Operator mode';
-      btn.classList.toggle('ring-1', on);
-      btn.classList.toggle('ring-emerald-400', on);
-      btn.classList.toggle('text-emerald-700', on);
+      const btn = document.getElementById('btn-operator-mode');
+      if (btn) {
+        btn.textContent = on ? 'Operator mode · ON' : 'Operator mode';
+        btn.classList.toggle('ring-1', on);
+        btn.classList.toggle('ring-emerald-400', on);
+        btn.classList.toggle('text-emerald-700', on);
+      }
+      // Import / Export all only for operator devices
+      ['btn-import-data', 'btn-export-all'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', !on);
+      });
+      const nudge = document.getElementById('home-backup-nudge');
+      if (nudge && !on) nudge.classList.add('hidden');
     }
 
     function renderClubSnapshotStatus() {
