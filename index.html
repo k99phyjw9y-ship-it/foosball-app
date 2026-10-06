@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.91 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.92 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.91" />
+  <meta name="lcfc-build" content="5.92" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.91 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.92 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -423,15 +423,33 @@
     .event-band-dyp { border-left: 5px solid #eab308 !important; border-left-style: solid !important; }
     #view-spectator .spec-card.spec-ec-monster,
     .event-band-monster { border-left: 5px solid #f97316 !important; border-left-style: solid !important; }
-    /* Monster playoff: orange band + gold top accent bar */
-    #view-spectator .spec-card.spec-ec-monster-po,
-    .event-band-monster-po {
-      border-left: 5px solid #f97316 !important;
+    /* Monster playoff: full red card (ranking stays orange band only) */
+    #view-spectator .spec-card.spec-ec-monster-po {
+      border: 1px solid #dc2626 !important;
+      border-left: 5px solid #ef4444 !important;
       border-left-style: solid !important;
-      box-shadow: inset 0 3px 0 0 #fbbf24, 0 4px 20px -8px rgb(var(--ink) / 0.25);
+      background: linear-gradient(160deg, rgb(127 29 29 / 0.55) 0%, rgb(69 10 10 / 0.72) 100%) !important;
+      box-shadow: 0 4px 20px -8px rgb(0 0 0 / 0.45);
     }
     #view-spectator .spec-card-live.spec-ec-monster-po {
-      box-shadow: inset 0 3px 0 0 #fbbf24, 0 0 0 1px rgb(var(--c-accent-500) / 0.2), 0 8px 24px -12px rgb(var(--ink) / 0.35);
+      border-color: #f87171 !important;
+      border-left: 5px solid #f87171 !important;
+      box-shadow: 0 0 0 1px rgb(248 113 113 / 0.35), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+    }
+    #view-spectator .spec-card-deck.spec-ec-monster-po {
+      background: linear-gradient(160deg, rgb(127 29 29 / 0.35) 0%, rgb(69 10 10 / 0.5) 100%) !important;
+      opacity: 0.95;
+    }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster-po {
+      background: linear-gradient(160deg, #fef2f2 0%, #fee2e2 100%) !important;
+      border-color: #fca5a5 !important;
+      border-left: 5px solid #ef4444 !important;
+    }
+    .event-band-monster-po {
+      border-left: 5px solid #ef4444 !important;
+      border-left-style: solid !important;
+      background: linear-gradient(160deg, #fef2f2 0%, #fee2e2 55%, #fecaca 100%) !important;
+      box-shadow: none;
     }
     #view-spectator .spec-event-title {
       font-size: 0.82rem;
@@ -452,13 +470,10 @@
       color: var(--text-muted);
     }
     #view-spectator .spec-card.spec-ec-monster-po .spec-phase-sub {
-      color: #fbbf24;
+      color: #fecaca;
     }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster-po .spec-phase-sub {
-      color: #d97706;
-    }
-    .event-band-monster-po {
-      box-shadow: inset 0 3px 0 0 #fbbf24;
+      color: #b91c1c;
     }
     .match-phase-sub {
       font-size: 0.65rem;
@@ -468,17 +483,17 @@
       color: #64748b;
       margin-bottom: 0.35rem;
     }
-    .match-phase-sub.phase-playoff { color: #d97706; }
+    .match-phase-sub.phase-playoff { color: #b91c1c; }
     #view-spectator .spec-card.spec-ec-singles .spec-event-title { color: #34d399; }
     #view-spectator .spec-card.spec-ec-doubles .spec-event-title { color: #60a5fa; }
     #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #facc15; }
-    #view-spectator .spec-card.spec-ec-monster .spec-event-title,
-    #view-spectator .spec-card.spec-ec-monster-po .spec-event-title { color: #fb923c; }
+    #view-spectator .spec-card.spec-ec-monster .spec-event-title { color: #fb923c; }
+    #view-spectator .spec-card.spec-ec-monster-po .spec-event-title { color: #fecaca; }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-singles .spec-event-title { color: #059669; }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-doubles .spec-event-title { color: #2563eb; }
     html[data-mode="light"] #view-spectator .spec-card.spec-ec-dyp .spec-event-title { color: #ca8a04; }
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster .spec-event-title,
-    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster-po .spec-event-title { color: #ea580c; }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster .spec-event-title { color: #ea580c; }
+    html[data-mode="light"] #view-spectator .spec-card.spec-ec-monster-po .spec-event-title { color: #b91c1c; }
     /* Group by event (Option B) */
     #view-spectator .spec-event-group { margin-bottom: 1.15rem; }
     #view-spectator .spec-event-header {
@@ -1200,7 +1215,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.91 · Updated Oct 6, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.92 · Updated Oct 6, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1949,7 +1964,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.91';
+    const APP_VERSION = '5.92';
     const APP_UPDATED = 'Oct 6, 2026';
 
     let state = {
