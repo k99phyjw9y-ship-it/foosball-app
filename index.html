@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.90 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.91 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.90" />
+  <meta name="lcfc-build" content="5.91" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.90 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.91 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1200,7 +1200,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.90 · Updated Oct 5, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.91 · Updated Oct 6, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
       </div>
@@ -1949,8 +1949,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.90';
-    const APP_UPDATED = 'Oct 5, 2026';
+    const APP_VERSION = '5.91';
+    const APP_UPDATED = 'Oct 6, 2026';
 
     let state = {
       players: [],
@@ -3296,10 +3296,13 @@
 
     function updateAddPlayerSelect(t) {
       const select = document.getElementById('add-player-select');
+      if (!select) return;
+      const prev = select.value;
       const available = state.players.filter(p => !t.playerIds.includes(p.id));
       select.innerHTML = available.length
         ? available.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
         : '<option value="">No more players</option>';
+      if (prev && available.some(p => p.id === prev)) select.value = prev;
     }
 
     function addPlayerToTournament() {
@@ -3982,16 +3985,42 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const unpaired = getUnpairedPlayerIds(t)
         .map(id => state.players.find(p => p.id === id))
         .filter(Boolean);
+      const ids = new Set(unpaired.map(p => p.id));
       const opts = unpaired.length
         ? unpaired.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
         : '<option value="">No unpaired players</option>';
       const a = document.getElementById('team-player-a');
       const b = document.getElementById('team-player-b');
-      if (a) a.innerHTML = opts;
+      // Keep in-progress BYP picks — auto-refresh used to rebuild and reset every 5s
+      const prevA = a ? a.value : '';
+      const prevB = b ? b.value : '';
+      const active = document.activeElement;
+      const focusId = (active && (active.id === 'team-player-a' || active.id === 'team-player-b'))
+        ? active.id
+        : null;
+
+      if (a) {
+        a.innerHTML = opts;
+        if (prevA && ids.has(prevA)) a.value = prevA;
+        else if (unpaired.length) a.selectedIndex = 0;
+      }
       if (b) {
         b.innerHTML = opts;
-        // Prefer a different default selection than A when possible
-        if (unpaired.length >= 2) b.selectedIndex = 1;
+        if (prevB && ids.has(prevB) && prevB !== (a ? a.value : '')) {
+          b.value = prevB;
+        } else if (unpaired.length >= 2) {
+          const aVal = a ? a.value : '';
+          const alt = unpaired.findIndex(p => p.id !== aVal);
+          b.selectedIndex = alt >= 0 ? alt : 0;
+        } else if (unpaired.length) {
+          b.selectedIndex = 0;
+        }
+      }
+      if (focusId) {
+        const el = document.getElementById(focusId);
+        if (el) {
+          try { el.focus({ preventScroll: true }); } catch (e) { try { el.focus(); } catch (e2) {} }
+        }
       }
       const hint = document.getElementById('unpaired-hint');
       if (hint) {
@@ -10102,6 +10131,20 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return el && !el.classList.contains('hidden');
     }
 
+    /** True when user is interacting with tournament setup controls (BYP picks, etc.). */
+    function isTournamentFormBusy() {
+      const ae = document.activeElement;
+      if (!ae) return false;
+      const ids = new Set([
+        'team-player-a', 'team-player-b', 'add-player-select',
+        'td-name', 'td-event-date', 'td-tables', 't-name'
+      ]);
+      if (ids.has(ae.id)) return true;
+      if (ae.tagName === 'SELECT' && ae.closest('#view-tournament')) return true;
+      if (ae.tagName === 'INPUT' && ae.closest('#view-tournament') && ae.type !== 'checkbox' && ae.type !== 'radio') return true;
+      return false;
+    }
+
     /** Reload state from localStorage and re-render the open page (skip while scoring). */
     function tickAppAutoRefresh() {
       try {
@@ -10128,6 +10171,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           return;
         }
         if (isViewVisible('view-tournament') && state.currentTournamentId) {
+          // Don't rebuild while user is picking BYP partners / adding players / editing name
+          if (typeof isTournamentFormBusy === 'function' && isTournamentFormBusy()) return;
           try { renderTournament(); } catch (e) {}
           return;
         }
