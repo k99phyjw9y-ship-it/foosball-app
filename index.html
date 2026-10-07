@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.96 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.97 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.96" />
+  <meta name="lcfc-build" content="5.97" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.96 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.97 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.96 · Updated Oct 7, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.97 · Updated Oct 7, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1977,7 +1977,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.96';
+    const APP_VERSION = '5.97';
     const APP_UPDATED = 'Oct 7, 2026';
 
     let state = {
@@ -3522,32 +3522,86 @@
       renderTournament();
     }
 
-    function updateAddPlayerSelect(t) {
-      const select = document.getElementById('add-player-select');
-      if (!select) return;
-      const prev = select.value;
-      const available = state.players.filter(p => !t.playerIds.includes(p.id));
-      select.innerHTML = available.length
-        ? available.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
-        : '<option value="">No more players</option>';
-      if (prev && available.some(p => p.id === prev)) select.value = prev;
+    function getAvailablePlayersForTournament(t) {
+      if (!t) return [];
+      const inEvent = new Set(t.playerIds || []);
+      return state.players
+        .filter(p => p && p.id && !inEvent.has(p.id))
+        .slice()
+        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
     }
 
-    function addPlayerToTournament() {
-      const t = getCurrentTournament();
+    function updateAddPlayerSelectedCount() {
+      const el = document.getElementById('add-player-selected-count');
+      if (!el) return;
+      const n = document.querySelectorAll('#add-player-roster input.add-player-cb:checked').length;
+      el.textContent = n === 1 ? '1 selected' : (n + ' selected');
+    }
+
+    function updateAddPlayerSelect(t) {
+      const box = document.getElementById('add-player-roster');
       const select = document.getElementById('add-player-select');
-      const pid = select.value;
-      if (!pid) return;
-      if (!t.playerIds.includes(pid)) {
-        t.playerIds.push(pid);
-        // Clear pending teams only — sit-out history on past rounds is kept
-        if (t.type === 'monster' || t.type === 'dyp') {
-          t.teams = [];
+      const available = getAvailablePlayersForTournament(t);
+      // Preserve checked ids across re-render when possible
+      const prevChecked = new Set();
+      document.querySelectorAll('#add-player-roster input.add-player-cb:checked').forEach(cb => {
+        if (cb.value) prevChecked.add(cb.value);
+      });
+      if (box) {
+        if (!available.length) {
+          box.innerHTML = '<p class="px-3 py-4 text-sm text-slate-500 text-center">All roster players are in this event</p>';
+        } else {
+          box.innerHTML = available.map(p => {
+            const checked = prevChecked.has(p.id) ? 'checked' : '';
+            return `<label class="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-slate-50 transition select-none">
+              <input type="checkbox" class="add-player-cb accent-emerald-600 w-4 h-4 shrink-0" value="${p.id}" ${checked} onchange="updateAddPlayerSelectedCount()" />
+              <span class="text-sm font-medium text-slate-800 min-w-0 truncate">${escapeHtml(p.name)}</span>
+            </label>`;
+          }).join('');
         }
-        saveState();
-        renderTournament();
-        toast('Player added — draw partners again (sit-out history kept)');
       }
+      if (select) {
+        select.innerHTML = available.length
+          ? available.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
+          : '<option value="">No more players</option>';
+      }
+      updateAddPlayerSelectedCount();
+    }
+
+    function toggleSelectAllAvailablePlayers() {
+      const boxes = Array.from(document.querySelectorAll('#add-player-roster input.add-player-cb'));
+      if (!boxes.length) return;
+      const allOn = boxes.every(cb => cb.checked);
+      boxes.forEach(cb => { cb.checked = !allOn; });
+      updateAddPlayerSelectedCount();
+    }
+
+    function addSelectedPlayersToTournament() {
+      const t = getCurrentTournament();
+      if (!t) return;
+      const ids = Array.from(document.querySelectorAll('#add-player-roster input.add-player-cb:checked'))
+        .map(cb => cb.value)
+        .filter(id => id && !(t.playerIds || []).includes(id));
+      if (!ids.length) {
+        toast('Select one or more players to add', 'error');
+        return;
+      }
+      ids.forEach(pid => t.playerIds.push(pid));
+      // Clear pending teams only — sit-out history on past rounds is kept
+      if (t.type === 'monster' || t.type === 'dyp') {
+        t.teams = [];
+      }
+      saveState();
+      renderTournament();
+      const msg = ids.length === 1
+        ? '1 player added'
+        : (ids.length + ' players added');
+      toast(msg + ((t.type === 'monster' || t.type === 'dyp') ? ' — draw partners again (sit-out history kept)' : ''), 'success');
+    }
+
+    /** @deprecated single-select path — kept for compatibility */
+    function addPlayerToTournament() {
+      addSelectedPlayersToTournament();
     }
 
     function removePlayerFromTournament(pid) {
@@ -10369,6 +10423,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       ]);
       if (ids.has(ae.id)) return true;
       if (ae.tagName === 'SELECT' && ae.closest('#view-tournament')) return true;
+      if (ae.closest && ae.closest('#add-player-roster')) return true;
       if (ae.tagName === 'INPUT' && ae.closest('#view-tournament') && ae.type !== 'checkbox' && ae.type !== 'radio') return true;
       return false;
     }
