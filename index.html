@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.95 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.96 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.95" />
+  <meta name="lcfc-build" content="5.96" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.95 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.96 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1142,6 +1142,16 @@
       </div>
     </header>
 
+    <!-- Member read-only banner (published club data) -->
+    <div id="member-readonly-banner" class="hidden mb-4 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2.5 flex items-start gap-2.5" role="status" aria-live="polite">
+      <span class="text-base leading-none mt-0.5 shrink-0" aria-hidden="true">👁️</span>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-semibold text-sky-900">Viewing published club data</p>
+        <p class="text-[11px] text-sky-800/80 mt-0.5 leading-snug">Read-only snapshot from the club file. Scoring and edits stay on the operator device.</p>
+      </div>
+      <span id="member-readonly-asof" class="text-[10px] font-medium text-sky-700/70 shrink-0 max-w-[7rem] text-right leading-snug"></span>
+    </div>
+
     <!-- Mobile bottom nav -->
     <nav class="sm:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-slate-200 safe-bottom">
       <div class="flex items-center justify-around px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
@@ -1217,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.95 · Updated Oct 6, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.96 · Updated Oct 7, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1967,8 +1977,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.95';
-    const APP_UPDATED = 'Oct 6, 2026';
+    const APP_VERSION = '5.96';
+    const APP_UPDATED = 'Oct 7, 2026';
 
     let state = {
       players: [],
@@ -2061,6 +2071,23 @@
       });
       const nudge = document.getElementById('home-backup-nudge');
       if (nudge && !on) nudge.classList.add('hidden');
+      updateMemberReadonlyBanner();
+    }
+
+    /** Show read-only badge when not operator and club snapshot is available/loaded. */
+    function updateMemberReadonlyBanner() {
+      const banner = document.getElementById('member-readonly-banner');
+      if (!banner) return;
+      const operator = isOperatorMode();
+      const clubOk = clubSnapshotMeta && clubSnapshotMeta.status === 'ok';
+      const show = !operator && clubOk;
+      banner.classList.toggle('hidden', !show);
+      const asof = document.getElementById('member-readonly-asof');
+      if (asof) {
+        asof.textContent = (show && clubSnapshotMeta.exportedAt)
+          ? ('As of\n' + formatClubExportedAt(clubSnapshotMeta.exportedAt))
+          : '';
+      }
     }
 
     function renderClubSnapshotStatus() {
@@ -2070,6 +2097,7 @@
       if (isOperatorMode()) {
         el.textContent = (clubSnapshotMeta.message || 'Club file') + ' · operator mode (local data kept)';
       }
+      updateMemberReadonlyBanner();
     }
 
     function clubSnapshotUrl() {
