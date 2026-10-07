@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.97 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v5.98 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.97" />
+  <meta name="lcfc-build" content="5.98" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.97 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v5.98 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.97 · Updated Oct 7, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.98 · Updated Oct 7, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1781,10 +1781,18 @@
       </div>
 
       <div id="tab-players" class="tab-content space-y-4">
-        <div class="flex flex-wrap gap-2 items-center">
-          <select id="add-player-select" class="input-field rounded-xl px-3 py-2.5 text-sm flex-1 min-w-[140px] text-slate-800"></select>
-          <button onclick="addPlayerToTournament()" class="btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold text-white">Add</button>
-          <button onclick="openPlayerModal(true)" class="btn-ghost px-3 py-2.5 rounded-xl text-sm text-slate-700">Quick Add</button>
+        <div class="space-y-2">
+          <div class="flex flex-wrap gap-2 items-center">
+            <button type="button" onclick="addSelectedPlayersToTournament()" class="btn-primary px-4 py-2.5 rounded-xl text-sm font-semibold text-white">Add selected</button>
+            <button type="button" onclick="toggleSelectAllAvailablePlayers()" class="btn-ghost px-3 py-2.5 rounded-xl text-sm text-slate-700">Select all</button>
+            <button type="button" onclick="openPlayerModal(true)" class="btn-ghost px-3 py-2.5 rounded-xl text-sm text-slate-700">New player</button>
+            <span id="add-player-selected-count" class="text-[11px] text-slate-500 font-medium sm:ml-auto">0 selected</span>
+          </div>
+          <div id="add-player-roster" class="rounded-xl border border-slate-200 bg-white max-h-48 overflow-y-auto divide-y divide-slate-100">
+            <p class="px-3 py-4 text-sm text-slate-500 text-center">Loading roster…</p>
+          </div>
+          <p class="text-[11px] text-slate-500">Tap names to multi-select, then <span class="font-semibold text-slate-700">Add selected</span>.</p>
+          <select id="add-player-select" class="hidden" aria-hidden="true" tabindex="-1"></select>
         </div>
         <div id="teams-section" class="hidden">
           <div class="flex items-center justify-between mb-3">
@@ -1977,7 +1985,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.97';
+    const APP_VERSION = '5.98';
     const APP_UPDATED = 'Oct 7, 2026';
 
     let state = {
@@ -3579,9 +3587,15 @@
     function addSelectedPlayersToTournament() {
       const t = getCurrentTournament();
       if (!t) return;
-      const ids = Array.from(document.querySelectorAll('#add-player-roster input.add-player-cb:checked'))
+      if (!Array.isArray(t.playerIds)) t.playerIds = [];
+      let ids = Array.from(document.querySelectorAll('#add-player-roster input.add-player-cb:checked'))
         .map(cb => cb.value)
-        .filter(id => id && !(t.playerIds || []).includes(id));
+        .filter(id => id && !t.playerIds.includes(id));
+      // Fallback: hidden/legacy single select
+      if (!ids.length) {
+        const sel = document.getElementById('add-player-select');
+        if (sel && sel.value && !t.playerIds.includes(sel.value)) ids = [sel.value];
+      }
       if (!ids.length) {
         toast('Select one or more players to add', 'error');
         return;
