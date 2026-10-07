@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v5.99 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.0 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="5.99" />
+  <meta name="lcfc-build" content="6.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v5.99 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.0 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v5.99 · Updated Oct 7, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.0 · Updated Oct 7, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1985,7 +1985,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '5.99';
+    const APP_VERSION = '6.0';
     const APP_UPDATED = 'Oct 7, 2026';
 
     let state = {
@@ -4495,51 +4495,85 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     /**
+     * Ranking-round matches played per player (not sit-outs).
+     * Used so late joiners are not sat out before they ever play.
+     */
+    function getRankingPlayedCounts(t) {
+      const counts = {};
+      (t.playerIds || []).forEach(id => { counts[id] = 0; });
+      (t.rounds || []).forEach(r => {
+        (r.matches || []).forEach(m => {
+          const sides = [m.entityA, m.entityB];
+          sides.forEach(ent => {
+            const ids = (typeof entityPlayerIds === 'function')
+              ? entityPlayerIds(ent)
+              : (ent?.playerIds || (ent?.id ? [ent.id] : []));
+            (ids || []).forEach(id => {
+              if (id) counts[id] = (counts[id] || 0) + 1;
+            });
+          });
+        });
+      });
+      return counts;
+    }
+
+    /**
      * Fair sit-out picker.
      * Strict: never take someone with more sits while anyone eligible has fewer.
      * Avoid back-to-back when possible. Field-change history is preserved.
+     * Late joiners (0 ranking matches played) only sit if veterans cannot fill the sit slots.
      */
     function pickFairSitOuts(t, players, needed) {
       if (needed <= 0 || !players.length) return [];
       needed = Math.min(needed, players.length);
       const counts = getSitOutCounts(t);
+      const played = getRankingPlayedCounts(t);
       const lastSit = new Set();
       const lastRound = (t.rounds || [])[(t.rounds || []).length - 1];
       if (lastRound?.sitOutIds?.length) {
         lastRound.sitOutIds.forEach(id => lastSit.add(id));
       }
-      // Ring order: players who have sat least, in prior sit-queue order, then others
       if (!Array.isArray(t.sitOutQueue)) t.sitOutQueue = [];
       const queueIds = t.sitOutQueue.filter(id => players.some(p => p.id === id));
 
       const remaining = [...players];
       const chosen = [];
 
-      while (chosen.length < needed && remaining.length) {
-        const minC = Math.min(...remaining.map(p => counts[p.id] || 0));
-        // Strict: only minimum sit-count players
-        let tier = remaining.filter(p => (counts[p.id] || 0) === minC);
+      const pickOneFrom = (pool) => {
+        if (!pool.length) return null;
+        const minC = Math.min(...pool.map(p => counts[p.id] || 0));
+        let tier = pool.filter(p => (counts[p.id] || 0) === minC);
         const notLast = tier.filter(p => !lastSit.has(p.id));
         if (notLast.length) tier = notLast;
-        // Prefer front of sit-out ring (those who have been waiting longest to sit)
         tier.sort((a, b) => {
           const ia = queueIds.indexOf(a.id);
           const ib = queueIds.indexOf(b.id);
           const ra = ia < 0 ? 9999 : ia;
           const rb = ib < 0 ? 9999 : ib;
           if (ra !== rb) return ra - rb;
-          return 0;
+          return Math.random() - 0.5;
         });
-        // Light shuffle only among equal ring position
-        const pick = tier[0];
+        return tier[0] || null;
+      };
+
+      // 1) Fill sits from veterans (have played ≥1 ranking match) first
+      // 2) Only then sit rookies who joined mid-event / never played
+      while (chosen.length < needed && remaining.length) {
+        const veterans = remaining.filter(p => (played[p.id] || 0) > 0);
+        const rookies = remaining.filter(p => (played[p.id] || 0) === 0);
+        const pool = veterans.length ? veterans : rookies;
+        const pick = pickOneFrom(pool);
+        if (!pick) break;
         chosen.push(pick);
         const idx = remaining.findIndex(p => p.id === pick.id);
         if (idx >= 0) remaining.splice(idx, 1);
       }
-      // Rotate ring: chosen go to the end
+
       const chosenIds = chosen.map(p => p.id);
       const restQ = (t.sitOutQueue || []).filter(id => !chosenIds.includes(id) && players.some(p => p.id === id));
       const newbies = players.map(p => p.id).filter(id => !restQ.includes(id) && !chosenIds.includes(id));
+      // Rookies who still haven't sat go near the front of the ring *after* veterans
+      // who are due — but chosen (actual sits) still rotate to the end
       t.sitOutQueue = restQ.concat(newbies).concat(chosenIds);
       return chosen;
     }
