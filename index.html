@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.1 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.2 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.1" />
+  <meta name="lcfc-build" content="6.2" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.1 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.2 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.1 · Updated Oct 8, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.2 · Updated Oct 8, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1999,7 +1999,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.1';
+    const APP_VERSION = '6.2';
     const APP_UPDATED = 'Oct 8, 2026';
 
     let state = {
@@ -9618,13 +9618,17 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const rankedPlayers = (state.players || []).filter(p => p && p.id);
       if (rankedPlayers.length) {
         const pts = rankedPlayers.map(p => {
+          // getPlayerRankingPoints expects player id (not the player object)
+          if (typeof ensurePlayerRanking === 'function') ensurePlayerRanking(p);
           const v = (typeof getPlayerRankingPoints === 'function')
-            ? getPlayerRankingPoints(p)
-            : (p.rankingPoints != null ? Number(p.rankingPoints) : 2000);
-          return { name: p.name, pts: v };
+            ? getPlayerRankingPoints(p.id)
+            : (p.rankingPoints != null && !isNaN(Number(p.rankingPoints))
+                ? Math.round(Number(p.rankingPoints))
+                : (typeof RANK_START_POINTS !== 'undefined' ? RANK_START_POINTS : 2000));
+          return { name: p.name, pts: Number(v) || 2000 };
         });
         rankAvg = Math.round(pts.reduce((a, b) => a + b.pts, 0) / pts.length);
-        pts.sort((a, b) => b.pts - a.pts);
+        pts.sort((a, b) => b.pts - a.pts || String(a.name).localeCompare(String(b.name)));
         rankHigh = pts[0];
         rankLow = pts[pts.length - 1];
       }
