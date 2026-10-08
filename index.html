@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.0 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.1 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.0" />
+  <meta name="lcfc-build" content="6.1" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.0 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.1 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.0 · Updated Oct 7, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.1 · Updated Oct 8, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1326,7 +1326,7 @@
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div class="min-w-0">
           <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Club stats</h2>
-          <p class="text-sm text-slate-500 mt-1">Week · Career · Ranking · Awards</p>
+          <p class="text-sm text-slate-500 mt-1">Week · Career · Ranking · Club DNA · Awards</p>
         </div>
         <div id="stats-week-controls" class="flex items-center gap-2">
           <label class="text-xs font-medium text-slate-500 uppercase tracking-wider" for="stats-week-select">Week</label>
@@ -1338,6 +1338,7 @@
         <button type="button" data-stats-tab="week" onclick="setStatsTab('week')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Week</button>
         <button type="button" data-stats-tab="career" onclick="setStatsTab('career')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Career</button>
         <button type="button" data-stats-tab="ranking" onclick="setStatsTab('ranking')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Ranking</button>
+        <button type="button" data-stats-tab="club-dna" onclick="setStatsTab('club-dna')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Club DNA</button>
         <button type="button" data-stats-tab="awards" onclick="setStatsTab('awards')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Awards</button>
       </div>
 
@@ -1520,6 +1521,19 @@
         </div>
       </div>
 
+      </div>
+
+      <div id="stats-tab-club-dna" class="stats-tab-panel space-y-4 hidden">
+        <div class="surface-card rounded-2xl px-5 py-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Club DNA</h3>
+            <p class="text-sm text-slate-500 mt-0.5">Lake Champlain Foosball Club · all-time snapshot</p>
+          </div>
+          <p class="text-[11px] text-slate-400 font-medium">Ranking + brackets · byes excluded</p>
+        </div>
+        <div id="club-dna-content" class="space-y-4">
+          <p class="text-sm text-slate-500 text-center py-8">Loading…</p>
+        </div>
       </div>
 
       <div id="stats-tab-awards" class="stats-tab-panel space-y-4 hidden">
@@ -1985,8 +1999,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.0';
-    const APP_UPDATED = 'Oct 7, 2026';
+    const APP_VERSION = '6.1';
+    const APP_UPDATED = 'Oct 8, 2026';
 
     let state = {
       players: [],
@@ -9509,9 +9523,212 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
 
     let statsActiveTab = 'week';
-    function setStatsTab(tab) {
+    function computeClubDNA() {
+      const byType = {
+        monster: { events: 0, matches: 0 },
+        dyp: { events: 0, matches: 0 },
+        singles: { events: 0, matches: 0 },
+        doubles: { events: 0, matches: 0 }
+      };
+      let totalMatches = 0;
+      let totalGoals = 0;
+      let closest = 0;
+      let blowouts = 0;
+      let seriesBo3 = 0;
+      let seriesBo5 = 0;
+      let playoffBrackets = 0;
+      let championFinishes = 0;
+      let finishedEvents = 0;
+      const weeks = new Set();
+      let fastestMs = null;
+      let slowestMs = null;
+
+      (state.tournaments || []).forEach(t => {
+        if (!t) return;
+        const typeKey = (t.type === 'singles' || t.type === 'doubles' || t.type === 'dyp' || t.type === 'monster') ? t.type : null;
+        weeks.add(getISOWeekKey(t.createdAt || Date.now()));
+        let eventMatches = 0;
+
+        const handle = (m) => {
+          const outcome = resolveMatchOutcome(m, t);
+          if (!outcome) return;
+          eventMatches++;
+          totalMatches++;
+          totalGoals += (outcome.gfA || 0) + (outcome.gfB || 0);
+          const margin = Math.abs((outcome.gfA || 0) - (outcome.gfB || 0));
+          if (margin === 1) closest++;
+          if (margin >= 5) blowouts++;
+          const games = (typeof getMatchGames === 'function') ? getMatchGames(m) : [];
+          if (games.length >= 2) {
+            const bestOf = (typeof getTournamentBestOf === 'function')
+              ? getTournamentBestOf(t, (m.a || m.bracket != null) ? 'playoff' : 'ranking')
+              : 1;
+            if (bestOf === 5) seriesBo5++;
+            else seriesBo3++;
+          }
+          const ms = m.timerEndedAt && m.timerStartedAt
+            ? (Number(m.timerEndedAt) - Number(m.timerStartedAt))
+            : (m.durationMs != null ? Number(m.durationMs) : null);
+          if (ms != null && ms > 0 && isFinite(ms)) {
+            if (fastestMs == null || ms < fastestMs) fastestMs = ms;
+            if (slowestMs == null || ms > slowestMs) slowestMs = ms;
+          }
+        };
+
+        (t.rounds || []).forEach(r => (r.matches || []).forEach(handle));
+        if (t.playoffs && typeof collectBracketMatches === 'function') {
+          collectBracketMatches(t.playoffs).forEach(handle);
+        }
+
+        if (typeKey && byType[typeKey]) {
+          byType[typeKey].events++;
+          byType[typeKey].matches += eventMatches;
+        }
+
+        const hasBracket = !!(t.playoffs && (
+          (t.playoffs.winnersRounds && t.playoffs.winnersRounds.length) ||
+          (t.playoffs.rounds && t.playoffs.rounds.length) ||
+          t.playoffs.grandFinal
+        ));
+        if (hasBracket) playoffBrackets++;
+        const placements = t.placements || t.playoffs?.placements || {};
+        if (placements.first) championFinishes++;
+        if (t.status === 'finished' || placements.first) finishedEvents++;
+      });
+
+      let uniqueFirst = 0, uniqueSecond = 0, uniqueThird = 0;
+      let mostTitles = null, mostPodiums = null;
+      try {
+        const podium = (typeof computePodiumStats === 'function') ? computePodiumStats() : {};
+        const rows = Object.entries(podium || {}).map(([pid, s]) => {
+          const name = state.players.find(p => p.id === pid)?.name || 'Unknown';
+          const medals = (s.first || 0) + (s.second || 0) + (s.third || 0);
+          return { pid, name, first: s.first || 0, second: s.second || 0, third: s.third || 0, medals };
+        });
+        uniqueFirst = rows.filter(r => r.first > 0).length;
+        uniqueSecond = rows.filter(r => r.second > 0).length;
+        uniqueThird = rows.filter(r => r.third > 0).length;
+        const byTitles = rows.slice().sort((a, b) => b.first - a.first || b.medals - a.medals || a.name.localeCompare(b.name));
+        if (byTitles.length && byTitles[0].first > 0) mostTitles = byTitles[0];
+        const byMedals = rows.slice().sort((a, b) => b.medals - a.medals || b.first - a.first || a.name.localeCompare(b.name));
+        if (byMedals.length && byMedals[0].medals > 0) mostPodiums = byMedals[0];
+      } catch (e) {}
+
+      let rankAvg = null, rankHigh = null, rankLow = null;
+      const rankedPlayers = (state.players || []).filter(p => p && p.id);
+      if (rankedPlayers.length) {
+        const pts = rankedPlayers.map(p => {
+          const v = (typeof getPlayerRankingPoints === 'function')
+            ? getPlayerRankingPoints(p)
+            : (p.rankingPoints != null ? Number(p.rankingPoints) : 2000);
+          return { name: p.name, pts: v };
+        });
+        rankAvg = Math.round(pts.reduce((a, b) => a + b.pts, 0) / pts.length);
+        pts.sort((a, b) => b.pts - a.pts);
+        rankHigh = pts[0];
+        rankLow = pts[pts.length - 1];
+      }
+
+      const fmtTimer = (ms) => {
+        if (ms == null) return null;
+        const s = Math.floor(ms / 1000);
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return m + ':' + String(r).padStart(2, '0');
+      };
+
+      return {
+        players: (state.players || []).length,
+        events: (state.tournaments || []).length,
+        finishedEvents, matches: totalMatches, goals: totalGoals,
+        avgGoals: totalMatches ? (totalGoals / totalMatches) : 0,
+        champions: championFinishes, playoffs: playoffBrackets, weeks: weeks.size,
+        byType, closest, blowouts, seriesBo3, seriesBo5,
+        uniqueFirst, uniqueSecond, uniqueThird, mostTitles, mostPodiums,
+        rankAvg, rankHigh, rankLow,
+        hare: fmtTimer(fastestMs), tortoise: fmtTimer(slowestMs)
+      };
+    }
+
+    function renderClubDNA() {
+      const el = document.getElementById('club-dna-content');
+      if (!el) return;
+      const d = computeClubDNA();
+      if (!d.events && !d.players) {
+        el.innerHTML = '<p class="text-sm text-slate-500 text-center py-10">Play an event to build Club DNA</p>';
+        return;
+      }
+      const typeOrder = [
+        { key: 'monster', label: 'Monster', color: '#f97316' },
+        { key: 'dyp', label: 'DYP', color: '#eab308' },
+        { key: 'singles', label: 'Singles', color: '#10b981' },
+        { key: 'doubles', label: 'Doubles / BYP', color: '#0ea5e9' }
+      ];
+      const maxTypeMatches = Math.max(1, ...typeOrder.map(t => (d.byType[t.key] && d.byType[t.key].matches) || 0));
+      const typeBars = typeOrder.map(t => {
+        const row = d.byType[t.key] || { events: 0, matches: 0 };
+        const pct = Math.round((row.matches / maxTypeMatches) * 100);
+        return '<div>' +
+          '<div class="flex justify-between text-xs mb-1 gap-2">' +
+          '<span class="font-semibold text-slate-800 flex items-center gap-2 min-w-0">' +
+          '<span class="w-2 h-2 rounded-full shrink-0" style="background:' + t.color + '"></span>' + t.label + '</span>' +
+          '<span class="text-slate-500 tabular-nums shrink-0">' + row.events + ' events · ' + row.matches + ' matches</span></div>' +
+          '<div class="h-2 rounded-full bg-slate-100 overflow-hidden">' +
+          '<div class="h-full rounded-full" style="width:' + pct + '%;background:' + t.color + '"></div></div></div>';
+      }).join('');
+
+      const titlesLine = d.mostTitles
+        ? '<div class="flex justify-between gap-2 border-t border-slate-100 pt-2 mt-2"><span class="text-slate-500">Most titles</span><span class="font-semibold text-amber-700">' + escapeHtml(d.mostTitles.name) + ' · ' + d.mostTitles.first + '</span></div>'
+        : '';
+      const podiumLine = d.mostPodiums
+        ? '<div class="flex justify-between gap-2"><span class="text-slate-500">Most podiums</span><span class="font-semibold text-slate-800">' + escapeHtml(d.mostPodiums.name) + ' · ' + d.mostPodiums.medals + '</span></div>'
+        : '';
+      const hareLine = d.hare
+        ? '<div class="flex justify-between gap-2 border-t border-slate-100 pt-2 mt-2"><span class="text-slate-500">🐇 Hare (fastest)</span><span class="font-semibold text-emerald-700">' + d.hare + '</span></div>'
+        : '';
+      const tortoiseLine = d.tortoise
+        ? '<div class="flex justify-between gap-2"><span class="text-slate-500">🐢 Tortoise (slowest)</span><span class="font-semibold text-slate-800">' + d.tortoise + '</span></div>'
+        : '';
+      const bo5 = d.seriesBo5
+        ? '<div class="flex justify-between gap-2"><span class="text-slate-500">Best of 5 series</span><span class="font-bold text-slate-900">' + d.seriesBo5 + '</span></div>'
+        : '';
+
+      el.innerHTML =
+        '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Players</p><p class="text-3xl font-extrabold text-slate-900 mt-1 tabular-nums">' + d.players + '</p><p class="text-[11px] text-slate-500 mt-1">on roster</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Events</p><p class="text-3xl font-extrabold text-slate-900 mt-1 tabular-nums">' + d.events + '</p><p class="text-[11px] text-slate-500 mt-1">' + d.finishedEvents + ' finished</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Matches</p><p class="text-3xl font-extrabold text-emerald-700 mt-1 tabular-nums">' + d.matches + '</p><p class="text-[11px] text-slate-500 mt-1">completed series</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Champions</p><p class="text-3xl font-extrabold text-amber-600 mt-1 tabular-nums">' + d.champions + '</p><p class="text-[11px] text-slate-500 mt-1">1st-place finishes</p></div>' +
+        '</div>' +
+        '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Goals</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.goals.toLocaleString() + '</p><p class="text-[11px] text-slate-500 mt-1">combined scored</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Avg / match</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.avgGoals.toFixed(1) + '</p><p class="text-[11px] text-slate-500 mt-1">goals both sides</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Playoffs</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.playoffs + '</p><p class="text-[11px] text-slate-500 mt-1">brackets run</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Weeks</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.weeks + '</p><p class="text-[11px] text-slate-500 mt-1">active ISO weeks</p></div>' +
+        '</div>' +
+        '<div class="surface-card rounded-2xl p-5 space-y-4"><div><h4 class="text-sm font-bold text-slate-900">By event type</h4><p class="text-[11px] text-slate-500 mt-0.5">Events · matches</p></div><div class="space-y-3">' + typeBars + '</div></div>' +
+        '<div class="grid sm:grid-cols-2 gap-3">' +
+        '<div class="surface-card rounded-2xl p-5 space-y-2 text-sm"><h4 class="text-sm font-bold text-slate-900 mb-1">Podium DNA</h4>' +
+        '<div class="flex justify-between gap-2"><span class="text-slate-500">🥇 Unique champions</span><span class="font-bold text-slate-900">' + d.uniqueFirst + '</span></div>' +
+        '<div class="flex justify-between gap-2"><span class="text-slate-500">🥈 At least one 2nd</span><span class="font-bold text-slate-900">' + d.uniqueSecond + '</span></div>' +
+        '<div class="flex justify-between gap-2"><span class="text-slate-500">🥉 At least one 3rd</span><span class="font-bold text-slate-900">' + d.uniqueThird + '</span></div>' +
+        titlesLine + podiumLine + '</div>' +
+        '<div class="surface-card rounded-2xl p-5 space-y-2 text-sm"><h4 class="text-sm font-bold text-slate-900 mb-1">Match DNA</h4>' +
+        '<div class="flex justify-between gap-2"><span class="text-slate-500">Closest (1-goal)</span><span class="font-bold text-slate-900">' + d.closest + '</span></div>' +
+        '<div class="flex justify-between gap-2"><span class="text-slate-500">Blowouts (5+)</span><span class="font-bold text-slate-900">' + d.blowouts + '</span></div>' +
+        '<div class="flex justify-between gap-2"><span class="text-slate-500">Best of 3 series</span><span class="font-bold text-slate-900">' + d.seriesBo3 + '</span></div>' +
+        bo5 + hareLine + tortoiseLine + '</div></div>' +
+        '<div class="surface-card rounded-2xl p-5"><h4 class="text-sm font-bold text-slate-900 mb-3">Club ranking pulse</h4>' +
+        '<div class="grid grid-cols-3 gap-3 text-center">' +
+        '<div class="rounded-xl bg-slate-50 border border-slate-100 px-2 py-3"><p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Average</p><p class="text-xl font-bold text-slate-900 mt-0.5 tabular-nums">' + (d.rankAvg != null ? d.rankAvg.toLocaleString() : '—') + '</p></div>' +
+        '<div class="rounded-xl bg-emerald-50 border border-emerald-100 px-2 py-3"><p class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/70">Highest</p><p class="text-xl font-bold text-emerald-800 mt-0.5 tabular-nums">' + (d.rankHigh ? d.rankHigh.pts.toLocaleString() : '—') + '</p><p class="text-[10px] text-emerald-700/80 mt-0.5 truncate">' + (d.rankHigh ? escapeHtml(d.rankHigh.name) : '') + '</p></div>' +
+        '<div class="rounded-xl bg-slate-50 border border-slate-100 px-2 py-3"><p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Lowest</p><p class="text-xl font-bold text-slate-900 mt-0.5 tabular-nums">' + (d.rankLow ? d.rankLow.pts.toLocaleString() : '—') + '</p><p class="text-[10px] text-slate-500 mt-0.5 truncate">' + (d.rankLow ? escapeHtml(d.rankLow.name) : '') + '</p></div>' +
+        '</div></div>';
+    }
+
+        function setStatsTab(tab) {
       statsActiveTab = tab || 'week';
-      ['week', 'career', 'ranking', 'awards'].forEach(id => {
+      ['week', 'career', 'ranking', 'club-dna', 'awards'].forEach(id => {
         const panel = document.getElementById('stats-tab-' + id);
         if (panel) panel.classList.toggle('hidden', id !== statsActiveTab);
       });
@@ -9520,6 +9737,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       });
       const weekCtrl = document.getElementById('stats-week-controls');
       if (weekCtrl) weekCtrl.classList.toggle('hidden', statsActiveTab !== 'week');
+      if (statsActiveTab === 'club-dna' && typeof renderClubDNA === 'function') {
+        try { renderClubDNA(); } catch (e) { console.error(e); }
+      }
       // Charts need visible canvas to size correctly when opening Awards
       if (statsActiveTab === 'awards' && typeof renderStatsCharts === 'function') {
         try { requestAnimationFrame(() => renderStatsCharts()); } catch (e) {}
