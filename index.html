@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.6 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.7 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.6" />
+  <meta name="lcfc-build" content="6.7" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.6 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.7 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.6 · Updated Oct 9, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.7 · Updated Oct 9, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1999,7 +1999,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.6';
+    const APP_VERSION = '6.7';
     const APP_UPDATED = 'Oct 9, 2026';
 
     let state = {
@@ -4544,21 +4544,31 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const played = getRankingPlayedCounts(t);
       const lastSit = new Set();
       const lastRound = (t.rounds || [])[(t.rounds || []).length - 1];
-      if (lastRound?.sitOutIds?.length) {
+      if (lastRound && lastRound.sitOutIds && lastRound.sitOutIds.length) {
         lastRound.sitOutIds.forEach(id => lastSit.add(id));
       }
+      // Only active players stay in the rotation ring (absent / removed drop out)
+      const activeIds = new Set(players.map(p => p.id));
       if (!Array.isArray(t.sitOutQueue)) t.sitOutQueue = [];
-      const queueIds = t.sitOutQueue.filter(id => players.some(p => p.id === id));
+      t.sitOutQueue = t.sitOutQueue.filter(id => activeIds.has(id));
+      const queueIds = t.sitOutQueue.slice();
 
-      const remaining = [...players];
+      const remaining = players.slice();
       const chosen = [];
 
       const pickOneFrom = (pool) => {
         if (!pool.length) return null;
-        const minC = Math.min(...pool.map(p => counts[p.id] || 0));
+        const minC = Math.min.apply(null, pool.map(p => counts[p.id] || 0));
         let tier = pool.filter(p => (counts[p.id] || 0) === minC);
+        // Among equal sits: prefer players who have played more ranking matches
+        // (late joiners with 0 sits and 1 game played sit after long-time 0-sit players)
+        const maxPlayed = Math.max.apply(null, tier.map(p => played[p.id] || 0));
+        const highPlayed = tier.filter(p => (played[p.id] || 0) === maxPlayed);
+        if (highPlayed.length) tier = highPlayed;
+        // Avoid back-to-back sits when possible
         const notLast = tier.filter(p => !lastSit.has(p.id));
         if (notLast.length) tier = notLast;
+        // Ring order: earlier in queue sits first
         tier.sort((a, b) => {
           const ia = queueIds.indexOf(a.id);
           const ib = queueIds.indexOf(b.id);
@@ -4570,8 +4580,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return tier[0] || null;
       };
 
-      // 1) Fill sits from veterans (have played ≥1 ranking match) first
-      // 2) Only then sit rookies who joined mid-event / never played
+      // 1) Veterans (played ≥1 ranking match) fill sit slots first
+      // 2) Rookies (never played — e.g. just added) only sit if still short of needed
       while (chosen.length < needed && remaining.length) {
         const veterans = remaining.filter(p => (played[p.id] || 0) > 0);
         const rookies = remaining.filter(p => (played[p.id] || 0) === 0);
@@ -4584,11 +4594,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
 
       const chosenIds = chosen.map(p => p.id);
-      const restQ = (t.sitOutQueue || []).filter(id => !chosenIds.includes(id) && players.some(p => p.id === id));
-      const newbies = players.map(p => p.id).filter(id => !restQ.includes(id) && !chosenIds.includes(id));
-      // Rookies who still haven't sat go near the front of the ring *after* veterans
-      // who are due — but chosen (actual sits) still rotate to the end
-      t.sitOutQueue = restQ.concat(newbies).concat(chosenIds);
+      const restQ = queueIds.filter(id => !chosenIds.includes(id) && activeIds.has(id));
+      const notInQueue = players.map(p => p.id).filter(id => !restQ.includes(id) && !chosenIds.includes(id));
+      // Rotate: unchosen keep order, new active players, then those who just sat
+      t.sitOutQueue = restQ.concat(notInQueue).concat(chosenIds);
       return chosen;
     }
 
