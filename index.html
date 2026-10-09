@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.4 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.5 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.4" />
+  <meta name="lcfc-build" content="6.5" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.4 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.5 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.4 · Updated Oct 9, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.5 · Updated Oct 9, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1999,7 +1999,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.4';
+    const APP_VERSION = '6.5';
     const APP_UPDATED = 'Oct 9, 2026';
 
     let state = {
@@ -9534,52 +9534,83 @@ function flipRankingMatchCoin(roundNum, matchId) {
       let totalGoals = 0;
       let closest = 0;
       let blowouts = 0;
+      let shutouts = 0;
       let seriesBo3 = 0;
       let seriesBo5 = 0;
       let playoffBrackets = 0;
       let championFinishes = 0;
       let finishedEvents = 0;
+      let eventsWithMatches = 0;
       const weeks = new Set();
       let fastestMs = null;
       let slowestMs = null;
+      let timerSumMs = 0;
+      let timerCount = 0;
 
       (state.tournaments || []).forEach(t => {
         if (!t) return;
-        const typeKey = (t.type === 'singles' || t.type === 'doubles' || t.type === 'dyp' || t.type === 'monster') ? t.type : null;
-        weeks.add(getISOWeekKey(t.createdAt || Date.now()));
+        const typeKey = (t.type === 'singles' || t.type === 'doubles' || t.type === 'dyp' || t.type === 'monster')
+          ? t.type
+          : null;
+        try {
+          weeks.add(getISOWeekKey(t.createdAt || Date.now()));
+        } catch (e) {}
         let eventMatches = 0;
 
         const handle = (m) => {
-          const outcome = resolveMatchOutcome(m, t);
+          if (!m) return;
+          let outcome = null;
+          try {
+            outcome = resolveMatchOutcome(m, t);
+          } catch (e) {
+            return;
+          }
           if (!outcome) return;
           eventMatches++;
           totalMatches++;
-          totalGoals += (outcome.gfA || 0) + (outcome.gfB || 0);
-          const margin = Math.abs((outcome.gfA || 0) - (outcome.gfB || 0));
+          const gfA = Number(outcome.gfA) || 0;
+          const gfB = Number(outcome.gfB) || 0;
+          totalGoals += gfA + gfB;
+          const margin = Math.abs(gfA - gfB);
           if (margin === 1) closest++;
           if (margin >= 5) blowouts++;
-          const games = (typeof getMatchGames === 'function') ? getMatchGames(m) : [];
-          if (games.length >= 2) {
-            const bestOf = (typeof getTournamentBestOf === 'function')
-              ? getTournamentBestOf(t, (m.a || m.bracket != null) ? 'playoff' : 'ranking')
-              : 1;
-            if (bestOf === 5) seriesBo5++;
-            else seriesBo3++;
+          if ((gfA === 0 && gfB > 0) || (gfB === 0 && gfA > 0)) shutouts++;
+
+          try {
+            const games = (typeof getMatchGames === 'function') ? getMatchGames(m) : [];
+            if (games && games.length >= 2) {
+              const bestOf = (typeof getTournamentBestOf === 'function')
+                ? getTournamentBestOf(t, (m.a || m.bracket != null) ? 'playoff' : 'ranking')
+                : 1;
+              if (bestOf === 5) seriesBo5++;
+              else seriesBo3++;
+            }
+          } catch (e) {}
+
+          let ms = null;
+          if (m.timerEndedAt && m.timerStartedAt) {
+            ms = Number(m.timerEndedAt) - Number(m.timerStartedAt);
+          } else if (m.durationMs != null) {
+            ms = Number(m.durationMs);
           }
-          const ms = m.timerEndedAt && m.timerStartedAt
-            ? (Number(m.timerEndedAt) - Number(m.timerStartedAt))
-            : (m.durationMs != null ? Number(m.durationMs) : null);
           if (ms != null && ms > 0 && isFinite(ms)) {
+            timerSumMs += ms;
+            timerCount++;
             if (fastestMs == null || ms < fastestMs) fastestMs = ms;
             if (slowestMs == null || ms > slowestMs) slowestMs = ms;
           }
         };
 
-        (t.rounds || []).forEach(r => (r.matches || []).forEach(handle));
-        if (t.playoffs && typeof collectBracketMatches === 'function') {
-          collectBracketMatches(t.playoffs).forEach(handle);
+        try {
+          (t.rounds || []).forEach(r => (r.matches || []).forEach(handle));
+          if (t.playoffs && typeof collectBracketMatches === 'function') {
+            collectBracketMatches(t.playoffs).forEach(handle);
+          }
+        } catch (e) {
+          console.error('Club DNA match walk', e);
         }
 
+        if (eventMatches > 0) eventsWithMatches++;
         if (typeKey && byType[typeKey]) {
           byType[typeKey].events++;
           byType[typeKey].matches += eventMatches;
@@ -9591,7 +9622,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           t.playoffs.grandFinal
         ));
         if (hasBracket) playoffBrackets++;
-        const placements = t.placements || t.playoffs?.placements || {};
+        const placements = t.placements || (t.playoffs && t.playoffs.placements) || {};
         if (placements.first) championFinishes++;
         if (t.status === 'finished' || placements.first) finishedEvents++;
       });
@@ -9601,7 +9632,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       try {
         const podium = (typeof computePodiumStats === 'function') ? computePodiumStats() : {};
         const rows = Object.entries(podium || {}).map(([pid, s]) => {
-          const name = state.players.find(p => p.id === pid)?.name || 'Unknown';
+          const name = (state.players.find(p => p.id === pid) || {}).name || 'Unknown';
           const medals = (s.first || 0) + (s.second || 0) + (s.third || 0);
           return { pid, name, first: s.first || 0, second: s.second || 0, third: s.third || 0, medals };
         });
@@ -9612,30 +9643,38 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (byTitles.length && byTitles[0].first > 0) mostTitles = byTitles[0];
         const byMedals = rows.slice().sort((a, b) => b.medals - a.medals || b.first - a.first || a.name.localeCompare(b.name));
         if (byMedals.length && byMedals[0].medals > 0) mostPodiums = byMedals[0];
-      } catch (e) {}
+      } catch (e) {
+        console.error('Club DNA podium', e);
+      }
 
       let rankAvg = null, rankHigh = null, rankLow = null;
-      const rankedPlayers = (state.players || []).filter(p => p && p.id);
-      if (rankedPlayers.length) {
-        const pts = rankedPlayers.map(p => {
-          // getPlayerRankingPoints expects player id (not the player object)
-          if (typeof ensurePlayerRanking === 'function') ensurePlayerRanking(p);
-          const v = (typeof getPlayerRankingPoints === 'function')
-            ? getPlayerRankingPoints(p.id)
-            : (p.rankingPoints != null && !isNaN(Number(p.rankingPoints))
-                ? Math.round(Number(p.rankingPoints))
-                : (typeof RANK_START_POINTS !== 'undefined' ? RANK_START_POINTS : 2000));
-          return { name: p.name, pts: Number(v) || 2000 };
-        });
-        rankAvg = Math.round(pts.reduce((a, b) => a + b.pts, 0) / pts.length);
-        pts.sort((a, b) => b.pts - a.pts || String(a.name).localeCompare(String(b.name)));
-        rankHigh = pts[0];
-        rankLow = pts[pts.length - 1];
+      try {
+        const rankedPlayers = (state.players || []).filter(p => p && p.id);
+        if (rankedPlayers.length) {
+          const pts = rankedPlayers.map(p => {
+            if (typeof ensurePlayerRanking === 'function') ensurePlayerRanking(p);
+            let v = 2000;
+            if (typeof getPlayerRankingPoints === 'function') {
+              v = getPlayerRankingPoints(p.id);
+            } else if (p.rankingPoints != null && !isNaN(Number(p.rankingPoints))) {
+              v = Math.round(Number(p.rankingPoints));
+            } else if (typeof RANK_START_POINTS !== 'undefined') {
+              v = RANK_START_POINTS;
+            }
+            return { name: p.name, pts: Number(v) || 2000 };
+          });
+          rankAvg = Math.round(pts.reduce((a, b) => a + b.pts, 0) / pts.length);
+          pts.sort((a, b) => b.pts - a.pts || String(a.name).localeCompare(String(b.name)));
+          rankHigh = pts[0];
+          rankLow = pts[pts.length - 1];
+        }
+      } catch (e) {
+        console.error('Club DNA ranking', e);
       }
 
       const fmtTimer = (ms) => {
-        if (ms == null) return null;
-        const s = Math.floor(ms / 1000);
+        if (ms == null || !isFinite(ms)) return null;
+        const s = Math.floor(Number(ms) / 1000);
         const m = Math.floor(s / 60);
         const r = s % 60;
         return m + ':' + String(r).padStart(2, '0');
@@ -9644,17 +9683,33 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return {
         players: (state.players || []).length,
         events: (state.tournaments || []).length,
-        finishedEvents, matches: totalMatches, goals: totalGoals,
+        finishedEvents,
+        matches: totalMatches,
+        goals: totalGoals,
         avgGoals: totalMatches ? (totalGoals / totalMatches) : 0,
-        champions: championFinishes, playoffs: playoffBrackets, weeks: weeks.size,
-        byType, closest, blowouts, shutouts: shutouts || 0, seriesBo3, seriesBo5,
-        eventsWithMatches: eventsWithMatches || 0,
+        champions: championFinishes,
+        playoffs: playoffBrackets,
+        weeks: weeks.size,
+        byType,
+        closest,
+        blowouts,
+        shutouts,
+        seriesBo3,
+        seriesBo5,
+        eventsWithMatches,
         avgGoalsPerNight: eventsWithMatches ? (totalGoals / eventsWithMatches) : 0,
         avgMatchMs: timerCount ? (timerSumMs / timerCount) : null,
-        timedMatches: timerCount || 0,
-        uniqueFirst, uniqueSecond, uniqueThird, mostTitles, mostPodiums,
-        rankAvg, rankHigh, rankLow,
-        hare: fmtTimer(fastestMs), tortoise: fmtTimer(slowestMs),
+        timedMatches: timerCount,
+        uniqueFirst,
+        uniqueSecond,
+        uniqueThird,
+        mostTitles,
+        mostPodiums,
+        rankAvg,
+        rankHigh,
+        rankLow,
+        hare: fmtTimer(fastestMs),
+        tortoise: fmtTimer(slowestMs),
         avgMatchLength: timerCount ? fmtTimer(timerSumMs / timerCount) : null
       };
     }
@@ -9717,8 +9772,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Champions</p><p class="text-3xl font-extrabold text-amber-600 mt-1 tabular-nums">' + d.champions + '</p><p class="text-[11px] text-slate-500 mt-1">1st-place finishes</p></div>' +
         '</div>' +
         '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">' +
-        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Goals</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.goals.toLocaleString() + '</p><p class="text-[11px] text-slate-500 mt-1">combined scored</p></div>' +
-        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Avg / match</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.avgGoals.toFixed(1) + '</p><p class="text-[11px] text-slate-500 mt-1">goals both sides</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Goals</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + (Number(d.goals) || 0).toLocaleString() + '</p><p class="text-[11px] text-slate-500 mt-1">combined scored</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Avg / match</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + (Number(d.avgGoals) || 0).toFixed(1) + '</p><p class="text-[11px] text-slate-500 mt-1">goals both sides</p></div>' +
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Playoffs</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.playoffs + '</p><p class="text-[11px] text-slate-500 mt-1">brackets run</p></div>' +
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Weeks</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.weeks + '</p><p class="text-[11px] text-slate-500 mt-1">active ISO weeks</p></div>' +
         '</div>' +
