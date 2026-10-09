@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.7 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.8 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.7" />
+  <meta name="lcfc-build" content="6.8" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.7 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.8 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.7 · Updated Oct 9, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.8 · Updated Oct 9, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1917,6 +1917,11 @@
         <input id="player-ranking-points" type="number" min="0" max="99999" step="1" value="2000" class="input-field w-full rounded-xl px-4 py-3 text-slate-800" />
         <p class="text-[11px] text-slate-500 mt-1">Club ranking · new players start at 2,000 (Amateur)</p>
       </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">State</label>
+        <select id="player-state" class="input-field w-full rounded-xl px-4 py-3 text-slate-800"></select>
+        <p class="text-[11px] text-slate-500 mt-1">Optional · shown on profile and Club DNA geography</p>
+      </div>
       <div class="flex gap-3 pt-1">
         <button onclick="closePlayerModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
         <button onclick="savePlayer()" class="btn-primary flex-1 py-3 rounded-xl font-semibold text-white">Save</button>
@@ -1999,7 +2004,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.7';
+    const APP_VERSION = '6.8';
     const APP_UPDATED = 'Oct 9, 2026';
 
     let state = {
@@ -2321,6 +2326,59 @@
 
     // ==================== CLUB RANKING (WFT-inspired) ====================
     const RANK_START_POINTS = 2000;
+    const PLAYER_STATE_OPTIONS = [
+      { value: '', label: '— Not set' },
+      { value: 'VT', label: 'Vermont' }, { value: 'NY', label: 'New York' },
+      { value: 'NH', label: 'New Hampshire' }, { value: 'MA', label: 'Massachusetts' },
+      { value: 'CT', label: 'Connecticut' }, { value: 'RI', label: 'Rhode Island' },
+      { value: 'ME', label: 'Maine' }, { value: 'QC', label: 'Quebec' },
+      { value: 'ON', label: 'Ontario' },
+      { value: 'AL', label: 'Alabama' }, { value: 'AK', label: 'Alaska' },
+      { value: 'AZ', label: 'Arizona' }, { value: 'AR', label: 'Arkansas' },
+      { value: 'CA', label: 'California' }, { value: 'CO', label: 'Colorado' },
+      { value: 'DE', label: 'Delaware' }, { value: 'DC', label: 'District of Columbia' },
+      { value: 'FL', label: 'Florida' }, { value: 'GA', label: 'Georgia' },
+      { value: 'HI', label: 'Hawaii' }, { value: 'ID', label: 'Idaho' },
+      { value: 'IL', label: 'Illinois' }, { value: 'IN', label: 'Indiana' },
+      { value: 'IA', label: 'Iowa' }, { value: 'KS', label: 'Kansas' },
+      { value: 'KY', label: 'Kentucky' }, { value: 'LA', label: 'Louisiana' },
+      { value: 'MD', label: 'Maryland' }, { value: 'MI', label: 'Michigan' },
+      { value: 'MN', label: 'Minnesota' }, { value: 'MS', label: 'Mississippi' },
+      { value: 'MO', label: 'Missouri' }, { value: 'MT', label: 'Montana' },
+      { value: 'NE', label: 'Nebraska' }, { value: 'NV', label: 'Nevada' },
+      { value: 'NJ', label: 'New Jersey' }, { value: 'NM', label: 'New Mexico' },
+      { value: 'NC', label: 'North Carolina' }, { value: 'ND', label: 'North Dakota' },
+      { value: 'OH', label: 'Ohio' }, { value: 'OK', label: 'Oklahoma' },
+      { value: 'OR', label: 'Oregon' }, { value: 'PA', label: 'Pennsylvania' },
+      { value: 'SC', label: 'South Carolina' }, { value: 'SD', label: 'South Dakota' },
+      { value: 'TN', label: 'Tennessee' }, { value: 'TX', label: 'Texas' },
+      { value: 'UT', label: 'Utah' }, { value: 'VA', label: 'Virginia' },
+      { value: 'WA', label: 'Washington' }, { value: 'WV', label: 'West Virginia' },
+      { value: 'WI', label: 'Wisconsin' }, { value: 'WY', label: 'Wyoming' },
+      { value: 'OTHER', label: 'Other' }
+    ];
+    function stateLabel(code) {
+      if (!code) return '';
+      const c = String(code).toUpperCase();
+      const hit = PLAYER_STATE_OPTIONS.find(o => o.value === c);
+      return hit ? hit.label : c;
+    }
+    function normalizePlayerState(v) {
+      if (v == null || v === '') return '';
+      const c = String(v).trim().toUpperCase();
+      if (PLAYER_STATE_OPTIONS.some(o => o.value === c)) return c;
+      return 'OTHER';
+    }
+    function fillPlayerStateSelect(selected) {
+      const sel = document.getElementById('player-state');
+      if (!sel) return;
+      const cur = normalizePlayerState(selected);
+      sel.innerHTML = PLAYER_STATE_OPTIONS.map(o =>
+        '<option value="' + o.value + '"' + (o.value === cur ? ' selected' : '') + '>' + o.label + '</option>'
+      ).join('');
+      sel.value = cur;
+    }
+
     const SEED_POINTS_PER_TIER = 8;
 
     function ensurePlayerRanking(p) {
@@ -2669,6 +2727,7 @@
       document.getElementById('player-skill').value = '3';
       const rp = document.getElementById('player-ranking-points');
       if (rp) rp.value = String(RANK_START_POINTS);
+      if (typeof fillPlayerStateSelect === 'function') fillPlayerStateSelect('');
       document.getElementById('player-modal').classList.remove('hidden');
       document.getElementById('player-name').focus();
     }
@@ -2686,6 +2745,9 @@
       const skill = parseInt(document.getElementById('player-skill').value, 10);
       let rankingPoints = parseInt(document.getElementById('player-ranking-points')?.value, 10);
       if (isNaN(rankingPoints)) rankingPoints = RANK_START_POINTS;
+      const playerState = (typeof normalizePlayerState === 'function')
+        ? normalizePlayerState(document.getElementById('player-state')?.value)
+        : '';
 
       if (state.editingPlayerId) {
         const p = state.players.find(x => x.id === state.editingPlayerId);
@@ -2693,10 +2755,11 @@
           p.name = name;
           p.skill = skill;
           p.rankingPoints = rankingPoints;
+          p.state = playerState || '';
           ensurePlayerRanking(p);
         }
       } else {
-        const player = { id: uid(), name, skill, rankingPoints, rankingDelta: 0 };
+        const player = { id: uid(), name, skill, rankingPoints, rankingDelta: 0, state: playerState || '' };
         state.players.push(player);
         if (state.quickAddMode && state.currentTournamentId) {
           const t = getCurrentTournament();
@@ -2723,6 +2786,7 @@
       ensurePlayerRanking(p);
       const rp = document.getElementById('player-ranking-points');
       if (rp) rp.value = String(p.rankingPoints);
+      if (typeof fillPlayerStateSelect === 'function') fillPlayerStateSelect(p.state || '');
       document.getElementById('player-modal').classList.remove('hidden');
     }
 
@@ -9741,6 +9805,37 @@ function flipRankingMatchCoin(roundNum, matchId) {
         el.innerHTML = '<p class="text-sm text-slate-500 text-center py-10">Play an event to build Club DNA</p>';
         return;
       }
+
+      const stateCounts = {};
+      let stateTagged = 0;
+      (state.players || []).forEach(p => {
+        const code = (typeof normalizePlayerState === 'function')
+          ? normalizePlayerState(p.state)
+          : (p.state ? String(p.state).toUpperCase() : '');
+        if (!code) return;
+        stateTagged++;
+        if (!stateCounts[code]) stateCounts[code] = { code: code, count: 0 };
+        stateCounts[code].count++;
+      });
+      const stateRows = Object.values(stateCounts).sort((a, b) => b.count - a.count || a.code.localeCompare(b.code));
+      const maxState = Math.max(1, ...stateRows.map(r => r.count), 1);
+      const stateBars = stateRows.length
+        ? stateRows.map(r => {
+            const pct = Math.round((r.count / maxState) * 100);
+            const label = (typeof stateLabel === 'function') ? stateLabel(r.code) : r.code;
+            return '<div><div class="flex justify-between text-xs mb-1 gap-2">' +
+              '<span class="font-semibold text-slate-800 min-w-0 truncate">' + escapeHtml(label) +
+              ' <span class="text-slate-400 font-medium">(' + escapeHtml(r.code) + ')</span></span>' +
+              '<span class="text-slate-500 tabular-nums shrink-0">' + r.count + (r.count === 1 ? ' player' : ' players') + '</span></div>' +
+              '<div class="h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-sky-500" style="width:' + pct + '%"></div></div></div>';
+          }).join('')
+        : '<p class="text-sm text-slate-500">No states set yet — edit players to add State</p>';
+      const untagged = Math.max(0, (state.players || []).length - stateTagged);
+      const stateSectionHtml =
+        '<div class="surface-card rounded-2xl p-5 space-y-4"><div><h4 class="text-sm font-bold text-slate-900">Player geography</h4>' +
+        '<p class="text-[11px] text-slate-500 mt-0.5">States on the roster · ' + stateTagged + ' tagged' +
+        (untagged ? ' · ' + untagged + ' not set' : '') + '</p></div><div class="space-y-3">' + stateBars + '</div></div>';
+
       const typeOrder = [
         { key: 'monster', label: 'Monster', color: '#f97316' },
         { key: 'dyp', label: 'DYP', color: '#eab308' },
@@ -9807,6 +9902,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         '<div class="flex justify-between gap-2"><span class="text-slate-500">Shutouts</span><span class="font-bold text-slate-900">' + d.shutouts + '</span></div>' +
         '<div class="flex justify-between gap-2"><span class="text-slate-500">Best of 3 series</span><span class="font-bold text-slate-900">' + d.seriesBo3 + '</span></div>' +
         bo5 + hareLine + tortoiseLine + '</div></div>' +
+        stateSectionHtml +
         '<div class="surface-card rounded-2xl p-5"><h4 class="text-sm font-bold text-slate-900 mb-3">Club ranking pulse</h4>' +
         '<div class="grid grid-cols-3 gap-3 text-center">' +
         '<div class="rounded-xl bg-slate-50 border border-slate-100 px-2 py-3"><p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Average</p><p class="text-xl font-bold text-slate-900 mt-0.5 tabular-nums">' + (d.rankAvg != null ? d.rankAvg.toLocaleString() : '—') + '</p></div>' +
@@ -10113,7 +10209,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const band = rankingBandFromPoints(p.rankingPoints);
       const skillLabel = (typeof SKILL_BAND_LABEL !== 'undefined' ? SKILL_BAND_LABEL[normalizeSkill(p.skill)] : null) || 'Amateur';
       document.getElementById('profile-name').textContent = p.name;
-      document.getElementById('profile-sub').textContent = `${skillLabel} · ${band.label} · ${p.rankingPoints} rank pts`;
+      const stLabel = (typeof stateLabel === 'function' && p.state) ? stateLabel(p.state) : '';
+      document.getElementById('profile-sub').textContent = stLabel
+        ? `${skillLabel} · ${band.label} · ${p.rankingPoints} rank pts · ${stLabel}`
+        : `${skillLabel} · ${band.label} · ${p.rankingPoints} rank pts`;
 
       const { career } = computeAllPlayerStats();
       const s = career[playerId] || emptyPlayerStat();
@@ -10134,7 +10233,18 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return { name, ...st, wr };
       }).filter(x => x.played >= 2).sort((a, b) => b.wr - a.wr || b.played - a.played).slice(0, 3);
 
+      const stateSection = p.state
+        ? `<div class="surface-card rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">State</div>
+              <div class="text-sm font-bold text-slate-900 mt-0.5">${escapeHtml(typeof stateLabel === 'function' ? stateLabel(p.state) : p.state)}</div>
+            </div>
+            <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">${escapeHtml(String(p.state).toUpperCase())}</span>
+          </div>`
+        : `<div class="surface-card rounded-xl px-4 py-3 text-sm text-slate-500">State not set · edit player to add</div>`;
+
       body.innerHTML = `
+        ${stateSection}
         <div>
           <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Last 10 form</div>
           <div class="flex flex-wrap gap-1.5">${formHtml}</div>
