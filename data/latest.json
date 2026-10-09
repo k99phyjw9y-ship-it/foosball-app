@@ -1,7 +1,7 @@
 {
   "app": "LCFC Manager",
-  "version": "6.8",
-  "exportedAt": "2026-10-09T15:19:56.400Z",
+  "version": "6.10",
+  "exportedAt": "2026-10-09T15:46:06.298Z",
   "type": "full",
   "players": [
     {
@@ -9,154 +9,198 @@
       "name": "Mark Drollette",
       "skill": 3,
       "rankingPoints": 2152,
-      "rankingDelta": 152
+      "rankingDelta": 152,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mt0nwvyixcpl7a",
       "name": "Todd Theofrastou",
       "skill": 3,
       "rankingPoints": 2349,
-      "rankingDelta": 349
+      "rankingDelta": 349,
+      "region": "VT",
+      "homeState": "VT"
     },
     {
       "id": "mt0nx3tat1qdas",
       "name": "Alan Faezelle",
       "skill": 3,
       "rankingPoints": 2025,
-      "rankingDelta": 25
+      "rankingDelta": 25,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mt0nxay02r25zq",
       "name": "Travis Watts",
       "skill": 3,
       "rankingPoints": 2205,
-      "rankingDelta": 205
+      "rankingDelta": 205,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mt0nxl7zmqfnkf",
       "name": "Cayden Garrand",
       "skill": 3,
       "rankingPoints": 2347,
-      "rankingDelta": 347
+      "rankingDelta": 347,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mt0nxqh1l4i29f",
       "name": "Kayden Dupee",
       "skill": 3,
       "rankingPoints": 2360,
-      "rankingDelta": 360
+      "rankingDelta": 360,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mt0nxv9u55yuou",
       "name": "Luke Bolton",
       "skill": 3,
       "rankingPoints": 2255,
-      "rankingDelta": 255
+      "rankingDelta": 255,
+      "region": "VT",
+      "homeState": "VT"
     },
     {
       "id": "mt0ny0jxioo10e",
       "name": "John Friedrich",
       "skill": 3,
       "rankingPoints": 2509,
-      "rankingDelta": 509
+      "rankingDelta": 509,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mt0oabvkv4ftoq",
       "name": "John Fairchild",
       "skill": 3,
       "rankingPoints": 2040,
-      "rankingDelta": 40
+      "rankingDelta": 40,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mt0qmkfrn6n3xe",
       "name": "Ghost Dog",
       "skill": 3,
       "rankingPoints": 2098,
-      "rankingDelta": 98
+      "rankingDelta": 98,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mtam60ss4h296q",
       "name": "Keith Podolak",
       "skill": 3,
       "rankingPoints": 2000,
-      "rankingDelta": 0
+      "rankingDelta": 0,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mtam67ye1sz0lm",
       "name": "Jared Ashline",
       "skill": 3,
       "rankingPoints": 2380,
-      "rankingDelta": 380
+      "rankingDelta": 380,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mtam7vy29u3ef7",
       "name": "Lucas St. Denis",
       "skill": 3,
       "rankingPoints": 2000,
-      "rankingDelta": 0
+      "rankingDelta": 0,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mtums36hfqfz2g",
       "name": "Greg Dimoulas",
       "skill": 3,
       "rankingPoints": 2000,
-      "rankingDelta": 0
+      "rankingDelta": 0,
+      "region": "ME",
+      "homeState": "ME"
     },
     {
       "id": "mtums9xsjyy1m5",
       "name": "Arlo Halloran",
       "skill": 3,
       "rankingPoints": 2000,
-      "rankingDelta": 0
+      "rankingDelta": 0,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "mtuomnekqx8nju",
       "name": "Malia Doroha",
       "skill": 3,
       "rankingPoints": 2008,
-      "rankingDelta": 8
+      "rankingDelta": 8,
+      "region": "CA",
+      "homeState": "CA"
     },
     {
       "id": "mtuomtl3wnieej",
       "name": "Dennis Carman",
       "skill": 3,
       "rankingPoints": 2154,
-      "rankingDelta": 154
+      "rankingDelta": 154,
+      "region": "VT",
+      "homeState": "VT"
     },
     {
       "id": "mu4bkj50z5q8j1",
       "name": "Bill Pettis",
       "skill": 3,
       "rankingPoints": 2016,
-      "rankingDelta": 16
+      "rankingDelta": 16,
+      "region": "NY",
+      "homeState": "NY"
     },
     {
       "id": "muemob2o07rknp",
       "name": "Brian Turman",
       "skill": 3,
       "rankingPoints": 2112,
-      "rankingDelta": 112
+      "rankingDelta": 112,
+      "region": "VT",
+      "homeState": "VT"
     },
     {
       "id": "muemoj7w6hgpwi",
       "name": "Kelly Turman",
       "skill": 3,
       "rankingPoints": 2000,
-      "rankingDelta": 0
+      "rankingDelta": 0,
+      "region": "VT",
+      "homeState": "VT"
     },
     {
       "id": "muymqnuu9co4w9",
       "name": "Kainoa Doroha",
       "skill": 3,
       "rankingPoints": 2000,
-      "rankingDelta": 0
+      "rankingDelta": 0,
+      "region": "CA",
+      "homeState": "CA"
     },
     {
       "id": "muymreikh04m7v",
       "name": "Dave Bechtol",
       "skill": 3,
       "rankingPoints": 2000,
-      "rankingDelta": 0
+      "rankingDelta": 0,
+      "region": "NY",
+      "homeState": "NY"
     }
   ],
   "tournaments": [
@@ -6696,7 +6740,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791559146420,
+      "rankingAppliedAt": 1791560569193,
       "rankingDeltas": {
         "mt0nxl7zmqfnkf": 107,
         "mt0nwvyixcpl7a": 115,
@@ -9949,7 +9993,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791559146419,
+      "rankingAppliedAt": 1791560569193,
       "rankingDeltas": {
         "muemob2o07rknp": 112,
         "mtam67ye1sz0lm": 104,
@@ -13942,7 +13986,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791559146419,
+      "rankingAppliedAt": 1791560569193,
       "rankingDeltas": {
         "mt0ny0jxioo10e": 128,
         "mtam67ye1sz0lm": 144,
@@ -16726,7 +16770,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791559146418,
+      "rankingAppliedAt": 1791560569193,
       "rankingDeltas": {
         "mt0ny0jxioo10e": 105,
         "mt0nxqh1l4i29f": 129,
@@ -18765,7 +18809,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791559146418,
+      "rankingAppliedAt": 1791560569193,
       "rankingDeltas": {
         "mt0nxay02r25zq": 71,
         "mt0ny0jxioo10e": 79,
@@ -19474,7 +19518,7 @@
       },
       "absentIds": [],
       "rankingApplied": true,
-      "rankingAppliedAt": 1791559146417,
+      "rankingAppliedAt": 1791560569193,
       "rankingDeltas": {
         "mt0nxl7zmqfnkf": 108,
         "mt0nxqh1l4i29f": 124,
@@ -22282,7 +22326,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791559146417,
+      "rankingAppliedAt": 1791560569193,
       "rankingDeltas": {
         "mt0ny0jxioo10e": 106,
         "mt0nxay02r25zq": 106,
