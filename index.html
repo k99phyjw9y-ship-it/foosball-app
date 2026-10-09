@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.8 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.9 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.8" />
+  <meta name="lcfc-build" content="6.9" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.8 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.9 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.8 · Updated Oct 9, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.9 · Updated Oct 9, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -2004,7 +2004,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.8';
+    const APP_VERSION = '6.9';
     const APP_UPDATED = 'Oct 9, 2026';
 
     let state = {
@@ -2026,12 +2026,33 @@
           const data = JSON.parse(raw);
           state.players = data.players || [];
           state.tournaments = data.tournaments || [];
+          migratePlayerHomeState();
           migratePlayerRankings();
           backfillRankingFromTournaments();
         }
       } catch (e) {
         console.error('Failed to load state', e);
       }
+    }
+
+    /** Persist geography as homeState (avoid clashing with global app `state`). */
+    function migratePlayerHomeState() {
+      (state.players || []).forEach(p => {
+        if (!p || typeof p !== 'object') return;
+        // Prefer homeState; migrate legacy .state string codes
+        if ((p.homeState == null || p.homeState === '') && p.state != null && p.state !== '') {
+          if (typeof p.state === 'string' || typeof p.state === 'number') {
+            p.homeState = normalizePlayerState(String(p.state));
+          }
+        }
+        if (p.homeState != null && p.homeState !== '') {
+          p.homeState = normalizePlayerState(p.homeState);
+        } else {
+          p.homeState = '';
+        }
+        // Remove legacy key so it cannot overwrite / confuse
+        try { delete p.state; } catch (e) { p.state = undefined; }
+      });
     }
 
     function saveState() {
@@ -2156,6 +2177,7 @@
       (state.tournaments || []).forEach(t => {
         if (t) { delete t.rankingApplied; delete t.rankingDeltas; }
       });
+      try { migratePlayerHomeState(); } catch (e) {}
       try { migratePlayerRankings(); } catch (e) {}
       try { backfillRankingFromTournaments(); } catch (e) {}
       let ranked = 0;
@@ -2745,9 +2767,11 @@
       const skill = parseInt(document.getElementById('player-skill').value, 10);
       let rankingPoints = parseInt(document.getElementById('player-ranking-points')?.value, 10);
       if (isNaN(rankingPoints)) rankingPoints = RANK_START_POINTS;
-      const playerState = (typeof normalizePlayerState === 'function')
-        ? normalizePlayerState(document.getElementById('player-state')?.value)
-        : '';
+      const sel = document.getElementById('player-state');
+      const rawState = sel ? sel.value : '';
+      const playerHomeState = (typeof normalizePlayerState === 'function')
+        ? normalizePlayerState(rawState)
+        : String(rawState || '').trim().toUpperCase();
 
       if (state.editingPlayerId) {
         const p = state.players.find(x => x.id === state.editingPlayerId);
@@ -2755,11 +2779,12 @@
           p.name = name;
           p.skill = skill;
           p.rankingPoints = rankingPoints;
-          p.state = playerState || '';
+          p.homeState = playerHomeState || '';
+          try { delete p.state; } catch (e) {}
           ensurePlayerRanking(p);
         }
       } else {
-        const player = { id: uid(), name, skill, rankingPoints, rankingDelta: 0, state: playerState || '' };
+        const player = { id: uid(), name, skill, rankingPoints, rankingDelta: 0, homeState: playerHomeState || '' };
         state.players.push(player);
         if (state.quickAddMode && state.currentTournamentId) {
           const t = getCurrentTournament();
@@ -2772,7 +2797,10 @@
       closePlayerModal();
       renderPlayers();
       if (state.currentTournamentId) renderTournament();
-      toast('Player saved', 'success');
+      if (state.profilePlayerId) {
+        try { openPlayerProfile(state.profilePlayerId, true); } catch (e) {}
+      }
+      toast(playerHomeState ? ('Player saved · ' + (typeof stateLabel === 'function' ? stateLabel(playerHomeState) : playerHomeState)) : 'Player saved', 'success');
     }
 
     function editPlayer(id) {
@@ -2786,7 +2814,9 @@
       ensurePlayerRanking(p);
       const rp = document.getElementById('player-ranking-points');
       if (rp) rp.value = String(p.rankingPoints);
-      if (typeof fillPlayerStateSelect === 'function') fillPlayerStateSelect(p.state || '');
+      if (typeof fillPlayerStateSelect === 'function') {
+        fillPlayerStateSelect(p.homeState || p.state || '');
+      }
       document.getElementById('player-modal').classList.remove('hidden');
     }
 
@@ -9809,9 +9839,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const stateCounts = {};
       let stateTagged = 0;
       (state.players || []).forEach(p => {
+        const raw = p.homeState || (typeof p.state === 'string' ? p.state : '') || '';
         const code = (typeof normalizePlayerState === 'function')
-          ? normalizePlayerState(p.state)
-          : (p.state ? String(p.state).toUpperCase() : '');
+          ? normalizePlayerState(raw)
+          : (raw ? String(raw).toUpperCase() : '');
         if (!code) return;
         stateTagged++;
         if (!stateCounts[code]) stateCounts[code] = { code: code, count: 0 };
@@ -10209,7 +10240,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const band = rankingBandFromPoints(p.rankingPoints);
       const skillLabel = (typeof SKILL_BAND_LABEL !== 'undefined' ? SKILL_BAND_LABEL[normalizeSkill(p.skill)] : null) || 'Amateur';
       document.getElementById('profile-name').textContent = p.name;
-      const stLabel = (typeof stateLabel === 'function' && p.state) ? stateLabel(p.state) : '';
+      const geoCode = p.homeState || (typeof p.state === 'string' ? p.state : '') || '';
+      const stLabel = (typeof stateLabel === 'function' && geoCode) ? stateLabel(geoCode) : '';
       document.getElementById('profile-sub').textContent = stLabel
         ? `${skillLabel} · ${band.label} · ${p.rankingPoints} rank pts · ${stLabel}`
         : `${skillLabel} · ${band.label} · ${p.rankingPoints} rank pts`;
@@ -10233,13 +10265,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return { name, ...st, wr };
       }).filter(x => x.played >= 2).sort((a, b) => b.wr - a.wr || b.played - a.played).slice(0, 3);
 
-      const stateSection = p.state
+      const geo = p.homeState || (typeof p.state === 'string' ? p.state : '') || '';
+      const stateSection = geo
         ? `<div class="surface-card rounded-xl px-4 py-3 flex items-center justify-between gap-3">
             <div>
               <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">State</div>
-              <div class="text-sm font-bold text-slate-900 mt-0.5">${escapeHtml(typeof stateLabel === 'function' ? stateLabel(p.state) : p.state)}</div>
+              <div class="text-sm font-bold text-slate-900 mt-0.5">${escapeHtml(typeof stateLabel === 'function' ? stateLabel(geo) : geo)}</div>
             </div>
-            <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">${escapeHtml(String(p.state).toUpperCase())}</span>
+            <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">${escapeHtml(String(geo).toUpperCase())}</span>
           </div>`
         : `<div class="surface-card rounded-xl px-4 py-3 text-sm text-slate-500">State not set · edit player to add</div>`;
 
