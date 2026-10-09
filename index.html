@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.5 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.6 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.5" />
+  <meta name="lcfc-build" content="6.6" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.5 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.6 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.5 · Updated Oct 9, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.6 · Updated Oct 9, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1999,7 +1999,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.5';
+    const APP_VERSION = '6.6';
     const APP_UPDATED = 'Oct 9, 2026';
 
     let state = {
@@ -9587,13 +9587,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
             }
           } catch (e) {}
 
+          // App stores timerStartAt (not timerStartedAt) — same as Hare/Tortoise awards
           let ms = null;
-          if (m.timerEndedAt && m.timerStartedAt) {
-            ms = Number(m.timerEndedAt) - Number(m.timerStartedAt);
+          const tStart = m.timerStartAt != null ? m.timerStartAt : m.timerStartedAt;
+          if (m.timerEndedAt != null && tStart != null) {
+            ms = Number(m.timerEndedAt) - Number(tStart);
           } else if (m.durationMs != null) {
             ms = Number(m.durationMs);
           }
-          if (ms != null && ms > 0 && isFinite(ms)) {
+          // Same bounds as collectTimedCompletedMatches: 0 … 3 hours
+          if (ms != null && isFinite(ms) && ms >= 0 && ms <= 3 * 60 * 60 * 1000) {
             timerSumMs += ms;
             timerCount++;
             if (fastestMs == null || ms < fastestMs) fastestMs = ms;
