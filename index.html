@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.2 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.3 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.2" />
+  <meta name="lcfc-build" content="6.3" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.2 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.3 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.2 · Updated Oct 8, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.3 · Updated Oct 9, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1999,8 +1999,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.2';
-    const APP_UPDATED = 'Oct 8, 2026';
+    const APP_VERSION = '6.3';
+    const APP_UPDATED = 'Oct 9, 2026';
 
     let state = {
       players: [],
@@ -9650,7 +9650,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         byType, closest, blowouts, seriesBo3, seriesBo5,
         uniqueFirst, uniqueSecond, uniqueThird, mostTitles, mostPodiums,
         rankAvg, rankHigh, rankLow,
-        hare: fmtTimer(fastestMs), tortoise: fmtTimer(slowestMs)
+        hare: fmtTimer(fastestMs), tortoise: fmtTimer(slowestMs),
+        avgMatchLength: timerCount ? fmtTimer(timerSumMs / timerCount) : null
       };
     }
 
@@ -9710,6 +9711,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Playoffs</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.playoffs + '</p><p class="text-[11px] text-slate-500 mt-1">brackets run</p></div>' +
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Weeks</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.weeks + '</p><p class="text-[11px] text-slate-500 mt-1">active ISO weeks</p></div>' +
         '</div>' +
+        '<div class="grid grid-cols-2 lg:grid-cols-3 gap-3">' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Avg match length</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + (d.avgMatchLength || '—') + '</p><p class="text-[11px] text-slate-500 mt-1">' + (d.timedMatches ? (d.timedMatches + ' timed') : 'no timers yet') + '</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Goals / night</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + (d.avgGoalsPerNight ? d.avgGoalsPerNight.toFixed(1) : '0') + '</p><p class="text-[11px] text-slate-500 mt-1">avg combined goals</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Shutouts</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.shutouts + '</p><p class="text-[11px] text-slate-500 mt-1">one side scored 0</p></div>' +
+        '</div>' +
         '<div class="surface-card rounded-2xl p-5 space-y-4"><div><h4 class="text-sm font-bold text-slate-900">By event type</h4><p class="text-[11px] text-slate-500 mt-0.5">Events · matches</p></div><div class="space-y-3">' + typeBars + '</div></div>' +
         '<div class="grid sm:grid-cols-2 gap-3">' +
         '<div class="surface-card rounded-2xl p-5 space-y-2 text-sm"><h4 class="text-sm font-bold text-slate-900 mb-1">Podium DNA</h4>' +
@@ -9720,6 +9726,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         '<div class="surface-card rounded-2xl p-5 space-y-2 text-sm"><h4 class="text-sm font-bold text-slate-900 mb-1">Match DNA</h4>' +
         '<div class="flex justify-between gap-2"><span class="text-slate-500">Closest (1-goal)</span><span class="font-bold text-slate-900">' + d.closest + '</span></div>' +
         '<div class="flex justify-between gap-2"><span class="text-slate-500">Blowouts (5+)</span><span class="font-bold text-slate-900">' + d.blowouts + '</span></div>' +
+        '<div class="flex justify-between gap-2"><span class="text-slate-500">Shutouts</span><span class="font-bold text-slate-900">' + d.shutouts + '</span></div>' +
         '<div class="flex justify-between gap-2"><span class="text-slate-500">Best of 3 series</span><span class="font-bold text-slate-900">' + d.seriesBo3 + '</span></div>' +
         bo5 + hareLine + tortoiseLine + '</div></div>' +
         '<div class="surface-card rounded-2xl p-5"><h4 class="text-sm font-bold text-slate-900 mb-3">Club ranking pulse</h4>' +
