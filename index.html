@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.9 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.10 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.9" />
+  <meta name="lcfc-build" content="6.10" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.9 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.10 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.9 · Updated Oct 9, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.10 · Updated Oct 9, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1918,9 +1918,65 @@
         <p class="text-[11px] text-slate-500 mt-1">Club ranking · new players start at 2,000 (Amateur)</p>
       </div>
       <div>
-        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">State</label>
-        <select id="player-state" class="input-field w-full rounded-xl px-4 py-3 text-slate-800"></select>
-        <p class="text-[11px] text-slate-500 mt-1">Optional · shown on profile and Club DNA geography</p>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">State / Region</label>
+        <select id="player-state" class="input-field w-full rounded-xl px-4 py-3 text-slate-800">
+          <option value="">— Not set</option>
+          <option value="VT">Vermont</option>
+          <option value="NY">New York</option>
+          <option value="NH">New Hampshire</option>
+          <option value="MA">Massachusetts</option>
+          <option value="CT">Connecticut</option>
+          <option value="RI">Rhode Island</option>
+          <option value="ME">Maine</option>
+          <option value="QC">Quebec</option>
+          <option value="ON">Ontario</option>
+          <option value="AL">Alabama</option>
+          <option value="AK">Alaska</option>
+          <option value="AZ">Arizona</option>
+          <option value="AR">Arkansas</option>
+          <option value="CA">California</option>
+          <option value="CO">Colorado</option>
+          <option value="DE">Delaware</option>
+          <option value="DC">District of Columbia</option>
+          <option value="FL">Florida</option>
+          <option value="GA">Georgia</option>
+          <option value="HI">Hawaii</option>
+          <option value="ID">Idaho</option>
+          <option value="IL">Illinois</option>
+          <option value="IN">Indiana</option>
+          <option value="IA">Iowa</option>
+          <option value="KS">Kansas</option>
+          <option value="KY">Kentucky</option>
+          <option value="LA">Louisiana</option>
+          <option value="MD">Maryland</option>
+          <option value="MI">Michigan</option>
+          <option value="MN">Minnesota</option>
+          <option value="MS">Mississippi</option>
+          <option value="MO">Missouri</option>
+          <option value="MT">Montana</option>
+          <option value="NE">Nebraska</option>
+          <option value="NV">Nevada</option>
+          <option value="NJ">New Jersey</option>
+          <option value="NM">New Mexico</option>
+          <option value="NC">North Carolina</option>
+          <option value="ND">North Dakota</option>
+          <option value="OH">Ohio</option>
+          <option value="OK">Oklahoma</option>
+          <option value="OR">Oregon</option>
+          <option value="PA">Pennsylvania</option>
+          <option value="SC">South Carolina</option>
+          <option value="SD">South Dakota</option>
+          <option value="TN">Tennessee</option>
+          <option value="TX">Texas</option>
+          <option value="UT">Utah</option>
+          <option value="VA">Virginia</option>
+          <option value="WA">Washington</option>
+          <option value="WV">West Virginia</option>
+          <option value="WI">Wisconsin</option>
+          <option value="WY">Wyoming</option>
+          <option value="OTHER">Other</option>
+        </select>
+        <p class="text-[11px] text-slate-500 mt-1">Optional · saved on this device · Club DNA geography</p>
       </div>
       <div class="flex gap-3 pt-1">
         <button onclick="closePlayerModal()" class="btn-ghost flex-1 py-3 rounded-xl text-slate-700 font-medium">Cancel</button>
@@ -2004,7 +2060,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.9';
+    const APP_VERSION = '6.10';
     const APP_UPDATED = 'Oct 9, 2026';
 
     let state = {
@@ -2039,19 +2095,18 @@
     function migratePlayerHomeState() {
       (state.players || []).forEach(p => {
         if (!p || typeof p !== 'object') return;
-        // Prefer homeState; migrate legacy .state string codes
-        if ((p.homeState == null || p.homeState === '') && p.state != null && p.state !== '') {
-          if (typeof p.state === 'string' || typeof p.state === 'number') {
-            p.homeState = normalizePlayerState(String(p.state));
-          }
-        }
-        if (p.homeState != null && p.homeState !== '') {
-          p.homeState = normalizePlayerState(p.homeState);
-        } else {
-          p.homeState = '';
-        }
-        // Remove legacy key so it cannot overwrite / confuse
-        try { delete p.state; } catch (e) { p.state = undefined; }
+        let code = '';
+        if (p.region) code = p.region;
+        else if (p.homeState) code = p.homeState;
+        else if (typeof p.state === 'string' || typeof p.state === 'number') code = p.state;
+        code = (typeof normalizePlayerState === 'function')
+          ? normalizePlayerState(code)
+          : String(code || '').trim().toUpperCase();
+        p.region = code || '';
+        p.homeState = code || '';
+        try {
+          if (typeof p.state === 'string' || typeof p.state === 'number') delete p.state;
+        } catch (e) {}
       });
     }
 
@@ -2758,6 +2813,20 @@
       document.getElementById('player-modal').classList.add('hidden');
     }
 
+    function getPlayerGeoCode(p) {
+      if (!p) return '';
+      const raw = p.region || p.homeState || (typeof p.state === 'string' ? p.state : '') || '';
+      return (typeof normalizePlayerState === 'function') ? normalizePlayerState(raw) : String(raw).toUpperCase();
+    }
+
+    function setPlayerGeoCode(p, code) {
+      if (!p) return;
+      const v = (typeof normalizePlayerState === 'function') ? normalizePlayerState(code) : String(code || '').trim().toUpperCase();
+      p.region = v || '';
+      p.homeState = v || ''; // keep both for older UI paths
+      try { if (typeof p.state === 'string') delete p.state; } catch (e) {}
+    }
+
     function savePlayer() {
       const name = document.getElementById('player-name').value.trim();
       if (!name) {
@@ -2767,25 +2836,35 @@
       const skill = parseInt(document.getElementById('player-skill').value, 10);
       let rankingPoints = parseInt(document.getElementById('player-ranking-points')?.value, 10);
       if (isNaN(rankingPoints)) rankingPoints = RANK_START_POINTS;
+
       const sel = document.getElementById('player-state');
-      const rawState = sel ? sel.value : '';
-      const playerHomeState = (typeof normalizePlayerState === 'function')
+      let rawState = '';
+      if (sel) {
+        rawState = sel.value;
+        // Fallback: selected option text / attribute if value is oddly empty
+        if (!rawState && sel.selectedIndex > 0 && sel.options[sel.selectedIndex]) {
+          rawState = sel.options[sel.selectedIndex].value || '';
+        }
+      }
+      const geo = (typeof normalizePlayerState === 'function')
         ? normalizePlayerState(rawState)
         : String(rawState || '').trim().toUpperCase();
 
+      let savedId = null;
       if (state.editingPlayerId) {
         const p = state.players.find(x => x.id === state.editingPlayerId);
         if (p) {
           p.name = name;
           p.skill = skill;
           p.rankingPoints = rankingPoints;
-          p.homeState = playerHomeState || '';
-          try { delete p.state; } catch (e) {}
+          setPlayerGeoCode(p, geo);
           ensurePlayerRanking(p);
+          savedId = p.id;
         }
       } else {
-        const player = { id: uid(), name, skill, rankingPoints, rankingDelta: 0, homeState: playerHomeState || '' };
+        const player = { id: uid(), name, skill, rankingPoints, rankingDelta: 0, region: geo || '', homeState: geo || '' };
         state.players.push(player);
+        savedId = player.id;
         if (state.quickAddMode && state.currentTournamentId) {
           const t = getCurrentTournament();
           if (t && !t.playerIds.includes(player.id)) {
@@ -2793,14 +2872,38 @@
           }
         }
       }
-      saveState();
+
+      try {
+        saveState();
+      } catch (e) {
+        console.error('saveState failed', e);
+        toast('Could not save to this browser', 'error');
+        return;
+      }
+
+      // Verify geography stuck in localStorage (operator device)
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const data = raw ? JSON.parse(raw) : null;
+        const stored = data && (data.players || []).find(x => x.id === savedId);
+        if (geo && stored && getPlayerGeoCode(stored) !== geo) {
+          // Force rewrite
+          const live = state.players.find(x => x.id === savedId);
+          if (live) setPlayerGeoCode(live, geo);
+          saveState();
+        }
+      } catch (e) {
+        console.warn('geo verify', e);
+      }
+
       closePlayerModal();
       renderPlayers();
       if (state.currentTournamentId) renderTournament();
-      if (state.profilePlayerId) {
-        try { openPlayerProfile(state.profilePlayerId, true); } catch (e) {}
+      if (savedId && state.profilePlayerId === savedId) {
+        try { openPlayerProfile(savedId, true); } catch (e) {}
       }
-      toast(playerHomeState ? ('Player saved · ' + (typeof stateLabel === 'function' ? stateLabel(playerHomeState) : playerHomeState)) : 'Player saved', 'success');
+      const label = geo && typeof stateLabel === 'function' ? stateLabel(geo) : geo;
+      toast(geo ? ('Saved · ' + label) : 'Player saved', 'success');
     }
 
     function editPlayer(id) {
@@ -2814,10 +2917,19 @@
       ensurePlayerRanking(p);
       const rp = document.getElementById('player-ranking-points');
       if (rp) rp.value = String(p.rankingPoints);
+      const geoNow = (typeof getPlayerGeoCode === 'function') ? getPlayerGeoCode(p) : (p.region || p.homeState || '');
       if (typeof fillPlayerStateSelect === 'function') {
-        fillPlayerStateSelect(p.homeState || p.state || '');
+        fillPlayerStateSelect(geoNow);
+      } else {
+        const sel = document.getElementById('player-state');
+        if (sel) sel.value = geoNow || '';
       }
       document.getElementById('player-modal').classList.remove('hidden');
+      // Re-apply after paint (some mobile browsers reset select)
+      setTimeout(() => {
+        const sel = document.getElementById('player-state');
+        if (sel) sel.value = geoNow || '';
+      }, 0);
     }
 
     function deletePlayer(id) {
@@ -8030,12 +8142,19 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (existing) {
           if (p.name) existing.name = p.name;
           if (p.skill != null) existing.skill = p.skill;
+          if (p.region || p.homeState) {
+            if (typeof setPlayerGeoCode === 'function') setPlayerGeoCode(existing, p.region || p.homeState);
+            else { existing.region = p.region || p.homeState; existing.homeState = existing.region; }
+          }
           updated++;
         } else {
+          const geo = p.region || p.homeState || '';
           state.players.push({
             id: p.id,
             name: p.name || 'Player',
-            skill: p.skill != null ? p.skill : 3
+            skill: p.skill != null ? p.skill : 3,
+            region: geo,
+            homeState: geo
           });
           added++;
         }
@@ -9839,10 +9958,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const stateCounts = {};
       let stateTagged = 0;
       (state.players || []).forEach(p => {
-        const raw = p.homeState || (typeof p.state === 'string' ? p.state : '') || '';
-        const code = (typeof normalizePlayerState === 'function')
-          ? normalizePlayerState(raw)
-          : (raw ? String(raw).toUpperCase() : '');
+        const code = (typeof getPlayerGeoCode === 'function')
+          ? getPlayerGeoCode(p)
+          : (p.region || p.homeState || '');
         if (!code) return;
         stateTagged++;
         if (!stateCounts[code]) stateCounts[code] = { code: code, count: 0 };
@@ -10240,7 +10358,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const band = rankingBandFromPoints(p.rankingPoints);
       const skillLabel = (typeof SKILL_BAND_LABEL !== 'undefined' ? SKILL_BAND_LABEL[normalizeSkill(p.skill)] : null) || 'Amateur';
       document.getElementById('profile-name').textContent = p.name;
-      const geoCode = p.homeState || (typeof p.state === 'string' ? p.state : '') || '';
+      const geoCode = (typeof getPlayerGeoCode === 'function') ? getPlayerGeoCode(p) : (p.region || p.homeState || '');
       const stLabel = (typeof stateLabel === 'function' && geoCode) ? stateLabel(geoCode) : '';
       document.getElementById('profile-sub').textContent = stLabel
         ? `${skillLabel} · ${band.label} · ${p.rankingPoints} rank pts · ${stLabel}`
@@ -10265,7 +10383,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return { name, ...st, wr };
       }).filter(x => x.played >= 2).sort((a, b) => b.wr - a.wr || b.played - a.played).slice(0, 3);
 
-      const geo = p.homeState || (typeof p.state === 'string' ? p.state : '') || '';
+      const geo = (typeof getPlayerGeoCode === 'function') ? getPlayerGeoCode(p) : (p.region || p.homeState || '');
       const stateSection = geo
         ? `<div class="surface-card rounded-xl px-4 py-3 flex items-center justify-between gap-3">
             <div>
