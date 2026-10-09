@@ -1,7 +1,7 @@
 {
   "app": "LCFC Manager",
-  "version": "6.0",
-  "exportedAt": "2026-10-08T02:47:31.721Z",
+  "version": "6.8",
+  "exportedAt": "2026-10-09T15:19:56.400Z",
   "type": "full",
   "players": [
     {
@@ -162,7 +162,7 @@
   "tournaments": [
     {
       "id": "muymo5sdsgpg86",
-      "name": "Monster",
+      "name": "10/7/26",
       "type": "monster",
       "format": "swiss",
       "raceTo": 5,
@@ -3330,7 +3330,7 @@
     },
     {
       "id": "muoln8ap5g5on8",
-      "name": "Monster 09/30/26",
+      "name": "09/30/26",
       "type": "monster",
       "format": "swiss",
       "raceTo": 5,
@@ -6696,7 +6696,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791408980722,
+      "rankingAppliedAt": 1791559146420,
       "rankingDeltas": {
         "mt0nxl7zmqfnkf": 107,
         "mt0nwvyixcpl7a": 115,
@@ -9949,7 +9949,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791408980722,
+      "rankingAppliedAt": 1791559146419,
       "rankingDeltas": {
         "muemob2o07rknp": 112,
         "mtam67ye1sz0lm": 104,
@@ -13942,7 +13942,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791408980722,
+      "rankingAppliedAt": 1791559146419,
       "rankingDeltas": {
         "mt0ny0jxioo10e": 128,
         "mtam67ye1sz0lm": 144,
@@ -16726,7 +16726,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791408980721,
+      "rankingAppliedAt": 1791559146418,
       "rankingDeltas": {
         "mt0ny0jxioo10e": 105,
         "mt0nxqh1l4i29f": 129,
@@ -18765,7 +18765,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791408980721,
+      "rankingAppliedAt": 1791559146418,
       "rankingDeltas": {
         "mt0nxay02r25zq": 71,
         "mt0ny0jxioo10e": 79,
@@ -19474,7 +19474,7 @@
       },
       "absentIds": [],
       "rankingApplied": true,
-      "rankingAppliedAt": 1791408980715,
+      "rankingAppliedAt": 1791559146417,
       "rankingDeltas": {
         "mt0nxl7zmqfnkf": 108,
         "mt0nxqh1l4i29f": 124,
@@ -22282,7 +22282,7 @@
         }
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1791408980719,
+      "rankingAppliedAt": 1791559146417,
       "rankingDeltas": {
         "mt0ny0jxioo10e": 106,
         "mt0nxay02r25zq": 106,
