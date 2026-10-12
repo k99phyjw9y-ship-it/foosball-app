@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.10 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.11 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.10" />
+  <meta name="lcfc-build" content="6.11" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.10 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.11 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1227,7 +1227,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.10 · Updated Oct 9, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.11 · Updated Oct 12, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -2038,6 +2038,7 @@
           </label>
         </div>
         <div id="score-projection" class="hidden rounded-lg bg-slate-50 border border-slate-200 px-2 py-1.5 text-center">
+          <div id="score-proj-sub" class="text-[9px] text-slate-400 mb-0.5">est. win chance</div>
           <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
             <span class="text-[9px] font-semibold uppercase tracking-wider text-slate-400">Est.</span>
             <span id="score-proj-a" class="text-emerald-700">50%</span>
@@ -2060,8 +2061,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.10';
-    const APP_UPDATED = 'Oct 9, 2026';
+    const APP_VERSION = '6.11';
+    const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
       players: [],
@@ -6609,55 +6610,231 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     /**
-     * Player strength for win projection: club ranking + last-10 form + career GD rate.
-     * Scale roughly Elo-like around 2000.
+     * Projected match winner — tightened model:
+     *  1) Club ranking (Elo baseline)
+     *  2) Career WR + GD with sample-size shrinkage toward neutral
+     *  3) Last-10 form (recent games weighted more)
+     *  4) Skill band as mild prior when ranking is still near start
+     *  5) Team strength: average with weak-link bias (doubles)
+     *  6) Head-to-head blend when sides have prior meetings
+     *  7) Best-of series: convert game win% → series win% given current score
+     * Returns integer percents that sum to 100 (clamped away from 0/100).
      */
     function getPlayerProjectionStrength(playerId) {
       const p = state.players.find(x => x.id === playerId);
-      if (!p) return RANK_START_POINTS;
-      ensurePlayerRanking(p);
-      let s = Number(p.rankingPoints) || RANK_START_POINTS;
-      const form = (typeof getLast10Form === 'function') ? getLast10Form(playerId) : [];
-      if (form.length >= 3) {
-        const wr = form.filter(r => r.won).length / form.length;
-        s += (wr - 0.5) * 280; // recent form swing
-      } else if (form.length > 0) {
-        const wr = form.filter(r => r.won).length / form.length;
-        s += (wr - 0.5) * 120;
-      }
+      if (!p) return typeof RANK_START_POINTS !== 'undefined' ? RANK_START_POINTS : 2000;
+      if (typeof ensurePlayerRanking === 'function') ensurePlayerRanking(p);
+      const base = Number(p.rankingPoints);
+      let s = (isFinite(base) ? base : (RANK_START_POINTS || 2000));
+
+      // Mild skill prior when ranking hasn't moved much from start
+      try {
+        const skill = (typeof normalizeSkill === 'function') ? normalizeSkill(p.skill) : 3;
+        const start = RANK_START_POINTS || 2000;
+        if (Math.abs(s - start) < 80) {
+          s += (skill - 3) * 35; // Beginner…Master → ±105 max
+        }
+      } catch (e) {}
+
+      // Career results with shrinkage (few games → stay near ranking-only)
       try {
         const { career } = computeAllPlayerStats();
         const c = career[playerId];
-        if (c && c.played >= 5) {
-          s += Math.max(-80, Math.min(80, (c.gd / c.played) * 18));
+        if (c && c.played > 0) {
+          const n = c.played;
+          const shrink = n / (n + 8); // full weight ~ around 20+ matches
+          const wr = (c.wins || 0) / n;
+          s += (wr - 0.5) * 320 * shrink;
+          const gdPer = (c.gd || 0) / n;
+          s += Math.max(-100, Math.min(100, gdPer * 22)) * shrink;
         }
       } catch (e) {}
+
+      // Recent form: exponential weights (newest counts most)
+      try {
+        const form = (typeof getLast10Form === 'function') ? getLast10Form(playerId) : [];
+        if (form.length) {
+          let wSum = 0, wWin = 0;
+          form.forEach((r, i) => {
+            const w = Math.pow(1.35, i); // later index = more recent
+            wSum += w;
+            if (r.won) wWin += w;
+          });
+          const wr = wSum ? (wWin / wSum) : 0.5;
+          const formConf = Math.min(1, form.length / 6);
+          s += (wr - 0.5) * 260 * formConf;
+        }
+      } catch (e) {}
+
       return s;
     }
 
     function getEntityProjectionStrength(ent) {
-      const ids = entityPlayerIds(ent);
+      const ids = (typeof entityPlayerIds === 'function') ? entityPlayerIds(ent) : [];
       if (!ids.length) return null;
-      const vals = ids.map(getPlayerProjectionStrength);
-      return vals.reduce((a, b) => a + b, 0) / vals.length;
+      const vals = ids.map(getPlayerProjectionStrength).filter(v => v != null && isFinite(v));
+      if (!vals.length) return null;
+      if (vals.length === 1) return vals[0];
+      // Doubles: average with weak-link bias (team closer to weaker partner)
+      const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const weak = Math.min.apply(null, vals);
+      return 0.55 * avg + 0.45 * weak;
+    }
+
+    /** Sample size for confidence: total career matches among entity players. */
+    function getEntitySampleSize(ent) {
+      const ids = (typeof entityPlayerIds === 'function') ? entityPlayerIds(ent) : [];
+      let n = 0;
+      try {
+        const { career } = computeAllPlayerStats();
+        ids.forEach(id => { n += (career[id] && career[id].played) || 0; });
+      } catch (e) {}
+      return n;
     }
 
     /**
-     * Elo-style win probability from two strengths.
-     * Returns { pctA, pctB } integers 1–99 that sum to 100, or null if unknown.
+     * Head-to-head: matches where all of side A's players faced all of side B's
+     * (exact set match for doubles; singles is 1v1).
      */
-    function projectMatchWinPct(entA, entB) {
+    function getEntityH2H(entA, entB) {
+      const aIds = ((typeof entityPlayerIds === 'function') ? entityPlayerIds(entA) : []).slice().sort();
+      const bIds = ((typeof entityPlayerIds === 'function') ? entityPlayerIds(entB) : []).slice().sort();
+      if (!aIds.length || !bIds.length) return null;
+      const keyA = aIds.join('|');
+      const keyB = bIds.join('|');
+      let winsA = 0, played = 0;
+      try {
+        if (typeof forEachScoredMatch !== 'function') return null;
+        forEachScoredMatch(({ aIds: ma, bIds: mb, aWin }) => {
+          const sa = (ma || []).slice().sort().join('|');
+          const sb = (mb || []).slice().sort().join('|');
+          if (sa === keyA && sb === keyB) {
+            played++;
+            if (aWin) winsA++;
+          } else if (sa === keyB && sb === keyA) {
+            played++;
+            if (!aWin) winsA++;
+          }
+        });
+      } catch (e) { return null; }
+      if (played < 1) return null;
+      return { played, winsA, wrA: winsA / played };
+    }
+
+    /**
+     * P(A wins series) given i.i.d. game win probability pA and current series score.
+     * need = wins required (2 for Bo3, 3 for Bo5).
+     */
+    function seriesWinProbability(pA, winsA, winsB, need) {
+      pA = Math.max(0.05, Math.min(0.95, pA));
+      winsA = winsA || 0;
+      winsB = winsB || 0;
+      need = need || 1;
+      if (winsA >= need) return 1;
+      if (winsB >= need) return 0;
+      if (need <= 1) return pA;
+      const memo = {};
+      function go(a, b) {
+        if (a >= need) return 1;
+        if (b >= need) return 0;
+        const k = a + ',' + b;
+        if (memo[k] != null) return memo[k];
+        const v = pA * go(a + 1, b) + (1 - pA) * go(a, b + 1);
+        memo[k] = v;
+        return v;
+      }
+      return go(winsA, winsB);
+    }
+
+    /**
+     * Core match (or series) win probability.
+     * opts: { seriesA, seriesB, bestOf, context }
+     */
+    function projectMatchWinPct(entA, entB, opts) {
+      opts = opts || {};
       const sa = getEntityProjectionStrength(entA);
       const sb = getEntityProjectionStrength(entB);
-      if (sa == null || sb == null) return null;
+      if (sa == null || sb == null || !isFinite(sa) || !isFinite(sb)) return null;
+
+      // Elo expected score (scale 400)
       const scale = 400;
       let pA = 1 / (1 + Math.pow(10, (sb - sa) / scale));
-      // Soft pull toward 50% when sample is thin overall
-      const conf = Math.min(1, (entityPlayerIds(entA).length + entityPlayerIds(entB).length) / 2);
-      pA = 0.5 + (pA - 0.5) * (0.75 + 0.25 * conf);
+
+      // Head-to-head blend when available
+      const h2h = getEntityH2H(entA, entB);
+      if (h2h && h2h.played >= 2) {
+        const hWeight = Math.min(0.45, 0.12 * h2h.played); // 2→24%, 4+→~45%
+        pA = pA * (1 - hWeight) + h2h.wrA * hWeight;
+      }
+
+      // Confidence: shrink toward 50% when little club data
+      const nA = getEntitySampleSize(entA);
+      const nB = getEntitySampleSize(entB);
+      const n = Math.min(nA, nB);
+      // ~0 at 0 matches, ~0.7 at 8, ~1 at 20+
+      const conf = Math.min(1, n / (n + 6));
+      pA = 0.5 + (pA - 0.5) * (0.55 + 0.45 * conf);
+
+      // Series adjustment: if Bo3/Bo5 mid-match, report series win% not single-game
+      let bestOf = opts.bestOf || 1;
+      let seriesA = opts.seriesA || 0;
+      let seriesB = opts.seriesB || 0;
+      if (bestOf > 1) {
+        const need = (typeof seriesWinsNeeded === 'function')
+          ? seriesWinsNeeded(bestOf)
+          : Math.ceil(bestOf / 2);
+        pA = seriesWinProbability(pA, seriesA, seriesB, need);
+      }
+
       let pctA = Math.round(pA * 100);
-      pctA = Math.max(8, Math.min(92, pctA)); // avoid silly 99–1 on club data
-      return { pctA, pctB: 100 - pctA };
+      // Tighter clamp when confident; wider band (avoid 1–99) always
+      const lo = conf > 0.7 ? 6 : 10;
+      const hi = 100 - lo;
+      pctA = Math.max(lo, Math.min(hi, pctA));
+      return {
+        pctA,
+        pctB: 100 - pctA,
+        conf: Math.round(conf * 100),
+        h2hPlayed: h2h ? h2h.played : 0,
+        series: bestOf > 1
+      };
+    }
+
+    function getScoreModalProjectionContext() {
+      const ref = state.scoreMatchId;
+      const t = typeof getCurrentTournament === 'function' ? getCurrentTournament() : null;
+      if (!ref || !t) return {};
+      let match = null;
+      let context = 'ranking';
+      try {
+        if (ref.mode === 'bracket') {
+          const found = typeof findBracketMatch === 'function' ? findBracketMatch(t, ref.matchId) : null;
+          match = found && found.match;
+          context = 'playoff';
+        } else if (ref.mode === 'round') {
+          const round = (t.rounds || []).find(r => r.number === ref.roundNum);
+          match = round && (round.matches || []).find(m => m.id === ref.matchId);
+          context = 'ranking';
+        }
+      } catch (e) {}
+      if (!match) return {};
+      const bestOf = (typeof getTournamentBestOf === 'function')
+        ? getTournamentBestOf(t, context)
+        : 1;
+      let seriesA = match.seriesA || 0;
+      let seriesB = match.seriesB || 0;
+      if (bestOf > 1 && Array.isArray(match.games) && match.games.length) {
+        // Prefer live series tally from games if present
+        let a = 0, b = 0;
+        match.games.forEach(g => {
+          if (g == null || g.scoreA == null || g.scoreB == null) return;
+          if (g.scoreA > g.scoreB) a++;
+          else if (g.scoreB > g.scoreA) b++;
+        });
+        seriesA = a;
+        seriesB = b;
+      }
+      return { bestOf, seriesA, seriesB, context };
     }
 
     function updateScoreProjection(entA, entB) {
@@ -6667,7 +6844,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const barA = document.getElementById('score-proj-bar-a');
       const barB = document.getElementById('score-proj-bar-b');
       if (!box || !elA || !elB) return;
-      const proj = projectMatchWinPct(entA, entB);
+      const ctx = getScoreModalProjectionContext();
+      const proj = projectMatchWinPct(entA, entB, ctx);
       if (!proj) {
         box.classList.add('hidden');
         return;
@@ -6679,12 +6857,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (barB) barB.style.width = proj.pctB + '%';
       elA.className = 'font-bold ' + (proj.pctA >= proj.pctB ? 'text-emerald-700' : 'text-slate-600');
       elB.className = 'font-bold ' + (proj.pctB > proj.pctA ? 'text-emerald-700' : 'text-slate-600');
+      // Optional subtitle if element exists
+      const sub = document.getElementById('score-proj-sub');
+      if (sub) {
+        const bits = [];
+        if (proj.series) bits.push('series');
+        if (proj.h2hPlayed >= 2) bits.push('H2H ' + proj.h2hPlayed);
+        if (proj.conf < 40) bits.push('low data');
+        sub.textContent = bits.length ? bits.join(' · ') : 'est. win chance';
+      }
     }
 
     function formatProjectionBadge(entA, entB) {
-      const proj = projectMatchWinPct(entA, entB);
+      const proj = projectMatchWinPct(entA, entB, {});
       if (!proj) return '';
-      return `<div class="mt-2 text-center text-[11px] text-slate-500">Est. <span class="font-semibold text-slate-700">${proj.pctA}%</span> – <span class="font-semibold text-slate-700">${proj.pctB}%</span></div>`;
+      return '<div class="mt-2 text-center text-[11px] text-slate-500">Est. <span class="font-semibold text-slate-700">' +
+        proj.pctA + '%</span> – <span class="font-semibold text-slate-700">' + proj.pctB + '%</span></div>';
     }
 
     /** Format side name for score modal: doubles "A + B" → two lines. */
@@ -6976,8 +7164,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       match.status = 'pending';
       saveState();
       renderTournament();
-      // Stay open for next game
+      // Stay open for next game — refresh series banner + live win%
       updateSeriesBanner(t, match, 'ranking');
+      try { updateScoreProjection(match.entityA, match.entityB); } catch (e) {}
       document.getElementById('score-a').value = '';
       document.getElementById('score-b').value = '';
       focusScoreInput();
@@ -7050,6 +7239,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           saveState();
           renderTournament();
           updateSeriesBanner(t, match, 'playoff');
+          try { updateScoreProjection(match.a.entity, match.b.entity); } catch (e) {}
           document.getElementById('score-a').value = '';
           document.getElementById('score-b').value = '';
           focusScoreInput();
