@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.12 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.14 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.12" />
+  <meta name="lcfc-build" content="6.14" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.12 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.14 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -389,6 +389,62 @@
       border-radius: 0.75rem;
     }
     #view-spectator .spec-control:hover { background: var(--overlay); }
+    #view-spectator .spec-control.spec-announce-off {
+      color: #fecaca;
+      border-color: rgba(248, 113, 113, 0.45);
+      background: rgba(127, 29, 29, 0.35);
+      font-weight: 700;
+    }
+    #view-spectator .spec-control.spec-announce-off:hover {
+      background: rgba(153, 27, 27, 0.5);
+      border-color: rgba(248, 113, 113, 0.65);
+    }
+    #view-spectator .spec-control.spec-announce-on {
+      color: #bbf7d0;
+      border-color: rgba(52, 211, 153, 0.5);
+      background: rgba(6, 78, 59, 0.45);
+      font-weight: 700;
+    }
+    #view-spectator .spec-control.spec-announce-on:hover {
+      background: rgba(6, 95, 70, 0.55);
+      border-color: rgba(52, 211, 153, 0.7);
+    }
+    html[data-mode="light"] #view-spectator .spec-control.spec-announce-off {
+      color: #b91c1c;
+      border-color: rgba(220, 38, 38, 0.35);
+      background: rgba(254, 226, 226, 0.9);
+    }
+    html[data-mode="light"] #view-spectator .spec-control.spec-announce-on {
+      color: #047857;
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(209, 250, 229, 0.95);
+    }
+    #view-spectator .spec-mic-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.65rem;
+      height: 1.65rem;
+      padding: 0;
+      margin: 0;
+      border-radius: 999px;
+      border: 1px solid rgb(var(--fg-rgb) / 0.2);
+      background: rgb(var(--fg-rgb) / 0.08);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    #view-spectator .spec-mic-btn:hover {
+      color: var(--text);
+      border-color: rgb(var(--c-accent-500) / 0.5);
+      background: rgb(var(--c-accent-500) / 0.15);
+    }
+    #view-spectator .spec-mic-btn:active {
+      transform: scale(0.94);
+    }
     #view-spectator .spec-card {
       background: var(--raised);
       border: 1px solid var(--border);
@@ -1227,7 +1283,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.12 · Updated Oct 12, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.14 · Updated Oct 12, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -1288,7 +1344,7 @@
           <div class="flex flex-wrap gap-2">
             <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="spec-control px-3 py-2 text-sm max-w-[14rem]"></select>
             <button type="button" id="spec-group-toggle" onclick="toggleSpectatorGroupByEvent()" class="spec-control px-3 py-2 text-sm font-medium" title="Group match cards under each event name">Group by event</button>
-            <button type="button" id="spec-announce-btn" onclick="toggleTvMatchAnnouncements()" class="spec-control px-3 py-2 text-sm font-medium" title="Chime + spoken names when a match goes live (TV board only)">Sound · Off</button>
+            <button type="button" id="spec-announce-btn" onclick="toggleTvMatchAnnouncements()" class="spec-control spec-announce-off px-3 py-2 text-sm font-medium" title="Chime + spoken names when a match goes live (TV board only)">Sound · Off</button>
             <button type="button" onclick="toggleSpectatorFullscreen()" class="spec-control px-3 py-2 text-sm font-medium">Fullscreen</button>
             <button type="button" onclick="closeSpectator()" class="spec-control px-3 py-2 text-sm font-medium">Exit</button>
           </div>
@@ -2062,7 +2118,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.12';
+    const APP_VERSION = '6.14';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -10950,6 +11006,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
         ? 'Match announcements on — chime + names when a match goes live'
         : 'Tap to enable TV match announcements (required once per session)';
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      // Green when on, red when off
+      btn.classList.remove('spec-announce-on', 'spec-announce-off');
+      btn.classList.add(on ? 'spec-announce-on' : 'spec-announce-off');
     }
 
     function unlockTvAnnounceAudio() {
@@ -11020,7 +11079,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } catch (e) {}
     }
 
-    function formatTvMatchAnnounce(row) {
+    function formatTvMatchAnnounce(row, kind) {
       const clean = function (n) {
         return String(n || 'TBD').replace(/\s*\+\s*/g, ' and ').replace(/\s+/g, ' ').trim();
       };
@@ -11029,7 +11088,29 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const table = row.table ? ('Table ' + row.table + '. ') : '';
       const allMode = state.spectatorTournamentId === '__all__';
       const eventBit = (allMode && row.eventName) ? (' ' + row.eventName + '.') : '';
-      return table + a + ' versus ' + b + '.' + eventBit + ' Now playing.';
+      const tail = (kind === 'deck') ? ' On deck.' : ' Now playing.';
+      return table + a + ' versus ' + b + '.' + eventBit + tail;
+    }
+
+    /** Manual mic on a TV card — always speaks this match (unlocks audio if needed). */
+    function announceTvMatchManual(btn) {
+      if (!btn) return;
+      try { unlockTvAnnounceAudio(); } catch (e) {}
+      const row = {
+        table: btn.getAttribute('data-table') || '',
+        nameA: btn.getAttribute('data-name-a') || 'TBD',
+        nameB: btn.getAttribute('data-name-b') || 'TBD',
+        eventName: btn.getAttribute('data-event') || ''
+      };
+      const kind = btn.getAttribute('data-kind') || 'live';
+      if (row.nameA === 'TBD' && row.nameB === 'TBD') {
+        if (typeof toast === 'function') toast('Match not ready to announce', 'error');
+        return;
+      }
+      playTvMatchChime();
+      setTimeout(function () {
+        speakTvMatchLine(formatTvMatchAnnounce(row, kind));
+      }, 320);
     }
 
     /**
@@ -11217,6 +11298,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
               ${tableChip}
               ${timerChip}
               <span class="spec-meta-chip spec-meta-round">${escapeHtml(roundLabel)}</span>
+              <button type="button" class="spec-mic-btn" title="Announce this match"
+                data-table="${m.table != null ? escapeHtml(String(m.table)) : ''}"
+                data-name-a="${escapeHtml(m.nameA || '')}"
+                data-name-b="${escapeHtml(m.nameB || '')}"
+                data-event="${escapeHtml(m.eventName || '')}"
+                data-kind="${kind === 'deck' ? 'deck' : 'live'}"
+                onclick="event.stopPropagation(); announceTvMatchManual(this)"
+                aria-label="Announce match">🎤</button>
             </div>
             <div class="text-center flex-1 flex flex-col justify-center py-1 gap-0.5">
               <div class="spec-team-row">
