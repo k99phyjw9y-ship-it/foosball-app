@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.20 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.21 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.20" />
+  <meta name="lcfc-build" content="6.21" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.20 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.21 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1312,7 +1312,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.20</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.21</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -1381,6 +1381,12 @@
             <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="spec-control px-3 py-2 text-sm max-w-[14rem]"></select>
             <button type="button" id="spec-group-toggle" onclick="toggleSpectatorGroupByEvent()" class="spec-control px-3 py-2 text-sm font-medium" title="Group match cards under each event name">Group by event</button>
             <button type="button" id="spec-announce-btn" onclick="toggleTvMatchAnnouncements()" class="spec-control spec-announce-off px-3 py-2 text-sm font-medium" title="Chime + spoken names when a match goes live (TV board only)">Sound · Off</button>
+            <select id="spec-voice-mode" onchange="setTvAnnounceVoiceMode(this.value)" class="spec-control px-3 py-2 text-sm font-medium max-w-[7.5rem]" title="Male announcer style">
+              <option value="desk">Desk</option>
+              <option value="ring">Ring</option>
+              <option value="pa">PA</option>
+              <option value="calm">Calm</option>
+            </select>
             <button type="button" onclick="toggleSpectatorFullscreen()" class="spec-control px-3 py-2 text-sm font-medium">Fullscreen</button>
             <button type="button" onclick="closeSpectator()" class="spec-control px-3 py-2 text-sm font-medium">Exit</button>
           </div>
@@ -2154,7 +2160,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.20';
+    const APP_VERSION = '6.21';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -10791,6 +10797,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       document.body.style.overflow = 'hidden';
       populateSpectatorSelect();
       try { syncTvAnnounceButton(); } catch (e) {}
+      try { syncTvVoiceModeSelect(); } catch (e) {}
       renderSpectatorBoard();
       if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
       // Re-unlock audio on any tap while board is open (helps iPhone after lock screen)
@@ -11081,6 +11088,64 @@ function flipRankingMatchCoin(roundNum, matchId) {
     // Chime + speech when a match becomes "Playing" — TV board tab only.
     // Mobile (esp. iOS): audio only after a user tap; keep AudioContext resumed.
     const TV_ANNOUNCE_KEY = 'lcfc_tv_announce_v1';
+    const TV_VOICE_MODE_KEY = 'lcfc_tv_voice_mode_v1';
+    /** Male announcer styles — rate/pitch/pause + voice preference bias */
+    const TV_VOICE_MODES = {
+      desk: {
+        id: 'desk', label: 'Desk',
+        rate: 0.92, pitch: 0.88, pauseMs: 160, volume: 1,
+        prefer: ['daniel', 'google uk english male', 'microsoft david', 'david', 'alex', 'google us english']
+      },
+      ring: {
+        id: 'ring', label: 'Ring',
+        rate: 0.80, pitch: 0.72, pauseMs: 320, volume: 1,
+        prefer: ['daniel', 'microsoft mark', 'mark', 'google uk english male', 'alex', 'arthur']
+      },
+      pa: {
+        id: 'pa', label: 'PA',
+        rate: 1.02, pitch: 0.90, pauseMs: 120, volume: 1,
+        prefer: ['google us english', 'microsoft david', 'david', 'google uk english male', 'daniel', 'alex']
+      },
+      calm: {
+        id: 'calm', label: 'Calm',
+        rate: 0.86, pitch: 0.78, pauseMs: 220, volume: 0.95,
+        prefer: ['daniel', 'alex', 'microsoft david', 'google uk english male', 'tom', 'fred']
+      }
+    };
+
+    function getTvAnnounceVoiceMode() {
+      try {
+        const v = localStorage.getItem(TV_VOICE_MODE_KEY);
+        if (v && TV_VOICE_MODES[v]) return v;
+      } catch (e) {}
+      return 'desk';
+    }
+
+    function getTvVoiceModeConfig() {
+      return TV_VOICE_MODES[getTvAnnounceVoiceMode()] || TV_VOICE_MODES.desk;
+    }
+
+    function setTvAnnounceVoiceMode(mode) {
+      const id = (mode && TV_VOICE_MODES[mode]) ? mode : 'desk';
+      try { localStorage.setItem(TV_VOICE_MODE_KEY, id); } catch (e) {}
+      syncTvVoiceModeSelect();
+      // Preview if sound already unlocked
+      if (tvAnnounceAudioUnlocked && window.speechSynthesis) {
+        try { unlockTvAnnounceAudio(); } catch (e) {}
+        playTvMatchChime();
+        setTimeout(function () {
+          speakTvMatchLine('Table 1. Sample versus Sample. ' + (TV_VOICE_MODES[id].label) + ' mode.');
+        }, 350);
+      }
+    }
+
+    function syncTvVoiceModeSelect() {
+      const sel = document.getElementById('spec-voice-mode');
+      if (!sel) return;
+      const mode = getTvAnnounceVoiceMode();
+      if (sel.value !== mode) sel.value = mode;
+    }
+
     let tvAnnounceAudioUnlocked = false;
     let tvAnnounceAudioCtx = null;
     let tvAnnounceKeepAliveId = null;
@@ -11233,28 +11298,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
       try {
         const voices = window.speechSynthesis.getVoices() || [];
         if (!voices.length) return null;
-
-        // Known clearer male (or natural) English voices across platforms
-        const preferredNames = [
-          'google uk english male',
-          'google us english',
-          'daniel',           // macOS / iOS UK male
-          'alex',             // older macOS male
-          'david',            // Windows male
-          'mark',             // Windows
-          'microsoft david',
-          'microsoft mark',
-          'microsoft guy',
-          'arthur',           // some ChromeOS
-          'aaron',
-          'fred',
-          'tom',
-          'rishi',            // Google UK
-          'english united kingdom',
-          'english (united kingdom)',
-          'english united states'
-        ];
-        const femaleHints = /samantha|karen|moira|victoria|siri|zira|susan|fiona|tessa|karen|female|woman|girl|siri/i;
+        const mode = getTvVoiceModeConfig();
+        const preferredNames = (mode.prefer || []).concat([
+          'google uk english male', 'google us english', 'daniel', 'alex', 'david', 'mark',
+          'microsoft david', 'microsoft mark', 'microsoft guy', 'arthur', 'aaron', 'fred', 'tom', 'rishi'
+        ]);
+        const femaleHints = /samantha|karen|moira|victoria|siri|zira|susan|fiona|tessa|female|woman|girl/i;
         const roboticHints = /compact|novelty|whisper|zarvox|trinoids|cellos|bad news|bahh|boing|bubbles|derby|hysterical|junior|pipe|organ|ralph|good news/i;
         const maleHints = /male|daniel|david|mark|alex|fred|tom|arthur|guy|rishi|aaron|bruce|james|john|george|oliver|thomas/i;
 
@@ -11264,16 +11313,19 @@ function flipRankingMatchCoin(roundNum, matchId) {
           const n = name.toLowerCase();
           let s = 0;
           if (!/en(-|_|$)/i.test(v.lang || '')) s -= 50;
-          if (/en-GB/i.test(v.lang)) s += 8;  // often clearer for announcements
+          if (/en-GB/i.test(v.lang)) s += 8;
           if (/en-US/i.test(v.lang)) s += 6;
-          if (femaleHints.test(n)) s -= 30;
+          if (femaleHints.test(n)) s -= 35;
           if (roboticHints.test(n)) s -= 40;
           if (maleHints.test(n)) s += 25;
-          if (v.localService === false) s += 5; // network voices often more natural
-          preferredNames.forEach(function (p, i) {
-            if (n.indexOf(p) >= 0) s += 40 - i;
+          if (v.localService === false) s += 4;
+          preferredNames.forEach(function (p, idx) {
+            if (n.indexOf(p) >= 0) s += 45 - Math.min(idx, 20);
           });
-          // Prefer non-default generic names slightly less
+          // Ring prefers deeper-sounding name matches slightly more on UK male
+          if (mode.id === 'ring' && /daniel|mark|arthur|uk english male/i.test(n)) s += 8;
+          if (mode.id === 'pa' && /david|us english|guy/i.test(n)) s += 6;
+          if (mode.id === 'calm' && /daniel|alex/i.test(n)) s += 6;
           if (/^english$/i.test(v.name || '')) s -= 5;
           return s;
         }
@@ -11283,7 +11335,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } catch (e) { return null; }
     }
 
-    /** Speak with natural pacing: split into short phrases with pauses (less robotic). */
+    /** Speak with mode-based rate/pitch and phrase pauses. */
     function speakTvMatchLine(text) {
       if (!text) return;
       if (!window.speechSynthesis) {
@@ -11292,8 +11344,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
       try {
         window.speechSynthesis.cancel();
-
-        // Break into announcer-friendly chunks
+        const mode = getTvVoiceModeConfig();
         const chunks = String(text)
           .replace(/\s+/g, ' ')
           .split(/(?<=[.!?])\s+/)
@@ -11308,29 +11359,20 @@ function flipRankingMatchCoin(roundNum, matchId) {
             if (i >= chunks.length) return;
             const u = new SpeechSynthesisUtterance(chunks[i]);
             i += 1;
-            // Clearer, less robotic: slightly slow, a bit deeper
-            u.rate = 0.88;
-            u.pitch = 0.82;
-            u.volume = 1;
+            u.rate = mode.rate;
+            u.pitch = mode.pitch;
+            u.volume = mode.volume != null ? mode.volume : 1;
             if (voice) u.voice = voice;
-            u.onend = function () {
-              // Short pause between phrases
-              setTimeout(next, 180);
-            };
-            u.onerror = function () {
-              setTimeout(next, 80);
-            };
+            u.onend = function () { setTimeout(next, mode.pauseMs || 180); };
+            u.onerror = function () { setTimeout(next, 80); };
             window.speechSynthesis.speak(u);
           };
           next();
         };
 
         const voices = window.speechSynthesis.getVoices() || [];
-        if (!voices.length) {
-          setTimeout(speakQueue, 250);
-        } else {
-          setTimeout(speakQueue, 60);
-        }
+        if (!voices.length) setTimeout(speakQueue, 250);
+        else setTimeout(speakQueue, 60);
       } catch (e) {}
     }
 
@@ -11562,6 +11604,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       try { processTvMatchAnnouncements(playingList); } catch (e) { console.warn('TV announce', e); }
       try { syncTvAnnounceButton(); } catch (e) {}
+      try { syncTvVoiceModeSelect(); } catch (e) {}
 
       const groupBy = isSpectatorGroupByEvent();
       syncSpectatorGroupToggleBtn();
