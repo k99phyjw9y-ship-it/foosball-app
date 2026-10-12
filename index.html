@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.19 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.20 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.19" />
+  <meta name="lcfc-build" content="6.20" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.19 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.20 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -373,6 +373,34 @@
     ::-webkit-scrollbar-thumb:hover { background: rgb(var(--fg-rgb) / 0.2); }
     /* Light-mode readability helpers for common dark utility leftovers */
     .text-on-surface { color: var(--text); }
+
+    /* Home watermark — Option C labeled mini stack */
+    .home-wm-stack {
+      min-width: 9.5rem;
+      max-width: 14rem;
+      text-align: right;
+    }
+    .home-wm-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.35rem 0.5rem;
+      align-items: baseline;
+      text-align: right;
+    }
+    .home-wm-label {
+      opacity: 0.65;
+      font-weight: 500;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .home-wm-value {
+      font-weight: 500;
+      text-align: right;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     /* TV / spectator board follows active color theme */
     #view-spectator {
@@ -1283,10 +1311,18 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.19</div>
-        <div id="home-backup-status" class="text-slate-400/80">Last backup: —</div>
-        <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
-        <div id="home-club-snapshot-status" class="text-slate-400/80">Club file loaded: —</div>
+        <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.20</div>
+          <div class="home-wm-row mt-0.5">
+            <span class="home-wm-label">Backup</span>
+            <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
+          </div>
+          <div class="home-wm-row">
+            <span class="home-wm-label">Club file</span>
+            <span id="home-club-snapshot-status" class="home-wm-value tabular-nums">—</span>
+          </div>
+          <div id="home-backup-nudge" class="hidden text-amber-600/90 mt-0.5 text-right">Back up soon</div>
+        </div>
       </div>
     </div>
 
@@ -2118,7 +2154,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.19';
+    const APP_VERSION = '6.20';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -2259,34 +2295,36 @@
     function renderClubSnapshotStatus() {
       const el = document.getElementById('home-club-snapshot-status');
       if (!el) return;
-      let line = '';
+      let line = '—';
       const st = clubSnapshotMeta.status;
       if (st === 'ok' && clubSnapshotMeta.loadedAt) {
-        line = 'Club file loaded: ' + formatClubLoadedAt(clubSnapshotMeta.loadedAt);
-        if (clubSnapshotMeta.exportedAt) {
-          line += ' · backup ' + formatClubExportedAt(clubSnapshotMeta.exportedAt);
-        }
-      } else if (st === 'ok') {
-        line = clubSnapshotMeta.exportedAt
-          ? ('Club file: ' + formatClubExportedAt(clubSnapshotMeta.exportedAt))
-          : 'Club file: loaded';
+        line = formatClubLoadedAt(clubSnapshotMeta.loadedAt);
+      } else if (st === 'ok' && clubSnapshotMeta.exportedAt) {
+        line = formatClubExportedAt(clubSnapshotMeta.exportedAt);
       } else if (st === 'pending') {
-        line = 'Club file loaded: checking…';
+        line = 'checking…';
       } else if (st === 'missing') {
-        line = 'Club file loaded: not found';
+        line = 'not found';
       } else if (st === 'invalid') {
-        line = 'Club file loaded: invalid file';
+        line = 'invalid';
       } else if (st === 'error') {
-        line = 'Club file loaded: unavailable';
+        line = 'unavailable';
       } else if (st === 'skipped') {
-        line = clubSnapshotMeta.message || 'Club file loaded: skipped';
-      } else {
-        line = clubSnapshotMeta.message || 'Club file loaded: —';
+        line = isOperatorMode() ? 'skipped · local' : 'skipped';
+      } else if (clubSnapshotMeta.message) {
+        // strip old prefixes if any
+        line = String(clubSnapshotMeta.message)
+          .replace(/^Club file loaded:\s*/i, '')
+          .replace(/^Club file:\s*/i, '')
+          || '—';
       }
-      if (isOperatorMode()) {
-        line += ' · operator (local)';
+      if (isOperatorMode() && st === 'ok') {
+        line = (line && line !== '—') ? (line + ' · local') : 'local';
       }
       el.textContent = line;
+      el.title = st === 'ok' && clubSnapshotMeta.exportedAt
+        ? ('Snapshot backup time: ' + formatClubExportedAt(clubSnapshotMeta.exportedAt))
+        : '';
       updateMemberReadonlyBanner();
     }
 
@@ -2352,7 +2390,7 @@
      */
     async function reloadClubSnapshot(force) {
       const statusEl = document.getElementById('home-club-snapshot-status');
-      if (statusEl) statusEl.textContent = 'Club file loaded: loading…';
+      if (statusEl) statusEl.textContent = 'loading…';
       try {
         const res = await fetch(clubSnapshotUrl(), { cache: 'no-store' });
         if (res.status === 404) {
@@ -2456,7 +2494,7 @@
       const hasData = state.players.length > 0 || state.tournaments.length > 0;
       const ageDays = last ? (Date.now() - last) / 86400000 : Infinity;
       const stale = hasData && (!last || (changed && changed > last && ageDays >= BACKUP_STALE_DAYS));
-      line.textContent = last ? `Last backup: ${formatBackupTime(last)}` : 'Last backup: never';
+      line.textContent = last ? formatBackupTime(last) : '—';
       if (nudge) nudge.classList.toggle('hidden', !stale);
     }
 
