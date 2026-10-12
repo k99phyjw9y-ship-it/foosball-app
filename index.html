@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.15 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.16 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.15" />
+  <meta name="lcfc-build" content="6.16" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.15 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.16 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1283,7 +1283,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.15 · Updated Oct 12, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.16 · Updated Oct 12, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -2118,7 +2118,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.15';
+    const APP_VERSION = '6.16';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11147,17 +11147,64 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
     }
 
+    /**
+     * Prefer a clear male English voice. Score system voices — avoid "compact"/robotic.
+     */
     function pickTvSpeechVoice() {
       try {
         const voices = window.speechSynthesis.getVoices() || [];
         if (!voices.length) return null;
-        return voices.find(function (v) { return /en(-|_|$)/i.test(v.lang) && /google|samantha|daniel|karen|moira|enhanced/i.test(v.name); })
-          || voices.find(function (v) { return /en-US/i.test(v.lang); })
-          || voices.find(function (v) { return /en(-|_|$)/i.test(v.lang); })
-          || voices[0];
+
+        // Known clearer male (or natural) English voices across platforms
+        const preferredNames = [
+          'google uk english male',
+          'google us english',
+          'daniel',           // macOS / iOS UK male
+          'alex',             // older macOS male
+          'david',            // Windows male
+          'mark',             // Windows
+          'microsoft david',
+          'microsoft mark',
+          'microsoft guy',
+          'arthur',           // some ChromeOS
+          'aaron',
+          'fred',
+          'tom',
+          'rishi',            // Google UK
+          'english united kingdom',
+          'english (united kingdom)',
+          'english united states'
+        ];
+        const femaleHints = /samantha|karen|moira|victoria|siri|zira|susan|fiona|tessa|karen|female|woman|girl|siri/i;
+        const roboticHints = /compact|novelty|whisper|zarvox|trinoids|cellos|bad news|bahh|boing|bubbles|derby|hysterical|junior|pipe|organ|ralph|good news/i;
+        const maleHints = /male|daniel|david|mark|alex|fred|tom|arthur|guy|rishi|aaron|bruce|james|john|george|oliver|thomas/i;
+
+        function score(v) {
+          if (!v) return -999;
+          const name = (v.name || '') + ' ' + (v.lang || '');
+          const n = name.toLowerCase();
+          let s = 0;
+          if (!/en(-|_|$)/i.test(v.lang || '')) s -= 50;
+          if (/en-GB/i.test(v.lang)) s += 8;  // often clearer for announcements
+          if (/en-US/i.test(v.lang)) s += 6;
+          if (femaleHints.test(n)) s -= 30;
+          if (roboticHints.test(n)) s -= 40;
+          if (maleHints.test(n)) s += 25;
+          if (v.localService === false) s += 5; // network voices often more natural
+          preferredNames.forEach(function (p, i) {
+            if (n.indexOf(p) >= 0) s += 40 - i;
+          });
+          // Prefer non-default generic names slightly less
+          if (/^english$/i.test(v.name || '')) s -= 5;
+          return s;
+        }
+
+        const ranked = voices.slice().sort(function (a, b) { return score(b) - score(a); });
+        return ranked[0] || null;
       } catch (e) { return null; }
     }
 
+    /** Speak with natural pacing: split into short phrases with pauses (less robotic). */
     function speakTvMatchLine(text) {
       if (!text) return;
       if (!window.speechSynthesis) {
@@ -11166,24 +11213,44 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
       try {
         window.speechSynthesis.cancel();
-        const speakNow = function () {
-          const u = new SpeechSynthesisUtterance(text);
-          u.rate = 0.92;
-          u.pitch = 1;
-          u.volume = 1;
+
+        // Break into announcer-friendly chunks
+        const chunks = String(text)
+          .replace(/\s+/g, ' ')
+          .split(/(?<=[.!?])\s+/)
+          .map(function (c) { return c.trim(); })
+          .filter(Boolean);
+        if (!chunks.length) chunks.push(String(text).trim());
+
+        const speakQueue = function () {
           const voice = pickTvSpeechVoice();
-          if (voice) u.voice = voice;
-          u.onerror = function () {
-            // Chime already played; ignore speech errors on mobile
+          let i = 0;
+          const next = function () {
+            if (i >= chunks.length) return;
+            const u = new SpeechSynthesisUtterance(chunks[i]);
+            i += 1;
+            // Clearer, less robotic: slightly slow, a bit deeper
+            u.rate = 0.88;
+            u.pitch = 0.82;
+            u.volume = 1;
+            if (voice) u.voice = voice;
+            u.onend = function () {
+              // Short pause between phrases
+              setTimeout(next, 180);
+            };
+            u.onerror = function () {
+              setTimeout(next, 80);
+            };
+            window.speechSynthesis.speak(u);
           };
-          window.speechSynthesis.speak(u);
+          next();
         };
-        // iOS often needs a tick after cancel / voices load
+
         const voices = window.speechSynthesis.getVoices() || [];
         if (!voices.length) {
-          setTimeout(speakNow, 200);
+          setTimeout(speakQueue, 250);
         } else {
-          setTimeout(speakNow, 50);
+          setTimeout(speakQueue, 60);
         }
       } catch (e) {}
     }
@@ -11194,11 +11261,13 @@ function flipRankingMatchCoin(roundNum, matchId) {
       };
       const a = clean(row.nameA);
       const b = clean(row.nameB);
-      const table = row.table ? ('Table ' + row.table + '. ') : '';
+      const table = row.table ? ('Table ' + row.table + '.') : '';
       const allMode = state.spectatorTournamentId === '__all__';
-      const eventBit = (allMode && row.eventName) ? (' ' + row.eventName + '.') : '';
-      const tail = (kind === 'deck') ? ' On deck.' : ' Now playing.';
-      return table + a + ' versus ' + b + '.' + eventBit + tail;
+      const eventBit = (allMode && row.eventName) ? (String(row.eventName).trim() + '.') : '';
+      const matchup = a + ' versus ' + b + '.';
+      const tail = (kind === 'deck') ? 'On deck.' : 'Now playing.';
+      // Periods → separate utterances for natural pauses
+      return [table, matchup, eventBit, tail].filter(Boolean).join(' ');
     }
 
     /** Manual mic on a TV card — always speaks this match (unlocks audio if needed). */
