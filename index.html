@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.14 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.15 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.14" />
+  <meta name="lcfc-build" content="6.15" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.14 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.15 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1283,7 +1283,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.14 · Updated Oct 12, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.15 · Updated Oct 12, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -2118,7 +2118,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.14';
+    const APP_VERSION = '6.15';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -10714,6 +10714,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
       try { syncTvAnnounceButton(); } catch (e) {}
       renderSpectatorBoard();
       if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
+      // Re-unlock audio on any tap while board is open (helps iPhone after lock screen)
+      try {
+        const view = document.getElementById('view-spectator');
+        if (view && !view._tvAudioTapBound) {
+          view._tvAudioTapBound = true;
+          const wake = function () {
+            if (!isTvAnnounceEnabled()) return;
+            try { unlockTvAnnounceAudio(); } catch (e) {}
+          };
+          view.addEventListener('touchstart', wake, { passive: true });
+          view.addEventListener('click', wake, { passive: true });
+        }
+      } catch (e) {}
+      if (isTvAnnounceEnabled() && tvAnnounceAudioUnlocked) {
+        try { startTvAnnounceKeepAlive(); } catch (e) {}
+      }
       if (spectatorTimer) clearInterval(spectatorTimer);
       // TV board refresh every 5s (also covered by global app refresh)
       spectatorTimer = setInterval(() => {
@@ -10729,6 +10745,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       document.body.style.overflow = '';
       if (spectatorTimer) { clearInterval(spectatorTimer); spectatorTimer = null; }
       try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+      try { stopTvAnnounceKeepAlive(); } catch (e) {}
       if (document.fullscreenElement) {
         document.exitFullscreen?.().catch(() => {});
       }
@@ -10983,9 +11000,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     // ==================== TV BOARD MATCH ANNOUNCEMENTS ====================
     // Chime + speech when a match becomes "Playing" — TV board tab only.
+    // Mobile (esp. iOS): audio only after a user tap; keep AudioContext resumed.
     const TV_ANNOUNCE_KEY = 'lcfc_tv_announce_v1';
     let tvAnnounceAudioUnlocked = false;
     let tvAnnounceAudioCtx = null;
+    let tvAnnounceKeepAliveId = null;
+    let tvSpeechVoicesReady = false;
     const tvAnnouncedLiveKeys = new Set();
 
     function isTvAnnounceEnabled() {
@@ -11004,78 +11024,167 @@ function flipRankingMatchCoin(roundNum, matchId) {
       btn.textContent = on ? 'Sound · On' : 'Sound · Off';
       btn.title = on
         ? 'Match announcements on — chime + names when a match goes live'
-        : 'Tap to enable TV match announcements (required once per session)';
+        : 'Tap to enable TV match announcements (required once per session on phones)';
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      // Green when on, red when off
       btn.classList.remove('spec-announce-on', 'spec-announce-off');
       btn.classList.add(on ? 'spec-announce-on' : 'spec-announce-off');
     }
 
+    function getTvAudioContext() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!tvAnnounceAudioCtx) {
+        try { tvAnnounceAudioCtx = new AC(); } catch (e) { return null; }
+      }
+      return tvAnnounceAudioCtx;
+    }
+
+    /** Must run inside a user-gesture handler on mobile. */
     function unlockTvAnnounceAudio() {
-      try {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (AC) {
-          if (!tvAnnounceAudioCtx) tvAnnounceAudioCtx = new AC();
-          if (tvAnnounceAudioCtx.state === 'suspended') {
-            tvAnnounceAudioCtx.resume().catch(function () {});
-          }
-        }
-      } catch (e) {}
+      const ctx = getTvAudioContext();
+      if (ctx) {
+        try {
+          // Resume + play a near-silent blip in the same gesture (iOS requirement)
+          const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
+          resume.then(function () {
+            try {
+              const o = ctx.createOscillator();
+              const g = ctx.createGain();
+              o.connect(g);
+              g.connect(ctx.destination);
+              g.gain.value = 0.001;
+              o.start();
+              o.stop(ctx.currentTime + 0.05);
+            } catch (e) {}
+          }).catch(function () {});
+        } catch (e) {}
+      }
       tvAnnounceAudioUnlocked = true;
-      // Warm speechSynthesis on some browsers
+      // Prefetch voices (iOS loads async)
       try {
         if (window.speechSynthesis) {
+          const loadVoices = function () {
+            const v = window.speechSynthesis.getVoices() || [];
+            if (v.length) tvSpeechVoicesReady = true;
+          };
+          loadVoices();
+          if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+          }
+          // Warm TTS in gesture
           window.speechSynthesis.cancel();
-          const warm = new SpeechSynthesisUtterance('');
-          warm.volume = 0;
+          const warm = new SpeechSynthesisUtterance(' ');
+          warm.volume = 0.01;
+          warm.rate = 2;
           window.speechSynthesis.speak(warm);
-          window.speechSynthesis.cancel();
+          setTimeout(function () {
+            try { window.speechSynthesis.cancel(); } catch (e) {}
+          }, 80);
         }
       } catch (e) {}
+      startTvAnnounceKeepAlive();
+    }
+
+    /** Prevent iOS from suspending AudioContext while TV board + sound stay open. */
+    function startTvAnnounceKeepAlive() {
+      stopTvAnnounceKeepAlive();
+      tvAnnounceKeepAliveId = setInterval(function () {
+        if (!isTvAnnounceEnabled() || !tvAnnounceAudioUnlocked) return;
+        const view = document.getElementById('view-spectator');
+        if (!view || view.classList.contains('hidden')) return;
+        const ctx = getTvAudioContext();
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume().catch(function () {});
+        }
+      }, 2000);
+    }
+
+    function stopTvAnnounceKeepAlive() {
+      if (tvAnnounceKeepAliveId) {
+        clearInterval(tvAnnounceKeepAliveId);
+        tvAnnounceKeepAliveId = null;
+      }
     }
 
     function playTvMatchChime() {
+      const ctx = getTvAudioContext();
+      if (!ctx) {
+        // Fallback: short HTMLAudio beep via oscillator is unavailable
+        try {
+          // Tiny WAV (440Hz) as last resort — may still need gesture on iOS
+          const a = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp2bi4B2b2xpbHSDi5eboJ6ZiH1yamhnanB6hI+YnJqWj4h+eHRwb3F2e4KIkJmcmZKLhH54dHFvdHh+hIqQmJeRjIV+eXVycHV5foOIjZWYlI6Hg315dnNydnl9g4iOk5WTjYeCfXp3dHR2eX6DiI6TlJGMh4J9eXd1dHZ5foOIjZKTkYyHgn16d3V0dnl+g4iOk5SRjIeCfXp3dXR2eX6DiI6TlJGMh4J9eXd1dHZ5foOIjZKTkYyHgn16d3V0dnl+g4iOk5SRjIeCfXp3dXR2eX6DiI6TlJGMh4J9eXd1dHZ5foOIjZKTkYyHgn16d3V0dnl+g4iOk5SRjIeCfXp3');
+          a.volume = 1;
+          a.play().catch(function () {});
+        } catch (e) {}
+        return;
+      }
+      const run = function () {
+        try {
+          const now = ctx.currentTime;
+          const beep = function (freq, start, dur, vol) {
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'sine';
+            o.frequency.setValueAtTime(freq, start);
+            g.gain.setValueAtTime(0.0001, start);
+            g.gain.exponentialRampToValueAtTime(vol, start + 0.025);
+            g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.start(start);
+            o.stop(start + dur + 0.05);
+          };
+          // Louder / longer for phone speakers
+          beep(660, now, 0.16, 0.32);
+          beep(880, now + 0.14, 0.16, 0.30);
+          beep(1175, now + 0.28, 0.22, 0.28);
+        } catch (e) {}
+      };
+      if (ctx.state === 'suspended') {
+        ctx.resume().then(run).catch(function () { run(); });
+      } else {
+        run();
+      }
+    }
+
+    function pickTvSpeechVoice() {
       try {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return;
-        if (!tvAnnounceAudioCtx) tvAnnounceAudioCtx = new AC();
-        const ctx = tvAnnounceAudioCtx;
-        if (ctx.state === 'suspended') ctx.resume().catch(function () {});
-        const now = ctx.currentTime;
-        const beep = function (freq, start, dur, vol) {
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.type = 'sine';
-          o.frequency.setValueAtTime(freq, start);
-          g.gain.setValueAtTime(0.0001, start);
-          g.gain.exponentialRampToValueAtTime(vol, start + 0.02);
-          g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-          o.connect(g);
-          g.connect(ctx.destination);
-          o.start(start);
-          o.stop(start + dur + 0.02);
-        };
-        beep(784, now, 0.12, 0.18);       // G5
-        beep(1046.5, now + 0.12, 0.18, 0.16); // C6
-      } catch (e) {}
+        const voices = window.speechSynthesis.getVoices() || [];
+        if (!voices.length) return null;
+        return voices.find(function (v) { return /en(-|_|$)/i.test(v.lang) && /google|samantha|daniel|karen|moira|enhanced/i.test(v.name); })
+          || voices.find(function (v) { return /en-US/i.test(v.lang); })
+          || voices.find(function (v) { return /en(-|_|$)/i.test(v.lang); })
+          || voices[0];
+      } catch (e) { return null; }
     }
 
     function speakTvMatchLine(text) {
-      if (!window.speechSynthesis || !text) return;
+      if (!text) return;
+      if (!window.speechSynthesis) {
+        if (typeof toast === 'function') toast('This browser cannot speak text — chime only', 'info');
+        return;
+      }
       try {
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.rate = 0.95;
-        u.pitch = 1;
-        u.volume = 1;
-        // Prefer a clear English voice when available
-        try {
-          const voices = window.speechSynthesis.getVoices() || [];
-          const en = voices.find(v => /en(-|_|$)/i.test(v.lang) && /google|samantha|daniel|david|zira/i.test(v.name))
-            || voices.find(v => /en(-|_|$)/i.test(v.lang));
-          if (en) u.voice = en;
-        } catch (e) {}
-        window.speechSynthesis.speak(u);
+        const speakNow = function () {
+          const u = new SpeechSynthesisUtterance(text);
+          u.rate = 0.92;
+          u.pitch = 1;
+          u.volume = 1;
+          const voice = pickTvSpeechVoice();
+          if (voice) u.voice = voice;
+          u.onerror = function () {
+            // Chime already played; ignore speech errors on mobile
+          };
+          window.speechSynthesis.speak(u);
+        };
+        // iOS often needs a tick after cancel / voices load
+        const voices = window.speechSynthesis.getVoices() || [];
+        if (!voices.length) {
+          setTimeout(speakNow, 200);
+        } else {
+          setTimeout(speakNow, 50);
+        }
       } catch (e) {}
     }
 
@@ -11095,7 +11204,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     /** Manual mic on a TV card — always speaks this match (unlocks audio if needed). */
     function announceTvMatchManual(btn) {
       if (!btn) return;
-      try { unlockTvAnnounceAudio(); } catch (e) {}
+      unlockTvAnnounceAudio();
       const row = {
         table: btn.getAttribute('data-table') || '',
         nameA: btn.getAttribute('data-name-a') || 'TBD',
@@ -11107,20 +11216,28 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (typeof toast === 'function') toast('Match not ready to announce', 'error');
         return;
       }
+      // Same call stack as tap — critical for iPhone
       playTvMatchChime();
       setTimeout(function () {
         speakTvMatchLine(formatTvMatchAnnounce(row, kind));
-      }, 320);
+      }, 400);
     }
 
     /**
      * Announce matches that newly appear in the Playing list (not on deck).
      * Only while TV board is visible and Sound is On.
+     * Note: some phones mute auto-play until you tap Sound · On or 🎤 again after switching apps.
      */
     function processTvMatchAnnouncements(playingList) {
       const view = document.getElementById('view-spectator');
       if (!view || view.classList.contains('hidden')) return;
       if (!isTvAnnounceEnabled() || !tvAnnounceAudioUnlocked) return;
+
+      // Try to wake audio context before auto chime
+      try {
+        const ctx = getTvAudioContext();
+        if (ctx && ctx.state === 'suspended') ctx.resume().catch(function () {});
+      } catch (e) {}
 
       const currentLive = new Set();
       const toAnnounce = [];
@@ -11134,46 +11251,46 @@ function flipRankingMatchCoin(roundNum, matchId) {
         toAnnounce.push(row);
       });
 
-      // Forget matches that left the live board so a later rematch can announce again
       Array.from(tvAnnouncedLiveKeys).forEach(function (k) {
         if (!currentLive.has(k)) tvAnnouncedLiveKeys.delete(k);
       });
 
       if (!toAnnounce.length) return;
 
-      // Queue announcements so multiple tables don't talk over each other
       let delay = 0;
-      toAnnounce.forEach(function (row, idx) {
+      toAnnounce.forEach(function (row) {
         setTimeout(function () {
-          // Re-check still enabled / board open
           const v = document.getElementById('view-spectator');
           if (!v || v.classList.contains('hidden')) return;
           if (!isTvAnnounceEnabled() || !tvAnnounceAudioUnlocked) return;
           playTvMatchChime();
           setTimeout(function () {
             speakTvMatchLine(formatTvMatchAnnounce(row));
-          }, 320);
+          }, 400);
         }, delay);
-        delay += 4200; // space multi-table callouts
+        delay += 4500;
       });
     }
 
     function toggleTvMatchAnnouncements() {
       if (isTvAnnounceEnabled() && tvAnnounceAudioUnlocked) {
         setTvAnnounceEnabled(false);
+        stopTvAnnounceKeepAlive();
         try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
         if (typeof toast === 'function') toast('TV match announcements off', 'info');
+        syncTvAnnounceButton();
         return;
       }
-      // User gesture: unlock audio + turn on
+      // User gesture path (required on phones)
       unlockTvAnnounceAudio();
       setTvAnnounceEnabled(true);
       playTvMatchChime();
       setTimeout(function () {
         speakTvMatchLine('Match announcements on. New live matches will be called out.');
-      }, 300);
-      if (typeof toast === 'function') toast('TV match announcements on', 'success');
-      // Seed current live matches so we don't announce games already on screen
+      }, 400);
+      if (typeof toast === 'function') {
+        toast('TV sound on — keep this tab open; unmute phone ringer if needed', 'success');
+      }
       try { seedTvAnnouncedFromCurrentBoard(); } catch (e) {}
       try { syncTvAnnounceButton(); } catch (e) {}
     }
