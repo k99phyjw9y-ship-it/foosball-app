@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.24 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.25 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.24" />
+  <meta name="lcfc-build" content="6.25" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.24 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.25 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1312,7 +1312,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.24</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.25</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -1381,11 +1381,13 @@
             <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="spec-control px-3 py-2 text-sm max-w-[14rem]"></select>
             <button type="button" id="spec-group-toggle" onclick="toggleSpectatorGroupByEvent()" class="spec-control px-3 py-2 text-sm font-medium" title="Group match cards under each event name">Group by event</button>
             <button type="button" id="spec-announce-btn" onclick="toggleTvMatchAnnouncements()" class="spec-control spec-announce-off px-3 py-2 text-sm font-medium" title="Chime + spoken names when a match goes live (TV board only)">Sound · Off</button>
-            <select id="spec-voice-mode" onchange="setTvAnnounceVoiceMode(this.value)" class="spec-control px-3 py-2 text-sm font-medium max-w-[7.5rem]" title="Male announcer style">
+            <select id="spec-voice-mode" onchange="setTvAnnounceVoiceMode(this.value)" class="spec-control px-3 py-2 text-sm font-medium max-w-[8.5rem]" title="Male announcer style">
               <option value="desk">Desk</option>
               <option value="ring">Ring</option>
               <option value="arena">Arena</option>
               <option value="pulse">Pulse</option>
+              <option value="ceremony">Ceremony</option>
+              <option value="corner">Corner</option>
               <option value="calm">Calm</option>
             </select>
             <button type="button" onclick="toggleSpectatorFullscreen()" class="spec-control px-3 py-2 text-sm font-medium">Fullscreen</button>
@@ -2161,7 +2163,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.24';
+    const APP_VERSION = '6.25';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11116,6 +11118,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
         rate: 0.88, pitch: 0.84, pauseMs: 240, volume: 1,
         prefer: ['daniel', 'google uk english male', 'microsoft david', 'david', 'alex', 'google us english']
       },
+      ceremony: {
+        id: 'ceremony', label: 'Ceremony',
+        rate: 0.78, pitch: 0.70, pauseMs: 400, volume: 1,
+        prefer: ['daniel', 'microsoft mark', 'mark', 'arthur', 'google uk english male', 'alex']
+      },
+      corner: {
+        id: 'corner', label: 'Corner',
+        rate: 0.84, pitch: 0.76, pauseMs: 360, volume: 1,
+        prefer: ['daniel', 'google uk english male', 'microsoft david', 'david', 'alex', 'mark']
+      },
       calm: {
         id: 'calm', label: 'Calm',
         rate: 0.86, pitch: 0.78, pauseMs: 220, volume: 0.95,
@@ -11339,6 +11351,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           // Ring prefers deeper-sounding name matches slightly more on UK male
           if (mode.id === 'ring' && /daniel|mark|arthur|uk english male/i.test(n)) s += 8;
           if (mode.id === 'arena' && /daniel|mark|arthur|uk english male/i.test(n)) s += 10;
+          if (mode.id === 'ceremony' && /daniel|mark|arthur|uk english male/i.test(n)) s += 10;
+          if (mode.id === 'corner' && /daniel|david|uk english male/i.test(n)) s += 8;
           if (mode.id === 'pulse' && /daniel|david|uk english male/i.test(n)) s += 6;
           if (mode.id === 'calm' && /daniel|alex/i.test(n)) s += 6;
           if (/^english$/i.test(v.name || '')) s -= 5;
@@ -11504,18 +11518,17 @@ function flipRankingMatchCoin(roundNum, matchId) {
       };
       const a = clean(row.nameA);
       const b = clean(row.nameB);
+      const modeId = (typeof getTvAnnounceVoiceMode === 'function') ? getTvAnnounceVoiceMode() : 'desk';
 
       const table = row.table != null && row.table !== ''
         ? ('Table ' + String(row.table) + '.')
         : '';
 
-      // Event once only
       let eventBit = '';
       if (row.eventName) {
         eventBit = String(row.eventName).replace(/\s+/g, ' ').trim() + '.';
       }
 
-      // Single phase word: Ranking or Playoffs (not both, not duplicated from event title)
       let phaseBit = '';
       const phaseRaw = String(row.phase || '').toLowerCase();
       const labelRaw = String(row.phaseLabel || '').toLowerCase();
@@ -11526,7 +11539,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (isPlayoff) phaseBit = 'Playoffs.';
       else phaseBit = 'Ranking.';
 
-      // Skip detail if it just repeats Ranking/Playoffs/event name
       let detailBit = '';
       const pl = String(row.phaseLabel || '').replace(/\s+/g, ' ').trim();
       if (pl && !/^(ranking|playoffs?)$/i.test(pl)) {
@@ -11536,13 +11548,25 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
       }
 
-      const matchup = a + ' versus ' + b + '.';
       const tail = (kind === 'deck') ? 'On deck.' : 'Now playing.';
 
+      // Ceremony: formal, heavy pauses via short sentences
+      if (modeId === 'ceremony') {
+        const matchup = 'In this match. ' + a + '. Versus. ' + b + '.';
+        return [table, eventBit, phaseBit, detailBit, matchup, tail].filter(Boolean).join(' ');
+      }
+
+      // Corner: boxing-ring cadence
+      if (modeId === 'corner') {
+        const intro = table ? table : '';
+        const matchup = 'In this match. ' + a + '. Versus. ' + b + '.';
+        return [intro, eventBit, phaseBit, matchup, tail].filter(Boolean).join(' ');
+      }
+
+      const matchup = a + ' versus ' + b + '.';
       return [table, eventBit, phaseBit, detailBit, matchup, tail].filter(Boolean).join(' ');
     }
 
-    /** Manual mic on a TV card — always speaks this match (unlocks audio if needed). */
     function announceTvMatchManual(btn) {
       if (!btn) return;
       unlockTvAnnounceAudio();
