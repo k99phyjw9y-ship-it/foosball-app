@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.17 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.18 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.17" />
+  <meta name="lcfc-build" content="6.18" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.17 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.18 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1283,7 +1283,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.17 · Updated Oct 12, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.18 · Updated Oct 12, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -2118,7 +2118,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.17';
+    const APP_VERSION = '6.18';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11262,38 +11262,40 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const a = clean(row.nameA);
       const b = clean(row.nameB);
 
-      // Table
       const table = row.table != null && row.table !== ''
         ? ('Table ' + String(row.table) + '.')
         : '';
 
-      // Event name (always when known)
-      const eventBit = row.eventName
-        ? (String(row.eventName).replace(/\s+/g, ' ').trim() + '.')
-        : '';
-
-      // Ranking vs playoff (+ optional round hint)
-      let phaseBit = '';
-      const phase = String(row.phase || row.phaseLabel || '').toLowerCase();
-      if (/playoff|bracket|winners|losers|grand|bronze|gf/.test(phase) || phase === 'playoff') {
-        phaseBit = 'Playoffs.';
-      } else if (phase || row.phaseLabel) {
-        phaseBit = 'Ranking.';
-      } else if (row.round != null && row.round !== '') {
-        const r = String(row.round);
-        if (/winners|losers|gf|bronze|bracket/i.test(r)) phaseBit = 'Playoffs.';
-        else phaseBit = 'Ranking.';
+      // Event once only
+      let eventBit = '';
+      if (row.eventName) {
+        eventBit = String(row.eventName).replace(/\s+/g, ' ').trim() + '.';
       }
-      // Optional finer label after Ranking/Playoffs
+
+      // Single phase word: Ranking or Playoffs (not both, not duplicated from event title)
+      let phaseBit = '';
+      const phaseRaw = String(row.phase || '').toLowerCase();
+      const labelRaw = String(row.phaseLabel || '').toLowerCase();
+      const roundRaw = String(row.round != null ? row.round : '').toLowerCase();
+      const isPlayoff = /playoff|bracket|winners|losers|grand|bronze|^gf/.test(phaseRaw)
+        || /playoff|winners|losers|grand|bronze/.test(labelRaw)
+        || /winners|losers|gf|bronze|bracket/.test(roundRaw);
+      if (isPlayoff) phaseBit = 'Playoffs.';
+      else phaseBit = 'Ranking.';
+
+      // Skip detail if it just repeats Ranking/Playoffs/event name
       let detailBit = '';
-      if (row.phaseLabel && !/^ranking|playoffs?$/i.test(String(row.phaseLabel).trim())) {
-        detailBit = String(row.phaseLabel).replace(/\s+/g, ' ').trim() + '.';
+      const pl = String(row.phaseLabel || '').replace(/\s+/g, ' ').trim();
+      if (pl && !/^(ranking|playoffs?)$/i.test(pl)) {
+        const ev = String(row.eventName || '').toLowerCase();
+        if (pl.toLowerCase() !== ev && pl.toLowerCase().indexOf(ev) < 0) {
+          detailBit = pl + '.';
+        }
       }
 
       const matchup = a + ' versus ' + b + '.';
       const tail = (kind === 'deck') ? 'On deck.' : 'Now playing.';
 
-      // Order: table → event → phase → teams → status
       return [table, eventBit, phaseBit, detailBit, matchup, tail].filter(Boolean).join(' ');
     }
 
@@ -11327,12 +11329,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
      * Only while TV board is visible and Sound is On.
      * Note: some phones mute auto-play until you tap Sound · On or 🎤 again after switching apps.
      */
+    // Miss counts before forgetting a live key (avoids re-announce on 5s refresh flicker)
+    const tvAnnounceMissCounts = {};
+
     function processTvMatchAnnouncements(playingList) {
       const view = document.getElementById('view-spectator');
       if (!view || view.classList.contains('hidden')) return;
       if (!isTvAnnounceEnabled() || !tvAnnounceAudioUnlocked) return;
 
-      // Try to wake audio context before auto chime
       try {
         const ctx = getTvAudioContext();
         if (ctx && ctx.state === 'suspended') ctx.resume().catch(function () {});
@@ -11343,15 +11347,23 @@ function flipRankingMatchCoin(roundNum, matchId) {
       (playingList || []).forEach(function (row) {
         if (!row || !row.matchId) return;
         if (!row.nameA || row.nameA === 'TBD' || !row.nameB || row.nameB === 'TBD') return;
+        // Stable key: event + match + table (table change = same match, do not re-announce)
         const key = String(row.eventId || '') + ':' + String(row.matchId) + ':live';
         currentLive.add(key);
+        tvAnnounceMissCounts[key] = 0;
         if (tvAnnouncedLiveKeys.has(key)) return;
         tvAnnouncedLiveKeys.add(key);
         toAnnounce.push(row);
       });
 
-      Array.from(tvAnnouncedLiveKeys).forEach(function (k) {
-        if (!currentLive.has(k)) tvAnnouncedLiveKeys.delete(k);
+      // Only drop keys after several consecutive scans without the match (not every refresh)
+      Object.keys(tvAnnounceMissCounts).forEach(function (k) {
+        if (currentLive.has(k)) return;
+        tvAnnounceMissCounts[k] = (tvAnnounceMissCounts[k] || 0) + 1;
+        if (tvAnnounceMissCounts[k] >= 4) {
+          tvAnnouncedLiveKeys.delete(k);
+          delete tvAnnounceMissCounts[k];
+        }
       });
 
       if (!toAnnounce.length) return;
@@ -11388,7 +11400,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         speakTvMatchLine('Match announcements on. New live matches will be called out.');
       }, 400);
       if (typeof toast === 'function') {
-        toast('TV sound on — keep this tab open; unmute phone ringer if needed', 'success');
+        toast('Sound on this device — for TV speakers, open the board on the TV browser (Cast often keeps voice on the laptop)', 'success');
       }
       try { seedTvAnnouncedFromCurrentBoard(); } catch (e) {}
       try { syncTvAnnounceButton(); } catch (e) {}
