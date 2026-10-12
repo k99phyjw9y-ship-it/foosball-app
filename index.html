@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.16 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.17 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.16" />
+  <meta name="lcfc-build" content="6.17" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.16 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.17 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1283,7 +1283,7 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.16 · Updated Oct 12, 2026</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.17 · Updated Oct 12, 2026</div>
         <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
         <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
@@ -2118,7 +2118,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.16';
+    const APP_VERSION = '6.17';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11261,13 +11261,40 @@ function flipRankingMatchCoin(roundNum, matchId) {
       };
       const a = clean(row.nameA);
       const b = clean(row.nameB);
-      const table = row.table ? ('Table ' + row.table + '.') : '';
-      const allMode = state.spectatorTournamentId === '__all__';
-      const eventBit = (allMode && row.eventName) ? (String(row.eventName).trim() + '.') : '';
+
+      // Table
+      const table = row.table != null && row.table !== ''
+        ? ('Table ' + String(row.table) + '.')
+        : '';
+
+      // Event name (always when known)
+      const eventBit = row.eventName
+        ? (String(row.eventName).replace(/\s+/g, ' ').trim() + '.')
+        : '';
+
+      // Ranking vs playoff (+ optional round hint)
+      let phaseBit = '';
+      const phase = String(row.phase || row.phaseLabel || '').toLowerCase();
+      if (/playoff|bracket|winners|losers|grand|bronze|gf/.test(phase) || phase === 'playoff') {
+        phaseBit = 'Playoffs.';
+      } else if (phase || row.phaseLabel) {
+        phaseBit = 'Ranking.';
+      } else if (row.round != null && row.round !== '') {
+        const r = String(row.round);
+        if (/winners|losers|gf|bronze|bracket/i.test(r)) phaseBit = 'Playoffs.';
+        else phaseBit = 'Ranking.';
+      }
+      // Optional finer label after Ranking/Playoffs
+      let detailBit = '';
+      if (row.phaseLabel && !/^ranking|playoffs?$/i.test(String(row.phaseLabel).trim())) {
+        detailBit = String(row.phaseLabel).replace(/\s+/g, ' ').trim() + '.';
+      }
+
       const matchup = a + ' versus ' + b + '.';
       const tail = (kind === 'deck') ? 'On deck.' : 'Now playing.';
-      // Periods → separate utterances for natural pauses
-      return [table, matchup, eventBit, tail].filter(Boolean).join(' ');
+
+      // Order: table → event → phase → teams → status
+      return [table, eventBit, phaseBit, detailBit, matchup, tail].filter(Boolean).join(' ');
     }
 
     /** Manual mic on a TV card — always speaks this match (unlocks audio if needed). */
@@ -11278,7 +11305,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
         table: btn.getAttribute('data-table') || '',
         nameA: btn.getAttribute('data-name-a') || 'TBD',
         nameB: btn.getAttribute('data-name-b') || 'TBD',
-        eventName: btn.getAttribute('data-event') || ''
+        eventName: btn.getAttribute('data-event') || '',
+        phase: btn.getAttribute('data-phase') || '',
+        phaseLabel: btn.getAttribute('data-phase-label') || '',
+        round: btn.getAttribute('data-round') || ''
       };
       const kind = btn.getAttribute('data-kind') || 'live';
       if (row.nameA === 'TBD' && row.nameB === 'TBD') {
@@ -11489,6 +11519,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
                 data-name-a="${escapeHtml(m.nameA || '')}"
                 data-name-b="${escapeHtml(m.nameB || '')}"
                 data-event="${escapeHtml(m.eventName || '')}"
+                data-phase="${escapeHtml(m.phase || '')}"
+                data-phase-label="${escapeHtml(m.phaseLabel || '')}"
+                data-round="${escapeHtml(m.round != null ? String(m.round) : '')}"
                 data-kind="${kind === 'deck' ? 'deck' : 'live'}"
                 onclick="event.stopPropagation(); announceTvMatchManual(this)"
                 aria-label="Announce match">🎤</button>
