@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.18 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.19 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.18" />
+  <meta name="lcfc-build" content="6.19" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.18 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.19 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1283,10 +1283,10 @@
       </footer>
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
-        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.18 · Updated Oct 12, 2026</div>
-        <div id="home-backup-status" class="text-slate-400/80">Last backup: never</div>
+        <div id="home-version-watermark" class="text-slate-400/80" aria-hidden="true">v6.19</div>
+        <div id="home-backup-status" class="text-slate-400/80">Last backup: —</div>
         <div id="home-backup-nudge" class="hidden text-amber-600">Back up soon · tap Export all</div>
-        <div id="home-club-snapshot-status" class="text-slate-400/80">Club file: checking…</div>
+        <div id="home-club-snapshot-status" class="text-slate-400/80">Club file loaded: —</div>
       </div>
     </div>
 
@@ -2118,7 +2118,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.18';
+    const APP_VERSION = '6.19';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -2187,7 +2187,7 @@
     const OPERATOR_MODE_KEY = 'lcfc_operator_mode_v1';
     /** PIN required to turn Operator mode ON or OFF (scoring laptop). */
     const OPERATOR_MODE_PIN = '111784';
-    let clubSnapshotMeta = { status: 'pending', message: 'Club file: checking…', exportedAt: null };
+    let clubSnapshotMeta = { status: 'pending', message: 'Club file loaded: —', exportedAt: null, loadedAt: null };
 
     function isOperatorMode() {
       try { return localStorage.getItem(OPERATOR_MODE_KEY) === '1'; } catch (e) { return false; }
@@ -2259,10 +2259,34 @@
     function renderClubSnapshotStatus() {
       const el = document.getElementById('home-club-snapshot-status');
       if (!el) return;
-      el.textContent = clubSnapshotMeta.message || '';
-      if (isOperatorMode()) {
-        el.textContent = (clubSnapshotMeta.message || 'Club file') + ' · operator mode (local data kept)';
+      let line = '';
+      const st = clubSnapshotMeta.status;
+      if (st === 'ok' && clubSnapshotMeta.loadedAt) {
+        line = 'Club file loaded: ' + formatClubLoadedAt(clubSnapshotMeta.loadedAt);
+        if (clubSnapshotMeta.exportedAt) {
+          line += ' · backup ' + formatClubExportedAt(clubSnapshotMeta.exportedAt);
+        }
+      } else if (st === 'ok') {
+        line = clubSnapshotMeta.exportedAt
+          ? ('Club file: ' + formatClubExportedAt(clubSnapshotMeta.exportedAt))
+          : 'Club file: loaded';
+      } else if (st === 'pending') {
+        line = 'Club file loaded: checking…';
+      } else if (st === 'missing') {
+        line = 'Club file loaded: not found';
+      } else if (st === 'invalid') {
+        line = 'Club file loaded: invalid file';
+      } else if (st === 'error') {
+        line = 'Club file loaded: unavailable';
+      } else if (st === 'skipped') {
+        line = clubSnapshotMeta.message || 'Club file loaded: skipped';
+      } else {
+        line = clubSnapshotMeta.message || 'Club file loaded: —';
       }
+      if (isOperatorMode()) {
+        line += ' · operator (local)';
+      }
+      el.textContent = line;
       updateMemberReadonlyBanner();
     }
 
@@ -2313,17 +2337,26 @@
       } catch (e) { return String(iso).slice(0, 16); }
     }
 
+    function formatClubLoadedAt(ts) {
+      if (ts == null) return '';
+      try {
+        const d = new Date(ts);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      } catch (e) { return ''; }
+    }
+
     /**
      * Fetch data/latest.json from the same host as the app (GitHub Pages).
      * force=true: load even in operator mode (manual "Load club file").
      */
     async function reloadClubSnapshot(force) {
       const statusEl = document.getElementById('home-club-snapshot-status');
-      if (statusEl) statusEl.textContent = 'Club file: loading…';
+      if (statusEl) statusEl.textContent = 'Club file loaded: loading…';
       try {
         const res = await fetch(clubSnapshotUrl(), { cache: 'no-store' });
         if (res.status === 404) {
-          clubSnapshotMeta = { status: 'missing', message: 'Club file: not found (add data/latest.json on GitHub)', exportedAt: null };
+          clubSnapshotMeta = { status: 'missing', message: 'Club file loaded: not found', exportedAt: null, loadedAt: null };
           renderClubSnapshotStatus();
           if (force) toast('No data/latest.json on this site yet', 'error');
           return false;
@@ -2332,17 +2365,21 @@
         const data = await res.json();
         const okShape = data && (data.type === 'full' || (Array.isArray(data.players) && Array.isArray(data.tournaments)));
         if (!okShape) {
-          clubSnapshotMeta = { status: 'invalid', message: 'Club file: invalid format (need full backup JSON)', exportedAt: null };
+          clubSnapshotMeta = { status: 'invalid', message: 'Club file loaded: invalid file', exportedAt: null, loadedAt: null };
           renderClubSnapshotStatus();
           if (force) toast('Club file is not a full LCFC backup', 'error');
           return false;
         }
+        const exportedAt = data.exportedAt || data.exported_at || null;
         clubSnapshotMeta = {
           status: 'ok',
-          message: 'Club file: ' + formatClubExportedAt(data.exportedAt || data.exported_at) + ' · data/latest.json',
-          exportedAt: data.exportedAt || data.exported_at || null
+          message: '',
+          exportedAt: exportedAt,
+          loadedAt: null
         };
         if (!force && isOperatorMode()) {
+          clubSnapshotMeta.status = 'skipped';
+          clubSnapshotMeta.message = 'Club file loaded: skipped (operator)';
           renderClubSnapshotStatus();
           return false;
         }
@@ -2350,13 +2387,16 @@
         try {
           const q = new URLSearchParams(location.search || '');
           if (!force && q.get('local') === '1') {
-            clubSnapshotMeta.message += ' · skipped (?local=1)';
+            clubSnapshotMeta.status = 'skipped';
+            clubSnapshotMeta.message = 'Club file loaded: skipped (local mode)';
             renderClubSnapshotStatus();
             return false;
           }
         } catch (e) {}
 
         applyFullBackupData(data, { silent: !force });
+        clubSnapshotMeta.loadedAt = Date.now();
+        clubSnapshotMeta.status = 'ok';
         renderClubSnapshotStatus();
         try { renderHome(); } catch (e) {}
         try { renderPlayers(); } catch (e) {}
@@ -2366,8 +2406,9 @@
         console.warn('Club snapshot fetch failed', e);
         clubSnapshotMeta = {
           status: 'error',
-          message: 'Club file: unavailable (offline or not published)',
-          exportedAt: null
+          message: 'Club file loaded: unavailable',
+          exportedAt: null,
+          loadedAt: null
         };
         renderClubSnapshotStatus();
         if (force) toast('Could not load club file', 'error');
@@ -11838,7 +11879,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       });
       const navMap = { home: 'home', players: 'players', stats: 'stats', create: 'home', tournament: 'home' };
       updateNav(navMap[name] || name);
-      if (name === 'home') { renderHome(); renderBackupStatus(); const vw = document.getElementById('home-version-watermark'); if (vw) vw.textContent = 'v' + APP_VERSION + ' · Updated ' + APP_UPDATED; }
+      if (name === 'home') { renderHome(); renderBackupStatus(); const vw = document.getElementById('home-version-watermark'); if (vw) vw.textContent = 'v' + APP_VERSION; }
       if (name === 'players') renderPlayers();
       if (name === 'tournament') renderTournament();
       if (name === 'stats') { if (typeof setStatsTab === 'function') setStatsTab(statsActiveTab || 'week'); renderStats(); }
@@ -11950,7 +11991,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     // Always stamp watermark from APP_VERSION (HTML fallback can lag)
     (function stampVersionWatermark() {
       const vw = document.getElementById('home-version-watermark');
-      if (vw) vw.textContent = 'v' + APP_VERSION + ' · Updated ' + APP_UPDATED;
+      if (vw) vw.textContent = 'v' + APP_VERSION;
       try {
         document.title = 'LCFC Manager v' + APP_VERSION + ' – Lake Champlain Foosball Club';
         document.documentElement.setAttribute('data-lcfc-build', APP_VERSION);
