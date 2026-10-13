@@ -2155,7 +2155,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.40';
+    const APP_VERSION = '6.41';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11114,6 +11114,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     let tvSpeechLastActiveAt = 0;
     let tvAnnounceBusy = false;
     let tvAnnounceBusySince = 0;
+    let tvAnnounceGreetingUntil = 0; // prevent match queue from interrupting the enable greeting
     let tvAnnounceToggleLockUntil = 0;      // debounce guard for the Sound button
     const tvAnnouncedLiveKeys = new Set();
     const tvAnnouncePendingKeys = new Set();
@@ -11247,13 +11248,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (window.speechSynthesis.onvoiceschanged !== undefined) {
             window.speechSynthesis.onvoiceschanged = loadVoices;
           }
-          // Warm TTS only on first unlock, and only if nothing is speaking
-          if (firstUnlock && !window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
-            const warm = new SpeechSynthesisUtterance(' ');
-            warm.volume = 0.01;
-            warm.rate = 2;
-            window.speechSynthesis.speak(warm);
-          }
+          // Do not enqueue a silent/blank warm-up utterance on ChromeOS.
+          // Chromium can leave a blank utterance pending and interfere with the
+          // first audible utterance. getVoices() is enough to trigger voice loading.
         }
       } catch (e) {}
       startTvAnnounceKeepAlive();
@@ -11706,6 +11703,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const view = document.getElementById('view-spectator');
       if (!view || view.classList.contains('hidden')) return;
       if (!isTvAnnounceEnabled() || !tvAnnounceAudioUnlocked) return;
+      // On Chromebook/Chrome, the live-match poll can fire while the enable
+      // greeting is queued. Do not let the match announcement cancel that greeting.
+      if (Date.now() < tvAnnounceGreetingUntil) return;
 
       try {
         const ctx = getTvAudioContext();
@@ -11795,30 +11795,41 @@ function flipRankingMatchCoin(roundNum, matchId) {
         unlockTvAnnounceAudio();                // sets tvAnnounceAudioUnlocked = true, starts keep-alive
         setTvAnnounceEnabled(true);             // saves flag + re-syncs the button
         markTvSpeechActivity();
-        // Keep the chime brief and the voice close to the user's tap. Mobile Safari
-        // can drop speech if the first speechSynthesis.speak() happens too long after
-        // the gesture, so use a short chime and avoid waiting for async voice loading.
+        // Keep the greeting protected from the one-second live-match poll. The
+        // chime is Web Audio; speech begins only after it has finished.
         var enableChimeMs = 600;
         try { enableChimeMs = playTvMatchChime() || 600; } catch (e) { console.warn('chime', e); }
 
         if (window.speechSynthesis) {
+          tvAnnounceGreetingUntil = Date.now() + Math.min(650, enableChimeMs + TV_ANNOUNCE_CHIME_GAP_MS) + 6500;
           setTimeout(function () {
-            speakTvMatchLine('Sound on.', {
-              cancelPrevious: false,
-              onComplete: function () {
-                // Re-evaluate the board so matches already playing are announced too.
-                try { tvAnnouncedLiveKeys.clear(); tvAnnouncePendingKeys.clear(); } catch (e) {}
-                try { renderSpectatorBoard(); } catch (e) { console.warn('announce board', e); }
+            // Clear stale queued speech from any previous session, then speak on a
+            // separate task. Chrome drops speech when cancel() and speak() share a tick.
+            try {
+              if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+                window.speechSynthesis.cancel();
               }
-            });
+            } catch (e) {}
+            setTimeout(function () {
+              speakTvMatchLine('Sound on.', {
+                cancelPrevious: false,
+                onComplete: function () {
+                  tvAnnounceGreetingUntil = 0;
+                  // Re-evaluate the board so matches already playing are announced too.
+                  try { tvAnnouncedLiveKeys.clear(); tvAnnouncePendingKeys.clear(); } catch (e) {}
+                  try { renderSpectatorBoard(); } catch (e) { console.warn('announce board', e); }
+                }
+              });
+            }, 80);
           }, Math.min(650, enableChimeMs + TV_ANNOUNCE_CHIME_GAP_MS));
-          // Safety net: even if a browser never fires speech end/error, refresh the
-          // live list so queued match announcements are not dependent on the greeting.
+          // Safety net if Chrome never emits onend/onerror: release the greeting
+          // guard and refresh the live list, but don't reset keys repeatedly.
           setTimeout(function () {
+            tvAnnounceGreetingUntil = 0;
             try {
               if (isTvAnnounceEnabled() && tvAnnounceAudioUnlocked) renderSpectatorBoard();
             } catch (e) {}
-          }, 1800);
+          }, 7200);
         } else if (typeof toast === 'function') {
           toast('Speech not available in this browser', 'error');
         }
