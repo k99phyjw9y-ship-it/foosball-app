@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.27 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.28 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.27" />
+  <meta name="lcfc-build" content="6.28" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.27 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.28 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1312,7 +1312,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.27</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.28</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2171,7 +2171,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.27';
+    const APP_VERSION = '6.28';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -6132,6 +6132,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (match.timerStartAt != null && !match.timerEndedAt) return;
       match.timerStartAt = (now != null ? now : Date.now()) + MATCH_TIMER_GRACE_MS;
       delete match.timerEndedAt;
+      // Match just went live — refresh TV announcements promptly (same tab or next paint)
+      try {
+        if (typeof refreshTvAnnouncementsIfOpen === 'function') {
+          setTimeout(function () { refreshTvAnnouncementsIfOpen(); }, 50);
+        }
+      } catch (e) {}
     }
 
     /** Clear timer when match is not ready / voided — not for temporary on-deck. */
@@ -11452,7 +11458,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } catch (e) { return null; }
     }
 
-    /** Speak with mode-based rate/pitch and phrase pauses. */
+    // ==================== TV SPEECH QUEUE (serial, no cancel between tables) ====================
     function isTvSpeechIdle() {
       try {
         if (!window.speechSynthesis) return true;
@@ -11460,20 +11466,18 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } catch (e) { return true; }
     }
 
-    function waitForTvSpeechIdle(cb, timeoutMs) {
-      const start = Date.now();
-      const limit = timeoutMs || 90000;
-      (function tick() {
-        if (isTvSpeechIdle()) {
-          cb();
-          return;
+    function resumeTvSpeechEngine() {
+      try {
+        if (window.speechSynthesis && window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
         }
-        if (Date.now() - start > limit) {
-          cb();
-          return;
-        }
-        setTimeout(tick, 120);
-      })();
+      } catch (e) {}
+    }
+
+    function forceResetTvAnnounceQueue(reason) {
+      tvAnnounceJobQueue = [];
+      tvAnnounceBusy = false;
+      tvAnnounceBusySince = 0;
     }
 
     function speakTvMatchLine(text, opts) {
@@ -11489,10 +11493,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
       try {
         if (opts.cancelPrevious === true) {
-          window.speechSynthesis.cancel();
+          try { window.speechSynthesis.cancel(); } catch (e) {}
         }
+        resumeTvSpeechEngine();
         const mode = getTvVoiceModeConfig();
-        // One utterance per match — avoids engines dropping multi-chunk queues
         const line = String(text).replace(/\s+/g, ' ').trim();
         const startSpeak = function () {
           const voice = pickTvSpeechVoice();
@@ -11509,53 +11513,49 @@ function flipRankingMatchCoin(roundNum, matchId) {
           };
           u.onend = finish;
           u.onerror = finish;
-          // Safety: if onend never fires, unstick the queue
-          const guardMs = Math.max(8000, line.length * 120);
-          setTimeout(function () {
-            if (!finished && isTvSpeechIdle()) finish();
-            else if (!finished) setTimeout(finish, 3000);
-          }, guardMs);
-          window.speechSynthesis.speak(u);
+          const guardMs = Math.min(40000, Math.max(5000, line.length * 80));
+          setTimeout(finish, guardMs);
+          try { window.speechSynthesis.speak(u); } catch (e) { finish(); }
+          const resumeIv = setInterval(function () {
+            if (finished) { clearInterval(resumeIv); return; }
+            resumeTvSpeechEngine();
+          }, 3500);
         };
-
         const voices = window.speechSynthesis.getVoices() || [];
         if (!voices.length) setTimeout(startSpeak, 200);
-        else setTimeout(startSpeak, 40);
+        else setTimeout(startSpeak, 30);
       } catch (e) {
         if (typeof opts.onComplete === 'function') opts.onComplete();
       }
     }
 
-    // Serial queue: Table 1 fully finishes before Table 2 chime/speech
     let tvAnnounceJobQueue = [];
     let tvAnnounceBusy = false;
+    let tvAnnounceBusySince = 0;
 
     function enqueueTvMatchAnnouncement(row, kind, opts) {
       opts = opts || {};
       if (!row) return;
       if (opts.interrupt) {
-        tvAnnounceJobQueue = [];
         try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
-        tvAnnounceBusy = false;
+        forceResetTvAnnounceQueue('interrupt');
       }
-      // De-dupe same match already waiting in queue
-      const mid = String(row.eventId || '') + ':' + String(row.matchId || '') + ':' + (kind || 'live');
-      if (!opts.interrupt && row.matchId) {
+      if (tvAnnounceBusy && tvAnnounceBusySince && (Date.now() - tvAnnounceBusySince > 18000)) {
+        forceResetTvAnnounceQueue('timeout');
+      }
+      const mid = String(row.eventId || '') + ':' + String(row.matchId || row.id || '') + ':' + (kind || 'live');
+      if (!opts.interrupt && (row.matchId || row.id)) {
         const exists = tvAnnounceJobQueue.some(function (j) {
-          return String(j.row.eventId || '') + ':' + String(j.row.matchId || '') + ':' + j.kind === mid;
+          return (String(j.row.eventId || '') + ':' + String(j.row.matchId || j.row.id || '') + ':' + j.kind) === mid;
         });
         if (exists) return;
       }
       tvAnnounceJobQueue.push({ row: row, kind: kind || 'live', interrupt: !!opts.interrupt });
-      // Keep queue ordered by table when batching
       if (!opts.interrupt) {
         tvAnnounceJobQueue.sort(function (a, b) {
           const ta = parseInt(a.row.table, 10);
           const tb = parseInt(b.row.table, 10);
-          const na = isNaN(ta) ? 99 : ta;
-          const nb = isNaN(tb) ? 99 : tb;
-          if (na !== nb) return na - nb;
-          return 0;
+          return (isNaN(ta) ? 99 : ta) - (isNaN(tb) ? 99 : tb);
         });
       }
       pumpTvAnnounceJobQueue();
@@ -11567,37 +11567,34 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       const job = tvAnnounceJobQueue.shift();
       tvAnnounceBusy = true;
+      tvAnnounceBusySince = Date.now();
       const view = document.getElementById('view-spectator');
 
       const release = function () {
-        // Wait until engine reports idle before next table
-        waitForTvSpeechIdle(function () {
-          tvAnnounceBusy = false;
-          setTimeout(pumpTvAnnounceJobQueue, 600);
-        }, 90000);
+        tvAnnounceBusy = false;
+        tvAnnounceBusySince = 0;
+        setTimeout(function () { pumpTvAnnounceJobQueue(); }, 350);
       };
 
-      // Ensure previous speech fully done before this match's chime
-      waitForTvSpeechIdle(function () {
+      if ((!view || view.classList.contains('hidden')) && !job.interrupt) {
+        release();
+        return;
+      }
+
+      try { playTvMatchChime(); } catch (e) {}
+
+      const gap = typeof TV_ANNOUNCE_CHIME_GAP_MS === 'number' ? TV_ANNOUNCE_CHIME_GAP_MS : 1000;
+      setTimeout(function () {
         if ((!view || view.classList.contains('hidden')) && !job.interrupt) {
           release();
           return;
         }
-        try { playTvMatchChime(); } catch (e) {}
-        setTimeout(function () {
-          if ((!view || view.classList.contains('hidden')) && !job.interrupt) {
-            release();
-            return;
-          }
-          // Wait idle again in case anything else spoke during the gap
-          waitForTvSpeechIdle(function () {
-            speakTvMatchLine(formatTvMatchAnnounce(job.row, job.kind), {
-              cancelPrevious: false,
-              onComplete: release
-            });
-          }, 5000);
-        }, typeof TV_ANNOUNCE_CHIME_GAP_MS === 'number' ? TV_ANNOUNCE_CHIME_GAP_MS : 1000);
-      }, 5000);
+        resumeTvSpeechEngine();
+        speakTvMatchLine(formatTvMatchAnnounce(job.row, job.kind), {
+          cancelPrevious: false,
+          onComplete: release
+        });
+      }, gap);
     }
 
     function formatTvMatchAnnounce(row, kind) {
@@ -11705,26 +11702,32 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const ctx = getTvAudioContext();
         if (ctx && ctx.state === 'suspended') ctx.resume().catch(function () {});
       } catch (e) {}
+      resumeTvSpeechEngine();
+      if (tvAnnounceBusy && tvAnnounceBusySince && (Date.now() - tvAnnounceBusySince > 18000)) {
+        forceResetTvAnnounceQueue('stale');
+      }
 
       const currentLive = new Set();
       const toAnnounce = [];
       (playingList || []).forEach(function (row) {
-        if (!row || !row.matchId) return;
+        if (!row) return;
+        const mid = row.matchId || row.id;
+        if (!mid) return;
         if (!row.nameA || row.nameA === 'TBD' || !row.nameB || row.nameB === 'TBD') return;
-        // Stable key: event + match + table (table change = same match, do not re-announce)
-        const key = String(row.eventId || '') + ':' + String(row.matchId) + ':live';
+        if (row.onDeck) return;
+        const key = String(row.eventId || '') + ':' + String(mid) + ':live';
         currentLive.add(key);
         tvAnnounceMissCounts[key] = 0;
         if (tvAnnouncedLiveKeys.has(key)) return;
         tvAnnouncedLiveKeys.add(key);
+        if (!row.matchId) row.matchId = mid;
         toAnnounce.push(row);
       });
 
-      // Only drop keys after several consecutive scans without the match (not every refresh)
       Object.keys(tvAnnounceMissCounts).forEach(function (k) {
         if (currentLive.has(k)) return;
         tvAnnounceMissCounts[k] = (tvAnnounceMissCounts[k] || 0) + 1;
-        if (tvAnnounceMissCounts[k] >= 4) {
+        if (tvAnnounceMissCounts[k] >= 6) {
           tvAnnouncedLiveKeys.delete(k);
           delete tvAnnounceMissCounts[k];
         }
@@ -11746,6 +11749,15 @@ function flipRankingMatchCoin(roundNum, matchId) {
       });
     }
 
+    function refreshTvAnnouncementsIfOpen() {
+      try {
+        const view = document.getElementById('view-spectator');
+        if (!view || view.classList.contains('hidden')) return;
+        if (!isTvAnnounceEnabled() || !tvAnnounceAudioUnlocked) return;
+        if (typeof renderSpectatorBoard === 'function') renderSpectatorBoard();
+      } catch (e) {}
+    }
+
     function toggleTvMatchAnnouncements() {
       if (isTvAnnounceEnabled() && tvAnnounceAudioUnlocked) {
         setTvAnnounceEnabled(false);
@@ -11758,6 +11770,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return;
       }
       // User gesture path (required on phones)
+      forceResetTvAnnounceQueue('sound-on');
       unlockTvAnnounceAudio();
       setTvAnnounceEnabled(true);
       playTvMatchChime();
