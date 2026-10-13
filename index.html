@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.31 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.32 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.31" />
+  <meta name="lcfc-build" content="6.32" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.31 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.32 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1312,7 +1312,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.31</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.32</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2171,7 +2171,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.31';
+    const APP_VERSION = '6.32';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -2227,6 +2227,12 @@
         tournaments: state.tournaments
       }));
       try { localStorage.setItem(CHANGE_KEY, String(Date.now())); } catch (e) {}
+      // Immediate TV announce when matches drawn / tables assigned (same device)
+      try {
+        if (typeof refreshTvAnnouncementsIfOpen === 'function') {
+          setTimeout(function () { refreshTvAnnouncementsIfOpen(); }, 0);
+        }
+      } catch (e) {}
     }
 
     // ==================== CLUB SNAPSHOT (GitHub Pages) ====================
@@ -6135,7 +6141,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       // Match just went live — refresh TV announcements promptly (same tab or next paint)
       try {
         if (typeof refreshTvAnnouncementsIfOpen === 'function') {
-          setTimeout(function () { refreshTvAnnouncementsIfOpen(); }, 50);
+          setTimeout(function () { refreshTvAnnouncementsIfOpen(); }, 0);
         }
       } catch (e) {}
     }
@@ -10851,7 +10857,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       spectatorTimer = setInterval(() => {
         try { loadState(); } catch (e) {}
         try { renderSpectatorBoard(); } catch (e) {}
-      }, 5000);
+      }, (typeof isTvAnnounceEnabled === 'function' && isTvAnnounceEnabled()) ? 1200 : 2500);
       if (typeof ensureAppAutoRefresh === 'function') ensureAppAutoRefresh();
     }
 
@@ -11159,7 +11165,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     };
 
     /** Silence after chime before speech — lets the room look up */
-    const TV_ANNOUNCE_CHIME_GAP_MS = 1000;
+    const TV_ANNOUNCE_CHIME_GAP_MS = 0; // announce immediately after chime starts
     const TV_CHIME_PACK_KEY = 'lcfc_tv_chime_pack_v1';
 
     /**
@@ -11600,30 +11606,23 @@ function flipRankingMatchCoin(roundNum, matchId) {
       function release() {
         tvAnnounceBusy = false;
         tvAnnounceBusySince = 0;
-        setTimeout(pumpTvAnnounceJobQueue, 400);
+        setTimeout(pumpTvAnnounceJobQueue, 200);
       }
       if ((!view || view.classList.contains('hidden')) && !job.interrupt) {
         release();
         return;
       }
       try { playTvMatchChime(); } catch (e) {}
-      // Short gap only — long delays prevent TTS on some browsers
-      var gap = 450;
-      setTimeout(function () {
-        if ((!view || view.classList.contains('hidden')) && !job.interrupt) {
-          release();
-          return;
-        }
-        var line = '';
-        try {
-          line = formatTvMatchAnnounce(job.row, job.kind);
-        } catch (e) {
-          console.warn('[LCFC TTS] format failed', e);
-          line = (job.row.nameA || 'Team A') + ' versus ' + (job.row.nameB || 'Team B');
-        }
-        if (!line) { release(); return; }
-        speakTvMatchLine(line, { cancelPrevious: true, onComplete: release });
-      }, gap);
+      // Speak immediately — no delay after draw / go-live
+      var line = '';
+      try {
+        line = formatTvMatchAnnounce(job.row, job.kind);
+      } catch (e) {
+        console.warn('[LCFC TTS] format failed', e);
+        line = (job.row.nameA || 'Team A') + ' versus ' + (job.row.nameB || 'Team B');
+      }
+      if (!line) { release(); return; }
+      speakTvMatchLine(line, { cancelPrevious: true, onComplete: release });
     }
 
     /** Mic: speak in the same click as the button (required for reliable TTS). */
