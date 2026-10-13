@@ -2156,7 +2156,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.44';
+    const APP_VERSION = '6.45';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11491,34 +11491,19 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
       } catch (e) {}
 
-      // On ChromeOS, assigning a listed cloud voice can cause a start timeout and
-      // then an "interrupted" error when fallback code cancels it. Prefer a local
-      // English voice when one is available; otherwise let Chrome choose its own
-      // default voice. Do not cancel/retry a live utterance behind the queue's back.
+      // ChromeOS diagnostic/fix: do not bind utterances to a Voice object.
+      // Some ChromeOS builds expose voices in getVoices() but never start utterances
+      // assigned to those objects (especially cloud voices), resulting in a start
+      // timeout. Let the OS choose its configured default voice instead. Keep the
+      // first test at neutral rate/pitch so voice initialization is as simple as possible.
       try {
         resumeTvSpeechEngine();
         var u = new SpeechSynthesisUtterance(line);
         u.volume = 1;
-        u.rate = (mode.rate >= 0.6 && mode.rate <= 1.2) ? mode.rate : 0.92;
-        u.pitch = (mode.pitch >= 0.6 && mode.pitch <= 1.2) ? mode.pitch : 0.9;
+        u.rate = 1;
+        u.pitch = 1;
         u.lang = 'en-US';
-        try {
-          // ChromeOS may expose its working system voice as a remote/cloud voice
-          // (localService === false). Do not filter those out: doing so can leave
-          // the utterance bound to Chromium's unresolved 'defaultVoice'.
-          var voices = window.speechSynthesis.getVoices() || [];
-          var chosen = pickTvSpeechVoiceSafe();
-          if (!chosen) {
-            chosen = voices.find(function (v) { return v && /^en/i.test(v.lang || ''); }) || null;
-          }
-          if (chosen) {
-            u.voice = chosen;
-            u.lang = chosen.lang || 'en-US';
-            console.info('[LCFC TTS] selected voice:', chosen.name, chosen.lang, 'localService=' + chosen.localService);
-          } else {
-            console.warn('[LCFC TTS] Chrome has not exposed a voice yet; using browser default. voiceCount=' + voices.length);
-          }
-        } catch (e) { console.warn('[LCFC TTS] voice selection failed; using browser default', e); }
+        console.info('[LCFC TTS] using OS default voice; voices=' + (window.speechSynthesis.getVoices() || []).length);
 
         var started = false;
         u.onstart = function () {
@@ -11675,23 +11660,32 @@ function flipRankingMatchCoin(roundNum, matchId) {
     // Direct, user-initiated speech test isolates Chrome's speech engine from
     // the match queue, timers and arena chime. Useful on ChromeOS diagnostics.
     function testTvAnnouncerVoice() {
+      // Minimal direct test: no chime, no queue, no voice object assignment,
+      // no automatic cancellation, and no queue watchdog. This isolates ChromeOS TTS.
       try {
         if (!window.speechSynthesis || typeof window.SpeechSynthesisUtterance === 'undefined') {
           if (typeof toast === 'function') toast('This Chrome session does not expose speech synthesis.', 'error');
           return;
         }
-        var voices = window.speechSynthesis.getVoices() || [];
-        console.info('[LCFC TTS] direct test requested; voices:', voices.map(function (v) {
+        var synth = window.speechSynthesis;
+        var voices = synth.getVoices() || [];
+        console.info('[LCFC TTS] minimal direct test; voices:', voices.map(function (v) {
           return { name: v.name, lang: v.lang, localService: v.localService, default: v.default };
         }));
-        // Deliberately do not cancel the queue here. This function is a direct
-        // button gesture, so the utterance is submitted synchronously.
-        speakTvMatchLine('Voice test. The foosball announcer is working.', {
-          cancelPrevious: false,
-          onComplete: function () { console.info('[LCFC TTS] direct test completed'); }
-        });
+        var u = new SpeechSynthesisUtterance('Voice test. The foosball announcer is working.');
+        u.lang = 'en-US';
+        u.volume = 1;
+        u.rate = 1;
+        u.pitch = 1;
+        u.onstart = function () { console.info('[LCFC TTS] minimal test onstart'); };
+        u.onend = function () { console.info('[LCFC TTS] minimal test onend'); };
+        u.onerror = function (ev) { console.error('[LCFC TTS] minimal test onerror:', ev && ev.error, ev); };
+        // Important: submit directly from the actual button click, without a timer.
+        synth.speak(u);
+        console.info('[LCFC TTS] minimal test submitted; speaking=' + synth.speaking + ', pending=' + synth.pending);
+        if (typeof toast === 'function') toast('Test submitted to Chrome speech engine', 'info');
       } catch (e) {
-        console.error('[LCFC TTS] direct test threw', e);
+        console.error('[LCFC TTS] minimal direct test threw', e);
         if (typeof toast === 'function') toast('Voice test failed: ' + (e && e.message || e), 'error');
       }
     }
