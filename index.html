@@ -11177,6 +11177,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
     let tvAnnounceAudioCtx = null;
     let tvAnnounceKeepAliveId = null;
     let tvSpeechVoicesReady = false;
+    // Chrome garbage-collects utterances that nothing references -> onend never fires / audio drops.
+    const tvSpeechKeepRef = [];
+    // Voices that failed to start on this device — skipped on retry.
+    const tvBadVoiceNames = new Set();
     const tvAnnouncedLiveKeys = new Set();
 
     function isTvAnnounceEnabled() {
@@ -11245,9 +11249,13 @@ function flipRankingMatchCoin(roundNum, matchId) {
           }
           // Warm TTS only on first unlock, and only if nothing is speaking
           if (firstUnlock && !window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
-            const warm = new SpeechSynthesisUtterance(' ');
-            warm.volume = 0.01;
+            // Real (silent) word, not whitespace — a blank utterance can hang the engine
+            // in "speaking" state and block every later announcement.
+            const warm = new SpeechSynthesisUtterance('ok');
+            warm.volume = 0;
             warm.rate = 2;
+            warm.lang = 'en-US';
+            tvSpeechKeepRef.push(warm);
             window.speechSynthesis.speak(warm);
           }
         }
@@ -11345,6 +11353,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (roboticHints.test(n)) s -= 40;
           if (maleHints.test(n)) s += 25;
           if (v.localService === false) s += 4;
+          if (tvBadVoiceNames.has(v.name)) s -= 1000;
           preferredNames.forEach(function (p, idx) {
             if (n.indexOf(p) >= 0) s += 45 - Math.min(idx, 20);
           });
@@ -11360,7 +11369,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
 
         const ranked = voices.slice().sort(function (a, b) { return score(b) - score(a); });
-        return ranked[0] || null;
+        const best = ranked[0];
+        if (!best || score(best) < -500) return null; // every voice failed -> engine default
+        return best;
       } catch (e) { return null; }
     }
 
@@ -11390,51 +11401,104 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     function speakTvMatchLine(text, opts) {
       opts = opts || {};
-      if (!text) {
-        if (typeof opts.onComplete === 'function') opts.onComplete();
-        return;
-      }
-      if (!window.speechSynthesis) {
+      const done = function () { if (typeof opts.onComplete === 'function') opts.onComplete(); };
+      if (!text) { done(); return; }
+      const ss = window.speechSynthesis;
+      if (!ss) {
         if (typeof toast === 'function') toast('This browser cannot speak text — chime only', 'info');
-        if (typeof opts.onComplete === 'function') opts.onComplete();
+        done();
         return;
       }
-      try {
-        if (opts.cancelPrevious === true) {
-          window.speechSynthesis.cancel();
-        }
-        const mode = getTvVoiceModeConfig();
-        // One utterance per match — avoids engines dropping multi-chunk queues
-        const line = String(text).replace(/\s+/g, ' ').trim();
-        const startSpeak = function () {
-          const voice = pickTvSpeechVoice();
+      const mode = getTvVoiceModeConfig();
+      // One utterance per match — avoids engines dropping multi-chunk queues
+      const line = String(text).replace(/\s+/g, ' ').trim();
+
+      let finished = false;
+      let attemptNo = 0;       // increments each try; stale callbacks are ignored
+      let watchdog = null;
+      const finish = function () {
+        if (finished) return;
+        finished = true;
+        if (watchdog) clearTimeout(watchdog);
+        done();
+      };
+
+      // attempt 1: best voice · attempt 2: next-best voice · attempt 3: engine default
+      const attempt = function (n) {
+        if (finished) return;
+        attemptNo = n;
+        const myAttempt = n;
+        let started = false;
+        let voice = null;
+        try {
+          if (n < 3) voice = pickTvSpeechVoice();
           const u = new SpeechSynthesisUtterance(line);
           u.rate = mode.rate;
           u.pitch = mode.pitch;
           u.volume = mode.volume != null ? mode.volume : 1;
-          if (voice) u.voice = voice;
-          let finished = false;
-          const finish = function () {
-            if (finished) return;
-            finished = true;
-            if (typeof opts.onComplete === 'function') opts.onComplete();
-          };
-          u.onend = finish;
-          u.onerror = finish;
-          // Safety: if onend never fires, unstick the queue
-          const guardMs = Math.max(8000, line.length * 120);
-          setTimeout(function () {
-            if (!finished && isTvSpeechIdle()) finish();
-            else if (!finished) setTimeout(finish, 3000);
-          }, guardMs);
-          window.speechSynthesis.speak(u);
-        };
+          if (voice) { u.voice = voice; u.lang = voice.lang || 'en-US'; }
+          else { u.lang = 'en-US'; }
 
-        const voices = window.speechSynthesis.getVoices() || [];
-        if (!voices.length) setTimeout(startSpeak, 200);
-        else setTimeout(startSpeak, 40);
+          const retryOrGiveUp = function (why) {
+            if (finished || myAttempt !== attemptNo) return;
+            if (voice && voice.name) tvBadVoiceNames.add(voice.name);
+            console.warn('TV speech: attempt ' + myAttempt + ' failed (' + why + ')' + (voice ? ' voice=' + voice.name : ''));
+            attemptNo = myAttempt + 1; // invalidate this attempt's late callbacks first
+            try { ss.cancel(); } catch (e) {}
+            if (myAttempt < 3) {
+              setTimeout(function () { attempt(myAttempt + 1); }, 250);
+            } else {
+              if (typeof toast === 'function') toast('Voice could not play on this device — chime only', 'error');
+              finish();
+            }
+          };
+
+          u.onstart = function () { if (myAttempt === attemptNo) started = true; };
+          u.onend = function () { if (myAttempt === attemptNo) finish(); };
+          u.onerror = function (ev) {
+            if (myAttempt !== attemptNo) return;
+            const err = ev && ev.error;
+            // 'canceled'/'interrupted' = we (or the user tapping 🎤) cut it off on purpose
+            if (err === 'canceled' || err === 'interrupted') { finish(); return; }
+            retryOrGiveUp(err || 'error');
+          };
+
+          tvSpeechKeepRef.push(u);
+          while (tvSpeechKeepRef.length > 6) tvSpeechKeepRef.shift();
+
+          try { if (ss.paused) ss.resume(); } catch (e) {}
+          ss.speak(u);
+
+          // Watchdog: if the engine never starts speaking, move on to the next voice
+          if (watchdog) clearTimeout(watchdog);
+          watchdog = setTimeout(function () {
+            if (finished || myAttempt !== attemptNo) return;
+            if (!started) { retryOrGiveUp('no start in 4s'); return; }
+            // started but never ended — don't block the queue forever
+            watchdog = setTimeout(function () {
+              if (!finished && myAttempt === attemptNo) finish();
+            }, Math.max(8000, line.length * 150));
+          }, 4000);
+        } catch (e) {
+          console.warn('TV speech exception', e);
+          if (myAttempt < 3) setTimeout(function () { attempt(myAttempt + 1); }, 250);
+          else finish();
+        }
+      };
+
+      try {
+        // If an old/stuck utterance is still holding the engine, clear it first.
+        // Chrome silently drops speak() issued right after cancel(), so wait before speaking.
+        let delay = 40;
+        const voices = ss.getVoices() || [];
+        if (!voices.length) delay = 200;
+        if (opts.cancelPrevious === true || !isTvSpeechIdle()) {
+          try { ss.cancel(); } catch (e) {}
+          delay = Math.max(delay, 300);
+        }
+        setTimeout(function () { attempt(1); }, delay);
       } catch (e) {
-        if (typeof opts.onComplete === 'function') opts.onComplete();
+        done();
       }
     }
 
@@ -11486,7 +11550,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         waitForTvSpeechIdle(function () {
           tvAnnounceBusy = false;
           setTimeout(pumpTvAnnounceJobQueue, 600);
-        }, 90000);
+        }, 2000);
       };
 
       // Ensure previous speech fully done before this match's chime
