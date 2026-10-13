@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.35 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.36 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.35" />
+  <meta name="lcfc-build" content="6.36" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.35 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.36 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1312,7 +1312,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.35</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.36</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -1380,7 +1380,7 @@
           <div class="flex flex-wrap gap-2">
             <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="spec-control px-3 py-2 text-sm max-w-[14rem]"></select>
             <button type="button" id="spec-group-toggle" onclick="toggleSpectatorGroupByEvent()" class="spec-control px-3 py-2 text-sm font-medium" title="Group match cards under each event name">Group by event</button>
-            <button type="button" id="spec-announce-btn" onclick="toggleTvMatchAnnouncements()" class="spec-control spec-announce-off px-3 py-2 text-sm font-medium" title="Chime + spoken names when a match goes live (TV board only)">Sound · Off</button>
+            <button type="button" id="spec-announce-btn" type="button" class="spec-control spec-announce-off px-3 py-2 text-sm font-medium" title="Chime + spoken names when a match goes live (TV board only)">Sound · Off</button>
             
             <button type="button" onclick="toggleSpectatorFullscreen()" class="spec-control px-3 py-2 text-sm font-medium">Fullscreen</button>
             <button type="button" onclick="closeSpectator()" class="spec-control px-3 py-2 text-sm font-medium">Exit</button>
@@ -2155,7 +2155,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.35';
+    const APP_VERSION = '6.36';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -10783,13 +10783,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     // Expose announcer handlers for inline TV board onclick
-    try {
-      window.announceTvMatchManual = announceTvMatchManual;
-      window.speakTvMatchLine = speakTvMatchLine;
-      window.toggleTvMatchAnnouncements = toggleTvMatchAnnouncements;
-      window.playTvMatchChime = playTvMatchChime;
-    } catch (e) {}
-
     function openSpectator(tournamentId) {
       // Event-detail entry sets source unless already coming from home
       if (tournamentId !== '__all__' || state.spectatorSource !== 'home') {
@@ -11184,6 +11177,27 @@ function flipRankingMatchCoin(roundNum, matchId) {
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       btn.classList.remove('spec-announce-on', 'spec-announce-off');
       btn.classList.add(on ? 'spec-announce-on' : 'spec-announce-off');
+      // Ensure click works even if inline handler was lost
+      if (!btn._lcfcSoundBound) {
+        btn._lcfcSoundBound = true;
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          try {
+            if (typeof window.toggleTvMatchAnnouncements === 'function') {
+              window.toggleTvMatchAnnouncements();
+            } else if (typeof toggleTvMatchAnnouncements === 'function') {
+              toggleTvMatchAnnouncements();
+            } else {
+              console.error('Sound toggle not found');
+              if (typeof toast === 'function') toast('Sound toggle not available — refresh the page', 'error');
+            }
+          } catch (err) {
+            console.error(err);
+            if (typeof toast === 'function') toast('Sound error: ' + (err.message || err), 'error');
+          }
+        });
+      }
     }
 
     function getTvAudioContext() {
@@ -11734,37 +11748,58 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     function toggleTvMatchAnnouncements() {
-      if (isTvAnnounceEnabled() && tvAnnounceAudioUnlocked) {
-        setTvAnnounceEnabled(false);
-        stopTvAnnounceKeepAlive();
-        tvAnnounceJobQueue = [];
-        tvAnnounceBusy = false;
-        try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
-        if (typeof toast === 'function') toast('TV match announcements off', 'info');
-        syncTvAnnounceButton();
-        return;
-      }
-      // Arena chime + "Sound on", then announce every Playing match (table 1, 2, …)
-      forceResetTvAnnounceQueue();
-      unlockTvAnnounceAudio();
-      setTvAnnounceEnabled(true);
-      if (typeof markTvSpeechActivity === 'function') markTvSpeechActivity();
-      try { playTvMatchChime(); } catch (e) {}
-      speakTvMatchLine('Sound on.', {
-        cancelPrevious: false,
-        onComplete: function () {
-          try {
-            tvAnnouncedLiveKeys.clear();
-            tvAnnouncePendingKeys.clear();
-          } catch (e) {}
-          try { renderSpectatorBoard(); } catch (e) {}
+      try {
+        var enabled = (typeof isTvAnnounceEnabled === 'function') && isTvAnnounceEnabled();
+        var unlocked = !!tvAnnounceAudioUnlocked;
+
+        if (enabled && unlocked) {
+          if (typeof setTvAnnounceEnabled === 'function') setTvAnnounceEnabled(false);
+          if (typeof stopTvAnnounceKeepAlive === 'function') stopTvAnnounceKeepAlive();
+          try { forceResetTvAnnounceQueue(); } catch (e) {}
+          try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+          if (typeof toast === 'function') toast('Sound off', 'info');
+          if (typeof syncTvAnnounceButton === 'function') syncTvAnnounceButton();
+          return;
         }
-      });
-      if (typeof toast === 'function') {
-        toast('Sound on — announcing Playing matches; board refresh paused until 10s quiet', 'success');
+
+        try { forceResetTvAnnounceQueue(); } catch (e) {}
+        try { unlockTvAnnounceAudio(); } catch (e) {}
+        tvAnnounceAudioUnlocked = true;
+        if (typeof setTvAnnounceEnabled === 'function') setTvAnnounceEnabled(true);
+        if (typeof markTvSpeechActivity === 'function') markTvSpeechActivity();
+
+        try { playTvMatchChime(); } catch (e) { console.warn('chime', e); }
+
+        if (typeof speakTvMatchLine === 'function') {
+          speakTvMatchLine('Sound on.', {
+            cancelPrevious: false,
+            onComplete: function () {
+              try {
+                if (typeof tvAnnouncedLiveKeys !== 'undefined') tvAnnouncedLiveKeys.clear();
+                if (typeof tvAnnouncePendingKeys !== 'undefined') tvAnnouncePendingKeys.clear();
+              } catch (e) {}
+              try {
+                if (typeof renderSpectatorBoard === 'function') renderSpectatorBoard();
+              } catch (e) { console.warn('announce board', e); }
+            }
+          });
+        } else if (typeof toast === 'function') {
+          toast('Speech not available', 'error');
+        }
+
+        if (typeof toast === 'function') toast('Sound on', 'success');
+        if (typeof syncTvAnnounceButton === 'function') syncTvAnnounceButton();
+      } catch (err) {
+        console.error('toggleTvMatchAnnouncements', err);
+        if (typeof toast === 'function') toast('Sound error: ' + (err && err.message ? err.message : 'unknown'), 'error');
       }
-      try { syncTvAnnounceButton(); } catch (e) {}
     }
+    try {
+      window.toggleTvMatchAnnouncements = toggleTvMatchAnnouncements;
+      if (typeof announceTvMatchManual === 'function') window.announceTvMatchManual = announceTvMatchManual;
+      if (typeof speakTvMatchLine === 'function') window.speakTvMatchLine = speakTvMatchLine;
+      if (typeof playTvMatchChime === 'function') window.playTvMatchChime = playTvMatchChime;
+    } catch (e) {}
 
     function seedTvAnnouncedFromCurrentBoard() {
       const allMode = state.spectatorTournamentId === '__all__';
