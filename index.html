@@ -1381,6 +1381,7 @@
             <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="spec-control px-3 py-2 text-sm max-w-[14rem]"></select>
             <button type="button" id="spec-group-toggle" onclick="toggleSpectatorGroupByEvent()" class="spec-control px-3 py-2 text-sm font-medium" title="Group match cards under each event name">Group by event</button>
             <button type="button" id="spec-announce-btn" class="spec-control spec-announce-off px-3 py-2 text-sm font-medium cursor-pointer relative z-10" title="Chime + spoken names when a match goes live (TV board only)">Sound · Off</button>
+            <button type="button" id="spec-announce-test-btn" onclick="testTvAnnouncerVoice()" class="spec-control px-3 py-2 text-sm font-medium" title="Test Chrome speech directly, without the arena chime">Test voice</button>
             
             <button type="button" onclick="toggleSpectatorFullscreen()" class="spec-control px-3 py-2 text-sm font-medium">Fullscreen</button>
             <button type="button" onclick="closeSpectator()" class="spec-control px-3 py-2 text-sm font-medium">Exit</button>
@@ -2155,7 +2156,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.43';
+    const APP_VERSION = '6.44';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11502,19 +11503,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
         u.pitch = (mode.pitch >= 0.6 && mode.pitch <= 1.2) ? mode.pitch : 0.9;
         u.lang = 'en-US';
         try {
+          // ChromeOS may expose its working system voice as a remote/cloud voice
+          // (localService === false). Do not filter those out: doing so can leave
+          // the utterance bound to Chromium's unresolved 'defaultVoice'.
           var voices = window.speechSynthesis.getVoices() || [];
-          var localEnglish = voices.filter(function (v) {
-            return v && v.localService !== false && /^en/i.test(v.lang || '');
-          });
-          var chosen = null;
-          if (localEnglish.length) {
-            var ranked = localEnglish.slice().sort(function (a, b) {
-              return pickTvSpeechVoiceSafe() === b ? 1 : (pickTvSpeechVoiceSafe() === a ? -1 : 0);
-            });
-            chosen = ranked[0] || null;
+          var chosen = pickTvSpeechVoiceSafe();
+          if (!chosen) {
+            chosen = voices.find(function (v) { return v && /^en/i.test(v.lang || ''); }) || null;
           }
-          if (chosen) { u.voice = chosen; u.lang = chosen.lang || 'en-US'; }
-        } catch (e) {}
+          if (chosen) {
+            u.voice = chosen;
+            u.lang = chosen.lang || 'en-US';
+            console.info('[LCFC TTS] selected voice:', chosen.name, chosen.lang, 'localService=' + chosen.localService);
+          } else {
+            console.warn('[LCFC TTS] Chrome has not exposed a voice yet; using browser default. voiceCount=' + voices.length);
+          }
+        } catch (e) { console.warn('[LCFC TTS] voice selection failed; using browser default', e); }
 
         var started = false;
         u.onstart = function () {
@@ -11541,12 +11545,15 @@ function flipRankingMatchCoin(roundNum, matchId) {
         // old 1.8-2.2 second watchdog canceled valid utterances before they began.
         startWatchdog = setTimeout(function () {
           if (!started && !finished) {
-            console.warn('[LCFC TTS] speech did not start within 10 seconds; check ChromeOS text-to-speech settings.');
-            try { window.speechSynthesis.cancel(); } catch (e) {}
-            if (typeof toast === 'function') toast('Chrome speech did not start. Check Chromebook text-to-speech settings.', 'error');
+            // Do not call speechSynthesis.cancel() here. On Chromium, cancel()
+            // itself fires 'interrupted', masking the original start failure and
+            // poisoning the next utterance. Release our queue without canceling
+            // the browser's speech service.
+            console.error('[LCFC TTS] no onstart event after 12 seconds; speechSynthesis.speaking=' + window.speechSynthesis.speaking + ', pending=' + window.speechSynthesis.pending + ', voices=' + (window.speechSynthesis.getVoices() || []).length);
+            if (typeof toast === 'function') toast('Chrome did not start speech. Try Test voice; check Console for [LCFC TTS] details.', 'error');
             complete();
           }
-        }, 10000);
+        }, 12000);
         markTvSpeechActivity();
         window.speechSynthesis.speak(u);
         setTimeout(resumeTvSpeechEngine, 250);
@@ -11665,6 +11672,30 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (typeof toast === 'function') toast('Announcing…', 'info');
     }
 
+    // Direct, user-initiated speech test isolates Chrome's speech engine from
+    // the match queue, timers and arena chime. Useful on ChromeOS diagnostics.
+    function testTvAnnouncerVoice() {
+      try {
+        if (!window.speechSynthesis || typeof window.SpeechSynthesisUtterance === 'undefined') {
+          if (typeof toast === 'function') toast('This Chrome session does not expose speech synthesis.', 'error');
+          return;
+        }
+        var voices = window.speechSynthesis.getVoices() || [];
+        console.info('[LCFC TTS] direct test requested; voices:', voices.map(function (v) {
+          return { name: v.name, lang: v.lang, localService: v.localService, default: v.default };
+        }));
+        // Deliberately do not cancel the queue here. This function is a direct
+        // button gesture, so the utterance is submitted synchronously.
+        speakTvMatchLine('Voice test. The foosball announcer is working.', {
+          cancelPrevious: false,
+          onComplete: function () { console.info('[LCFC TTS] direct test completed'); }
+        });
+      } catch (e) {
+        console.error('[LCFC TTS] direct test threw', e);
+        if (typeof toast === 'function') toast('Voice test failed: ' + (e && e.message || e), 'error');
+      }
+    }
+    try { window.testTvAnnouncerVoice = testTvAnnouncerVoice; } catch (e) {}
     try { window.announceTvMatchManual = announceTvMatchManual; } catch (e) {}
     try { window.speakTvMatchLine = speakTvMatchLine; } catch (e) {}
 
@@ -11856,6 +11887,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       window.announceTvMatchManual = announceTvMatchManual;
       window.speakTvMatchLine = speakTvMatchLine;
       window.playTvMatchChime = playTvMatchChime;
+      window.testTvAnnouncerVoice = testTvAnnouncerVoice;
     } catch (e) {}
     // Bind the button as soon as the DOM is ready (before the TV board is ever opened)
     try {
