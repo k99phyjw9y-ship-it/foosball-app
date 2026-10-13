@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.29 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.30 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.29" />
+  <meta name="lcfc-build" content="6.30" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.29 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.30 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1312,7 +1312,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.29</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.30</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2171,7 +2171,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.29';
+    const APP_VERSION = '6.30';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11458,182 +11458,106 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } catch (e) { return null; }
     }
 
-    // ==================== TV SPEECH QUEUE (serial, chime then speech) ====================
-    function isTvSpeechIdle() {
-      try {
-        if (!window.speechSynthesis) return true;
-        return !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
-      } catch (e) { return true; }
-    }
+    // ==================== TV SPEECH (simplified — restore reliability) ====================
+    let tvAnnounceJobQueue = [];
+    let tvAnnounceBusy = false;
+    let tvAnnounceBusySince = 0;
 
-    function resumeTvSpeechEngine() {
-      try {
-        if (!window.speechSynthesis) return;
-        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-      } catch (e) {}
-    }
-
-    function forceResetTvAnnounceQueue(reason) {
+    function forceResetTvAnnounceQueue() {
       tvAnnounceJobQueue = [];
       tvAnnounceBusy = false;
       tvAnnounceBusySince = 0;
     }
 
+    function resumeTvSpeechEngine() {
+      try {
+        if (window.speechSynthesis && window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      } catch (e) {}
+    }
+
     /**
-     * Speak announcement text. Uses short phrases + retry so engines that drop
-     * long timer-triggered lines still talk after the chime.
+     * Simple TTS — matches the approach that worked in v6.25.
+     * One utterance, male voice when available, optional onComplete.
      */
     function speakTvMatchLine(text, opts) {
       opts = opts || {};
-      const done = function () {
+      const complete = function () {
         if (typeof opts.onComplete === 'function') {
-          const cb = opts.onComplete;
-          opts.onComplete = null;
-          try { cb(); } catch (e) {}
+          try { opts.onComplete(); } catch (e) {}
         }
       };
-      if (!text) { done(); return; }
-      if (!window.speechSynthesis) {
-        if (typeof toast === 'function') toast('Speech not available in this browser — chime only', 'info');
-        done();
+      if (!text || !String(text).trim()) {
+        complete();
         return;
       }
-
+      if (!window.speechSynthesis) {
+        complete();
+        return;
+      }
       try {
-        // Clear stuck pending (safe between matches; previous job already finished)
-        try { window.speechSynthesis.cancel(); } catch (e) {}
-        resumeTvSpeechEngine();
-
-        const mode = getTvVoiceModeConfig();
-        const raw = String(text).replace(/\s+/g, ' ').trim();
-        // Prefer sentence chunks; fall back to whole line
-        let chunks = raw.split(/(?<=[.!?])\s+/).map(function (c) { return c.trim(); }).filter(Boolean);
-        if (!chunks.length) chunks = [raw];
-
-        const run = function () {
-          const voice = pickTvSpeechVoice();
-          let idx = 0;
-          let finished = false;
-          const finishAll = function () {
-            if (finished) return;
-            finished = true;
-            done();
-          };
-
-          const speakNext = function () {
-            if (finished) return;
-            if (idx >= chunks.length) {
-              finishAll();
-              return;
-            }
-            const phrase = chunks[idx++];
-            const u = new SpeechSynthesisUtterance(phrase);
-            u.rate = Math.max(0.7, Math.min(1.1, mode.rate || 0.9));
-            u.pitch = Math.max(0.6, Math.min(1.2, mode.pitch || 1));
-            u.volume = 1;
-            if (voice) {
-              try { u.voice = voice; u.lang = voice.lang || 'en-US'; } catch (e) {}
-            } else {
-              u.lang = 'en-US';
-            }
-
-            let phraseDone = false;
-            const finishPhrase = function () {
-              if (phraseDone) return;
-              phraseDone = true;
-              setTimeout(speakNext, mode.pauseMs != null ? mode.pauseMs : 160);
-            };
-            u.onend = finishPhrase;
-            u.onerror = function () {
-              // Retry this phrase once
-              try {
-                const u2 = new SpeechSynthesisUtterance(phrase);
-                u2.rate = u.rate; u2.pitch = u.pitch; u2.volume = 1; u2.lang = u.lang;
-                if (voice) try { u2.voice = voice; } catch (e) {}
-                u2.onend = finishPhrase;
-                u2.onerror = finishPhrase;
-                window.speechSynthesis.speak(u2);
-              } catch (e) { finishPhrase(); }
-            };
-
-            try {
-              resumeTvSpeechEngine();
-              window.speechSynthesis.speak(u);
-            } catch (e) {
-              finishPhrase();
-              return;
-            }
-
-            // If engine accepts but never starts (common after setTimeout), retry hard
-            setTimeout(function () {
-              if (phraseDone || finished) return;
-              if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
-                try {
-                  window.speechSynthesis.cancel();
-                  const u3 = new SpeechSynthesisUtterance(phrase);
-                  u3.rate = u.rate; u3.pitch = u.pitch; u3.volume = 1; u3.lang = 'en-US';
-                  if (voice) try { u3.voice = voice; } catch (e) {}
-                  u3.onend = finishPhrase;
-                  u3.onerror = finishPhrase;
-                  window.speechSynthesis.speak(u3);
-                } catch (e) { finishPhrase(); }
-              }
-            }, 280);
-          };
-
-          // Overall safety unstick
-          setTimeout(finishAll, Math.min(60000, 4000 + chunks.length * 8000));
-          speakNext();
-
-          const resumeIv = setInterval(function () {
-            if (finished) { clearInterval(resumeIv); return; }
-            resumeTvSpeechEngine();
-          }, 2500);
-        };
-
-        // Voices often empty until loaded
-        const voices = window.speechSynthesis.getVoices() || [];
-        if (!voices.length) {
-          const once = function () {
-            window.speechSynthesis.onvoiceschanged = null;
-            run();
-          };
-          window.speechSynthesis.onvoiceschanged = once;
-          setTimeout(run, 300);
-        } else {
-          setTimeout(run, 20);
+        if (opts.cancelPrevious !== false) {
+          window.speechSynthesis.cancel();
         }
+        resumeTvSpeechEngine();
+        const mode = (typeof getTvVoiceModeConfig === 'function') ? getTvVoiceModeConfig() : { rate: 0.9, pitch: 0.85 };
+        const line = String(text).replace(/\s+/g, ' ').trim();
+        const u = new SpeechSynthesisUtterance(line);
+        u.rate = (mode.rate != null) ? mode.rate : 0.9;
+        u.pitch = (mode.pitch != null) ? mode.pitch : 0.85;
+        u.volume = 1;
+        u.lang = 'en-US';
+        try {
+          const voice = (typeof pickTvSpeechVoice === 'function') ? pickTvSpeechVoice() : null;
+          if (voice) {
+            u.voice = voice;
+            if (voice.lang) u.lang = voice.lang;
+          }
+        } catch (e) {}
+        let done = false;
+        const finish = function () {
+          if (done) return;
+          done = true;
+          complete();
+        };
+        u.onend = finish;
+        u.onerror = finish;
+        setTimeout(finish, Math.min(45000, Math.max(8000, line.length * 100)));
+        // Slight delay helps voices load after cancel
+        setTimeout(function () {
+          try {
+            resumeTvSpeechEngine();
+            window.speechSynthesis.speak(u);
+          } catch (e) {
+            finish();
+          }
+        }, 60);
       } catch (e) {
-        done();
+        complete();
       }
     }
-
-    let tvAnnounceJobQueue = [];
-    let tvAnnounceBusy = false;
-    let tvAnnounceBusySince = 0;
 
     function enqueueTvMatchAnnouncement(row, kind, opts) {
       opts = opts || {};
       if (!row) return;
       if (opts.interrupt) {
         try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
-        forceResetTvAnnounceQueue('interrupt');
+        forceResetTvAnnounceQueue();
       }
-      if (tvAnnounceBusy && tvAnnounceBusySince && (Date.now() - tvAnnounceBusySince > 18000)) {
-        forceResetTvAnnounceQueue('timeout');
+      if (tvAnnounceBusy && tvAnnounceBusySince && (Date.now() - tvAnnounceBusySince > 20000)) {
+        forceResetTvAnnounceQueue();
       }
-      const mid = String(row.eventId || '') + ':' + String(row.matchId || row.id || '') + ':' + (kind || 'live');
+      const idKey = String(row.eventId || '') + ':' + String(row.matchId || row.id || '') + ':' + (kind || 'live');
       if (!opts.interrupt && (row.matchId || row.id)) {
-        const exists = tvAnnounceJobQueue.some(function (j) {
-          return (String(j.row.eventId || '') + ':' + String(j.row.matchId || j.row.id || '') + ':' + j.kind) === mid;
-        });
-        if (exists) return;
+        if (tvAnnounceJobQueue.some(function (j) {
+          return String(j.row.eventId || '') + ':' + String(j.row.matchId || j.row.id || '') + ':' + j.kind === idKey;
+        })) return;
       }
       tvAnnounceJobQueue.push({ row: row, kind: kind || 'live', interrupt: !!opts.interrupt });
       if (!opts.interrupt) {
         tvAnnounceJobQueue.sort(function (a, b) {
-          const ta = parseInt(a.row.table, 10);
-          const tb = parseInt(b.row.table, 10);
+          const ta = parseInt(a.row.table, 10), tb = parseInt(b.row.table, 10);
           return (isNaN(ta) ? 99 : ta) - (isNaN(tb) ? 99 : tb);
         });
       }
@@ -11652,7 +11576,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const release = function () {
         tvAnnounceBusy = false;
         tvAnnounceBusySince = 0;
-        setTimeout(function () { pumpTvAnnounceJobQueue(); }, 300);
+        setTimeout(pumpTvAnnounceJobQueue, 400);
       };
 
       if ((!view || view.classList.contains('hidden')) && !job.interrupt) {
@@ -11660,20 +11584,63 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return;
       }
 
+      // Chime then speech (1s gap)
       try { playTvMatchChime(); } catch (e) {}
+      const gap = (typeof TV_ANNOUNCE_CHIME_GAP_MS === 'number') ? TV_ANNOUNCE_CHIME_GAP_MS : 1000;
 
-      const gap = typeof TV_ANNOUNCE_CHIME_GAP_MS === 'number' ? TV_ANNOUNCE_CHIME_GAP_MS : 1000;
       setTimeout(function () {
         if ((!view || view.classList.contains('hidden')) && !job.interrupt) {
           release();
           return;
         }
-        // Speak right after gap — cancel clears stuck state from prior lines
-        speakTvMatchLine(formatTvMatchAnnounce(job.row, job.kind), {
-          cancelPrevious: true,
-          onComplete: release
-        });
+        let line = '';
+        try {
+          line = formatTvMatchAnnounce(job.row, job.kind);
+        } catch (e) {
+          line = (job.row.nameA || '') + ' versus ' + (job.row.nameB || '');
+        }
+        if (!line || !String(line).trim()) {
+          release();
+          return;
+        }
+        speakTvMatchLine(line, { cancelPrevious: true, onComplete: release });
       }, gap);
+    }
+
+    /** Mic button: speak in the same tap gesture (most reliable). */
+    function announceTvMatchManual(btn) {
+      if (!btn) return;
+      try { unlockTvAnnounceAudio(); } catch (e) {}
+      const row = {
+        table: btn.getAttribute('data-table') || '',
+        nameA: btn.getAttribute('data-name-a') || 'TBD',
+        nameB: btn.getAttribute('data-name-b') || 'TBD',
+        eventName: btn.getAttribute('data-event') || '',
+        phase: btn.getAttribute('data-phase') || '',
+        phaseLabel: btn.getAttribute('data-phase-label') || '',
+        round: btn.getAttribute('data-round') || '',
+        serveSide: btn.getAttribute('data-serve-side') || '',
+        serveName: btn.getAttribute('data-serve-name') || '',
+        matchId: btn.getAttribute('data-match-id') || ('mic-' + Date.now())
+      };
+      const kind = btn.getAttribute('data-kind') || 'live';
+      if (row.nameA === 'TBD' && row.nameB === 'TBD') {
+        if (typeof toast === 'function') toast('Match not ready to announce', 'error');
+        return;
+      }
+      // Interrupt queue; chime + speak from this click
+      try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+      forceResetTvAnnounceQueue();
+      try { playTvMatchChime(); } catch (e) {}
+      let line = '';
+      try { line = formatTvMatchAnnounce(row, kind); } catch (e) {
+        line = row.nameA + ' versus ' + row.nameB;
+      }
+      // Speak after short gap still within gesture-friendly window
+      const gap = (typeof TV_ANNOUNCE_CHIME_GAP_MS === 'number') ? TV_ANNOUNCE_CHIME_GAP_MS : 1000;
+      setTimeout(function () {
+        speakTvMatchLine(line, { cancelPrevious: true });
+      }, Math.min(gap, 400)); // shorter gap for mic so speech stays tied to the tap
     }
 
     function formatTvMatchAnnounce(row, kind) {
@@ -11741,38 +11708,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return [table, eventBit, phaseBit, detailBit, matchup, serveBit, tail].filter(Boolean).join(' ');
     }
 
-    function announceTvMatchManual(btn) {
-      if (!btn) return;
-      unlockTvAnnounceAudio();
-      const row = {
-        table: btn.getAttribute('data-table') || '',
-        nameA: btn.getAttribute('data-name-a') || 'TBD',
-        nameB: btn.getAttribute('data-name-b') || 'TBD',
-        eventName: btn.getAttribute('data-event') || '',
-        phase: btn.getAttribute('data-phase') || '',
-        phaseLabel: btn.getAttribute('data-phase-label') || '',
-        round: btn.getAttribute('data-round') || '',
-        serveSide: btn.getAttribute('data-serve-side') || '',
-        serveName: btn.getAttribute('data-serve-name') || ''
-      };
-      const kind = btn.getAttribute('data-kind') || 'live';
-      if (row.nameA === 'TBD' && row.nameB === 'TBD') {
-        if (typeof toast === 'function') toast('Match not ready to announce', 'error');
-        return;
-      }
-      // Interrupt queue so mic always plays this match now (Table order preserved for auto)
-      enqueueTvMatchAnnouncement(row, kind, { interrupt: true });
-    }
-
-    /**
-     * Announce matches that newly appear in the Playing list (not on deck).
-     * Only while TV board is visible and Sound is On.
-     * Note: some phones mute auto-play until you tap Sound · On or 🎤 again after switching apps.
-     */
-    // Miss counts before forgetting a live key (avoids re-announce on 5s refresh flicker)
-    const tvAnnounceMissCounts = {};
-
-    function processTvMatchAnnouncements(playingList) {
+        function processTvMatchAnnouncements(playingList) {
       const view = document.getElementById('view-spectator');
       if (!view || view.classList.contains('hidden')) return;
       if (!isTvAnnounceEnabled() || !tvAnnounceAudioUnlocked) return;
@@ -11783,7 +11719,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } catch (e) {}
       resumeTvSpeechEngine();
       if (tvAnnounceBusy && tvAnnounceBusySince && (Date.now() - tvAnnounceBusySince > 18000)) {
-        forceResetTvAnnounceQueue('stale');
+        forceResetTvAnnounceQueue();
       }
 
       const currentLive = new Set();
@@ -11849,7 +11785,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return;
       }
       // User gesture path (required on phones)
-      forceResetTvAnnounceQueue('sound-on');
+      forceResetTvAnnounceQueue();
       unlockTvAnnounceAudio();
       setTvAnnounceEnabled(true);
       playTvMatchChime();
