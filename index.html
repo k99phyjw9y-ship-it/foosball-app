@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.33 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.34 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.33" />
+  <meta name="lcfc-build" content="6.34" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.33 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.34 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1312,7 +1312,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.33</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.34</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2171,7 +2171,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.33';
+    const APP_VERSION = '6.34';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -10855,9 +10855,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (spectatorTimer) clearInterval(spectatorTimer);
       // TV board refresh every 5s (also covered by global app refresh)
       spectatorTimer = setInterval(() => {
+        // Pause live board re-render while announcing so speech is not delayed/interrupted
+        var announcing = (typeof tvAnnounceBusy !== 'undefined' && tvAnnounceBusy)
+          || (typeof tvAnnounceJobQueue !== 'undefined' && tvAnnounceJobQueue.length > 0)
+          || (window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending));
+        if (announcing) {
+          return;
+        }
         try { loadState(); } catch (e) {}
         try { renderSpectatorBoard(); } catch (e) {}
-      }, (typeof isTvAnnounceEnabled === 'function' && isTvAnnounceEnabled()) ? 1200 : 2500);
+      }, (typeof isTvAnnounceEnabled === 'function' && isTvAnnounceEnabled()) ? 1000 : 2500);
       if (typeof ensureAppAutoRefresh === 'function') ensureAppAutoRefresh();
     }
 
@@ -11130,7 +11137,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       desk: {
         id: 'desk', label: 'Desk',
         rate: 0.92, pitch: 0.88, pauseMs: 160, volume: 1,
-        prefer: ['daniel', 'google uk english male', 'microsoft david', 'david', 'alex', 'google us english']
+        prefer: ['google uk english male', 'microsoft david', 'microsoft mark', 'daniel', 'google us english male', 'david']
       },
       ring: {
         id: 'ring', label: 'Ring',
@@ -11145,7 +11152,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       pulse: {
         id: 'pulse', label: 'Pulse',
         rate: 0.88, pitch: 0.84, pauseMs: 240, volume: 1,
-        prefer: ['daniel', 'google uk english male', 'microsoft david', 'david', 'alex', 'google us english']
+        prefer: ['google uk english male', 'microsoft david', 'microsoft mark', 'daniel', 'google us english male', 'david']
       },
       ceremony: {
         id: 'ceremony', label: 'Ceremony',
@@ -11287,6 +11294,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     let tvAnnounceKeepAliveId = null;
     let tvSpeechVoicesReady = false;
     const tvAnnouncedLiveKeys = new Set();
+    const tvAnnouncePendingKeys = new Set();
 
     function isTvAnnounceEnabled() {
       try { return localStorage.getItem(TV_ANNOUNCE_KEY) === '1'; } catch (e) { return false; }
@@ -11434,7 +11442,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (!voices.length) return null;
         const mode = getTvVoiceModeConfig();
         const preferredNames = (mode.prefer || []).concat([
-          'google uk english male', 'google us english', 'daniel', 'alex', 'david', 'mark',
+          'google uk english male', 'google us english male', 'microsoft david', 'daniel', 'david', 'mark',
           'microsoft david', 'microsoft mark', 'microsoft guy', 'arthur', 'aaron', 'fred', 'tom', 'rishi'
         ]);
         const femaleHints = /samantha|karen|moira|victoria|siri|zira|susan|fiona|tessa|female|woman|girl/i;
@@ -11449,7 +11457,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (!/en(-|_|$)/i.test(v.lang || '')) s -= 50;
           if (/en-GB/i.test(v.lang)) s += 8;
           if (/en-US/i.test(v.lang)) s += 6;
-          if (femaleHints.test(n)) s -= 35;
+          if (femaleHints.test(n)) s -= 120;
+          if (/google us english/.test(n) && !/male/.test(n)) s -= 80;
           if (roboticHints.test(n)) s -= 40;
           if (maleHints.test(n)) s += 25;
           if (v.localService === false) s += 4;
@@ -11481,6 +11490,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       tvAnnounceJobQueue = [];
       tvAnnounceBusy = false;
       tvAnnounceBusySince = 0;
+      try { tvAnnouncePendingKeys.clear(); } catch (e) {}
     }
 
     function resumeTvSpeechEngine() {
@@ -11496,17 +11506,48 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (!window.speechSynthesis) return null;
         var voices = window.speechSynthesis.getVoices() || [];
         if (!voices.length) return null;
-        // Prefer a clear English voice; do not force exotic voices (Chrome can go silent)
-        var prefer = function (re) {
-          for (var i = 0; i < voices.length; i++) {
-            if (re.test((voices[i].name || '') + ' ' + (voices[i].lang || ''))) return voices[i];
-          }
-          return null;
-        };
-        return prefer(/google us english|google uk english male|microsoft david|daniel|alex/i)
-          || prefer(/en[-_]US/i)
-          || prefer(/^en/i)
-          || voices[0];
+        // Female voices — hard exclude (Chrome "Google US English" is usually female)
+        var femaleRe = /female|woman|samantha|karen|moira|victoria|zira|susan|fiona|tessa|hazel|heather|linda|catherine|serena|zira|microsoft zira/i;
+        var maleRe = /male|daniel|david|mark|george|thomas|james|arthur|fred|tom|guy|rishi|microsoft david|microsoft mark|uk english male|us english male/i;
+        var modePrefer = [];
+        try {
+          var cfg = typeof getTvVoiceModeConfig === 'function' ? getTvVoiceModeConfig() : null;
+          if (cfg && cfg.prefer) modePrefer = cfg.prefer;
+        } catch (e) {}
+
+        function score(v) {
+          var n = ((v.name || '') + ' ' + (v.lang || '')).toLowerCase();
+          var s = 0;
+          if (!/^en/i.test(v.lang || '')) s -= 40;
+          if (femaleRe.test(n)) s -= 200;
+          // "Google US English" without Male = typically female in Chrome
+          if (/google us english/.test(n) && !/male/.test(n)) s -= 150;
+          if (maleRe.test(n)) s += 50;
+          if (/en-GB/i.test(v.lang)) s += 8;
+          if (/en-US/i.test(v.lang)) s += 3;
+          modePrefer.forEach(function (p, idx) {
+            if (n.indexOf(String(p).toLowerCase()) >= 0) s += 35 - Math.min(idx, 10);
+          });
+          if (/google uk english male/.test(n)) s += 30;
+          if (/microsoft david|microsoft mark/.test(n)) s += 28;
+          if (/daniel/.test(n)) s += 20;
+          return s;
+        }
+
+        var ranked = voices.slice().sort(function (a, b) { return score(b) - score(a); });
+        for (var i = 0; i < ranked.length; i++) {
+          var n = ((ranked[i].name || '') + ' ' + (ranked[i].lang || '')).toLowerCase();
+          if (femaleRe.test(n)) continue;
+          if (/google us english/.test(n) && !/male/.test(n)) continue;
+          if (maleRe.test(n) || score(ranked[i]) > 10) return ranked[i];
+        }
+        for (var j = 0; j < ranked.length; j++) {
+          var n2 = ((ranked[j].name || '') + ' ' + (ranked[j].lang || '')).toLowerCase();
+          if (femaleRe.test(n2)) continue;
+          if (/google us english/.test(n2) && !/male/.test(n2)) continue;
+          if (/^en/i.test(ranked[j].lang || '')) return ranked[j];
+        }
+        return null;
       } catch (e) { return null; }
     }
 
@@ -11645,10 +11686,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
         line = (job.row.nameA || 'Team A') + ' versus ' + (job.row.nameB || 'Team B') + '. Now playing.';
       }
       if (!line) { release(); return; }
-      // After chime, speak without cancel if engine is idle (avoids Chrome drop)
+      var akey = job.row._announceKey || (String(job.row.eventId || '') + ':' + String(job.row.matchId || job.row.id || '') + ':live');
       speakTvMatchLine(line, {
         cancelPrevious: !!(window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending)),
-        onComplete: release
+        onComplete: function () {
+          try {
+            tvAnnouncePendingKeys.delete(akey);
+            tvAnnouncedLiveKeys.add(akey);
+          } catch (e) {}
+          release();
+        }
       });
     }
 
@@ -11778,9 +11825,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const key = String(row.eventId || '') + ':' + String(mid) + ':live';
         currentLive.add(key);
         tvAnnounceMissCounts[key] = 0;
-        if (tvAnnouncedLiveKeys.has(key)) return;
-        tvAnnouncedLiveKeys.add(key);
+        if (tvAnnouncedLiveKeys.has(key) || tvAnnouncePendingKeys.has(key)) return;
+        // Pending until speech actually runs — allows retry if queue was interrupted
+        tvAnnouncePendingKeys.add(key);
         if (!row.matchId) row.matchId = mid;
+        row._announceKey = key;
         toAnnounce.push(row);
       });
 
@@ -11789,6 +11838,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         tvAnnounceMissCounts[k] = (tvAnnounceMissCounts[k] || 0) + 1;
         if (tvAnnounceMissCounts[k] >= 6) {
           tvAnnouncedLiveKeys.delete(k);
+          tvAnnouncePendingKeys.delete(k);
           delete tvAnnounceMissCounts[k];
         }
       });
