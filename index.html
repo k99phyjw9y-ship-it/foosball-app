@@ -11123,13 +11123,13 @@ function flipRankingMatchCoin(roundNum, matchId) {
     const TV_VOICE_MODES = {
       arena: {
         id: 'arena', label: 'Arena',
-        rate: 0.78, pitch: 0.72, pauseMs: 280, volume: 1,
+        rate: 0.88, pitch: 0.85, pauseMs: 280, volume: 1,
         prefer: ['google uk english male', 'microsoft david', 'microsoft mark', 'daniel', 'david', 'mark']
       }
     };
 
     /** Silence after chime before speech — lets the room look up */
-    const TV_ANNOUNCE_CHIME_GAP_MS = 0; // announce immediately after chime starts
+    const TV_ANNOUNCE_CHIME_GAP_MS = 300; // pause after the chime ends, before the voice starts
     const TV_CHIME_PACK_KEY = 'lcfc_tv_chime_pack_v1';
 
     /**
@@ -11283,6 +11283,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
     function playTvMatchChime() {
       const pack = getTvChimePack();
       const notes = (pack && pack.notes) || TV_CHIME_PACKS.arena.notes;
+      const chimeMs = Math.ceil(notes.reduce(function (mx, n) {
+        return Math.max(mx, ((n.t || 0) + (n.d || 0.15)) * 1000);
+      }, 0)) + 80;
       const ctx = getTvAudioContext();
       if (!ctx) {
         try {
@@ -11290,7 +11293,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           a.volume = 1;
           a.play().catch(function () {});
         } catch (e) {}
-        return;
+        return 1000;
       }
       const run = function () {
         try {
@@ -11318,6 +11321,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } else {
         run();
       }
+      return chimeMs;
     }
 
     /**
@@ -11382,7 +11386,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           return false;
         }
       } catch (e) {}
-      if (tvSpeechLastActiveAt && (Date.now() - tvSpeechLastActiveAt) < 10000) return false;
+      if (tvSpeechLastActiveAt && (Date.now() - tvSpeechLastActiveAt) < 2500) return false;
       return true;
     }
 
@@ -11486,9 +11490,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
       } catch (e) {}
 
+      var voiceWaitTries = 0;
       function doSpeak() {
         try {
           resumeTvSpeechEngine();
+          // Chrome loads voices asynchronously — wait up to ~1.5s so we don't fall back to a default (often female) voice
+          if (!(window.speechSynthesis.getVoices() || []).length && voiceWaitTries < 15) {
+            voiceWaitTries++;
+            setTimeout(doSpeak, 100);
+            return;
+          }
           // Warm voices list (Chrome loads async)
           try { window.speechSynthesis.getVoices(); } catch (e) {}
 
@@ -11503,6 +11514,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
               u.voice = voice;
               if (voice.lang) u.lang = voice.lang;
             } catch (e) {}
+          }
+          // No clearly-male voice installed: lower the pitch to keep a calm, deeper tone
+          if (!voice || !/male|daniel|david|mark|george|thomas|james|arthur|fred|tom|guy|rishi|alex|aaron/i.test(voice.name || '')) {
+            u.pitch = Math.min(u.pitch, 0.75);
           }
           u.onend = function () { if (typeof markTvSpeechActivity === 'function') markTvSpeechActivity(); complete(); };
           u.onerror = function (ev) {
@@ -11571,34 +11586,44 @@ function flipRankingMatchCoin(roundNum, matchId) {
       tvAnnounceBusy = true;
       tvAnnounceBusySince = Date.now();
       var view = document.getElementById('view-spectator');
+      var akey = job.row._announceKey || (String(job.row.eventId || '') + ':' + String(job.row.matchId || job.row.id || '') + ':live');
       function release() {
         tvAnnounceBusy = false;
         tvAnnounceBusySince = 0;
         setTimeout(pumpTvAnnounceJobQueue, 150);
       }
       if ((!view || view.classList.contains('hidden')) && !job.interrupt) {
+        try { tvAnnouncePendingKeys.delete(akey); } catch (e) {}   // allow retry when board reopens
         release();
         return;
       }
-      try { playTvMatchChime(); } catch (e) {}
       var line = '';
       try {
         line = formatTvMatchAnnounce(job.row, job.kind);
       } catch (e) {
         line = (job.row.nameA || 'Team A') + ' versus ' + (job.row.nameB || 'Team B') + '. Now playing.';
       }
-      if (!line) { release(); return; }
-      var akey = job.row._announceKey || (String(job.row.eventId || '') + ':' + String(job.row.matchId || job.row.id || '') + ':live');
-      speakTvMatchLine(line, {
-        cancelPrevious: !!(window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending)),
-        onComplete: function () {
-          try {
-            tvAnnouncePendingKeys.delete(akey);
-            tvAnnouncedLiveKeys.add(akey);
-          } catch (e) {}
-          release();
-        }
-      });
+      if (!line) {
+        try { tvAnnouncePendingKeys.delete(akey); } catch (e) {}
+        release();
+        return;
+      }
+      // 1) Arena chime  2) wait for it to finish (+ gap)  3) calm male voice reads the full match card
+      var chimeMs = 1000;
+      try { chimeMs = playTvMatchChime() || 1000; } catch (e) {}
+      markTvSpeechActivity();
+      setTimeout(function () {
+        speakTvMatchLine(line, {
+          cancelPrevious: !!(window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending)),
+          onComplete: function () {
+            try {
+              tvAnnouncePendingKeys.delete(akey);
+              tvAnnouncedLiveKeys.add(akey);
+            } catch (e) {}
+            release();
+          }
+        });
+      }, chimeMs + TV_ANNOUNCE_CHIME_GAP_MS);
     }
 
     function announceTvMatchManual(btn) {
@@ -11628,9 +11653,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } catch (e) {
         line = row.nameA + ' versus ' + row.nameB + '. Now playing.';
       }
-      try { playTvMatchChime(); } catch (e) {}
-      // Prefer no cancel on fresh click so Chrome speaks in-gesture
-      speakTvMatchLine(line, { cancelPrevious: false });
+      var manualChimeMs = 1000;
+      try { manualChimeMs = playTvMatchChime() || 1000; } catch (e) {}
+      setTimeout(function () {
+        speakTvMatchLine(line, { cancelPrevious: false });
+      }, manualChimeMs + TV_ANNOUNCE_CHIME_GAP_MS);
       if (typeof toast === 'function') toast('Announcing…', 'info');
     }
 
@@ -11689,6 +11716,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } catch (e) {}
       resumeTvSpeechEngine();
       if (tvAnnounceBusy && tvAnnounceBusySince && (Date.now() - tvAnnounceBusySince > 18000)) {
+        try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
         forceResetTvAnnounceQueue();
       }
 
