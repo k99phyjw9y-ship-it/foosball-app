@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.26 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.27 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.26" />
+  <meta name="lcfc-build" content="6.27" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.26 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.27 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1312,7 +1312,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.26</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.27</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -1391,12 +1391,12 @@
               <option value="calm">Calm</option>
             </select>
             <select id="spec-chime-pack" onchange="setTvChimePack(this.value)" class="spec-control px-3 py-2 text-sm font-medium max-w-[8.5rem]" title="Attention chime before speech">
-              <option value="classic">Chime · Classic</option>
-              <option value="welcome">Chime · Welcome</option>
-              <option value="future">Chime · Future</option>
-              <option value="airport">Chime · Airport</option>
-              <option value="arena">Chime · Arena</option>
-              <option value="minimal">Chime · Minimal</option>
+              <option value="classic">Classic</option>
+              <option value="welcome">Welcome</option>
+              <option value="future">Future</option>
+              <option value="airport">Airport</option>
+              <option value="arena">Arena</option>
+              <option value="minimal">Minimal</option>
             </select>
             <button type="button" onclick="toggleSpectatorFullscreen()" class="spec-control px-3 py-2 text-sm font-medium">Fullscreen</button>
             <button type="button" onclick="closeSpectator()" class="spec-control px-3 py-2 text-sm font-medium">Exit</button>
@@ -2171,7 +2171,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.26';
+    const APP_VERSION = '6.27';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11636,23 +11636,33 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
       }
 
-      const tail = (kind === 'deck') ? 'On deck.' : 'Now playing.';
-
-      // Ceremony: formal, heavy pauses via short sentences
-      if (modeId === 'ceremony') {
-        const matchup = 'In this match. ' + a + '. Versus. ' + b + '.';
-        return [table, eventBit, phaseBit, detailBit, matchup, tail].filter(Boolean).join(' ');
+      // Serve team from match card coin toss
+      let serveBit = '';
+      let serveName = row.serveName ? clean(row.serveName) : '';
+      if (!serveName && row.serveSide) {
+        const side = String(row.serveSide).toLowerCase();
+        if (side === 'a') serveName = a;
+        else if (side === 'b') serveName = b;
+      }
+      if (serveName && serveName !== 'TBD') {
+        serveBit = serveName + ' to serve.';
       }
 
-      // Corner: boxing-ring cadence
+      const tail = (kind === 'deck') ? 'On deck.' : 'Now playing.';
+
+      if (modeId === 'ceremony') {
+        const matchup = 'In this match. ' + a + '. Versus. ' + b + '.';
+        return [table, eventBit, phaseBit, detailBit, matchup, serveBit, tail].filter(Boolean).join(' ');
+      }
+
       if (modeId === 'corner') {
         const intro = table ? table : '';
         const matchup = 'In this match. ' + a + '. Versus. ' + b + '.';
-        return [intro, eventBit, phaseBit, matchup, tail].filter(Boolean).join(' ');
+        return [intro, eventBit, phaseBit, matchup, serveBit, tail].filter(Boolean).join(' ');
       }
 
       const matchup = a + ' versus ' + b + '.';
-      return [table, eventBit, phaseBit, detailBit, matchup, tail].filter(Boolean).join(' ');
+      return [table, eventBit, phaseBit, detailBit, matchup, serveBit, tail].filter(Boolean).join(' ');
     }
 
     function announceTvMatchManual(btn) {
@@ -11665,7 +11675,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
         eventName: btn.getAttribute('data-event') || '',
         phase: btn.getAttribute('data-phase') || '',
         phaseLabel: btn.getAttribute('data-phase-label') || '',
-        round: btn.getAttribute('data-round') || ''
+        round: btn.getAttribute('data-round') || '',
+        serveSide: btn.getAttribute('data-serve-side') || '',
+        serveName: btn.getAttribute('data-serve-name') || ''
       };
       const kind = btn.getAttribute('data-kind') || 'live';
       if (row.nameA === 'TBD' && row.nameB === 'TBD') {
@@ -11892,6 +11904,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
                 data-phase="${escapeHtml(m.phase || '')}"
                 data-phase-label="${escapeHtml(m.phaseLabel || '')}"
                 data-round="${escapeHtml(m.round != null ? String(m.round) : '')}"
+                data-serve-side="${escapeHtml(m.serveSide || '')}"
+                data-serve-name="${escapeHtml(m.serveName || '')}"
                 data-kind="${kind === 'deck' ? 'deck' : 'live'}"
                 onclick="event.stopPropagation(); announceTvMatchManual(this)"
                 aria-label="Announce match">🎤</button>
