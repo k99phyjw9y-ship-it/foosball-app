@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.42 | 2026-10-13 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.43 | 2026-10-13 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.42" />
+  <meta name="lcfc-build" content="6.43" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.42 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.43 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2155,7 +2155,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.42';
+    const APP_VERSION = '6.43';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11460,10 +11460,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
     function speakTvMatchLine(text, opts) {
       opts = opts || {};
       var finished = false;
-      var fallbackUsed = false;
       var startWatchdog = null;
       var hardWatchdog = null;
-      var currentUtterance = null;
       function clearWatchdogs() {
         if (startWatchdog) { clearTimeout(startWatchdog); startWatchdog = null; }
         if (hardWatchdog) { clearTimeout(hardWatchdog); hardWatchdog = null; }
@@ -11476,15 +11474,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
           try { opts.onComplete(); } catch (e) {}
         }
       }
-      function retryWithDefaultVoice(reason) {
-        if (finished || fallbackUsed) { complete(); return; }
-        fallbackUsed = true;
-        clearWatchdogs();
-        console.warn('[LCFC TTS] retrying with Chrome default voice:', reason || 'voice did not start');
-        try { window.speechSynthesis.cancel(); } catch (e) {}
-        // Chromium can drop speak() when called in the same task as cancel().
-        setTimeout(function () { attemptSpeak(true); }, 180);
-      }
       if (!text || !String(text).trim()) { complete(); return; }
       if (!window.speechSynthesis || typeof window.SpeechSynthesisUtterance === 'undefined') {
         console.warn('[LCFC TTS] speech synthesis unavailable');
@@ -11493,7 +11482,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return;
       }
       var line = String(text).replace(/\s+/g, ' ').trim();
-      var mode = { rate: 0.92, pitch: 0.82 };
+      var mode = { rate: 0.92, pitch: 0.9 };
       try {
         if (typeof getTvVoiceModeConfig === 'function') {
           var m = getTvVoiceModeConfig();
@@ -11501,67 +11490,70 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
       } catch (e) {}
 
-      function attemptSpeak(useDefaultVoice) {
-        if (finished) return;
+      // On ChromeOS, assigning a listed cloud voice can cause a start timeout and
+      // then an "interrupted" error when fallback code cancels it. Prefer a local
+      // English voice when one is available; otherwise let Chrome choose its own
+      // default voice. Do not cancel/retry a live utterance behind the queue's back.
+      try {
+        resumeTvSpeechEngine();
+        var u = new SpeechSynthesisUtterance(line);
+        u.volume = 1;
+        u.rate = (mode.rate >= 0.6 && mode.rate <= 1.2) ? mode.rate : 0.92;
+        u.pitch = (mode.pitch >= 0.6 && mode.pitch <= 1.2) ? mode.pitch : 0.9;
+        u.lang = 'en-US';
         try {
-          resumeTvSpeechEngine();
-          try { window.speechSynthesis.getVoices(); } catch (e) {}
-          var u = new SpeechSynthesisUtterance(line);
-          currentUtterance = u;
-          u.volume = 1;
-          u.rate = (mode.rate >= 0.6 && mode.rate <= 1.2) ? mode.rate : 0.92;
-          u.pitch = (mode.pitch >= 0.6 && mode.pitch <= 1.2) ? mode.pitch : 0.82;
-          u.lang = 'en-US';
-          // Chromebook/Chrome may list cloud voices that are not actually ready.
-          // Try the preferred voice first, then explicitly fall back to Chrome's default.
-          var voice = useDefaultVoice ? null : pickTvSpeechVoiceSafe();
-          if (voice) {
-            try { u.voice = voice; if (voice.lang) u.lang = voice.lang; } catch (e) {}
+          var voices = window.speechSynthesis.getVoices() || [];
+          var localEnglish = voices.filter(function (v) {
+            return v && v.localService !== false && /^en/i.test(v.lang || '');
+          });
+          var chosen = null;
+          if (localEnglish.length) {
+            var ranked = localEnglish.slice().sort(function (a, b) {
+              return pickTvSpeechVoiceSafe() === b ? 1 : (pickTvSpeechVoiceSafe() === a ? -1 : 0);
+            });
+            chosen = ranked[0] || null;
           }
-          var started = false;
-          u.onstart = function () {
-            started = true;
-            clearWatchdogs();
-            markTvSpeechActivity();
-            // A long utterance must not hold the queue forever if Chrome omits onend.
-            hardWatchdog = setTimeout(complete, Math.min(30000, Math.max(9000, line.length * 180)));
-          };
-          u.onend = function () { markTvSpeechActivity(); complete(); };
-          u.onerror = function (ev) {
-            console.warn('[LCFC TTS] utterance error', ev && ev.error, 'defaultVoice=', useDefaultVoice);
-            if (!useDefaultVoice) retryWithDefaultVoice(ev && ev.error ? ev.error : 'utterance error');
-            else complete();
-          };
-          // ChromeOS occasionally accepts speak() but never starts a cloud voice.
-          startWatchdog = setTimeout(function () {
-            if (!started && !finished) {
-              if (!useDefaultVoice) retryWithDefaultVoice('voice start timeout');
-              else {
-                console.warn('[LCFC TTS] default voice did not start');
-                complete();
-              }
-            }
-          }, useDefaultVoice ? 2200 : 1800);
+          if (chosen) { u.voice = chosen; u.lang = chosen.lang || 'en-US'; }
+        } catch (e) {}
+
+        var started = false;
+        u.onstart = function () {
+          started = true;
+          clearWatchdogs();
           markTvSpeechActivity();
-          window.speechSynthesis.speak(u);
-          setTimeout(function () { resumeTvSpeechEngine(); }, 120);
-        } catch (e) {
-          console.warn('[LCFC TTS] speak failed', e);
-          if (!useDefaultVoice) retryWithDefaultVoice(e && e.message ? e.message : 'speak failed');
-          else {
-            if (typeof toast === 'function') toast('Speech failed. Check Chromebook audio/voice settings.', 'error');
+          hardWatchdog = setTimeout(function () {
+            console.warn('[LCFC TTS] speech exceeded safety limit; releasing announcer queue');
+            complete();
+          }, Math.min(45000, Math.max(12000, line.length * 240)));
+        };
+        u.onend = function () { markTvSpeechActivity(); complete(); };
+        u.onerror = function (ev) {
+          var err = ev && ev.error ? ev.error : 'unknown';
+          console.warn('[LCFC TTS] utterance error:', err);
+          if (err === 'interrupted' || err === 'canceled' || err === 'cancelled') {
+            console.warn('[LCFC TTS] Chrome interrupted speech; not retrying automatically to avoid a chime loop.');
+          } else if (typeof toast === 'function') {
+            toast('Chrome speech error: ' + err + '. Check Chromebook text-to-speech settings.', 'error');
+          }
+          complete();
+        };
+        // ChromeOS may take several seconds to initialize its TTS service. The
+        // old 1.8-2.2 second watchdog canceled valid utterances before they began.
+        startWatchdog = setTimeout(function () {
+          if (!started && !finished) {
+            console.warn('[LCFC TTS] speech did not start within 10 seconds; check ChromeOS text-to-speech settings.');
+            try { window.speechSynthesis.cancel(); } catch (e) {}
+            if (typeof toast === 'function') toast('Chrome speech did not start. Check Chromebook text-to-speech settings.', 'error');
             complete();
           }
-        }
-      }
-
-      var needCancel = opts.cancelPrevious !== false
-        && (window.speechSynthesis.speaking || window.speechSynthesis.pending);
-      if (needCancel) {
-        try { window.speechSynthesis.cancel(); } catch (e) {}
-        setTimeout(function () { attemptSpeak(false); }, 100);
-      } else {
-        attemptSpeak(false);
+        }, 10000);
+        markTvSpeechActivity();
+        window.speechSynthesis.speak(u);
+        setTimeout(resumeTvSpeechEngine, 250);
+      } catch (e) {
+        console.warn('[LCFC TTS] speak failed', e);
+        if (typeof toast === 'function') toast('Speech failed. Check Chromebook text-to-speech settings.', 'error');
+        complete();
       }
     }
 
@@ -11626,7 +11618,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       markTvSpeechActivity();
       setTimeout(function () {
         speakTvMatchLine(line, {
-          cancelPrevious: !!(window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending)),
+          cancelPrevious: false,
           onComplete: function () {
             try {
               tvAnnouncePendingKeys.delete(akey);
