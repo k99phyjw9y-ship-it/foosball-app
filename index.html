@@ -2155,7 +2155,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.39';
+    const APP_VERSION = '6.40';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11129,7 +11129,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     };
 
     /** Silence after chime before speech — lets the room look up */
-    const TV_ANNOUNCE_CHIME_GAP_MS = 300; // pause after the chime ends, before the voice starts
+    const TV_ANNOUNCE_CHIME_GAP_MS = 90; // short pause, keeping mobile speech close to the user tap
     const TV_CHIME_PACK_KEY = 'lcfc_tv_chime_pack_v1';
 
     /**
@@ -11140,9 +11140,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       arena: {
         id: 'arena', label: 'Arena',
         notes: [
-          { f: 392, t: 0, d: 0.28, v: 0.34 },
-          { f: 523.25, t: 0.22, d: 0.30, v: 0.32 },
-          { f: 659.25, t: 0.48, d: 0.40, v: 0.30 }
+          { f: 392, t: 0, d: 0.16, v: 0.34 },
+          { f: 523.25, t: 0.13, d: 0.17, v: 0.32 },
+          { f: 659.25, t: 0.27, d: 0.22, v: 0.30 }
         ]
       }
     };
@@ -11494,13 +11494,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
       function doSpeak() {
         try {
           resumeTvSpeechEngine();
-          // Chrome loads voices asynchronously — wait up to ~1.5s so we don't fall back to a default (often female) voice
-          if (!(window.speechSynthesis.getVoices() || []).length && voiceWaitTries < 15) {
-            voiceWaitTries++;
-            setTimeout(doSpeak, 100);
-            return;
-          }
-          // Warm voices list (Chrome loads async)
+          // Do not wait for the voice list on mobile: delaying speech can outlive
+          // Safari/iOS transient user activation and silently drop the utterance.
+          // Use the system default if voices have not loaded yet; later calls can
+          // select the preferred deeper English voice once available.
           try { window.speechSynthesis.getVoices(); } catch (e) {}
 
           var u = new SpeechSynthesisUtterance(line);
@@ -11798,10 +11795,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
         unlockTvAnnounceAudio();                // sets tvAnnounceAudioUnlocked = true, starts keep-alive
         setTvAnnounceEnabled(true);             // saves flag + re-syncs the button
         markTvSpeechActivity();
-        // Keep the confirmation voice behind the arena chime. Starting TTS immediately
-        // after playTvMatchChime() caused overlap on some mobile browsers.
-        var enableChimeMs = 1000;
-        try { enableChimeMs = playTvMatchChime() || 1000; } catch (e) { console.warn('chime', e); }
+        // Keep the chime brief and the voice close to the user's tap. Mobile Safari
+        // can drop speech if the first speechSynthesis.speak() happens too long after
+        // the gesture, so use a short chime and avoid waiting for async voice loading.
+        var enableChimeMs = 600;
+        try { enableChimeMs = playTvMatchChime() || 600; } catch (e) { console.warn('chime', e); }
 
         if (window.speechSynthesis) {
           setTimeout(function () {
@@ -11813,7 +11811,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
                 try { renderSpectatorBoard(); } catch (e) { console.warn('announce board', e); }
               }
             });
-          }, enableChimeMs + TV_ANNOUNCE_CHIME_GAP_MS);
+          }, Math.min(650, enableChimeMs + TV_ANNOUNCE_CHIME_GAP_MS));
+          // Safety net: even if a browser never fires speech end/error, refresh the
+          // live list so queued match announcements are not dependent on the greeting.
+          setTimeout(function () {
+            try {
+              if (isTvAnnounceEnabled() && tvAnnounceAudioUnlocked) renderSpectatorBoard();
+            } catch (e) {}
+          }, 1800);
         } else if (typeof toast === 'function') {
           toast('Speech not available in this browser', 'error');
         }
