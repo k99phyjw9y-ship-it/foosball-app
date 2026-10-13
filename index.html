@@ -1380,7 +1380,7 @@
           <div class="flex flex-wrap gap-2">
             <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="spec-control px-3 py-2 text-sm max-w-[14rem]"></select>
             <button type="button" id="spec-group-toggle" onclick="toggleSpectatorGroupByEvent()" class="spec-control px-3 py-2 text-sm font-medium" title="Group match cards under each event name">Group by event</button>
-            <button type="button" id="spec-announce-btn" class="spec-control spec-announce-off px-3 py-2 text-sm font-medium cursor-pointer relative z-10" title="Chime + spoken names when a match goes live (TV board only)" onclick="(window.toggleTvMatchAnnouncements||toggleTvMatchAnnouncements)()">Sound · Off</button>
+            <button type="button" id="spec-announce-btn" class="spec-control spec-announce-off px-3 py-2 text-sm font-medium cursor-pointer relative z-10" title="Chime + spoken names when a match goes live (TV board only)">Sound · Off</button>
             
             <button type="button" onclick="toggleSpectatorFullscreen()" class="spec-control px-3 py-2 text-sm font-medium">Fullscreen</button>
             <button type="button" onclick="closeSpectator()" class="spec-control px-3 py-2 text-sm font-medium">Exit</button>
@@ -11109,6 +11109,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
     let tvAnnounceAudioUnlocked = false;
     let tvSpeechVoicesReady = false;
     let tvAnnounceKeepAliveId = null;
+    let tvAnnounceAudioCtx = null;          // shared Web Audio context (was previously undeclared)
+    let tvAnnounceJobQueue = [];
+    let tvSpeechLastActiveAt = 0;
+    let tvAnnounceBusy = false;
+    let tvAnnounceBusySince = 0;
+    let tvAnnounceToggleLockUntil = 0;      // debounce guard for the Sound button
     const tvAnnouncedLiveKeys = new Set();
     const tvAnnouncePendingKeys = new Set();
     const tvAnnounceMissCounts = {};
@@ -11145,7 +11151,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return 'arena';
     }
     function getTvChimePack() {
-      return TV_CHIME_PACKS[getTvChimePackId()] || TV_CHIME_PACKS.classic;
+      return TV_CHIME_PACKS[getTvChimePackId()] || TV_CHIME_PACKS.arena;
     }
 
     function setTvChimePack(id) {
@@ -11157,7 +11163,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     function getTvVoiceModeConfig() {
-      return TV_VOICE_MODES[getTvAnnounceVoiceMode()] || TV_VOICE_MODES.desk;
+      return TV_VOICE_MODES[getTvAnnounceVoiceMode()] || TV_VOICE_MODES.arena;
     }
 
     function setTvAnnounceVoiceMode(mode) {
@@ -11184,27 +11190,19 @@ function flipRankingMatchCoin(roundNum, matchId) {
       btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       btn.classList.remove('spec-announce-on', 'spec-announce-off');
       btn.classList.add(on ? 'spec-announce-on' : 'spec-announce-off');
-      // Ensure click works even if inline handler was lost
-      if (!btn._lcfcSoundBound) {
-        btn._lcfcSoundBound = true;
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          try {
-            if (typeof window.toggleTvMatchAnnouncements === 'function') {
-              window.toggleTvMatchAnnouncements();
-            } else if (typeof toggleTvMatchAnnouncements === 'function') {
-              toggleTvMatchAnnouncements();
-            } else {
-              console.error('Sound toggle not found');
-              if (typeof toast === 'function') toast('Sound toggle not available — refresh the page', 'error');
-            }
-          } catch (err) {
-            console.error(err);
-            if (typeof toast === 'function') toast('Sound error: ' + (err.message || err), 'error');
-          }
-        });
-      }
+      bindTvAnnounceButton(btn);
+    }
+
+    /** Exactly ONE click handler on the Sound button (inline onclick removed). */
+    function bindTvAnnounceButton(btn) {
+      btn = btn || document.getElementById('spec-announce-btn');
+      if (!btn || btn._lcfcSoundBound) return;
+      btn._lcfcSoundBound = true;
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleTvMatchAnnouncements();
+      });
     }
 
     function getTvAudioContext() {
@@ -11284,7 +11282,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     function playTvMatchChime() {
       const pack = getTvChimePack();
-      const notes = (pack && pack.notes) || TV_CHIME_PACKS.classic.notes;
+      const notes = (pack && pack.notes) || TV_CHIME_PACKS.arena.notes;
       const ctx = getTvAudioContext();
       if (!ctx) {
         try {
@@ -11371,9 +11369,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     // ==================== TV SPEECH (v6.33 — Chrome-safe cancel/speak) ====================
-    let tvAnnounceJobQueue = [];
-    let tvSpeechLastActiveAt = 0;
-
     function markTvSpeechActivity() {
       tvSpeechLastActiveAt = Date.now();
     }
@@ -11390,9 +11385,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (tvSpeechLastActiveAt && (Date.now() - tvSpeechLastActiveAt) < 10000) return false;
       return true;
     }
-
-    let tvAnnounceBusy = false;
-    let tvAnnounceBusySince = 0;
 
     function forceResetTvAnnounceQueue() {
       tvAnnounceJobQueue = [];
@@ -11755,64 +11747,64 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     function toggleTvMatchAnnouncements() {
-      try {
-        var btn = document.getElementById('spec-announce-btn');
-        var enabled = (typeof isTvAnnounceEnabled === 'function') && isTvAnnounceEnabled();
-        var unlocked = !!tvAnnounceAudioUnlocked;
+      // Debounce: ignore a second call fired within 600ms (double-tap / duplicate handlers)
+      const nowTs = Date.now();
+      if (nowTs < tvAnnounceToggleLockUntil) return;
+      tvAnnounceToggleLockUntil = nowTs + 600;
 
-        if (enabled && unlocked) {
-          if (typeof setTvAnnounceEnabled === 'function') setTvAnnounceEnabled(false);
-          if (typeof stopTvAnnounceKeepAlive === 'function') stopTvAnnounceKeepAlive();
-          try { forceResetTvAnnounceQueue(); } catch (e) {}
+      try {
+        const wasOn = isTvAnnounceEnabled() && tvAnnounceAudioUnlocked;
+
+        if (wasOn) {
+          // ---- Turn OFF ----
+          setTvAnnounceEnabled(false);          // also re-syncs the button
+          stopTvAnnounceKeepAlive();
+          forceResetTvAnnounceQueue();
           try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
           if (typeof toast === 'function') toast('Sound off', 'info');
-          if (typeof syncTvAnnounceButton === 'function') syncTvAnnounceButton();
           return;
         }
 
-        try { forceResetTvAnnounceQueue(); } catch (e) {}
-        try { unlockTvAnnounceAudio(); } catch (e) {}
-        tvAnnounceAudioUnlocked = true;
-        if (typeof setTvAnnounceEnabled === 'function') setTvAnnounceEnabled(true);
-        if (typeof markTvSpeechActivity === 'function') markTvSpeechActivity();
-
+        // ---- Turn ON (runs inside the user's tap — required for mobile audio) ----
+        forceResetTvAnnounceQueue();
+        unlockTvAnnounceAudio();                // sets tvAnnounceAudioUnlocked = true, starts keep-alive
+        setTvAnnounceEnabled(true);             // saves flag + re-syncs the button
+        markTvSpeechActivity();
         try { playTvMatchChime(); } catch (e) { console.warn('chime', e); }
 
-        if (typeof speakTvMatchLine === 'function') {
+        if (window.speechSynthesis) {
           speakTvMatchLine('Sound on.', {
             cancelPrevious: false,
             onComplete: function () {
-              try {
-                if (typeof tvAnnouncedLiveKeys !== 'undefined') tvAnnouncedLiveKeys.clear();
-                if (typeof tvAnnouncePendingKeys !== 'undefined') tvAnnouncePendingKeys.clear();
-              } catch (e) {}
-              try {
-                if (typeof renderSpectatorBoard === 'function') renderSpectatorBoard();
-              } catch (e) { console.warn('announce board', e); }
+              // Re-evaluate the board so already-live matches get announced
+              try { tvAnnouncedLiveKeys.clear(); tvAnnouncePendingKeys.clear(); } catch (e) {}
+              try { renderSpectatorBoard(); } catch (e) { console.warn('announce board', e); }
             }
           });
         } else if (typeof toast === 'function') {
-          toast('Speech not available', 'error');
-        }
-
-        if (btn) {
-          btn.textContent = 'Sound · On';
-          btn.classList.remove('spec-announce-off');
-          btn.classList.add('spec-announce-on');
+          toast('Speech not available in this browser', 'error');
         }
         if (typeof toast === 'function') toast('Sound on', 'success');
-        if (typeof syncTvAnnounceButton === 'function') syncTvAnnounceButton();
       } catch (err) {
         console.error('toggleTvMatchAnnouncements', err);
+        tvAnnounceToggleLockUntil = 0;
         if (typeof toast === 'function') toast('Sound error: ' + (err && err.message ? err.message : 'unknown'), 'error');
-        try { alert('Sound toggle error: ' + (err && err.message ? err.message : err)); } catch (e2) {}
+        try { syncTvAnnounceButton(); } catch (e2) {}
       }
     }
     try {
       window.toggleTvMatchAnnouncements = toggleTvMatchAnnouncements;
-      if (typeof announceTvMatchManual === 'function') window.announceTvMatchManual = announceTvMatchManual;
-      if (typeof speakTvMatchLine === 'function') window.speakTvMatchLine = speakTvMatchLine;
-      if (typeof playTvMatchChime === 'function') window.playTvMatchChime = playTvMatchChime;
+      window.announceTvMatchManual = announceTvMatchManual;
+      window.speakTvMatchLine = speakTvMatchLine;
+      window.playTvMatchChime = playTvMatchChime;
+    } catch (e) {}
+    // Bind the button as soon as the DOM is ready (before the TV board is ever opened)
+    try {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { bindTvAnnounceButton(); });
+      } else {
+        bindTvAnnounceButton();
+      }
     } catch (e) {}
 
     function seedTvAnnouncedFromCurrentBoard() {
