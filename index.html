@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.38 | 2026-10-05 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
+<!-- LCFC_MANAGER_BUILD v6.39 | 2026-10-13 | if you still see an older v5.xx this is NOT the file GitHub is serving -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.38" />
+  <meta name="lcfc-build" content="6.39" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.38 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.39 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2155,7 +2155,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.38';
+    const APP_VERSION = '6.39';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11798,17 +11798,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
         unlockTvAnnounceAudio();                // sets tvAnnounceAudioUnlocked = true, starts keep-alive
         setTvAnnounceEnabled(true);             // saves flag + re-syncs the button
         markTvSpeechActivity();
-        try { playTvMatchChime(); } catch (e) { console.warn('chime', e); }
+        // Keep the confirmation voice behind the arena chime. Starting TTS immediately
+        // after playTvMatchChime() caused overlap on some mobile browsers.
+        var enableChimeMs = 1000;
+        try { enableChimeMs = playTvMatchChime() || 1000; } catch (e) { console.warn('chime', e); }
 
         if (window.speechSynthesis) {
-          speakTvMatchLine('Sound on.', {
-            cancelPrevious: false,
-            onComplete: function () {
-              // Re-evaluate the board so already-live matches get announced
-              try { tvAnnouncedLiveKeys.clear(); tvAnnouncePendingKeys.clear(); } catch (e) {}
-              try { renderSpectatorBoard(); } catch (e) { console.warn('announce board', e); }
-            }
-          });
+          setTimeout(function () {
+            speakTvMatchLine('Sound on.', {
+              cancelPrevious: false,
+              onComplete: function () {
+                // Re-evaluate the board so matches already playing are announced too.
+                try { tvAnnouncedLiveKeys.clear(); tvAnnouncePendingKeys.clear(); } catch (e) {}
+                try { renderSpectatorBoard(); } catch (e) { console.warn('announce board', e); }
+              }
+            });
+          }, enableChimeMs + TV_ANNOUNCE_CHIME_GAP_MS);
         } else if (typeof toast === 'function') {
           toast('Speech not available in this browser', 'error');
         }
