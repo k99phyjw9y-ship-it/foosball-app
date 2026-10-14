@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.45 | 2026-10-13 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.46 | 2026-10-13 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.45" />
+  <meta name="lcfc-build" content="6.46" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.45 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.46 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2156,7 +2156,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.45';
+    const APP_VERSION = '6.46';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11500,7 +11500,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         resumeTvSpeechEngine();
         var u = new SpeechSynthesisUtterance(line);
         u.volume = 1;
-        u.rate = 1;
+        u.rate = 0.9;
         u.pitch = 1;
         u.lang = 'en-US';
         console.info('[LCFC TTS] using OS default voice; voices=' + (window.speechSynthesis.getVoices() || []).length);
@@ -11675,7 +11675,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         var u = new SpeechSynthesisUtterance('Voice test. The foosball announcer is working.');
         u.lang = 'en-US';
         u.volume = 1;
-        u.rate = 1;
+        u.rate = 0.9;
         u.pitch = 1;
         u.onstart = function () { console.info('[LCFC TTS] minimal test onstart'); };
         u.onend = function () { console.info('[LCFC TTS] minimal test onend'); };
