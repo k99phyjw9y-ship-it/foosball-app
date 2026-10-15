@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.46 | 2026-10-13 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.47 | 2026-10-15 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.46" />
+  <meta name="lcfc-build" content="6.47" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.46 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.47 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2739,18 +2739,66 @@
       const standings = (typeof computeStandings === 'function') ? computeStandings(t) : [];
       const standIdx = {};
       standings.forEach((s, i) => { standIdx[s.id] = i; });
-      const rest = [...bracketPlayers].filter(id => placeOf[id] == null);
-      rest.sort((a, b) => {
-        const la = lossCount[a] || 0, lb = lossCount[b] || 0;
-        if (lb !== la) return lb - la;
-        const sa = standIdx[a] != null ? standIdx[a] : 999;
-        const sb = standIdx[b] != null ? standIdx[b] : 999;
-        if (sa !== sb) return sa - sb;
-        const na = state.players.find(p => p.id === a)?.name || '';
-        const nb = state.players.find(p => p.id === b)?.name || '';
-        return na.localeCompare(nb);
+
+      // Group non-podium players by their actual playoff team. The old code
+      // assigned 4, 5, 6... to individual players, splitting doubles partners
+      // into different finishing places and giving them different seed points.
+      const playoffTeams = new Map();
+      const addPlayoffTeam = ent => {
+        const ids = rankingEntityPlayerIds(t, ent).filter(id => bracketPlayers.has(id));
+        if (!ids.length) return;
+        const members = [...new Set(ids)].sort();
+        const key = members.join('|');
+        if (!playoffTeams.has(key)) {
+          const name = ent?.name || members.map(id =>
+            state.players.find(p => p.id === id)?.name || ''
+          ).join(' + ');
+          playoffTeams.set(key, { ids: members, name });
+        }
+      };
+      try {
+        if (t.playoffs && typeof collectBracketMatches === 'function') {
+          collectBracketMatches(t.playoffs).forEach(m => {
+            if (!m) return;
+            addPlayoffTeam(m.a?.entity || m.entityA);
+            addPlayoffTeam(m.b?.entity || m.entityB);
+          });
+        }
+      } catch (e) {}
+
+      const restIds = new Set([...bracketPlayers].filter(id => placeOf[id] == null));
+      const restGroups = [];
+      const grouped = new Set();
+      playoffTeams.forEach(team => {
+        const ids = team.ids.filter(id => restIds.has(id));
+        if (!ids.length) return;
+        // Only group together members that are still unplaced. A bracket team
+        // should be a fixed roster, but this guard keeps partial legacy data safe.
+        ids.forEach(id => grouped.add(id));
+        restGroups.push({
+          ids,
+          name: team.name,
+          losses: Math.max(...ids.map(id => lossCount[id] || 0)),
+          standings: Math.min(...ids.map(id => standIdx[id] != null ? standIdx[id] : 999))
+        });
       });
-      rest.forEach((id, i) => { placeOf[id] = 4 + i; });
+      // Preserve a fallback for legacy/singles bracket entries not found in a team.
+      [...restIds].filter(id => !grouped.has(id)).forEach(id => {
+        restGroups.push({
+          ids: [id],
+          name: state.players.find(p => p.id === id)?.name || '',
+          losses: lossCount[id] || 0,
+          standings: standIdx[id] != null ? standIdx[id] : 999
+        });
+      });
+      restGroups.sort((a, b) => {
+        if (b.losses !== a.losses) return b.losses - a.losses;
+        if (a.standings !== b.standings) return a.standings - b.standings;
+        return a.name.localeCompare(b.name);
+      });
+      restGroups.forEach((team, i) => {
+        team.ids.forEach(id => { placeOf[id] = 4 + i; });
+      });
 
       return { ids: Object.keys(placeOf), placeOf };
     }
