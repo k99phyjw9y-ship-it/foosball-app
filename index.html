@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.48 | 2026-10-15 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.49 | 2026-10-15 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.48" />
+  <meta name="lcfc-build" content="6.49" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.48 – Lake Champlain Foosball Club</title>
+  <meta http-equiv="Expires" content="6.49" />
+  <title>LCFC Manager v6.49 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -96,11 +96,6 @@
         );
         return out;
       }
-      /* TV board uses the same theme tokens as the rest of the app (Pitch / Lake / Night / …). */
-      function spectatorVars(t) {
-        /* No override palette — #view-spectator inherits :root from build(t). */
-        return '';
-      }
       function find(id) { for (var i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) return THEMES[i]; return null; }
       function resolve(pref) {
         if (pref === 'auto') {
@@ -113,7 +108,7 @@
         var t = resolve(pref), root = document.documentElement;
         var el = document.getElementById('lcfc-theme-vars');
         if (!el) { el = document.createElement('style'); el.id = 'lcfc-theme-vars'; document.head.appendChild(el); }
-        el.textContent = ':root{' + build(t).join(';') + '}' + spectatorVars(t);
+        el.textContent = ':root{' + build(t).join(';') + '}';
         root.setAttribute('data-theme', t.id);
         root.setAttribute('data-mode', t.dark ? 'dark' : 'light');
         var m = document.querySelector('meta[name="theme-color"]');
@@ -1312,7 +1307,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.48</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.49</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2156,7 +2151,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.48';
+    const APP_VERSION = '6.49';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -2806,11 +2801,6 @@
     }
 
     /** @deprecated use getEventFinishPlaces — kept for any callers */
-    function getEventFinishOrder(t) {
-      const { ids, placeOf } = getEventFinishPlaces(t);
-      return ids.slice().sort((a, b) => (placeOf[a] || 99) - (placeOf[b] || 99));
-    }
-
     /**
      * Apply ranking points only after bracket/playoff results (never ranking rounds alone).
      * Partners on the same podium team share equal place, seed tier, and bonus.
@@ -4034,10 +4024,6 @@
     }
 
     /** @deprecated single-select path — kept for compatibility */
-    function addPlayerToTournament() {
-      addSelectedPlayersToTournament();
-    }
-
     function removePlayerFromTournament(pid) {
       const t = getCurrentTournament();
       t.playerIds = t.playerIds.filter(id => id !== pid);
@@ -4604,10 +4590,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     function refreshScoreModalCoin() {
       // Coin toss is on match cards only — keeps score modal short (no scroll)
-    }
-
-    function flipScoreModalCoin() {
-      // no-op — flip from the match card
     }
 
     function countActiveParallelEvents() {
@@ -6158,15 +6140,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
     let matchTimerTickId = null;
     let scoreModalTimerMatch = null;
 
-    function scheduleMatchTimer(match, fromMs) {
-      if (!match || match.status === 'done' || match.winner) return;
-      // Never restart an already-armed / running clock
-      if (match.timerStartAt != null && !match.timerEndedAt) return;
-      const base = fromMs != null ? fromMs : Date.now();
-      match.timerStartAt = base + MATCH_TIMER_GRACE_MS;
-      delete match.timerEndedAt;
-    }
-
     /** Arm 30s grace only the first time a match becomes live. */
     function ensureLiveMatchTimer(match, now) {
       if (!match || match.onDeck || match.status === 'done' || match.winner || match.void) return;
@@ -7274,11 +7247,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const st = document.getElementById('score-match-timer');
       if (st) { st.classList.add('hidden'); st.textContent = ''; }
       state.scoreMatchId = null;
-    }
-
-    function setScore(a, b) {
-      document.getElementById('score-a').value = a;
-      document.getElementById('score-b').value = b;
     }
 
     function readScoreInputs() {
@@ -10856,8 +10824,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
       document.body.style.overflow = 'hidden';
       populateSpectatorSelect();
       try { syncTvAnnounceButton(); } catch (e) {}
-      try { syncTvVoiceModeSelect(); } catch (e) {}
-      try { syncTvChimePackSelect(); } catch (e) {}
       renderSpectatorBoard();
       if (typeof ensureMatchTimerTicker === 'function') ensureMatchTimerTicker();
       // Re-unlock audio on any tap while board is open (helps iPhone after lock screen)
@@ -11170,7 +11136,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
     const tvAnnouncedLiveKeys = new Set();
     const tvAnnouncePendingKeys = new Set();
     const tvAnnounceMissCounts = {};
-    const TV_VOICE_MODE_KEY = 'lcfc_tv_voice_mode_v1';
     /** Male announcer styles — rate/pitch/pause + voice preference bias */
     const TV_VOICE_MODES = {
       arena: {
@@ -11182,7 +11147,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     /** Silence after chime before speech — lets the room look up */
     const TV_ANNOUNCE_CHIME_GAP_MS = 90; // short pause, keeping mobile speech close to the user tap
-    const TV_CHIME_PACK_KEY = 'lcfc_tv_chime_pack_v1';
 
     /**
      * Attention chime packs (Web Audio only — no files).
@@ -11198,30 +11162,13 @@ function flipRankingMatchCoin(roundNum, matchId) {
         ]
       }
     };
-
-    function getTvChimePackId() {
-      return 'arena';
-    }
     function getTvChimePack() {
-      return TV_CHIME_PACKS[getTvChimePackId()] || TV_CHIME_PACKS.arena;
+      return TV_CHIME_PACKS.arena;
     }
-
-    function setTvChimePack(id) {
-      try { localStorage.setItem(TV_CHIME_PACK_KEY, 'arena'); } catch (e) {}
-    }
-    function syncTvChimePackSelect() { /* Arena only — no UI */ }
-    function getTvAnnounceVoiceMode() {
-      return 'arena';
-    }
-
     function getTvVoiceModeConfig() {
-      return TV_VOICE_MODES[getTvAnnounceVoiceMode()] || TV_VOICE_MODES.arena;
+      return TV_VOICE_MODES.arena;
     }
 
-    function setTvAnnounceVoiceMode(mode) {
-      try { localStorage.setItem(TV_VOICE_MODE_KEY, 'arena'); } catch (e) {}
-    }
-    function syncTvVoiceModeSelect() { /* Arena only — no UI */ }
     function isTvAnnounceEnabled() {
       try { return localStorage.getItem(TV_ANNOUNCE_KEY) === '1'; } catch (e) { return false; }
     }
@@ -11942,26 +11889,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
     } catch (e) {}
 
-    function seedTvAnnouncedFromCurrentBoard() {
-      const allMode = state.spectatorTournamentId === '__all__';
-      let events = [];
-      if (allMode) {
-        events = (state.tournaments || []).filter(x => x && x.status !== 'finished');
-      } else {
-        const one = (state.tournaments || []).find(x => x.id === state.spectatorTournamentId);
-        if (one) events = [one];
-      }
-      events.forEach(function (ev) {
-        try {
-          collectSpectatorMatchRows(ev).forEach(function (row) {
-            if (!row || row.onDeck || !row.matchId) return;
-            if (!row.nameA || row.nameA === 'TBD' || !row.nameB || row.nameB === 'TBD') return;
-            tvAnnouncedLiveKeys.add(String(row.eventId || '') + ':' + String(row.matchId) + ':live');
-          });
-        } catch (e) {}
-      });
-    }
-
     function renderSpectatorBoard() {
       const title = document.getElementById('spec-title');
       const meta = document.getElementById('spec-meta');
@@ -12019,8 +11946,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       try { processTvMatchAnnouncements(playingList); } catch (e) { console.warn('TV announce', e); }
       try { syncTvAnnounceButton(); } catch (e) {}
-      try { syncTvVoiceModeSelect(); } catch (e) {}
-      try { syncTvChimePackSelect(); } catch (e) {}
 
       const groupBy = isSpectatorGroupByEvent();
       syncSpectatorGroupToggleBtn();
