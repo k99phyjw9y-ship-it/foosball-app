@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.49 | 2026-10-15 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.50 | 2026-10-15 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.49" />
+  <meta name="lcfc-build" content="6.50" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="6.49" />
-  <title>LCFC Manager v6.49 – Lake Champlain Foosball Club</title>
+  <meta http-equiv="Expires" content="6.50" />
+  <title>LCFC Manager v6.50 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1307,7 +1307,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.49</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.50</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2151,7 +2151,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.49';
+    const APP_VERSION = '6.50';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11386,10 +11386,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     function forceResetTvAnnounceQueue() {
+      // Cancel queue without re-auto-announcing: pending → announced
+      try {
+        tvAnnouncePendingKeys.forEach(function (k) { tvAnnouncedLiveKeys.add(k); });
+        tvAnnouncePendingKeys.clear();
+      } catch (e) {}
       tvAnnounceJobQueue = [];
       tvAnnounceBusy = false;
       tvAnnounceBusySince = 0;
-      try { tvAnnouncePendingKeys.clear(); } catch (e) {}
     }
 
     function resumeTvSpeechEngine() {
@@ -11558,6 +11562,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
       var idKey = String(row.eventId || '') + ':' + String(row.matchId || row.id || '') + ':' + (kind || 'live');
       if (!opts.interrupt && (row.matchId || row.id)) {
+        // Already auto-announced or in-flight — only mic (interrupt) may speak again
+        if (tvAnnouncedLiveKeys.has(idKey) || tvAnnouncePendingKeys.has(idKey)) return;
         if (tvAnnounceJobQueue.some(function (j) {
           return String(j.row.eventId || '') + ':' + String(j.row.matchId || j.row.id || '') + ':' + j.kind === idKey;
         })) return;
@@ -11604,17 +11610,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
       // 1) Arena chime  2) wait for it to finish (+ gap)  3) calm male voice reads the full match card
       var chimeMs = 1000;
       try { chimeMs = playTvMatchChime() || 1000; } catch (e) {}
+      // Claim immediately — auto will not re-announce this match (mic still can).
+      try {
+        tvAnnouncePendingKeys.delete(akey);
+        tvAnnouncedLiveKeys.add(akey);
+      } catch (e) {}
       markTvSpeechActivity();
       setTimeout(function () {
         speakTvMatchLine(line, {
           cancelPrevious: false,
-          onComplete: function () {
-            try {
-              tvAnnouncePendingKeys.delete(akey);
-              tvAnnouncedLiveKeys.add(akey);
-            } catch (e) {}
-            release();
-          }
+          onComplete: function () { release(); }
         });
       }, chimeMs + TV_ANNOUNCE_CHIME_GAP_MS);
     }
@@ -11646,6 +11651,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
       } catch (e) {
         line = row.nameA + ' versus ' + row.nameB + '. Now playing.';
       }
+      // Manual mic always speaks; mark so auto path will not repeat this match
+      try {
+        var mkey = String(row.eventId || '') + ':' + String(row.matchId || '') + ':' + (kind === 'deck' ? 'deck' : 'live');
+        if (row.matchId) {
+          tvAnnouncedLiveKeys.add(mkey);
+          tvAnnouncePendingKeys.delete(mkey);
+        }
+      } catch (e) {}
       var manualChimeMs = 1000;
       try { manualChimeMs = playTvMatchChime() || 1000; } catch (e) {}
       setTimeout(function () {
@@ -11770,12 +11783,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       Object.keys(tvAnnounceMissCounts).forEach(function (k) {
         if (currentLive.has(k)) return;
-        tvAnnounceMissCounts[k] = (tvAnnounceMissCounts[k] || 0) + 1;
-        if (tvAnnounceMissCounts[k] >= 6) {
-          tvAnnouncedLiveKeys.delete(k);
-          tvAnnouncePendingKeys.delete(k);
-          delete tvAnnounceMissCounts[k];
-        }
+        // Cleanup only — never remove from tvAnnouncedLiveKeys (no auto re-announce)
+        delete tvAnnounceMissCounts[k];
       });
 
       if (!toAnnounce.length) return;
