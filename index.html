@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.51 | 2026-10-15 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.52 | 2026-10-15 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.51" />
+  <meta name="lcfc-build" content="6.52" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="6.51" />
-  <title>LCFC Manager v6.51 – Lake Champlain Foosball Club</title>
+  <meta http-equiv="Expires" content="6.52" />
+  <title>LCFC Manager v6.52 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -548,6 +548,24 @@
       margin-bottom: 0.35rem;
       color: var(--text-muted);
     }
+    .spec-playoff-trophy {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      line-height: 1;
+      margin-right: 0.28rem;
+      vertical-align: -0.1em;
+      filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.4));
+    }
+    .spec-card-playoff .spec-phase-sub {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.15rem;
+      color: #fbbf24;
+    }
+
     #view-spectator .spec-card.spec-ec-monster-po .spec-phase-sub {
       color: #fecaca;
     }
@@ -1307,7 +1325,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.51</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.52</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2151,7 +2169,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.51';
+    const APP_VERSION = '6.52';
     const APP_UPDATED = 'Oct 12, 2026';
 
     let state = {
@@ -11962,6 +11980,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const hideEventOnCard = !!opts.hideEventOnCard;
         const ec = m.tvColorClass || eventTypeColorClass(m.eventType) || specEventColorClass(m.eventId);
         const phase = m.phase || (typeof m.round === 'string' && /winners|losers|gf|bracket|bronze/i.test(String(m.round)) ? 'playoff' : 'ranking');
+        const isPlayoff = phase === 'playoff'
+          || /playoff|bracket|winners|losers|grand|bronze|^gf/i.test(String(m.phase || '') + ' ' + String(m.round || '') + ' ' + String(m.phaseLabel || ''));
         const phaseSub = m.phaseLabel || matchPhaseLabel(phase, m.round);
         const roundLabel = (m.round === 'winners' || m.round === 'losers' || m.round === 'gf' || m.round === 'gf2' || m.round === 'bracket')
           ? String(m.round).replace('gf2', 'GF reset').replace('gf', 'Grand final').replace('winners', 'Winners').replace('losers', 'Losers').replace('bracket', 'Bracket')
@@ -11988,9 +12008,13 @@ function flipRankingMatchCoin(roundNum, matchId) {
           ? `<div class="spec-event-title" title="${escapeHtml(m.eventName)}">${escapeHtml(m.eventName)}</div>`
           : '';
         // Phase subtitle always (even when event name hidden in group mode)
-        const phaseHtml = `<div class="spec-phase-sub">${escapeHtml(phaseSub)}</div>`;
+        // Playoff-only: trophy icon so cards read as playoffs at TV distance
+        const trophyHtml = isPlayoff
+          ? '<span class="spec-playoff-trophy" title="Playoff" aria-hidden="true">🏆</span>'
+          : '';
+        const phaseHtml = `<div class="spec-phase-sub">${trophyHtml}<span>${escapeHtml(phaseSub)}</span></div>`;
         return `
-          <div class="spec-card ${kind === 'live' ? 'spec-card-live' : 'spec-card-deck'} ${ec}">
+          <div class="spec-card ${kind === 'live' ? 'spec-card-live' : 'spec-card-deck'} ${ec}${isPlayoff ? ' spec-card-playoff' : ''}">
             ${eventTitle}
             ${phaseHtml}
             <div class="spec-match-meta flex flex-wrap items-center justify-center gap-1.5">
