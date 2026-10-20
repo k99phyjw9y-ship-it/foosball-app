@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.71 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.72 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.71" />
+  <meta name="lcfc-build" content="6.72" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.71 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.72 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1834,7 +1834,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.71</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.72</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2122,9 +2122,20 @@
         <div class="px-4 py-3.5 border-b border-slate-200 flex flex-wrap items-start justify-between gap-2">
           <div>
             <h3 class="text-sm font-semibold text-slate-800">Club Ranking</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Starts at 2,000 · brackets/playoffs only · partners share equal podium points · seed ±8</p>
+            <p class="text-xs text-slate-500 mt-0.5">Starts at 2,000 · brackets/playoffs only · partners share equal podium bonus · seed ±8 · pool 1% of field</p>
           </div>
-          <button type="button" onclick="onRecalculateClubRanking()" class="btn-ghost px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 shrink-0">Recalculate from events</button>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <label id="bonus-split-wrap" class="hidden items-center gap-1.5 text-[11px] font-semibold text-slate-600">
+              <span class="whitespace-nowrap">Bonus</span>
+              <select id="bonus-split-select" onchange="setBonusSplitMode(this.value)"
+                class="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-800"
+                title="Podium bonus split of the 1% field pool. Recalculate from events to apply to history.">
+                <option value="50-30-20">50/30/20</option>
+                <option value="60-30-10">60/30/10</option>
+              </select>
+            </label>
+            <button type="button" onclick="onRecalculateClubRanking()" class="btn-ghost px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 shrink-0">Recalculate from events</button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -2728,7 +2739,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.71';
+    const APP_VERSION = '6.72';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -2803,7 +2814,47 @@
     const OPERATOR_MODE_KEY = 'lcfc_operator_mode_v1';
     /** PIN required to turn Operator mode ON or OFF (scoring laptop). */
     const OPERATOR_MODE_PIN = '111784';
+    /** Podium bonus split (operator setting). '50-30-20' | '60-30-10' */
+    const BONUS_SPLIT_KEY = 'lcfc_bonus_split_v1';
     let clubSnapshotMeta = { status: 'pending', message: 'Club file loaded: —', exportedAt: null, loadedAt: null };
+
+    function getBonusSplitMode() {
+      try {
+        const v = localStorage.getItem(BONUS_SPLIT_KEY);
+        if (v === '60-30-10' || v === '50-30-20') return v;
+      } catch (e) {}
+      return '50-30-20';
+    }
+
+    function setBonusSplitMode(mode) {
+      if (!isOperatorMode()) {
+        toast('Operator mode required to change bonus split', 'error');
+        syncBonusSplitUI();
+        return;
+      }
+      const m = (mode === '60-30-10') ? '60-30-10' : '50-30-20';
+      try { localStorage.setItem(BONUS_SPLIT_KEY, m); } catch (e) {}
+      syncBonusSplitUI();
+      toast('Bonus split: ' + m.replace(/-/g, '/') + ' (recalculate from events to rebuild history)', 'success');
+    }
+
+    /** [1st, 2nd, 3rd] fractions of the bonus pool */
+    function getBonusShareFractions() {
+      return getBonusSplitMode() === '60-30-10'
+        ? [0.60, 0.30, 0.10]
+        : [0.50, 0.30, 0.20];
+    }
+
+    function syncBonusSplitUI() {
+      const wrap = document.getElementById('bonus-split-wrap');
+      const sel = document.getElementById('bonus-split-select');
+      const on = isOperatorMode();
+      if (wrap) wrap.classList.toggle('hidden', !on);
+      if (sel) {
+        const mode = getBonusSplitMode();
+        if (sel.value !== mode) sel.value = mode;
+      }
+    }
 
     function isOperatorMode() {
       try { return localStorage.getItem(OPERATOR_MODE_KEY) === '1'; } catch (e) { return false; }
@@ -2853,6 +2904,7 @@
       });
       const nudge = document.getElementById('home-backup-nudge');
       if (nudge && !on) nudge.classList.add('hidden');
+      try { syncBonusSplitUI(); } catch (e) {}
       updateMemberReadonlyBanner();
     }
 
@@ -3446,10 +3498,13 @@
 
       const fieldPoints = fieldIds.reduce((s, id) => s + getPlayerRankingPoints(id), 0);
       const bonusPool = Math.round(fieldPoints * 0.01);
+      const fr = (typeof getBonusShareFractions === 'function')
+        ? getBonusShareFractions()
+        : [0.50, 0.30, 0.20];
       const bonusShare = [
-        Math.round(bonusPool * 0.50),
-        Math.round(bonusPool * 0.30),
-        Math.round(bonusPool * 0.20)
+        Math.round(bonusPool * fr[0]),
+        Math.round(bonusPool * fr[1]),
+        Math.round(bonusPool * fr[2])
       ];
 
       const deltas = {};
@@ -3548,14 +3603,20 @@
     }
 
     function onRecalculateClubRanking() {
-      if (!confirm('Rebuild club ranking from all events with finished brackets/playoffs (including imports)? Everyone resets to 2,000 first.')) return;
+      if (!isOperatorMode()) {
+        toast('Operator mode required to recalculate ranking', 'error');
+        return;
+      }
+      const split = getBonusSplitMode().replace(/-/g, '/');
+      if (!confirm('Rebuild club ranking from all events with finished brackets/playoffs?\n\nEveryone resets to 2,000 first.\nBonus split: ' + split + '\n\nThis overwrites stored event ranking deltas.')) return;
       const n = recalculateClubRankingsFromEvents();
       renderClubRanking();
       renderPlayers();
-      toast(n ? `Ranking rebuilt from ${n} event(s)` : 'No bracket/playoff results found to apply', n ? 'success' : 'info');
+      toast(n ? `Ranking rebuilt from ${n} event(s) · bonus ${split}` : 'No bracket/playoff results found to apply', n ? 'success' : 'info');
     }
 
     function renderClubRanking() {
+      try { syncBonusSplitUI(); } catch (e) {}
       migratePlayerRankings();
       // Count any older/imported bracket events not yet applied
       const filled = backfillRankingFromTournaments();
