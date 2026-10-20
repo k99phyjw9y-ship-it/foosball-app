@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.57 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.59 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.57" />
+  <meta name="lcfc-build" content="6.59" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.57 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.59 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -789,6 +789,85 @@
     @media (max-width:380px) { #score-modal .score-entry-team { padding:.55rem .25rem .6rem; } #score-modal .clubhouse-score-step { width:1.75rem; } #score-modal .score-input { width:2.7rem !important; font-size:1.8rem !important; } #score-modal .score-entry-target { font-size:.61rem; } }
     @media (prefers-reduced-motion: reduce) { #score-modal:not(.hidden) > .score-entry-panel, #score-modal .score-entry-live-dot { animation:none; } }
 
+    /* OPTION 6: Animated Score Entry. Strong dark clubhouse canvas, team-color panels,
+       large animated numerals, and full multi-line player/team names. */
+    #score-modal > .score-entry-panel {
+      background: #0b1220 !important;
+      color: #f8fafc !important;
+      border: 1px solid rgb(148 163 184 / .28) !important;
+      box-shadow: 0 30px 90px rgb(2 6 23 / .62), 0 0 0 1px rgb(255 255 255 / .025) !important;
+    }
+    #score-modal .score-entry-top {
+      color: #f8fafc !important;
+      background: radial-gradient(ellipse at 50% -35%, rgb(16 185 129 / .24), transparent 72%), #101b2d !important;
+      border-bottom: 1px solid rgb(148 163 184 / .2) !important;
+      padding-top: 1.15rem !important;
+      padding-bottom: .9rem !important;
+    }
+    #score-modal #score-modal-title { color: #f8fafc !important; font-size: 1.25rem !important; letter-spacing: -.035em !important; }
+    #score-modal .score-entry-kicker { color: #6ee7b7 !important; }
+    #score-modal .score-entry-target { color: #cbd5e1 !important; background: rgb(15 23 42 / .8) !important; border-color: rgb(16 185 129 / .35) !important; }
+    #score-modal .score-target-divider { background: rgb(148 163 184 / .38) !important; }
+    #score-modal .score-entry-matchup { gap: .4rem !important; }
+    #score-modal .score-entry-team {
+      max-width: none !important;
+      min-width: 0 !important;
+      padding: .9rem .45rem 1rem !important;
+      border: 1px solid rgb(255 255 255 / .13) !important;
+      border-radius: 1.15rem !important;
+      box-shadow: inset 0 1px 0 rgb(255 255 255 / .1), 0 8px 20px rgb(0 0 0 / .16) !important;
+    }
+    #score-modal .score-entry-team-a { background: linear-gradient(155deg, #064e3b, #0f766e 58%, #115e59) !important; border-top: 3px solid #34d399 !important; }
+    #score-modal .score-entry-team-b { background: linear-gradient(155deg, #312e81, #4338ca 58%, #3730a3) !important; border-top: 3px solid #a5b4fc !important; }
+    #score-modal .score-team-label {
+      min-height: 3.2em !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+      color: #f8fafc !important;
+      font-size: .78rem !important;
+      line-height: 1.25 !important;
+      text-shadow: 0 1px 2px rgb(0 0 0 / .25);
+    }
+    #score-modal .clubhouse-score-control { gap: .22rem !important; margin-top: .7rem !important; }
+    #score-modal .clubhouse-score-step {
+      width: 1.9rem !important; height: 2.8rem !important;
+      color: #f8fafc !important; background: rgb(2 6 23 / .28) !important;
+      border-color: rgb(255 255 255 / .24) !important; font-size: 1.35rem !important;
+    }
+    #score-modal .clubhouse-score-step:active { background: rgb(255 255 255 / .2) !important; }
+    #score-modal .score-input {
+      width: 3.35rem !important; min-height: 3.8rem !important;
+      color: #fff !important; background: rgb(2 6 23 / .24) !important;
+      border: 1px solid rgb(255 255 255 / .22) !important; border-radius: .9rem !important;
+      box-shadow: inset 0 1px 8px rgb(0 0 0 / .15) !important;
+      font-size: 2.5rem !important; font-weight: 900 !important;
+      text-shadow: 0 2px 12px rgb(0 0 0 / .18) !important;
+    }
+    #score-modal .score-input.score-pulse { animation: lcfc-score-pulse 360ms cubic-bezier(.2,.75,.25,1) !important; }
+    #score-modal .score-entry-versus { color: #94a3b8 !important; margin-top: 2.25rem !important; font-size: .62rem !important; }
+    #score-modal .score-entry-quick { background: #111c2e !important; border-color: rgb(148 163 184 / .2) !important; }
+    #score-modal .score-entry-section-label { color: #cbd5e1 !important; }
+    #score-modal .quick-chip { color: #e2e8f0 !important; background: #1e293b !important; border-color: rgb(148 163 184 / .25) !important; }
+    #score-modal .quick-chip.win { color: #a7f3d0 !important; border-color: rgb(52 211 153 / .55) !important; background: rgb(6 78 59 / .35) !important; }
+    #score-modal .quick-chip.selected { box-shadow: 0 0 0 2px rgb(52 211 153 / .45) !important; }
+    #score-modal #score-match-timer { color: #cbd5e1 !important; }
+    #score-modal #score-series-banner, #score-modal #score-projection { background: #111c2e !important; border-color: rgb(148 163 184 / .22) !important; }
+    #score-modal #score-series-label, #score-modal #score-series-game, #score-modal #score-series-history, #score-modal #score-proj-sub { color: #94a3b8 !important; }
+    #score-modal #score-series-score, #score-modal #score-projection .text-slate-800 { color: #f8fafc !important; }
+    #score-modal > .score-entry-panel > .flex-shrink-0.flex { background: #0b1220 !important; border-color: rgb(148 163 184 / .22) !important; }
+    #score-modal > .score-entry-panel > .flex-shrink-0.flex .btn-ghost { color: #cbd5e1 !important; }
+    @media (max-width: 380px) {
+      #score-modal .score-entry-team { padding: .7rem .22rem .8rem !important; }
+      #score-modal .clubhouse-score-step { width: 1.55rem !important; }
+      #score-modal .score-input { width: 2.55rem !important; font-size: 2rem !important; }
+      #score-modal .score-team-label { font-size: .7rem !important; }
+    }
+
+
     /* Animated Clubhouse score feedback: pulse the numeral, not the whole card. */
     @keyframes lcfc-score-pulse {
       0% { transform: scale(1); text-shadow: 0 0 0 transparent; }
@@ -1331,7 +1410,49 @@
       #view-tournament .ops-progress-fill { transition:none; }
     }
 
-  </style>
+  
+    /* v6.59: Option 6 reference-inspired animated score entry, shared by rounds and brackets */
+    #score-modal { background:rgba(2,10,24,.84) !important; backdrop-filter:blur(10px) saturate(130%) !important; }
+    #score-modal > .score-entry-panel {
+      max-width:58rem !important; width:min(100%,58rem) !important; max-height:min(94dvh,48rem) !important;
+      border:1px solid rgba(59,130,246,.72) !important; border-radius:1.35rem !important; color:#f1f5f9 !important;
+      background:radial-gradient(ellipse at 50% 0%,rgba(16,185,129,.12),transparent 45%),linear-gradient(145deg,#061629 0%,#031020 60%,#071b30 100%) !important;
+      box-shadow:0 24px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(148,163,184,.12) !important;
+    }
+    #score-modal .score-entry-top { color:#f8fafc !important; background:transparent !important; border-bottom:0 !important; padding:1.15rem 1.4rem .45rem !important; }
+    #score-modal .score-entry-kicker { color:#6ee7b7 !important; }
+    #score-modal #score-modal-title { color:#f8fafc !important; font-size:1.45rem !important; }
+    #score-modal .score-entry-target { color:#cbd5e1 !important; border-color:rgba(16,185,129,.35) !important; background:rgba(16,185,129,.08) !important; }
+    #score-modal .score-entry-target strong { color:#fff !important; }
+    #score-modal > .score-entry-panel > .flex-1 { padding: .6rem 1.4rem 1rem !important; }
+    #score-modal .score-entry-matchup { align-items:center !important; gap:clamp(.4rem,2vw,1.5rem) !important; padding:.75rem .25rem 1rem; }
+    #score-modal .score-entry-team { max-width:none !important; min-width:0 !important; border:0 !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; padding:.35rem .2rem .6rem !important; }
+    #score-modal .score-entry-team-a { border-top:0 !important; }
+    #score-modal .score-entry-team-b { border-top:0 !important; }
+    #score-modal .score-team-label { color:#f8fafc !important; font-size:clamp(.8rem,1.6vw,1.05rem) !important; line-height:1.3 !important; min-height:2.8em !important; max-height:none !important; overflow:visible !important; overflow-wrap:anywhere !important; word-break:normal !important; white-space:pre-line !important; text-shadow:0 1px 10px rgba(0,0,0,.35); }
+    #score-modal .score-entry-score-wrap { display:flex; flex-direction:column; align-items:center; gap:.65rem; }
+    #score-modal .score-entry-score-ring { width:clamp(6.2rem,16vw,9.2rem); height:clamp(6.2rem,16vw,9.2rem); border-radius:50%; display:flex; align-items:center; justify-content:center; position:relative; }
+    #score-modal .score-entry-score-ring:before { content:""; position:absolute; inset:-.45rem; border-radius:50%; border:3px solid transparent; border-top-color:currentColor; border-right-color:currentColor; opacity:.95; animation:lcfc-score-orbit 4.2s linear infinite; pointer-events:none; }
+    #score-modal .score-entry-ring-a { color:#34d399; background:radial-gradient(circle at 35% 25%,rgba(16,185,129,.3),rgba(6,78,59,.42)); border:2px solid #10b981; box-shadow:0 0 22px rgba(16,185,129,.16),inset 0 0 18px rgba(16,185,129,.12); }
+    #score-modal .score-entry-ring-b { color:#60a5fa; background:radial-gradient(circle at 35% 25%,rgba(59,130,246,.3),rgba(30,58,138,.5)); border:2px solid #3b82f6; box-shadow:0 0 22px rgba(59,130,246,.17),inset 0 0 18px rgba(59,130,246,.12); }
+    #score-modal .score-input { width:100% !important; height:100% !important; min-height:0 !important; padding:0 !important; border:0 !important; border-radius:50% !important; background:transparent !important; box-shadow:none !important; color:#f8fafc !important; font-size:clamp(2.7rem,7vw,4.6rem) !important; font-weight:900 !important; line-height:1 !important; text-align:center !important; font-variant-numeric:tabular-nums; outline:none !important; }
+    #score-modal .score-entry-versus { margin-top:0 !important; align-self:center !important; color:#e2e8f0 !important; font-size:1rem !important; letter-spacing:.06em !important; }
+    #score-modal .clubhouse-score-control { gap:1rem !important; margin-top:0 !important; }
+    #score-modal .clubhouse-score-step { width:clamp(2.9rem,5vw,4.2rem) !important; height:clamp(2.9rem,5vw,4.2rem) !important; border-radius:50% !important; border:1.5px solid rgba(52,211,153,.7) !important; background:rgba(16,185,129,.17) !important; color:#ecfdf5 !important; font-size:2rem !important; box-shadow:inset 0 0 0 1px rgba(16,185,129,.08); }
+    #score-modal .score-entry-team-b .clubhouse-score-step { border-color:rgba(96,165,250,.78) !important; background:rgba(59,130,246,.18) !important; color:#eff6ff !important; }
+    #score-modal .score-entry-quick { background:rgba(15,32,52,.7) !important; border-color:rgba(100,116,139,.35) !important; color:#e2e8f0 !important; }
+    #score-modal .score-entry-section-label { color:#94a3b8 !important; }
+    #score-modal .quick-chip { color:#e2e8f0 !important; background:rgba(30,41,59,.75) !important; border-color:rgba(100,116,139,.45) !important; }
+    #score-modal .quick-chip.selected { background:rgba(16,185,129,.22) !important; color:#d1fae5 !important; }
+    #score-modal #score-modal-title:after { content:""; }
+    #score-modal > .score-entry-panel > .flex-shrink-0.flex { background:rgba(4,16,31,.92) !important; border-color:rgba(100,116,139,.28) !important; }
+    #score-modal .score-entry-live-dot { box-shadow:0 0 0 4px rgba(16,185,129,.15),0 0 12px rgba(16,185,129,.45) !important; }
+    #score-modal .score-pulse { animation:lcfc-score-number-pulse 420ms cubic-bezier(.2,.8,.2,1) !important; }
+    @keyframes lcfc-score-orbit { to { transform:rotate(360deg); } }
+    @keyframes lcfc-score-number-pulse { 0% { transform:scale(.86); filter:brightness(1); } 45% { transform:scale(1.12); filter:brightness(1.8); text-shadow:0 0 24px currentColor; } 100% { transform:scale(1); filter:brightness(1); } }
+    @media(max-width:540px) { #score-modal .score-entry-top { padding:.8rem .8rem .25rem !important; } #score-modal > .score-entry-panel > .flex-1 { padding:.4rem .6rem .7rem !important; } #score-modal .score-entry-matchup { gap:.35rem !important; } #score-modal .score-entry-team { padding:.2rem 0 .4rem !important; } #score-modal .score-entry-score-ring { width:clamp(4.6rem,23vw,6.2rem); height:clamp(4.6rem,23vw,6.2rem); } #score-modal .score-entry-score-ring:before { inset:-.25rem; border-width:2px; } #score-modal .clubhouse-score-control { gap:.55rem !important; } #score-modal .clubhouse-score-step { width:2.55rem !important; height:2.55rem !important; font-size:1.55rem !important; } #score-modal .score-entry-versus { font-size:.75rem !important; } }
+    @media(prefers-reduced-motion:reduce) { #score-modal .score-entry-score-ring:before,#score-modal .score-pulse { animation:none !important; } }
+</style>
 </head>
 <body class="text-slate-800 antialiased">
   <!-- Toast container -->
@@ -2268,7 +2389,7 @@
 
   <!-- Score Modal — compact; footer always visible (no scroll for Save) -->
   <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
-    <div class="surface-card score-entry-panel rounded-2xl sm:rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-[min(94dvh,44rem)] overflow-hidden">
+    <div class="surface-card score-entry-panel rounded-2xl sm:rounded-3xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[min(94dvh,48rem)] overflow-hidden">
       <div class="score-entry-top flex-shrink-0 px-4 pt-4 pb-3 text-center">
         <div class="score-entry-kicker"><span class="score-entry-live-dot"></span> MATCH SCORE</div>
         <h3 class="text-lg font-extrabold text-center leading-tight mt-1" id="score-modal-title">Enter Score</h3>
@@ -2284,20 +2405,28 @@
         </div>
         <div class="score-entry-matchup flex items-stretch justify-center gap-2 text-center">
           <div class="score-entry-team score-entry-team-a flex-1 min-w-0 max-w-[44%]">
-            <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-a" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:2.6em;overflow:hidden"></div>
-            <div class="clubhouse-score-control">
-              <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', -1)" aria-label="Decrease score for side A">−</button>
-              <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="0" class="score-input input-field w-[3.5rem] text-3xl font-extrabold text-center rounded-xl py-2 text-slate-900 placeholder-slate-300 mx-auto block" />
-              <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', 1)" aria-label="Increase score for side A">+</button>
+            <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-a" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:none;overflow:visible"></div>
+            <div class="score-entry-score-wrap">
+              <div class="score-entry-score-ring score-entry-ring-a">
+                <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="0" aria-label="Side A score" class="score-input input-field text-center mx-auto block" />
+              </div>
+              <div class="clubhouse-score-control">
+                <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', -1)" aria-label="Decrease score for side A">−</button>
+                <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', 1)" aria-label="Increase score for side A">+</button>
+              </div>
             </div>
           </div>
           <div class="score-entry-versus shrink-0">VS</div>
           <div class="score-entry-team score-entry-team-b flex-1 min-w-0 max-w-[44%]">
-            <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-b" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:2.6em;overflow:hidden"></div>
-            <div class="clubhouse-score-control">
-              <button type="button" class="clubhouse-score-step" onclick="adjustScore('b', -1)" aria-label="Decrease score for side B">−</button>
-              <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="0" class="score-input input-field w-[3.5rem] text-3xl font-extrabold text-center rounded-xl py-2 text-slate-900 placeholder-slate-300 mx-auto block" />
-              <button type="button" class="clubhouse-score-step" onclick="adjustScore('b', 1)" aria-label="Increase score for side B">+</button>
+            <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-b" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:none;overflow:visible"></div>
+            <div class="score-entry-score-wrap">
+              <div class="score-entry-score-ring score-entry-ring-b">
+                <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="0" aria-label="Side B score" class="score-input input-field text-center mx-auto block" />
+              </div>
+              <div class="clubhouse-score-control">
+                <button type="button" class="clubhouse-score-step" onclick="adjustScore('b', -1)" aria-label="Decrease score for side B">−</button>
+                <button type="button" class="clubhouse-score-step" onclick="adjustScore('b', 1)" aria-label="Increase score for side B">+</button>
+              </div>
             </div>
           </div>
         </div>
@@ -2334,7 +2463,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.57';
+    const APP_VERSION = '6.59';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
