@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.53 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.55 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.52" />
+  <meta name="lcfc-build" content="6.55" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="6.52" />
-  <title>LCFC Manager v6.52 – Lake Champlain Foosball Club</title>
+  <meta http-equiv="Expires" content="0" />
+  <title>LCFC Manager v6.55 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -736,6 +736,20 @@
       border-radius: 0.45rem !important;
     }
     #score-modal .score-input { min-height: 0; }
+    /* Animated Clubhouse score feedback: pulse the numeral, not the whole card. */
+    @keyframes lcfc-score-pulse {
+      0% { transform: scale(1); text-shadow: 0 0 0 transparent; }
+      38% { transform: scale(1.16); text-shadow: 0 0 16px rgb(16 185 129 / 0.35); }
+      100% { transform: scale(1); text-shadow: 0 0 0 transparent; }
+    }
+    #score-modal .score-input.score-pulse {
+      animation: lcfc-score-pulse 360ms cubic-bezier(.2,.75,.25,1);
+      transform-origin: center;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #score-modal .score-input.score-pulse { animation: none; }
+    }
+
     .coin-toss-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
     .coin-face {
       width: 3.25rem; height: 3.25rem; border-radius: 9999px;
@@ -1388,7 +1402,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.52</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.55</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -7362,6 +7376,15 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (cb) cb.checked = quickAutosaveOn();
     }
 
+    function pulseScoreNumeral(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('score-pulse');
+      // Restart the short animation for consecutive taps without adding timers.
+      void el.offsetWidth;
+      el.classList.add('score-pulse');
+    }
+
     function quickScore(side, n) {
       if (!state.scoreMatchId) return;
       const R = quickRaceTo();
@@ -7378,6 +7401,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (o === null || o >= R) otherEl.value = '';
       }
       refreshQuickScore();
+      pulseScoreNumeral(mineEl.id);
+      if (otherEl.value !== '' && parseInt(otherEl.value, 10) === R) pulseScoreNumeral(otherEl.id);
       if (quickAutosaveOn() && quickResultValid(scoreInputNumber('score-a'), scoreInputNumber('score-b'), R)) submitScore();
     }
 
@@ -10914,7 +10939,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             <div class="profile-stat-card"><div class="profile-stat-label">Matches played</div><div class="profile-stat-value mt-2">${s.played || 0}</div><div class="text-[10px] text-slate-400 mt-1">Career total</div></div>
             <div class="profile-stat-card primary"><div class="profile-stat-label">Win rate</div><div class="profile-stat-value mt-2">${winRate(s)}%</div><div class="text-[10px] text-emerald-700/70 mt-1">Career wins</div></div>
             <div class="profile-stat-card"><div class="profile-stat-label">Goal difference</div><div class="profile-stat-value mt-2 ${(s.gd || 0) > 0 ? 'text-emerald-700' : ((s.gd || 0) < 0 ? 'text-rose-600' : '')}">${(s.gd||0) > 0 ? '+' : ''}${s.gd||0}</div><div class="text-[10px] text-slate-400 mt-1">Goals for vs against</div></div>
-            <div class="profile-stat-card"><div class="profile-stat-label">Performance points</div><div class="profile-stat-value mt-2">${s.pts||0}</div><div class="text-[10px] text-slate-400 mt-1">Career total</div></div>
+            <div class="profile-stat-card"><div class="profile-stat-label inline-flex items-center gap-1.5">Career win points <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-slate-400 text-[9px] font-bold text-slate-500 cursor-help" title="Does not affect club ranking directly" aria-label="Does not affect club ranking directly" role="img">i</span></div><div class="profile-stat-value mt-2">${s.pts||0}</div><div class="text-[10px] text-slate-400 mt-1">Career total</div></div>
           </div>
         </section>
         <section>
@@ -12608,7 +12633,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
     renderThemeMenu();
 
     ['score-a', 'score-b'].forEach(id => {
-      document.getElementById(id)?.addEventListener('input', refreshQuickScore);
+      document.getElementById(id)?.addEventListener('input', () => {
+        refreshQuickScore();
+        pulseScoreNumeral(id);
+      });
     });
 
     // Keyboard: Enter in player modal
