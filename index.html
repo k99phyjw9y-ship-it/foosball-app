@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.52 | 2026-10-15 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.53 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -1201,6 +1201,69 @@
     .theme-swatch-card i { display: block; height: 4px; border-radius: 2px; }
     .theme-opt-auto { flex-direction: row; align-items: center; gap: 10px; }
     .theme-opt-auto .theme-swatch { width: 46px; flex-shrink: 0; padding: 0; }
+
+
+    /* v6.53 · Player profile + tournament operations polish (presentation only) */
+    #player-profile-panel {
+      border: 1px solid #dbe4ef;
+      border-radius: 1.35rem;
+      box-shadow: 0 18px 45px -32px rgba(15, 23, 42, .42);
+      background: #fff;
+    }
+    #player-profile-panel > .profile-shell-head {
+      position: relative;
+      overflow: hidden;
+      padding: 1.25rem 1.25rem 1.15rem;
+      color: #f8fafc;
+      background: radial-gradient(ellipse at 90% 0%, rgba(16,185,129,.24), transparent 40%), linear-gradient(120deg,#0f172a 0%,#172554 58%,#064e3b 120%);
+      border-bottom: 1px solid rgba(148,163,184,.22);
+    }
+    #player-profile-panel > .profile-shell-head:after {
+      content: ""; position:absolute; right:-2.5rem; bottom:-4rem; width:10rem; height:10rem;
+      border:1px solid rgba(255,255,255,.12); border-radius:50%; pointer-events:none;
+      box-shadow:0 0 0 1.2rem rgba(255,255,255,.025),0 0 0 2.4rem rgba(255,255,255,.02);
+    }
+    #player-profile-panel #profile-name { color:#fff; font-size:1.25rem; line-height:1.25; letter-spacing:-.025em; }
+    #player-profile-panel #profile-sub { color:#cbd5e1; font-size:.78rem; line-height:1.45; }
+    #player-profile-panel .profile-close { color:#e2e8f0; border-color:rgba(226,232,240,.25); background:rgba(255,255,255,.06); }
+    #player-profile-panel .profile-close:hover { background:rgba(255,255,255,.13); }
+    #player-profile-body { padding:1.15rem; gap:1.15rem; }
+    #player-profile-body .profile-section-label { font-size:.68rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:#64748b; margin-bottom:.65rem; }
+    #player-profile-body .profile-location-card { border:1px solid #e2e8f0; background:linear-gradient(135deg,#f8fafc,#fff); border-radius:1rem; }
+    #player-profile-body .profile-stat-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+    #player-profile-body .profile-stat-card { border:1px solid #e2e8f0; border-radius:1rem; background:#fff; padding:.9rem; min-width:0; }
+    #player-profile-body .profile-stat-card.primary { background:linear-gradient(145deg,#ecfdf5,#f8fafc); border-color:#bbf7d0; }
+    #player-profile-body .profile-stat-value { color:#0f172a; font-size:1.45rem; line-height:1.2; font-weight:800; letter-spacing:-.035em; font-variant-numeric:tabular-nums; }
+    #player-profile-body .profile-stat-label { color:#64748b; font-size:.7rem; font-weight:700; letter-spacing:.045em; text-transform:uppercase; }
+    #player-profile-body .profile-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6rem; }
+    #player-profile-body .profile-detail-card { background:#f8fafc; border:1px solid #eef2f7; border-radius:.85rem; padding:.75rem; }
+    #player-profile-body .profile-detail-value { font-weight:750; color:#1e293b; font-size:.95rem; margin-top:.25rem; font-variant-numeric:tabular-nums; }
+    #player-profile-body .profile-partner-row { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem .15rem; border-bottom:1px solid #eef2f7; }
+    #player-profile-body .profile-partner-row:last-child { border-bottom:0; }
+    #player-profile-body .profile-form-chip { display:flex; flex-direction:column; align-items:center; gap:.25rem; min-width:2.45rem; }
+    #player-profile-body .profile-form-chip span:first-child { display:inline-flex; align-items:center; justify-content:center; width:2.35rem; height:2.35rem; border-radius:.75rem; font-size:.75rem; font-weight:850; }
+    #player-profile-body .profile-form-chip small { font-size:.58rem; color:#94a3b8; font-weight:700; }
+    #player-profile-body .profile-empty { border:1px dashed #cbd5e1; border-radius:1rem; padding:1rem; color:#64748b; font-size:.82rem; background:#f8fafc; }
+    #view-tournament .ops-header { padding:1rem; border:1px solid #dbe4ef; border-radius:1.35rem; background:linear-gradient(135deg,#fff 0%,#f8fafc 70%,#f0fdf4 130%); box-shadow:0 16px 40px -34px rgba(15,23,42,.48); }
+    #view-tournament .ops-back { background:#fff; border-color:#dbe4ef; }
+    #view-tournament .ops-overview { border-radius:1.25rem; border:1px solid #1e293b; padding:1rem; color:#f8fafc; background:radial-gradient(ellipse at 100% 0%,rgba(16,185,129,.22),transparent 40%),linear-gradient(120deg,#0f172a,#172554 78%,#064e3b); box-shadow:0 18px 36px -28px rgba(15,23,42,.65); }
+    #view-tournament .ops-kpi { min-width:0; border:1px solid rgba(148,163,184,.2); border-radius:.9rem; background:rgba(255,255,255,.055); padding:.75rem; }
+    #view-tournament .ops-kpi-label { font-size:.65rem; color:#cbd5e1; font-weight:750; text-transform:uppercase; letter-spacing:.09em; }
+    #view-tournament .ops-kpi-value { margin-top:.35rem; font-size:1.45rem; font-weight:850; line-height:1.1; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+    #view-tournament .ops-progress-track { height:.35rem; border-radius:999px; overflow:hidden; background:rgba(255,255,255,.14); }
+    #view-tournament .ops-progress-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#34d399,#a7f3d0); transition:width .25s ease; }
+    #view-tournament .ops-tabs { border-color:#dbe4ef; }
+    #view-tournament .tab-btn { border-radius:.75rem .75rem 0 0; }
+    @media (min-width:640px) {
+      #player-profile-body .profile-stat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+      #player-profile-body .profile-detail-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+      #view-tournament .ops-header { padding:1.25rem; }
+      #view-tournament .ops-overview { padding:1.2rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #view-tournament .ops-progress-fill { transition:none; }
+    }
+
   </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -1370,12 +1433,13 @@
       </div>
 
       <div id="player-profile-panel" class="hidden surface-card rounded-2xl overflow-hidden">
-        <div class="px-4 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
-          <div>
+        <div class="profile-shell-head flex flex-wrap items-center justify-between gap-3">
+          <div class="relative z-10 min-w-0">
+            <p class="text-[10px] font-extrabold uppercase tracking-[.18em] text-emerald-300 mb-1.5">Player dossier</p>
             <h3 class="text-lg font-bold text-slate-900" id="profile-name">Player</h3>
-            <p class="text-xs text-slate-500 mt-0.5" id="profile-sub"></p>
+            <p class="text-xs text-slate-500 mt-1" id="profile-sub"></p>
           </div>
-          <button type="button" onclick="closePlayerProfile()" class="btn-ghost px-3 py-1.5 text-sm rounded-xl text-slate-600">Close</button>
+          <button type="button" onclick="closePlayerProfile()" class="profile-close relative z-10 px-3 py-2 text-sm font-semibold rounded-xl border">Close profile</button>
         </div>
         <div class="p-4 space-y-4" id="player-profile-body"></div>
       </div>
@@ -1861,9 +1925,9 @@
 
     <!-- TOURNAMENT DETAIL -->
     <div id="view-tournament" class="hidden space-y-5">
-      <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="ops-header flex flex-wrap items-start justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
-          <button onclick="showView('home')" class="btn-ghost w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900 shrink-0">
+          <button onclick="showView('home')" class="ops-back btn-ghost w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-900 shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
           </button>
           <div class="min-w-0">
@@ -1895,7 +1959,28 @@
         </div>
       </div>
 
-      <div class="flex gap-1 overflow-x-auto border-b border-slate-200 -mx-1 px-1">
+      <section id="td-ops-overview" class="ops-overview" aria-label="Tournament operations overview">
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+          <div>
+            <p class="text-[10px] font-extrabold uppercase tracking-[.17em] text-emerald-300">Operations overview</p>
+            <h3 class="text-base sm:text-lg font-bold text-white mt-1">Event control center</h3>
+            <p id="td-ops-status" class="text-xs text-slate-300 mt-1">Live event summary</p>
+          </div>
+          <span class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-bold text-slate-100"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span id="td-ops-round-label">Round —</span></span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="td-ops-kpis">
+          <div class="ops-kpi"><div class="ops-kpi-label">Roster</div><div class="ops-kpi-value">0</div></div>
+          <div class="ops-kpi"><div class="ops-kpi-label">Completed</div><div class="ops-kpi-value">0</div></div>
+          <div class="ops-kpi"><div class="ops-kpi-label">Remaining</div><div class="ops-kpi-value">0</div></div>
+          <div class="ops-kpi"><div class="ops-kpi-label">Tables</div><div class="ops-kpi-value">0</div></div>
+        </div>
+        <div class="mt-4">
+          <div class="flex items-center justify-between gap-3 text-[11px] text-slate-300 mb-2"><span>Match completion</span><span id="td-ops-progress-label" class="font-bold text-white">0%</span></div>
+          <div class="ops-progress-track" role="progressbar" aria-label="Match completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="td-ops-progress"><div class="ops-progress-fill" id="td-ops-progress-fill" style="width:0%"></div></div>
+        </div>
+      </section>
+
+      <div class="ops-tabs flex gap-1 overflow-x-auto border-b border-slate-200 -mx-1 px-1">
         <button data-tab="players" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 whitespace-nowrap">Players</button>
         <button data-tab="matches" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 whitespace-nowrap">Matches</button>
         <button data-tab="standings" onclick="switchTab(this)" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-800 whitespace-nowrap">Standings</button>
@@ -2169,8 +2254,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.52';
-    const APP_UPDATED = 'Oct 12, 2026';
+    const APP_VERSION = '6.53';
+    const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
       players: [],
@@ -3866,9 +3951,46 @@
     }
 
     // ==================== TOURNAMENT DETAIL ====================
+    // Operations overview is display-only. It reads existing event fields and never mutates tournament state.
+    function renderTournamentOperationsOverview(t) {
+      const kpis = document.getElementById('td-ops-kpis');
+      if (!kpis || !t) return;
+      const rounds = Array.isArray(t.rounds) ? t.rounds : [];
+      let total = 0, completed = 0;
+      rounds.forEach(round => {
+        (round && Array.isArray(round.matches) ? round.matches : []).forEach(match => {
+          if (!match) return;
+          total += 1;
+          if (match.status === 'done') completed += 1;
+        });
+      });
+      const remaining = Math.max(0, total - completed);
+      const pct = total ? Math.round((completed / total) * 100) : 0;
+      const roster = Array.isArray(t.playerIds) ? t.playerIds.length : 0;
+      const tables = Math.max(1, parseInt(t.tables, 10) || 1);
+      const status = t.status === 'finished' ? 'Event marked finished' : (total ? 'Event in progress · match results tracked below' : 'Ready for roster and first round');
+      const statusEl = document.getElementById('td-ops-status');
+      const roundEl = document.getElementById('td-ops-round-label');
+      const pctEl = document.getElementById('td-ops-progress-label');
+      const progress = document.getElementById('td-ops-progress');
+      const fill = document.getElementById('td-ops-progress-fill');
+      if (statusEl) statusEl.textContent = status;
+      if (roundEl) roundEl.textContent = `Round ${Number(t.currentRound) || 0}`;
+      kpis.innerHTML = [
+        ['Roster', roster, 'players in event'],
+        ['Completed', completed, 'results recorded'],
+        ['Remaining', remaining, 'matches not complete'],
+        ['Tables', tables, 'configured for event']
+      ].map(([label, value, hint]) => `<div class="ops-kpi"><div class="ops-kpi-label">${label}</div><div class="ops-kpi-value">${value}</div><div class="text-[10px] text-slate-400 mt-1.5">${hint}</div></div>`).join('');
+      if (pctEl) pctEl.textContent = `${pct}%`;
+      if (progress) progress.setAttribute('aria-valuenow', String(pct));
+      if (fill) fill.style.width = `${pct}%`;
+    }
+
     function renderTournament() {
       const t = getCurrentTournament();
       if (!t) return;
+      renderTournamentOperationsOverview(t);
 
       document.getElementById('td-name').value = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
@@ -10771,27 +10893,43 @@ function flipRankingMatchCoin(roundNum, matchId) {
         : `<div class="surface-card rounded-xl px-4 py-3 text-sm text-slate-500">State not set · edit player to add</div>`;
 
       body.innerHTML = `
-        ${stateSection}
-        <div>
-          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Last 10 form</div>
-          <div class="flex flex-wrap gap-1.5">${formHtml}</div>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="rounded-xl bg-slate-50 p-3 text-center"><div class="text-xs text-slate-500">Played</div><div class="text-xl font-bold text-slate-900">${s.played || 0}</div></div>
-          <div class="rounded-xl bg-slate-50 p-3 text-center"><div class="text-xs text-slate-500">WR%</div><div class="text-xl font-bold text-slate-900">${winRate(s)}%</div></div>
-          <div class="rounded-xl bg-slate-50 p-3 text-center"><div class="text-xs text-slate-500">GD</div><div class="text-xl font-bold text-slate-900">${(s.gd||0) > 0 ? '+' : ''}${s.gd||0}</div></div>
-          <div class="rounded-xl bg-slate-50 p-3 text-center"><div class="text-xs text-slate-500">Pts</div><div class="text-xl font-bold text-slate-900">${s.pts||0}</div></div>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-sm">
-          <div><div class="text-xs text-slate-500">Events</div><div class="font-semibold text-slate-800">${s.events?.size || 0}</div></div>
-          <div><div class="text-xs text-slate-500">Playoffs</div><div class="font-semibold text-slate-800">${podium.playoffs||0}</div></div>
-          <div><div class="text-xs text-slate-500">🥇 / 🥈 / 🥉</div><div class="font-semibold text-slate-800">${podium.first||0} / ${podium.second||0} / ${podium.third||0}</div></div>
-          <div><div class="text-xs text-slate-500">Rank Δ</div><div class="font-semibold ${(p.rankingDelta||0)>=0?'text-emerald-600':'text-red-500'}">${(p.rankingDelta||0)>0?'+':''}${p.rankingDelta||0}</div></div>
-        </div>
-        <div>
-          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Top partners</div>
-          ${partners.length ? partners.map(x => `<div class="flex justify-between text-sm py-1 border-b border-slate-100"><span class="font-medium text-slate-800">${escapeHtml(x.name)}</span><span class="text-slate-500">${x.wins}-${x.losses} · ${x.wr.toFixed(0)}%</span></div>`).join('') : '<p class="text-sm text-slate-500">Not enough partner matches yet</p>'}
-        </div>`;
+        <section>
+          <div class="profile-section-label">Player location</div>
+          <div class="profile-location-card px-4 py-3 flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="text-[10px] font-extrabold uppercase tracking-[.12em] text-slate-500">Home state / region</div>
+              <div class="text-sm font-bold text-slate-900 mt-1">${geo ? escapeHtml(typeof stateLabel === 'function' ? stateLabel(geo) : geo) : 'Not set'}</div>
+              <div class="text-xs text-slate-500 mt-0.5">${geo ? 'Club geography' : 'Edit player details to add a location'}</div>
+            </div>
+            <span class="shrink-0 text-xs font-extrabold text-slate-600 bg-white border border-slate-200 px-2.5 py-1.5 rounded-lg">${geo ? escapeHtml(String(geo).toUpperCase()) : '—'}</span>
+          </div>
+        </section>
+        <section>
+          <div class="flex items-end justify-between gap-3 mb-2"><div class="profile-section-label mb-0">Recent form</div><span class="text-[10px] text-slate-400 font-semibold">OLDEST → NEWEST</span></div>
+          <div class="flex flex-wrap gap-2">${form.length ? form.map((r, i) => `<div class="profile-form-chip"><span class="${r.won ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}">${r.won ? 'W' : 'L'}</span><small>${i + 1}</small></div>`).join('') : '<div class="profile-empty w-full">No completed matches yet. Recent form will appear here after results are recorded.</div>'}</div>
+        </section>
+        <section>
+          <div class="profile-section-label">Career snapshot</div>
+          <div class="profile-stat-grid">
+            <div class="profile-stat-card"><div class="profile-stat-label">Matches played</div><div class="profile-stat-value mt-2">${s.played || 0}</div><div class="text-[10px] text-slate-400 mt-1">Career total</div></div>
+            <div class="profile-stat-card primary"><div class="profile-stat-label">Win rate</div><div class="profile-stat-value mt-2">${winRate(s)}%</div><div class="text-[10px] text-emerald-700/70 mt-1">Career wins</div></div>
+            <div class="profile-stat-card"><div class="profile-stat-label">Goal difference</div><div class="profile-stat-value mt-2 ${(s.gd || 0) > 0 ? 'text-emerald-700' : ((s.gd || 0) < 0 ? 'text-rose-600' : '')}">${(s.gd||0) > 0 ? '+' : ''}${s.gd||0}</div><div class="text-[10px] text-slate-400 mt-1">Goals for vs against</div></div>
+            <div class="profile-stat-card"><div class="profile-stat-label">Performance points</div><div class="profile-stat-value mt-2">${s.pts||0}</div><div class="text-[10px] text-slate-400 mt-1">Career total</div></div>
+          </div>
+        </section>
+        <section>
+          <div class="profile-section-label">Event record</div>
+          <div class="profile-detail-grid">
+            <div class="profile-detail-card"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Events entered</div><div class="profile-detail-value">${s.events?.size || 0}</div></div>
+            <div class="profile-detail-card"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Playoff appearances</div><div class="profile-detail-value">${podium.playoffs||0}</div></div>
+            <div class="profile-detail-card"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Podium finishes</div><div class="profile-detail-value">${(podium.first||0) + (podium.second||0) + (podium.third||0)}</div><div class="text-[10px] text-slate-400 mt-1">🥇 ${podium.first||0} · 🥈 ${podium.second||0} · 🥉 ${podium.third||0}</div></div>
+            <div class="profile-detail-card"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Rank movement</div><div class="profile-detail-value ${(p.rankingDelta||0)>=0?'text-emerald-700':'text-rose-600'}">${(p.rankingDelta||0)>0?'+':''}${p.rankingDelta||0}</div><div class="text-[10px] text-slate-400 mt-1">Current stored delta</div></div>
+          </div>
+        </section>
+        <section>
+          <div class="flex items-end justify-between gap-3 mb-1"><div class="profile-section-label mb-0">Best partners</div><span class="text-[10px] text-slate-400">MIN. 2 MATCHES</span></div>
+          ${partners.length ? partners.map((x, i) => `<div class="profile-partner-row"><div class="flex items-center gap-3 min-w-0"><span class="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-600">${i + 1}</span><div class="min-w-0"><div class="font-bold text-sm text-slate-800 truncate">${escapeHtml(x.name)}</div><div class="text-[11px] text-slate-500">${x.played} matches together</div></div></div><div class="text-right shrink-0"><div class="text-sm font-extrabold text-slate-900 tabular-nums">${x.wr.toFixed(0)}%</div><div class="text-[10px] text-slate-500">${x.wins}W · ${x.losses}L</div></div></div>`).join('') : '<div class="profile-empty">Partner chemistry appears after at least two matches together.</div>'}
+        </section>`;
       panel.classList.remove('hidden');
       if (!soft) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
