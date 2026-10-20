@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.66 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.67 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.66" />
+  <meta name="lcfc-build" content="6.67" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.66 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.67 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -729,12 +729,12 @@
     /* Coin toss */
     /* score modal compact */
     #score-modal .quick-chip {
-      width: 7.4rem !important;
-      height: 7.4rem !important;
-      min-width: 7.4rem !important;
-      min-height: 7.4rem !important;
+      width: 5.92rem !important;
+      height: 5.92rem !important;
+      min-width: 5.92rem !important;
+      min-height: 5.92rem !important;
       padding: 0 !important;
-      font-size: 1.85rem !important;
+      font-size: 1.5rem !important;
       border-radius: 9999px !important;
     }
     #score-modal .score-input { min-height: 0; }
@@ -782,7 +782,7 @@
     #score-modal .score-entry-versus { align-self:center; margin-top:1.8rem; font-size:.58rem; letter-spacing:.12em; font-weight:900; color:var(--muted, #94a3b8); }
     #score-modal .score-entry-quick { padding:.8rem .75rem .65rem; border-radius:1rem; border:1px solid var(--border, rgb(148 163 184 / .25)); background:var(--surface, rgb(248 250 252 / .65)); }
     #score-modal .score-entry-section-label { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.6rem; font-size:.59rem; font-weight:900; letter-spacing:.12em; color:var(--muted, #64748b); }
-    #score-modal .quick-chip { width:7.4rem !important; height:7.4rem !important; min-width:7.4rem !important; min-height:7.4rem !important; padding:0 !important; font-size:1.85rem !important; border-radius:9999px !important; font-weight:800 !important; }
+    #score-modal .quick-chip { width:5.92rem !important; height:5.92rem !important; min-width:5.92rem !important; min-height:5.92rem !important; padding:0 !important; font-size:1.5rem !important; border-radius:9999px !important; font-weight:800 !important; }
     #score-modal .quick-chip.win { border:1px solid rgb(16 185 129 / .4); }
     #score-modal .quick-chip.selected { box-shadow:0 0 0 2px rgb(16 185 129 / .22); transform:translateY(-1px); }
     #score-modal #score-save-btn { box-shadow:0 5px 16px rgb(16 185 129 / .22); }
@@ -1303,8 +1303,8 @@
 
     /* ---- Quick score tap targets ---- */
     .quick-chip {
-      width: 8rem; height: 8rem; min-width: 8rem; min-height: 8rem;
-      padding: 0; border-radius: 9999px; font-weight: 700; font-size: 2rem; line-height: 1;
+      width: 6.4rem; height: 6.4rem; min-width: 6.4rem; min-height: 6.4rem;
+      padding: 0; border-radius: 9999px; font-weight: 700; font-size: 1.6rem; line-height: 1;
       display: inline-flex; align-items: center; justify-content: center;
       border: 1px solid var(--border-strong); background: rgb(var(--fg-rgb) / 0.03);
       color: rgb(var(--c-slate-800)); transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
@@ -1315,11 +1315,11 @@
     }
     /* Readable on light + dark themes (avoid slate-700 on dark surfaces) */
     .quick-chip-label {
-      color: var(--text);
-      opacity: 0.95;
+      color: #ffffff !important;
+      opacity: 1;
+      text-shadow: 0 1px 2px rgb(0 0 0 / 0.55);
     }
-    #quick-score-hint,
-    #quick-score label {
+    #quick-score-hint {
       color: var(--text-muted) !important;
     }
     .quick-chip:hover { background: rgb(var(--fg-rgb) / 0.07); }
@@ -1508,7 +1508,7 @@
       #score-modal .score-entry-versus { margin-top: 0 !important; }
       #score-modal .score-entry-quick { padding: .45rem .6rem .4rem !important; }
       #score-modal .score-entry-section-label { margin-bottom: .3rem !important; }
-      #score-modal .quick-chip { width: 6.8rem !important; height: 6.8rem !important; min-width: 6.8rem !important; min-height: 6.8rem !important; font-size: 1.7rem !important; border-radius: 9999px !important; }
+      #score-modal .quick-chip { width: 5.44rem !important; height: 5.44rem !important; min-width: 5.44rem !important; min-height: 5.44rem !important; font-size: 1.35rem !important; border-radius: 9999px !important; }
       #score-modal #quick-score-rows { gap: .35rem !important; }
       #score-modal #quick-score-hint { margin-top: .15rem !important; }
       #score-modal #quick-autosave { margin-top: 0 !important; }
@@ -1557,7 +1557,7 @@
       #score-modal .clubhouse-score-step { width: 2.2rem !important; height: 2.2rem !important; font-size: 1.35rem !important; }
       #score-modal .score-entry-quick { padding: .32rem .5rem .28rem !important; }
       #score-modal .score-entry-section-label { margin-bottom: .2rem !important; font-size: .55rem !important; }
-      #score-modal .quick-chip { width: 6.2rem !important; height: 6.2rem !important; min-width: 6.2rem !important; min-height: 6.2rem !important; font-size: 1.55rem !important; padding: 0 !important; border-radius: 9999px !important; }
+      #score-modal .quick-chip { width: 4.96rem !important; height: 4.96rem !important; min-width: 4.96rem !important; min-height: 4.96rem !important; font-size: 1.25rem !important; padding: 0 !important; border-radius: 9999px !important; }
       #score-modal #quick-score-rows { gap: .22rem !important; }
       #score-modal #quick-score-hint { margin-top: .05rem !important; font-size: .62rem !important; }
       #score-modal #quick-autosave { margin-top: 0 !important; font-size: .65rem !important; }
@@ -1572,7 +1572,7 @@
       #score-modal .score-input { font-size: 1.9rem !important; }
       #score-modal .clubhouse-score-step { width: 1.9rem !important; height: 1.9rem !important; }
       #score-modal .score-entry-quick { padding: .22rem .4rem !important; }
-      #score-modal .quick-chip { width: 5.4rem !important; height: 5.4rem !important; min-width: 5.4rem !important; min-height: 5.4rem !important; border-radius: 9999px !important; font-size: 1.4rem !important; }
+      #score-modal .quick-chip { width: 4.32rem !important; height: 4.32rem !important; min-width: 4.32rem !important; min-height: 4.32rem !important; border-radius: 9999px !important; font-size: 1.1rem !important; }
     }
 
     /* v6.63: desktop OT mode keeps all quick-score choices above the fixed action footer. */
@@ -1605,7 +1605,7 @@
       #score-modal .score-entry-versus { font-size: .65rem !important; }
       #score-modal .score-entry-quick { padding: .2rem .4rem .16rem !important; }
       #score-modal .score-entry-section-label { margin-bottom: .12rem !important; font-size: .5rem !important; }
-      #score-modal .quick-chip { width: 5rem !important; height: 5rem !important; min-width: 5rem !important; min-height: 5rem !important; font-size: 1.25rem !important; line-height: 1 !important; padding: 0 !important; border-radius: 9999px !important; }
+      #score-modal .quick-chip { width: 4rem !important; height: 4rem !important; min-width: 4rem !important; min-height: 4rem !important; font-size: 1rem !important; line-height: 1 !important; padding: 0 !important; border-radius: 9999px !important; }
       #score-modal #quick-score-rows { gap: .12rem !important; }
       #score-modal #quick-score-rows > * { margin-top: 0 !important; }
       #score-modal #quick-score-hint { margin-top: .02rem !important; font-size: .55rem !important; line-height: 1.1 !important; }
@@ -1621,7 +1621,7 @@
       #score-modal .score-entry-score-ring { width: 3rem !important; height: 3rem !important; }
       #score-modal .score-input { font-size: 1.55rem !important; }
       #score-modal .clubhouse-score-step { width: 1.55rem !important; height: 1.55rem !important; }
-      #score-modal .quick-chip { width: 4.6rem !important; height: 4.6rem !important; min-width: 4.6rem !important; min-height: 4.6rem !important; border-radius: 9999px !important; font-size: 1.15rem !important; }
+      #score-modal .quick-chip { width: 3.68rem !important; height: 3.68rem !important; min-width: 3.68rem !important; min-height: 3.68rem !important; border-radius: 9999px !important; font-size: 0.95rem !important; }
     }
 
 </style>
@@ -1748,7 +1748,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.66</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.67</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2568,7 +2568,7 @@
         <div class="score-entry-target"><span class="score-target-star">★</span><span>Race to <strong id="score-target-number">5</strong></span><span class="score-target-divider"></span><span>First to the finish</span></div>
         <label class="score-overtime-toggle mt-2 inline-flex items-center justify-center gap-2 text-xs font-semibold cursor-pointer select-none"><input type="checkbox" id="score-overtime" onchange="onScoreOvertimeChange(this.checked)" class="accent-emerald-500 w-4 h-4" /><span>OT <span class="font-normal opacity-75">(allow scores up to 8)</span></span></label>
       </div>
-      <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pt-1 pb-8 space-y-3" style="-webkit-overflow-scrolling:touch">
+      <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pt-1 pb-3 space-y-3" style="-webkit-overflow-scrolling:touch;overflow-y:auto !important;touch-action:pan-y">
         <div id="score-match-timer" class="hidden text-center font-mono text-xs font-semibold tracking-wide text-slate-600" aria-live="polite"></div>
         <div id="score-series-banner" class="hidden rounded-lg bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 text-center">
           <div class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80" id="score-series-label">Best of 3</div>
@@ -2606,29 +2606,32 @@
         <div id="quick-score" class="score-entry-quick">
           <div class="score-entry-section-label"><span>QUICK SCORE</span><span>Tap a result</span></div>
           <div id="quick-score-rows" class="space-y-2"></div>
-          <p id="quick-score-hint" class="mt-1 text-center text-[11px] text-slate-500 leading-snug min-h-0"></p>
-          <label class="mt-1.5 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 cursor-pointer select-none">
-            <input type="checkbox" id="quick-autosave" onchange="setQuickAutosave(this.checked)" class="accent-emerald-500 w-3.5 h-3.5" />
-            <span>Auto-save on tap</span>
-          </label>
-        </div>
-        <div id="score-projection" class="hidden rounded-lg px-2 py-1.5 text-center" style="background:var(--overlay);border:1px solid var(--border)">
-          <div id="score-proj-sub" class="text-[9px] text-slate-400 mb-0.5">est. win chance</div>
-          <div class="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-800">
-            <span class="text-[9px] font-semibold uppercase tracking-wider text-slate-400">Est.</span>
-            <span id="score-proj-a" class="text-emerald-700">50%</span>
-            <span class="text-slate-400 font-medium text-[10px]">–</span>
-            <span id="score-proj-b" class="text-slate-600">50%</span>
-          </div>
-          <div class="mt-1 h-1 rounded-full bg-slate-200 overflow-hidden flex">
-            <div id="score-proj-bar-a" class="h-full bg-emerald-500 transition-all" style="width:50%"></div>
-            <div id="score-proj-bar-b" class="h-full bg-slate-400 transition-all" style="width:50%"></div>
-          </div>
+          <p id="quick-score-hint" class="mt-1 text-center text-[11px] leading-snug min-h-0" style="color:var(--text-muted)"></p>
         </div>
       </div>
-      <div class="flex-shrink-0 flex gap-2 px-4 py-2.5 border-t border-slate-200/80 bg-[var(--raised,#fff)]" style="padding-bottom:max(0.65rem,env(safe-area-inset-bottom))">
-        <button type="button" onclick="closeScoreModal()" class="btn-ghost flex-1 py-2.5 rounded-xl text-slate-700 font-medium text-sm">Cancel</button>
-        <button type="button" onclick="submitScore()" class="btn-primary flex-1 py-2.5 rounded-xl font-semibold text-white text-sm" id="score-save-btn">Save game</button>
+      <!-- Always visible: projection + autosave + actions (not trapped under tall chips) -->
+      <div class="flex-shrink-0 border-t px-4 pt-2 pb-2 space-y-2" style="border-color:var(--border);background:var(--raised);padding-bottom:max(0.65rem,env(safe-area-inset-bottom))">
+        <div id="score-projection" class="hidden rounded-lg px-2 py-1.5 text-center" style="background:var(--overlay);border:1px solid var(--border)">
+          <div id="score-proj-sub" class="text-[9px] mb-0.5" style="color:var(--text-muted)">est. win chance</div>
+          <div class="flex items-center justify-center gap-1.5 text-xs font-bold" style="color:var(--text)">
+            <span class="text-[9px] font-semibold uppercase tracking-wider" style="color:var(--text-muted)">Est.</span>
+            <span id="score-proj-a" class="text-emerald-600">50%</span>
+            <span class="font-medium text-[10px]" style="color:var(--text-muted)">–</span>
+            <span id="score-proj-b" style="color:var(--text-muted)">50%</span>
+          </div>
+          <div class="mt-1 h-1 rounded-full overflow-hidden flex" style="background:rgb(var(--fg-rgb)/0.12)">
+            <div id="score-proj-bar-a" class="h-full bg-emerald-500 transition-all" style="width:50%"></div>
+            <div id="score-proj-bar-b" class="h-full transition-all" style="width:50%;background:rgb(var(--fg-rgb)/0.35)"></div>
+          </div>
+        </div>
+        <label class="flex items-center justify-center gap-1.5 text-[11px] cursor-pointer select-none" style="color:var(--text)">
+          <input type="checkbox" id="quick-autosave" onchange="setQuickAutosave(this.checked)" class="accent-emerald-500 w-3.5 h-3.5" />
+          <span>Auto-save on tap</span>
+        </label>
+        <div class="flex gap-2">
+          <button type="button" onclick="closeScoreModal()" class="btn-ghost flex-1 py-2.5 rounded-xl font-medium text-sm" style="color:var(--text)">Cancel</button>
+          <button type="button" onclick="submitScore()" class="btn-primary flex-1 py-2.5 rounded-xl font-semibold text-white text-sm" id="score-save-btn">Save game</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2636,7 +2639,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.66';
+    const APP_VERSION = '6.67';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
