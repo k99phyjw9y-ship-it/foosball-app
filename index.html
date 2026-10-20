@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.75 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.76 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.75" />
+  <meta name="lcfc-build" content="6.76" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.75 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.76 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1864,7 +1864,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.75</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.76</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2771,7 +2771,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.75';
+    const APP_VERSION = '6.76';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -2896,6 +2896,7 @@
       try { localStorage.setItem(OPERATOR_MODE_KEY, on ? '1' : '0'); } catch (e) {}
       syncOperatorModeButton();
       renderClubSnapshotStatus();
+      try { renderPlayers(); } catch (e) {}
     }
 
     function promptOperatorPin(actionLabel) {
@@ -3801,6 +3802,7 @@
     }
 
     function editPlayer(id) {
+      if (!isOperatorMode()) { toast('Operator mode required to edit players', 'error'); return; }
       const p = state.players.find(x => x.id === id);
       if (!p) return;
       state.editingPlayerId = id;
@@ -3827,6 +3829,7 @@
     }
 
     function deletePlayer(id) {
+      if (!isOperatorMode()) { toast('Operator mode required to delete players', 'error'); return; }
       if (!confirm('Delete this player? They will be removed from all tournaments.')) return;
       state.players = state.players.filter(p => p.id !== id);
       state.tournaments.forEach(t => {
@@ -4084,6 +4087,7 @@
         return;
       }
       migratePlayerRankings();
+      const opMode = isOperatorMode();
       const sorted = state.players.slice().sort((a, b) => {
         ensurePlayerRanking(a); ensurePlayerRanking(b);
         if (b.rankingPoints !== a.rankingPoints) return b.rankingPoints - a.rankingPoints;
@@ -4107,8 +4111,8 @@
           <td class="px-4 py-3.5 hidden md:table-cell">${form}</td>
           <td class="px-4 py-3.5 text-right space-x-2 sm:space-x-3">
             <button onclick="openPlayerProfile('${p.id}')" class="text-slate-500 hover:text-emerald-600 text-sm font-medium">Profile</button>
-            <button onclick="editPlayer('${p.id}')" class="text-emerald-600/90 hover:text-emerald-700 text-sm font-medium">Edit</button>
-            <button onclick="deletePlayer('${p.id}')" class="text-red-500/80 hover:text-red-600 text-sm font-medium">Delete</button>
+            ${opMode ? `<button onclick="editPlayer('${p.id}')" class="text-emerald-600/90 hover:text-emerald-700 text-sm font-medium">Edit</button>
+            <button onclick="deletePlayer('${p.id}')" class="text-red-500/80 hover:text-red-600 text-sm font-medium">Delete</button>` : ''}
           </td>
         </tr>`;
       }).join('');
