@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.55 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.56 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.55" />
+  <meta name="lcfc-build" content="6.56" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.55 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.56 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -736,6 +736,25 @@
       border-radius: 0.45rem !important;
     }
     #score-modal .score-input { min-height: 0; }
+    /* Animated Clubhouse score entry */
+    #score-modal > .surface-card {
+      border: 1px solid rgb(148 163 184 / 0.24);
+      box-shadow: 0 24px 70px rgb(2 6 23 / 0.28);
+    }
+    #score-modal #score-modal-title { font-size: 1.05rem; letter-spacing: -0.02em; }
+    #score-modal .clubhouse-score-control { display:flex; align-items:center; justify-content:center; gap:0.35rem; }
+    #score-modal .clubhouse-score-step {
+      width:2.1rem; height:2.35rem; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+      border-radius:0.7rem; border:1px solid rgb(148 163 184 / 0.4); background:rgb(148 163 184 / 0.10);
+      color:var(--fg, #0f172a); font-size:1.35rem; line-height:1; font-weight:800;
+      transition:transform 120ms ease, background 120ms ease, border-color 120ms ease; touch-action:manipulation;
+    }
+    #score-modal .clubhouse-score-step:active { transform:scale(0.91); }
+    #score-modal .clubhouse-score-step:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+    #score-modal .score-input {
+      min-height:3rem; width:3.25rem !important; padding-left:0.15rem !important; padding-right:0.15rem !important;
+      border:1px solid rgb(16 185 129 / 0.3); background:rgb(16 185 129 / 0.08); font-variant-numeric:tabular-nums;
+    }
     /* Animated Clubhouse score feedback: pulse the numeral, not the whole card. */
     @keyframes lcfc-score-pulse {
       0% { transform: scale(1); text-shadow: 0 0 0 transparent; }
@@ -2228,12 +2247,20 @@
         <div class="flex items-start justify-center gap-2 text-center">
           <div class="flex-1 min-w-0 max-w-[42%]">
             <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-a" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:2.6em;overflow:hidden"></div>
-            <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-[4.25rem] text-2xl font-bold text-center rounded-xl py-2 text-slate-900 placeholder-slate-300 mx-auto block" />
+            <div class="clubhouse-score-control">
+              <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', -1)" aria-label="Decrease score for side A">−</button>
+              <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="0" class="score-input input-field w-[3.5rem] text-3xl font-extrabold text-center rounded-xl py-2 text-slate-900 placeholder-slate-300 mx-auto block" />
+              <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', 1)" aria-label="Increase score for side A">+</button>
+            </div>
           </div>
           <div class="text-xl text-slate-500 font-light pt-5 shrink-0">–</div>
           <div class="flex-1 min-w-0 max-w-[42%]">
             <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-b" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:2.6em;overflow:hidden"></div>
-            <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="–" class="score-input input-field w-[4.25rem] text-2xl font-bold text-center rounded-xl py-2 text-slate-900 placeholder-slate-300 mx-auto block" />
+            <div class="clubhouse-score-control">
+              <button type="button" class="clubhouse-score-step" onclick="adjustScore('b', -1)" aria-label="Decrease score for side B">−</button>
+              <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="0" class="score-input input-field w-[3.5rem] text-3xl font-extrabold text-center rounded-xl py-2 text-slate-900 placeholder-slate-300 mx-auto block" />
+              <button type="button" class="clubhouse-score-step" onclick="adjustScore('b', 1)" aria-label="Increase score for side B">+</button>
+            </div>
           </div>
         </div>
         <div id="quick-score">
@@ -2268,7 +2295,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.55';
+    const APP_VERSION = '6.56';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -7374,6 +7401,18 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
       const cb = document.getElementById('quick-autosave');
       if (cb) cb.checked = quickAutosaveOn();
+    }
+
+    function adjustScore(side, delta) {
+      const id = side === 'a' ? 'score-a' : 'score-b';
+      const el = document.getElementById(id);
+      if (!el) return;
+      const current = el.value === '' ? 0 : Number.parseInt(el.value, 10);
+      const next = Math.max(0, Math.min(30, (Number.isFinite(current) ? current : 0) + delta));
+      el.value = String(next);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      pulseScoreNumeral(id);
+      refreshQuickScore();
     }
 
     function pulseScoreNumeral(id) {
