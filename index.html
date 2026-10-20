@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.64 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.65 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.64" />
+  <meta name="lcfc-build" content="6.65" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.64 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.65 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -729,12 +729,12 @@
     /* Coin toss */
     /* score modal compact */
     #score-modal .quick-chip {
-      width: 1.85rem !important;
-      height: 1.85rem !important;
-      min-width: 1.85rem !important;
-      min-height: 1.85rem !important;
+      width: 3.7rem !important;
+      height: 3.7rem !important;
+      min-width: 3.7rem !important;
+      min-height: 3.7rem !important;
       padding: 0 !important;
-      font-size: 0.75rem !important;
+      font-size: 1.15rem !important;
       border-radius: 9999px !important;
     }
     #score-modal .score-input { min-height: 0; }
@@ -782,7 +782,7 @@
     #score-modal .score-entry-versus { align-self:center; margin-top:1.8rem; font-size:.58rem; letter-spacing:.12em; font-weight:900; color:var(--muted, #94a3b8); }
     #score-modal .score-entry-quick { padding:.8rem .75rem .65rem; border-radius:1rem; border:1px solid var(--border, rgb(148 163 184 / .25)); background:var(--surface, rgb(248 250 252 / .65)); }
     #score-modal .score-entry-section-label { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.6rem; font-size:.59rem; font-weight:900; letter-spacing:.12em; color:var(--muted, #64748b); }
-    #score-modal .quick-chip { width:1.85rem !important; height:1.85rem !important; min-width:1.85rem !important; min-height:1.85rem !important; padding:0 !important; font-size:.75rem !important; border-radius:9999px !important; font-weight:800 !important; }
+    #score-modal .quick-chip { width:3.7rem !important; height:3.7rem !important; min-width:3.7rem !important; min-height:3.7rem !important; padding:0 !important; font-size:1.15rem !important; border-radius:9999px !important; font-weight:800 !important; }
     #score-modal .quick-chip.win { border:1px solid rgb(16 185 129 / .4); }
     #score-modal .quick-chip.selected { box-shadow:0 0 0 2px rgb(16 185 129 / .22); transform:translateY(-1px); }
     #score-modal #score-save-btn { box-shadow:0 5px 16px rgb(16 185 129 / .22); }
@@ -1303,12 +1303,15 @@
 
     /* ---- Quick score tap targets ---- */
     .quick-chip {
-      width: 2rem; height: 2rem; min-width: 2rem; min-height: 2rem;
-      padding: 0; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; line-height: 1;
+      width: 4rem; height: 4rem; min-width: 4rem; min-height: 4rem;
+      padding: 0; border-radius: 9999px; font-weight: 700; font-size: 1.25rem; line-height: 1;
       display: inline-flex; align-items: center; justify-content: center;
       border: 1px solid var(--border-strong); background: rgb(var(--fg-rgb) / 0.03);
       color: rgb(var(--c-slate-800)); transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
       touch-action: manipulation; flex: 0 0 auto;
+    }
+    .quick-chip-row {
+      width: 100%;
     }
     .quick-chip:hover { background: rgb(var(--fg-rgb) / 0.07); }
     .quick-chip:active { transform: scale(0.95); }
@@ -1496,7 +1499,7 @@
       #score-modal .score-entry-versus { margin-top: 0 !important; }
       #score-modal .score-entry-quick { padding: .45rem .6rem .4rem !important; }
       #score-modal .score-entry-section-label { margin-bottom: .3rem !important; }
-      #score-modal .quick-chip { width: 1.7rem !important; height: 1.7rem !important; min-width: 1.7rem !important; min-height: 1.7rem !important; font-size: .72rem !important; border-radius: 9999px !important; }
+      #score-modal .quick-chip { width: 3.4rem !important; height: 3.4rem !important; min-width: 3.4rem !important; min-height: 3.4rem !important; font-size: 1.05rem !important; border-radius: 9999px !important; }
       #score-modal #quick-score-rows { gap: .35rem !important; }
       #score-modal #quick-score-hint { margin-top: .15rem !important; }
       #score-modal #quick-autosave { margin-top: 0 !important; }
@@ -1545,7 +1548,7 @@
       #score-modal .clubhouse-score-step { width: 2.2rem !important; height: 2.2rem !important; font-size: 1.35rem !important; }
       #score-modal .score-entry-quick { padding: .32rem .5rem .28rem !important; }
       #score-modal .score-entry-section-label { margin-bottom: .2rem !important; font-size: .55rem !important; }
-      #score-modal .quick-chip { width: 1.55rem !important; height: 1.55rem !important; min-width: 1.55rem !important; min-height: 1.55rem !important; font-size: .68rem !important; padding: 0 !important; border-radius: 9999px !important; }
+      #score-modal .quick-chip { width: 3.1rem !important; height: 3.1rem !important; min-width: 3.1rem !important; min-height: 3.1rem !important; font-size: 1rem !important; padding: 0 !important; border-radius: 9999px !important; }
       #score-modal #quick-score-rows { gap: .22rem !important; }
       #score-modal #quick-score-hint { margin-top: .05rem !important; font-size: .62rem !important; }
       #score-modal #quick-autosave { margin-top: 0 !important; font-size: .65rem !important; }
@@ -1560,7 +1563,7 @@
       #score-modal .score-input { font-size: 1.9rem !important; }
       #score-modal .clubhouse-score-step { width: 1.9rem !important; height: 1.9rem !important; }
       #score-modal .score-entry-quick { padding: .22rem .4rem !important; }
-      #score-modal .quick-chip { width: 1.35rem !important; height: 1.35rem !important; min-width: 1.35rem !important; min-height: 1.35rem !important; border-radius: 9999px !important; }
+      #score-modal .quick-chip { width: 2.7rem !important; height: 2.7rem !important; min-width: 2.7rem !important; min-height: 2.7rem !important; border-radius: 9999px !important; font-size: 0.95rem !important; }
     }
 
     /* v6.63: desktop OT mode keeps all quick-score choices above the fixed action footer. */
@@ -1593,7 +1596,7 @@
       #score-modal .score-entry-versus { font-size: .65rem !important; }
       #score-modal .score-entry-quick { padding: .2rem .4rem .16rem !important; }
       #score-modal .score-entry-section-label { margin-bottom: .12rem !important; font-size: .5rem !important; }
-      #score-modal .quick-chip { width: 1.25rem !important; height: 1.25rem !important; min-width: 1.25rem !important; min-height: 1.25rem !important; font-size: .62rem !important; line-height: 1 !important; padding: 0 !important; border-radius: 9999px !important; }
+      #score-modal .quick-chip { width: 2.5rem !important; height: 2.5rem !important; min-width: 2.5rem !important; min-height: 2.5rem !important; font-size: .85rem !important; line-height: 1 !important; padding: 0 !important; border-radius: 9999px !important; }
       #score-modal #quick-score-rows { gap: .12rem !important; }
       #score-modal #quick-score-rows > * { margin-top: 0 !important; }
       #score-modal #quick-score-hint { margin-top: .02rem !important; font-size: .55rem !important; line-height: 1.1 !important; }
@@ -1609,7 +1612,7 @@
       #score-modal .score-entry-score-ring { width: 3rem !important; height: 3rem !important; }
       #score-modal .score-input { font-size: 1.55rem !important; }
       #score-modal .clubhouse-score-step { width: 1.55rem !important; height: 1.55rem !important; }
-      #score-modal .quick-chip { width: 1.15rem !important; height: 1.15rem !important; min-width: 1.15rem !important; min-height: 1.15rem !important; border-radius: 9999px !important; }
+      #score-modal .quick-chip { width: 2.3rem !important; height: 2.3rem !important; min-width: 2.3rem !important; min-height: 2.3rem !important; border-radius: 9999px !important; font-size: 0.8rem !important; }
     }
 
 </style>
@@ -1736,7 +1739,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.64</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.65</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2624,7 +2627,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.64';
+    const APP_VERSION = '6.65';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -7721,7 +7724,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const a = scoreInputNumber('score-a');
       const b = scoreInputNumber('score-b');
       ['score-a', 'score-b'].forEach(id => { document.getElementById(id).max = R; });
-      const cols = R + 1 <= 6 ? R + 1 : Math.ceil((R + 1) / 2);
+      // Always one row (0…R), including OT — never split 0–4 / 5–8
       const row = (side, mine) => {
         const name = quickNames[side];
         const chips = Array.from({ length: R + 1 }, (_, n) => {
@@ -7730,7 +7733,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }).join('');
         return `<div>
           <div class="mb-0.5 px-0.5 truncate text-[11px] font-semibold text-slate-700">${escapeHtml(name)}</div>
-          <div class="grid gap-1" style="grid-template-columns:repeat(${cols},auto);justify-content:start">${chips}</div>
+          <div class="quick-chip-row flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5" style="scrollbar-width:thin;-webkit-overflow-scrolling:touch">${chips}</div>
         </div>`;
       };
       box.innerHTML = row('a', a) + row('b', b);
