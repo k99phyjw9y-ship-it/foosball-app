@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.56 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.57 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.56" />
+  <meta name="lcfc-build" content="6.57" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.56 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.57 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -755,6 +755,40 @@
       min-height:3rem; width:3.25rem !important; padding-left:0.15rem !important; padding-right:0.15rem !important;
       border:1px solid rgb(16 185 129 / 0.3); background:rgb(16 185 129 / 0.08); font-variant-numeric:tabular-nums;
     }
+    /* Animated Clubhouse score-entry modal. Existing score IDs and actions are intentionally preserved. */
+    #score-modal:not(.hidden) > .score-entry-panel { animation: lcfc-score-modal-in 260ms cubic-bezier(.2,.8,.2,1) both; }
+    #score-modal .score-entry-top {
+      color: var(--fg, #0f172a);
+      background: radial-gradient(ellipse at 50% -35%, rgb(16 185 129 / .19), transparent 72%);
+      border-bottom: 1px solid var(--border, rgb(148 163 184 / .22));
+    }
+    #score-modal .score-entry-kicker { display:flex; align-items:center; justify-content:center; gap:.4rem; font-size:.62rem; font-weight:900; letter-spacing:.18em; color:var(--accent, #059669); }
+    #score-modal .score-entry-live-dot { width:.42rem; height:.42rem; border-radius:50%; background:#10b981; box-shadow:0 0 0 3px rgb(16 185 129 / .14); animation:lcfc-live-dot 1.8s ease-in-out infinite; }
+    #score-modal .score-entry-target { display:inline-flex; align-items:center; justify-content:center; gap:.38rem; margin-top:.55rem; padding:.3rem .65rem; border-radius:999px; border:1px solid rgb(16 185 129 / .23); background:rgb(16 185 129 / .08); font-size:.68rem; color:var(--muted, #64748b); }
+    #score-modal .score-target-star { color:#10b981; }
+    #score-modal .score-target-divider { width:1px; height:.8rem; background:var(--border, #cbd5e1); margin:0 .1rem; }
+    #score-modal .score-entry-matchup { gap:.45rem; }
+    #score-modal .score-entry-team { padding:.7rem .45rem .75rem; border:1px solid var(--border, rgb(148 163 184 / .28)); border-radius:1.15rem; background:var(--raised, rgb(248 250 252)); box-shadow:inset 0 1px 0 rgb(255 255 255 / .4); }
+    #score-modal .score-entry-team-a { border-top:3px solid #10b981; }
+    #score-modal .score-entry-team-b { border-top:3px solid #6366f1; }
+    #score-modal .score-team-label { min-height:2.5em; display:flex; align-items:center; justify-content:center; font-size:.72rem !important; font-weight:800 !important; color:var(--fg, #0f172a) !important; }
+    #score-modal .clubhouse-score-control { display:flex; align-items:center; justify-content:center; gap:.32rem; margin-top:.55rem; }
+    #score-modal .clubhouse-score-step { width:2rem; height:2.55rem; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; border-radius:.7rem; border:1px solid var(--border, rgb(148 163 184 / .45)); background:var(--surface, rgb(255 255 255 / .75)); color:var(--fg, #0f172a); font-size:1.25rem; line-height:1; font-weight:800; transition:transform 120ms ease, background 120ms ease; touch-action:manipulation; }
+    #score-modal .clubhouse-score-step:active { transform:scale(.9); background:rgb(16 185 129 / .13); }
+    #score-modal .clubhouse-score-step:focus-visible { outline:2px solid var(--accent, #10b981); outline-offset:2px; }
+    #score-modal .score-input { min-height:3.35rem !important; width:3.1rem !important; padding:.25rem 0 !important; border:1px solid rgb(16 185 129 / .34) !important; border-radius:.85rem !important; background:var(--surface, #fff) !important; color:var(--fg, #0f172a) !important; font-size:2rem !important; line-height:1 !important; font-weight:900 !important; font-variant-numeric:tabular-nums; box-shadow:0 3px 12px rgb(15 23 42 / .06); }
+    #score-modal .score-entry-versus { align-self:center; margin-top:1.8rem; font-size:.58rem; letter-spacing:.12em; font-weight:900; color:var(--muted, #94a3b8); }
+    #score-modal .score-entry-quick { padding:.8rem .75rem .65rem; border-radius:1rem; border:1px solid var(--border, rgb(148 163 184 / .25)); background:var(--surface, rgb(248 250 252 / .65)); }
+    #score-modal .score-entry-section-label { display:flex; align-items:center; justify-content:space-between; gap:.5rem; margin-bottom:.6rem; font-size:.59rem; font-weight:900; letter-spacing:.12em; color:var(--muted, #64748b); }
+    #score-modal .quick-chip { height:2.15rem !important; min-height:2.15rem !important; padding:.15rem .1rem !important; font-size:.8rem !important; border-radius:.55rem !important; font-weight:800 !important; }
+    #score-modal .quick-chip.win { border:1px solid rgb(16 185 129 / .4); }
+    #score-modal .quick-chip.selected { box-shadow:0 0 0 2px rgb(16 185 129 / .22); transform:translateY(-1px); }
+    #score-modal #score-save-btn { box-shadow:0 5px 16px rgb(16 185 129 / .22); }
+    @keyframes lcfc-score-modal-in { from { opacity:0; transform:translateY(14px) scale(.975); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes lcfc-live-dot { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+    @media (max-width:380px) { #score-modal .score-entry-team { padding:.55rem .25rem .6rem; } #score-modal .clubhouse-score-step { width:1.75rem; } #score-modal .score-input { width:2.7rem !important; font-size:1.8rem !important; } #score-modal .score-entry-target { font-size:.61rem; } }
+    @media (prefers-reduced-motion: reduce) { #score-modal:not(.hidden) > .score-entry-panel, #score-modal .score-entry-live-dot { animation:none; } }
+
     /* Animated Clubhouse score feedback: pulse the numeral, not the whole card. */
     @keyframes lcfc-score-pulse {
       0% { transform: scale(1); text-shadow: 0 0 0 transparent; }
@@ -2233,10 +2267,14 @@
   </div>
 
   <!-- Score Modal — compact; footer always visible (no scroll for Save) -->
-  <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-2 sm:p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
-    <div class="surface-card rounded-2xl sm:rounded-3xl w-full max-w-sm shadow-2xl flex flex-col max-h-[min(92dvh,36rem)] overflow-hidden">
-      <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pt-3 pb-2 space-y-2">
-        <h3 class="text-base font-bold text-center text-slate-900 leading-tight" id="score-modal-title">Enter Score</h3>
+  <div id="score-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4" style="background:var(--scrim);backdrop-filter:blur(8px)">
+    <div class="surface-card score-entry-panel rounded-2xl sm:rounded-3xl w-full max-w-md shadow-2xl flex flex-col max-h-[min(94dvh,44rem)] overflow-hidden">
+      <div class="score-entry-top flex-shrink-0 px-4 pt-4 pb-3 text-center">
+        <div class="score-entry-kicker"><span class="score-entry-live-dot"></span> MATCH SCORE</div>
+        <h3 class="text-lg font-extrabold text-center leading-tight mt-1" id="score-modal-title">Enter Score</h3>
+        <div class="score-entry-target"><span class="score-target-star">★</span><span>Race to <strong id="score-target-number">5</strong></span><span class="score-target-divider"></span><span>First to the finish</span></div>
+      </div>
+      <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pt-1 pb-3 space-y-3">
         <div id="score-match-timer" class="hidden text-center font-mono text-xs font-semibold tracking-wide text-slate-600" aria-live="polite"></div>
         <div id="score-series-banner" class="hidden rounded-lg bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 text-center">
           <div class="text-[10px] font-semibold uppercase tracking-wider text-emerald-700/80" id="score-series-label">Best of 3</div>
@@ -2244,8 +2282,8 @@
           <div class="text-[11px] text-slate-500" id="score-series-game">Game 1 of 3</div>
           <div class="text-[10px] text-slate-500 mt-0.5 leading-snug line-clamp-2" id="score-series-history"></div>
         </div>
-        <div class="flex items-start justify-center gap-2 text-center">
-          <div class="flex-1 min-w-0 max-w-[42%]">
+        <div class="score-entry-matchup flex items-stretch justify-center gap-2 text-center">
+          <div class="score-entry-team score-entry-team-a flex-1 min-w-0 max-w-[44%]">
             <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-a" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:2.6em;overflow:hidden"></div>
             <div class="clubhouse-score-control">
               <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', -1)" aria-label="Decrease score for side A">−</button>
@@ -2253,8 +2291,8 @@
               <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', 1)" aria-label="Increase score for side A">+</button>
             </div>
           </div>
-          <div class="text-xl text-slate-500 font-light pt-5 shrink-0">–</div>
-          <div class="flex-1 min-w-0 max-w-[42%]">
+          <div class="score-entry-versus shrink-0">VS</div>
+          <div class="score-entry-team score-entry-team-b flex-1 min-w-0 max-w-[44%]">
             <div class="score-team-label text-[11px] font-medium text-slate-600 mb-1 px-0.5 leading-snug" id="score-team-b" style="overflow-wrap:anywhere;word-break:break-word;white-space:pre-line;max-height:2.6em;overflow:hidden"></div>
             <div class="clubhouse-score-control">
               <button type="button" class="clubhouse-score-step" onclick="adjustScore('b', -1)" aria-label="Decrease score for side B">−</button>
@@ -2263,8 +2301,9 @@
             </div>
           </div>
         </div>
-        <div id="quick-score">
-          <div id="quick-score-rows" class="space-y-1.5"></div>
+        <div id="quick-score" class="score-entry-quick">
+          <div class="score-entry-section-label"><span>QUICK SCORE</span><span>Tap a result</span></div>
+          <div id="quick-score-rows" class="space-y-2"></div>
           <p id="quick-score-hint" class="mt-1 text-center text-[11px] text-slate-500 leading-snug min-h-0"></p>
           <label class="mt-1.5 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 cursor-pointer select-none">
             <input type="checkbox" id="quick-autosave" onchange="setQuickAutosave(this.checked)" class="accent-emerald-500 w-3.5 h-3.5" />
@@ -2295,7 +2334,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.56';
+    const APP_VERSION = '6.57';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -7285,6 +7324,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       state.scoreMatchId = { mode: 'round', roundNum: parseInt(roundNum, 10), matchId };
       document.getElementById('score-modal-title').textContent = 'Enter Score';
+      const targetEl = document.getElementById('score-target-number');
+      if (targetEl) targetEl.textContent = String(quickRaceTo());
       setScoreTeamLabels(match.entityA?.name || 'Team A', match.entityB?.name || 'Team B');
       const bestOf = getTournamentBestOf(t, 'ranking');
       if (!Array.isArray(match.games)) match.games = [];
@@ -7408,7 +7449,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const el = document.getElementById(id);
       if (!el) return;
       const current = el.value === '' ? 0 : Number.parseInt(el.value, 10);
-      const next = Math.max(0, Math.min(30, (Number.isFinite(current) ? current : 0) + delta));
+      const next = Math.max(0, Math.min(quickRaceTo(), (Number.isFinite(current) ? current : 0) + delta));
       el.value = String(next);
       el.dispatchEvent(new Event('input', { bubbles: true }));
       pulseScoreNumeral(id);
@@ -8560,6 +8601,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       state.scoreMatchId = { mode: 'bracket', matchId };
       document.getElementById('score-modal-title').textContent = 'Enter Score';
+      const targetEl = document.getElementById('score-target-number');
+      if (targetEl) targetEl.textContent = String(quickRaceTo());
       setScoreTeamLabels(match.a.entity.name || 'Side A', match.b.entity.name || 'Side B');
       if (!Array.isArray(match.games)) match.games = [];
       const bestOf = getTournamentBestOf(t, 'playoff');
