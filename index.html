@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.60 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.61 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.60 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.61 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1453,7 +1453,7 @@
     @media(max-width:540px) { #score-modal .score-entry-top { padding:.8rem .8rem .25rem !important; } #score-modal > .score-entry-panel > .flex-1 { padding:.4rem .6rem .7rem !important; } #score-modal .score-entry-matchup { gap:.35rem !important; } #score-modal .score-entry-team { padding:.2rem 0 .4rem !important; } #score-modal .score-entry-score-ring { width:clamp(4.6rem,23vw,6.2rem); height:clamp(4.6rem,23vw,6.2rem); } #score-modal .score-entry-score-ring:before { inset:-.25rem; border-width:2px; } #score-modal .clubhouse-score-control { gap:.55rem !important; } #score-modal .clubhouse-score-step { width:2.55rem !important; height:2.55rem !important; font-size:1.55rem !important; } #score-modal .score-entry-versus { font-size:.75rem !important; } }
     @media(prefers-reduced-motion:reduce) { #score-modal .score-entry-score-ring:before,#score-modal .score-pulse { animation:none !important; } }
 
-    /* v6.60: desktop score entry fits quick-score controls without inner scrolling. */
+    /* v6.61: desktop score entry fits quick-score controls without inner scrolling. */
     @media (min-width: 768px) and (min-height: 650px) {
       #score-modal { padding: 1rem !important; }
       #score-modal > .score-entry-panel {
@@ -1502,6 +1502,59 @@
       #score-modal > .score-entry-panel > .flex-1.min-h-0 { overflow: visible !important; }
     }
 
+
+    /* v6.61: compact desktop layout so Quick Score and footer fit without scrolling. */
+    @media (min-width: 768px) {
+      #score-modal { padding: .5rem !important; align-items: center !important; }
+      #score-modal > .score-entry-panel {
+        width: min(100%, 58rem) !important;
+        max-height: calc(100dvh - 1rem) !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      #score-modal > .score-entry-panel > .score-entry-top {
+        flex: 0 0 auto !important;
+        padding: .42rem 1rem .12rem !important;
+      }
+      #score-modal #score-modal-title { font-size: 1.08rem !important; }
+      #score-modal .score-entry-target { margin-top: .22rem !important; padding: .18rem .5rem !important; font-size: .62rem !important; }
+      #score-modal > .score-entry-panel > .flex-1.min-h-0 {
+        flex: 0 1 auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        padding: .15rem .9rem .35rem !important;
+        gap: .25rem !important;
+      }
+      #score-modal .score-entry-matchup { padding: .12rem .15rem .2rem !important; gap: .65rem !important; }
+      #score-modal .score-entry-team { padding: .08rem .1rem .12rem !important; }
+      #score-modal .score-team-label { font-size: .78rem !important; line-height: 1.15 !important; min-height: 1.8em !important; }
+      #score-modal .score-entry-score-wrap { gap: .22rem !important; }
+      #score-modal .score-entry-score-ring { width: clamp(4rem, 8.5vh, 5.8rem) !important; height: clamp(4rem, 8.5vh, 5.8rem) !important; }
+      #score-modal .score-entry-score-ring:before { inset: -.22rem !important; border-width: 2px !important; }
+      #score-modal .score-input { font-size: clamp(2rem, 4.5vh, 3rem) !important; }
+      #score-modal .score-entry-versus { font-size: .78rem !important; }
+      #score-modal .clubhouse-score-control { gap: .42rem !important; }
+      #score-modal .clubhouse-score-step { width: 2.2rem !important; height: 2.2rem !important; font-size: 1.35rem !important; }
+      #score-modal .score-entry-quick { padding: .32rem .5rem .28rem !important; }
+      #score-modal .score-entry-section-label { margin-bottom: .2rem !important; font-size: .55rem !important; }
+      #score-modal .quick-chip { height: 1.55rem !important; min-height: 1.55rem !important; font-size: .68rem !important; padding: .05rem .08rem !important; }
+      #score-modal #quick-score-rows { gap: .22rem !important; }
+      #score-modal #quick-score-hint { margin-top: .05rem !important; font-size: .62rem !important; }
+      #score-modal #quick-autosave { margin-top: 0 !important; font-size: .65rem !important; }
+      #score-modal #score-series-banner, #score-modal #score-projection { padding: .3rem .5rem !important; }
+      #score-modal > .score-entry-panel > .flex-shrink-0.flex { flex: 0 0 auto !important; padding: .35rem .85rem !important; }
+    }
+    @media (min-width: 768px) and (max-height: 720px) {
+      #score-modal .score-entry-top { padding-top: .25rem !important; }
+      #score-modal .score-entry-target { display: none !important; }
+      #score-modal .score-entry-score-ring { width: 3.65rem !important; height: 3.65rem !important; }
+      #score-modal .score-entry-score-ring:before { inset: -.18rem !important; }
+      #score-modal .score-input { font-size: 1.9rem !important; }
+      #score-modal .clubhouse-score-step { width: 1.9rem !important; height: 1.9rem !important; }
+      #score-modal .score-entry-quick { padding: .22rem .4rem !important; }
+      #score-modal .quick-chip { height: 1.35rem !important; min-height: 1.35rem !important; }
+    }
 </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -2513,7 +2566,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.60';
+    const APP_VERSION = '6.61';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
