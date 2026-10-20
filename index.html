@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.62 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.63 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.62 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.63 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1558,6 +1558,56 @@
       #score-modal .score-entry-quick { padding: .22rem .4rem !important; }
       #score-modal .quick-chip { height: 1.35rem !important; min-height: 1.35rem !important; }
     }
+
+    /* v6.63: desktop OT mode keeps all quick-score choices above the fixed action footer. */
+    @media (min-width: 768px) {
+      #score-modal { padding: .25rem !important; }
+      #score-modal > .score-entry-panel {
+        max-height: calc(100dvh - .5rem) !important;
+        width: min(100%, 56rem) !important;
+      }
+      #score-modal > .score-entry-panel > .score-entry-top {
+        padding: .22rem .8rem .05rem !important;
+      }
+      #score-modal .score-entry-kicker { font-size: .52rem !important; }
+      #score-modal #score-modal-title { font-size: .95rem !important; margin-top: .05rem !important; }
+      #score-modal .score-entry-target { margin-top: .1rem !important; padding: .1rem .4rem !important; font-size: .55rem !important; }
+      #score-modal .score-overtime-toggle { margin-top: .12rem !important; gap: .35rem !important; font-size: .65rem !important; }
+      #score-modal .score-overtime-toggle input { width: .8rem !important; height: .8rem !important; }
+      #score-modal > .score-entry-panel > .flex-1.min-h-0 {
+        padding: .08rem .7rem .18rem !important;
+        gap: .12rem !important;
+      }
+      #score-modal .score-entry-matchup { padding: .05rem .1rem .12rem !important; gap: .45rem !important; }
+      #score-modal .score-team-label { font-size: .7rem !important; line-height: 1.05 !important; min-height: 1.35em !important; }
+      #score-modal .score-entry-score-ring { width: clamp(3.25rem, 6.5vh, 4.5rem) !important; height: clamp(3.25rem, 6.5vh, 4.5rem) !important; }
+      #score-modal .score-entry-score-ring:before { inset: -.16rem !important; border-width: 1.5px !important; }
+      #score-modal .score-input { font-size: clamp(1.65rem, 3.6vh, 2.35rem) !important; }
+      #score-modal .score-entry-score-wrap { gap: .12rem !important; }
+      #score-modal .clubhouse-score-control { gap: .28rem !important; }
+      #score-modal .clubhouse-score-step { width: 1.75rem !important; height: 1.75rem !important; font-size: 1.1rem !important; }
+      #score-modal .score-entry-versus { font-size: .65rem !important; }
+      #score-modal .score-entry-quick { padding: .2rem .4rem .16rem !important; }
+      #score-modal .score-entry-section-label { margin-bottom: .12rem !important; font-size: .5rem !important; }
+      #score-modal .quick-chip { height: 1.25rem !important; min-height: 1.25rem !important; font-size: .62rem !important; line-height: 1 !important; padding: .02rem .06rem !important; }
+      #score-modal #quick-score-rows { gap: .12rem !important; }
+      #score-modal #quick-score-rows > * { margin-top: 0 !important; }
+      #score-modal #quick-score-hint { margin-top: .02rem !important; font-size: .55rem !important; line-height: 1.1 !important; }
+      #score-modal #quick-autosave { margin-top: .02rem !important; font-size: .58rem !important; line-height: 1 !important; }
+      #score-modal #quick-autosave input { width: .7rem !important; height: .7rem !important; }
+      #score-modal #score-series-banner, #score-modal #score-projection { padding: .18rem .35rem !important; }
+      #score-modal > .score-entry-panel > .flex-shrink-0.flex { padding: .22rem .65rem !important; gap: .4rem !important; }
+      #score-modal > .score-entry-panel > .flex-shrink-0.flex button { padding-top: .38rem !important; padding-bottom: .38rem !important; font-size: .75rem !important; }
+    }
+    @media (min-width: 768px) and (max-height: 720px) {
+      #score-modal .score-entry-target { display: none !important; }
+      #score-modal .score-overtime-toggle { margin-top: .05rem !important; }
+      #score-modal .score-entry-score-ring { width: 3rem !important; height: 3rem !important; }
+      #score-modal .score-input { font-size: 1.55rem !important; }
+      #score-modal .clubhouse-score-step { width: 1.55rem !important; height: 1.55rem !important; }
+      #score-modal .quick-chip { height: 1.1rem !important; min-height: 1.1rem !important; }
+    }
+
 </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -2570,7 +2620,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.62';
+    const APP_VERSION = '6.63';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
