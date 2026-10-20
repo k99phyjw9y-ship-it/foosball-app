@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.70 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.71 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.70" />
+  <meta name="lcfc-build" content="6.71" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.70 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.71 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1834,7 +1834,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.70</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.71</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2728,7 +2728,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.70';
+    const APP_VERSION = '6.71';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -2929,14 +2929,16 @@
       state.players = Array.isArray(data.players) ? data.players : [];
       state.tournaments = Array.isArray(data.tournaments) ? data.tournaments : [];
       state.currentTournamentId = null;
-      (state.tournaments || []).forEach(t => {
-        if (t) { delete t.rankingApplied; delete t.rankingDeltas; }
-      });
+      // Preserve rankingDeltas / rankingApplied from the backup when present.
+      // Wiping and full-recalc was overwriting stored event deltas (e.g. Mark 10/14
+      // stored 0, recalc gave +8 under newer partner-place rules).
       try { migratePlayerHomeState(); } catch (e) {}
       try { migratePlayerRankings(); } catch (e) {}
       try { backfillRankingFromTournaments(); } catch (e) {}
       let ranked = 0;
-      try { ranked = recalculateClubRankingsFromEvents() || 0; } catch (e) {}
+      try { ranked = applyMissingRankingPointsOnly() || 0; } catch (e) {}
+      // Rebuild player rankingPoints from preserved event deltas so totals match the file
+      try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
       if (!opts.skipSave) {
         try { saveState(); } catch (e) {}
       }
@@ -2944,6 +2946,43 @@
         toast('Club data loaded' + (data.exportedAt ? (' · ' + String(data.exportedAt).slice(0, 10)) : ''), 'success');
       }
       return true;
+    }
+
+    /** Apply ranking only to finished events that lack rankingDeltas. */
+    function applyMissingRankingPointsOnly() {
+      const sorted = (state.tournaments || []).slice().sort(
+        (a, b) => (a.createdAt || 0) - (b.createdAt || 0)
+      );
+      let n = 0;
+      sorted.forEach(t => {
+        if (!t) return;
+        if (t.rankingApplied && t.rankingDeltas && typeof t.rankingDeltas === 'object') return;
+        if (applyRankingPointsForTournament(t)) n++;
+      });
+      return n;
+    }
+
+    /** Set each player's rankingPoints / rankingDelta from stored event deltas (createdAt order). */
+    function rebuildPlayerRankingPointsFromEventDeltas() {
+      (state.players || []).forEach(p => {
+        p.rankingPoints = RANK_START_POINTS;
+        p.rankingDelta = 0;
+      });
+      const sorted = (state.tournaments || []).slice().sort(
+        (a, b) => (a.createdAt || 0) - (b.createdAt || 0)
+      );
+      sorted.forEach(t => {
+        const rd = t && t.rankingDeltas;
+        if (!rd || typeof rd !== 'object') return;
+        Object.entries(rd).forEach(([id, d]) => {
+          const p = state.players.find(x => x.id === id);
+          if (!p) return;
+          const delta = Number(d) || 0;
+          ensurePlayerRanking(p);
+          p.rankingPoints = Math.max(0, Math.round((Number(p.rankingPoints) || RANK_START_POINTS) + delta));
+          p.rankingDelta = Math.round((Number(p.rankingDelta) || 0) + delta);
+        });
+      });
     }
 
     function formatClubExportedAt(iso) {
@@ -9228,9 +9267,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
               (data.tournaments || []).forEach(t => {
                 if (importTournamentObject(t)) tCount++;
               });
-              // Clear applied flags on imported events so ranking can rebuild
-              (data.tournaments || []).forEach(t => { if (t) { delete t.rankingApplied; delete t.rankingDeltas; } });
-              const ranked = recalculateClubRankingsFromEvents();
+              // Keep rankingDeltas from file; only apply ranking to events still missing deltas
+              const ranked = applyMissingRankingPointsOnly();
+              try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
               renderHome();
               renderPlayers();
               toast(`Merged: ${pr.added} players, ${tCount} events · ranking from ${ranked} bracket(s)`, 'success');
@@ -9239,8 +9278,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
               state.players = Array.isArray(data.players) ? data.players : [];
               state.tournaments = Array.isArray(data.tournaments) ? data.tournaments : [];
               state.currentTournamentId = null;
-              (state.tournaments || []).forEach(t => { delete t.rankingApplied; delete t.rankingDeltas; });
-              const ranked = recalculateClubRankingsFromEvents();
+              // Keep file rankingDeltas; only rank events still missing deltas
+              const ranked = applyMissingRankingPointsOnly();
+              try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
               renderHome();
               renderPlayers();
               toast(`Data replaced · ranking from ${ranked} bracket/playoff event(s)`, 'success');
@@ -9252,9 +9292,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (data.type === 'tournament' || data.tournament) {
             const t = data.tournament || data;
             mergePlayers(data.players || []);
-            if (t) { delete t.rankingApplied; delete t.rankingDeltas; }
+            // Keep rankingDeltas from imported tournament when present
             importTournamentObject(t);
-            const ranked = recalculateClubRankingsFromEvents();
+            const ranked = applyMissingRankingPointsOnly();
+            try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
             renderHome();
             renderPlayers();
             toast(`Imported event: ${t.name || 'tournament'}${ranked ? ' · ranking updated' : ''}`, 'success');
@@ -9264,10 +9305,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
           // Raw array of tournaments
           if (Array.isArray(data)) {
             data.forEach(t => {
-              if (t) { delete t.rankingApplied; delete t.rankingDeltas; }
               importTournamentObject(t);
             });
-            const ranked = recalculateClubRankingsFromEvents();
+            const ranked = applyMissingRankingPointsOnly();
+            try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
             renderHome();
             renderPlayers();
             toast(`Imported ${data.length} event(s) · ranking from ${ranked} bracket(s)`, 'success');
