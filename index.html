@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.72 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.73 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.72" />
+  <meta name="lcfc-build" content="6.73" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.72 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.73 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1425,6 +1425,36 @@
       color: #ecfdf5;
       background: linear-gradient(145deg, #10b981, #0f766e);
       box-shadow: 0 0 0 3px rgba(16,185,129,.35), 0 8px 20px -8px rgba(16,185,129,.45);
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+      border: 0;
+      padding: 0;
+      cursor: default;
+    }
+    .profile-avatar.has-photo {
+      background: #0f172a;
+      color: transparent;
+    }
+    .profile-avatar img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .profile-avatar.can-edit { cursor: pointer; }
+    .profile-avatar.can-edit:hover { box-shadow: 0 0 0 3px rgba(16,185,129,.55), 0 8px 20px -8px rgba(16,185,129,.5); }
+    .profile-spark {
+      width: 100%; height: 3.25rem;
+      border-radius: 0.75rem;
+      background: rgb(var(--fg-rgb) / 0.03);
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.5rem 0.25rem;
+    }
+    .profile-spark svg { width: 100%; height: 2.4rem; display: block; }
+    .profile-share-row { display: flex; gap: 0.5rem; }
+    .profile-share-row .profile-share-btn { flex: 1; }
+    .profile-share-secondary {
+      flex: 0 0 auto; border-radius: 0.9rem; padding: 0.75rem 0.85rem;
+      font-weight: 700; font-size: 0.75rem;
+      border: 1px solid var(--border); background: var(--raised); color: var(--text);
     }
     .profile-form-dots { display:flex; flex-wrap:wrap; align-items:center; gap:0.35rem; }
     .profile-form-dot {
@@ -1834,7 +1864,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.72</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.73</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -1881,7 +1911,8 @@
       <div id="player-profile-panel" class="hidden surface-card rounded-2xl overflow-hidden profile-card-v2">
         <div class="profile-shell-head flex flex-wrap items-start justify-between gap-3">
           <div class="relative z-10 min-w-0 flex items-start gap-3">
-            <div id="profile-avatar" class="profile-avatar shrink-0" aria-hidden="true">?</div>
+            <button type="button" id="profile-avatar" class="profile-avatar shrink-0" aria-label="Player avatar" onclick="onProfileAvatarClick()">?</button>
+            <input type="file" id="profile-avatar-input" accept="image/*" class="hidden" onchange="onProfileAvatarFile(event)" />
             <div class="min-w-0">
               <p class="text-[10px] font-extrabold uppercase tracking-[.18em] text-emerald-300 mb-1">Player card</p>
               <h3 class="text-lg font-bold text-slate-900" id="profile-name">Player</h3>
@@ -2739,7 +2770,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.72';
+    const APP_VERSION = '6.73';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -11500,14 +11531,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const geoCode = (typeof getPlayerGeoCode === 'function') ? getPlayerGeoCode(p) : (p.region || p.homeState || '');
       const stLabel = (typeof stateLabel === 'function' && geoCode) ? stateLabel(geoCode) : '';
 
-      const avatar = document.getElementById('profile-avatar');
-      if (avatar) {
-        const parts = String(p.name || '?').trim().split(/\s+/).filter(Boolean);
-        const initials = parts.length >= 2
-          ? (parts[0][0] + parts[parts.length - 1][0])
-          : String(p.name || '?').slice(0, 2);
-        avatar.textContent = initials.toUpperCase();
-      }
+      try { setProfileAvatarEl(p); } catch (e) {}
 
       document.getElementById('profile-name').textContent = p.name;
       document.getElementById('profile-sub').textContent = [
@@ -11629,12 +11653,25 @@ function flipRankingMatchCoin(roundNum, matchId) {
       });
       const wallShow = podiumWall.slice(0, 6);
 
+      const rankHistory = getPlayerRankHistory(playerId);
+      const sparkSvg = buildRankSparklineSvg(rankHistory);
+      const rankMin = rankHistory.length ? Math.min(...rankHistory.map(h => h.pts)) : 0;
+      const rankMax = rankHistory.length ? Math.max(...rankHistory.map(h => h.pts)) : 0;
+
       const tab = state.profileTab || 'recent';
 
       body.innerHTML = `
         <div class="flex items-center justify-between gap-2">
           <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Last 10</div>
           <div class="profile-form-dots">${formDots}</div>
+        </div>
+
+        <div class="profile-stat-pill">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Rank over time</div>
+            <div class="text-[10px] text-slate-500 tabular-nums">${rankHistory.length > 1 ? (rankMin + ' – ' + rankMax) : '—'}</div>
+          </div>
+          <div class="profile-spark text-emerald-600">${sparkSvg}</div>
         </div>
 
         <div class="profile-stat-pill">
@@ -11734,7 +11771,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
           ${stLabel ? `<div class="profile-stat-pill text-sm"><span class="text-slate-500">Home · </span><span class="font-semibold">${escapeHtml(stLabel)}</span></div>` : ''}
         </div>
 
-        <button type="button" class="profile-share-btn" onclick="sharePlayerProfileCard()">Share profile card</button>
+        <div class="profile-share-row">
+          <button type="button" class="profile-share-btn" onclick="sharePlayerProfileCard()">Share card image</button>
+          <button type="button" class="profile-share-secondary" onclick="sharePlayerProfileText()" title="Copy text summary">Text</button>
+        </div>
       `;
 
       panel.classList.remove('hidden');
@@ -11746,28 +11786,378 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (state.profilePlayerId) openPlayerProfile(state.profilePlayerId, true);
     }
 
-    function sharePlayerProfileCard() {
-      const p = state.players.find(x => x.id === state.profilePlayerId);
-      if (!p) return;
+    function getPlayerRankHistory(playerId) {
+      const pid = String(playerId);
+      const pts0 = (typeof RANK_START_POINTS === 'number') ? RANK_START_POINTS : 2000;
+      const series = [{ label: 'Start', pts: pts0, at: 0 }];
+      let pts = pts0;
+      const events = (state.tournaments || []).slice().sort(
+        (a, b) => (a.createdAt || 0) - (b.createdAt || 0)
+      );
+      events.forEach(t => {
+        const rd = t && t.rankingDeltas;
+        if (!rd || typeof rd !== 'object') return;
+        let d = null;
+        if (Object.prototype.hasOwnProperty.call(rd, pid)) d = Number(rd[pid]);
+        else {
+          const hit = Object.keys(rd).find(k => String(k) === pid);
+          if (hit != null) d = Number(rd[hit]);
+        }
+        if (d == null || !Number.isFinite(d)) return;
+        pts = Math.max(0, Math.round(pts + d));
+        const name = (t.name || 'Event').slice(0, 18);
+        series.push({ label: name, pts, at: t.createdAt || series.length, delta: d });
+      });
+      return series;
+    }
+
+    function buildRankSparklineSvg(history) {
+      if (!history || history.length < 2) {
+        return '<svg viewBox="0 0 200 40" preserveAspectRatio="none"><text x="8" y="24" fill="currentColor" font-size="10" opacity="0.5">Play bracket nights to build rank history</text></svg>';
+      }
+      const vals = history.map(h => h.pts);
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const span = Math.max(1, max - min);
+      const w = 200, h = 40, pad = 3;
+      const coords = history.map((item, i) => {
+        const x = pad + (i / (history.length - 1)) * (w - pad * 2);
+        const y = pad + (1 - (item.pts - min) / span) * (h - pad * 2);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      });
+      const line = coords.join(' ');
+      const last = coords[coords.length - 1].split(',');
+      const area = `${pad},${h - pad} ${line} ${w - pad},${h - pad}`;
+      return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="rankSparkFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon points="${area}" fill="url(#rankSparkFill)"/>
+        <polyline points="${line}" fill="none" stroke="#10b981" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="${last[0]}" cy="${last[1]}" r="2.5" fill="#34d399"/>
+      </svg>`;
+    }
+
+    function setProfileAvatarEl(p) {
+      const el = document.getElementById('profile-avatar');
+      if (!el || !p) return;
+      const op = typeof isOperatorMode === 'function' && isOperatorMode();
+      el.classList.toggle('can-edit', !!op);
+      el.title = op ? 'Tap to set photo (operator)' : 'Player avatar';
+      const url = p.avatarData || p.avatarUrl || '';
+      if (url) {
+        el.classList.add('has-photo');
+        el.innerHTML = `<img src="${url.replace(/"/g, '')}" alt="" />`;
+      } else {
+        el.classList.remove('has-photo');
+        const parts = String(p.name || '?').trim().split(/\s+/).filter(Boolean);
+        const initials = parts.length >= 2
+          ? (parts[0][0] + parts[parts.length - 1][0])
+          : String(p.name || '?').slice(0, 2);
+        el.textContent = initials.toUpperCase();
+      }
+    }
+
+    function onProfileAvatarClick() {
+      if (!(typeof isOperatorMode === 'function' && isOperatorMode())) {
+        toast('Operator mode required to change photo', 'info');
+        return;
+      }
+      const inp = document.getElementById('profile-avatar-input');
+      if (inp) inp.click();
+    }
+
+    function onProfileAvatarFile(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file || !state.profilePlayerId) return;
+      if (!(typeof isOperatorMode === 'function' && isOperatorMode())) return;
+      if (!file.type || !file.type.startsWith('image/')) {
+        toast('Choose an image file', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const max = 160;
+          let w = img.width, h = img.height;
+          if (w > max || h > max) {
+            const scale = max / Math.max(w, h);
+            w = Math.round(w * scale);
+            h = Math.round(h * scale);
+          }
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          const ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          let dataUrl = c.toDataURL('image/jpeg', 0.82);
+          // Cap ~80KB for localStorage safety
+          if (dataUrl.length > 100000) {
+            dataUrl = c.toDataURL('image/jpeg', 0.65);
+          }
+          const p = state.players.find(x => x.id === state.profilePlayerId);
+          if (!p) return;
+          p.avatarData = dataUrl;
+          try { saveState(); } catch (e) {}
+          setProfileAvatarEl(p);
+          toast('Photo updated', 'success');
+        };
+        img.onerror = () => toast('Could not read image', 'error');
+        img.src = reader.result;
+      };
+      reader.onerror = () => toast('Could not read file', 'error');
+      reader.readAsDataURL(file);
+    }
+
+    function buildProfileShareText(p) {
       ensurePlayerRanking(p);
       const band = rankingBandFromPoints(p.rankingPoints);
       const { career } = computeAllPlayerStats();
       const s = career[p.id] || emptyPlayerStat();
       const podium = computePodiumStats()[p.id] || {};
-      const lines = [
+      return [
         `${p.name} · LCFC`,
         `${band.label} · ${Math.round(p.rankingPoints || 0)} rank pts`,
         `Record ${s.wins}W-${s.losses}L · GD ${s.gd > 0 ? '+' : ''}${s.gd}`,
         `Podiums 🥇${podium.first || 0} 🥈${podium.second || 0} 🥉${podium.third || 0}`
-      ];
-      const text = lines.join('\n');
-      const done = () => { try { toast('Profile summary copied', 'success'); } catch (e) {} };
+      ].join('\\n');
+    }
+
+    function sharePlayerProfileCard() {
+      const p = state.players.find(x => x.id === state.profilePlayerId);
+      if (!p) return;
+      // Prefer rendered image card; fall back to text
+      try {
+        renderAndShareProfileImage(p);
+      } catch (e) {
+        console.warn(e);
+        const text = buildProfileShareText(p);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => toast('Profile summary copied', 'success'))
+            .catch(() => prompt('Copy profile summary:', text));
+        } else prompt('Copy profile summary:', text);
+      }
+    }
+
+    function sharePlayerProfileText() {
+      const p = state.players.find(x => x.id === state.profilePlayerId);
+      if (!p) return;
+      const text = buildProfileShareText(p);
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done).catch(() => {
-          prompt('Copy profile summary:', text);
+        navigator.clipboard.writeText(text).then(() => toast('Profile text copied', 'success'))
+          .catch(() => prompt('Copy profile summary:', text));
+      } else prompt('Copy profile summary:', text);
+    }
+
+    function renderAndShareProfileImage(p) {
+      ensurePlayerRanking(p);
+      const band = rankingBandFromPoints(p.rankingPoints);
+      const { career } = computeAllPlayerStats();
+      const s = career[p.id] || emptyPlayerStat();
+      const podium = computePodiumStats()[p.id] || {};
+      const hist = getPlayerRankHistory(p.id);
+      const W = 720, H = 900;
+      const canvas = document.createElement('canvas');
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext('2d');
+
+      // Background
+      const grad = ctx.createLinearGradient(0, 0, W, H);
+      grad.addColorStop(0, '#0b1220');
+      grad.addColorStop(0.55, '#0f172a');
+      grad.addColorStop(1, '#064e3b');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Accent orb
+      ctx.fillStyle = 'rgba(16,185,129,0.12)';
+      ctx.beginPath(); ctx.arc(W - 80, 100, 140, 0, Math.PI * 2); ctx.fill();
+
+      // Brand
+      ctx.fillStyle = '#6ee7b7';
+      ctx.font = '700 22px system-ui,sans-serif';
+      ctx.fillText('LCFC MANAGER', 48, 56);
+      ctx.fillStyle = 'rgba(226,232,240,0.55)';
+      ctx.font = '600 16px system-ui,sans-serif';
+      ctx.fillText('Player card', 48, 82);
+
+      // Avatar circle
+      const ax = 48, ay = 120, ar = 56;
+      const drawAvatar = () => {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(ax + ar, ay + ar, ar, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+        if (p.avatarData || p.avatarUrl) {
+          const im = new Image();
+          im.onload = () => {
+            ctx.drawImage(im, ax, ay, ar * 2, ar * 2);
+            ctx.restore();
+            finishCard();
+          };
+          im.onerror = () => { ctx.restore(); drawInitials(); finishCard(); };
+          im.src = p.avatarData || p.avatarUrl;
+          return true; // async
+        }
+        ctx.restore();
+        drawInitials();
+        return false;
+      };
+      const drawInitials = () => {
+        ctx.save();
+        ctx.beginPath(); ctx.arc(ax + ar, ay + ar, ar, 0, Math.PI * 2); ctx.closePath();
+        const g = ctx.createLinearGradient(ax, ay, ax + ar * 2, ay + ar * 2);
+        g.addColorStop(0, '#10b981'); g.addColorStop(1, '#0f766e');
+        ctx.fillStyle = g; ctx.fill();
+        const parts = String(p.name || '?').trim().split(/\s+/).filter(Boolean);
+        const ini = (parts.length >= 2 ? parts[0][0] + parts[parts.length - 1][0] : String(p.name || '?').slice(0, 2)).toUpperCase();
+        ctx.fillStyle = '#ecfdf5';
+        ctx.font = '800 36px system-ui,sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(ini, ax + ar, ay + ar + 2);
+        ctx.restore();
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      };
+
+      const finishCard = () => {
+        // Name
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '800 42px system-ui,sans-serif';
+        ctx.fillText(String(p.name || 'Player').slice(0, 22), 180, 168);
+        ctx.fillStyle = '#6ee7b7';
+        ctx.font = '700 20px system-ui,sans-serif';
+        ctx.fillText(`${band.label} · ${Math.round(p.rankingPoints || 0)} pts`, 180, 202);
+
+        // Stats panel
+        const boxY = 280;
+        roundRect(ctx, 48, boxY, W - 96, 160, 20);
+        ctx.fillStyle = 'rgba(15,23,42,0.55)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(148,163,184,0.25)';
+        ctx.lineWidth = 1; ctx.stroke();
+
+        const cells = [
+          ['Record', `${s.wins}W – ${s.losses}L`],
+          ['Win %', s.played ? `${Math.round(s.wins / s.played * 100)}%` : '—'],
+          ['GD', `${s.gd > 0 ? '+' : ''}${s.gd}`],
+          ['Events', String(s.eventCount != null ? s.eventCount : 0)]
+        ];
+        cells.forEach((c, i) => {
+          const x = 72 + i * 160;
+          ctx.fillStyle = 'rgba(148,163,184,0.9)';
+          ctx.font = '600 14px system-ui,sans-serif';
+          ctx.fillText(c[0], x, boxY + 48);
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = '800 28px system-ui,sans-serif';
+          ctx.fillText(c[1], x, boxY + 92);
         });
-      } else {
-        prompt('Copy profile summary:', text);
+
+        // Podiums
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '700 22px system-ui,sans-serif';
+        ctx.fillText('Podiums', 48, 500);
+        ctx.font = '800 32px system-ui,sans-serif';
+        ctx.fillText(`🥇 ${podium.first || 0}   🥈 ${podium.second || 0}   🥉 ${podium.third || 0}`, 48, 548);
+
+        // Sparkline
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '700 22px system-ui,sans-serif';
+        ctx.fillText('Rank over time', 48, 620);
+        drawSparkOnCanvas(ctx, hist, 48, 640, W - 96, 120);
+
+        ctx.fillStyle = 'rgba(148,163,184,0.7)';
+        ctx.font = '600 16px system-ui,sans-serif';
+        ctx.fillText('Lake Champlain Foosball Club', 48, H - 40);
+
+        canvas.toBlob(blob => {
+          if (!blob) {
+            // fallback download via data URL
+            downloadDataUrl(canvas.toDataURL('image/png'), safeFile(p.name) + '-lcfc-card.png');
+            toast('Profile card downloaded', 'success');
+            return;
+          }
+          const file = new File([blob], safeFile(p.name) + '-lcfc-card.png', { type: 'image/png' });
+          if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            navigator.share({
+              files: [file],
+              title: p.name + ' · LCFC',
+              text: buildProfileShareText(p)
+            }).then(() => toast('Shared profile card', 'success'))
+              .catch(() => {
+                downloadBlob(blob, file.name);
+                toast('Profile card downloaded', 'success');
+              });
+          } else {
+            downloadBlob(blob, file.name);
+            toast('Profile card downloaded', 'success');
+          }
+        }, 'image/png');
+      };
+
+      if (!drawAvatar()) finishCard();
+
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+      function safeFile(n) {
+        return String(n || 'player').replace(/[^a-z0-9-_]+/gi, '-').replace(/^-|-$/g, '').slice(0, 40) || 'player';
+      }
+      function downloadBlob(blob, name) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      }
+      function downloadDataUrl(url, name) {
+        const a = document.createElement('a');
+        a.href = url; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+      function drawSparkOnCanvas(ctx, history, x, y, w, h) {
+        roundRect(ctx, x, y, w, h, 16);
+        ctx.fillStyle = 'rgba(15,23,42,0.55)';
+        ctx.fill();
+        if (!history || history.length < 2) {
+          ctx.fillStyle = 'rgba(148,163,184,0.7)';
+          ctx.font = '600 16px system-ui,sans-serif';
+          ctx.fillText('Not enough ranking history yet', x + 20, y + h / 2 + 6);
+          return;
+        }
+        const vals = history.map(it => it.pts);
+        const min = Math.min(...vals), max = Math.max(...vals);
+        const span = Math.max(1, max - min);
+        const pad = 16;
+        ctx.beginPath();
+        history.forEach((it, i) => {
+          const px = x + pad + (i / (history.length - 1)) * (w - pad * 2);
+          const py = y + pad + (1 - (it.pts - min) / span) * (h - pad * 2);
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 3;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        // end dot
+        const last = history[history.length - 1];
+        const lx = x + pad + ((history.length - 1) / (history.length - 1)) * (w - pad * 2);
+        const ly = y + pad + (1 - (last.pts - min) / span) * (h - pad * 2);
+        ctx.fillStyle = '#6ee7b7';
+        ctx.beginPath(); ctx.arc(lx, ly, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(148,163,184,0.9)';
+        ctx.font = '600 14px system-ui,sans-serif';
+        ctx.fillText(String(min), x + pad, y + h - 8);
+        ctx.textAlign = 'right';
+        ctx.fillText(String(max), x + w - pad, y + 18);
+        ctx.textAlign = 'left';
       }
     }
 
