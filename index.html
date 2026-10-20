@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.69 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.70 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.69" />
+  <meta name="lcfc-build" content="6.70" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.69 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.70 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1834,7 +1834,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.69</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.70</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2728,7 +2728,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.69';
+    const APP_VERSION = '6.70';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -11460,9 +11460,17 @@ function flipRankingMatchCoin(roundNum, matchId) {
       });
 
       // Most recent event this player entered (display only)
-      const recentT = (state.tournaments || []).slice()
-        .filter(t => (t.playerIds || []).includes(playerId))
-        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0] || null;
+      // Rank Δ: ONLY that tournament's rankingDeltas[playerId] — never lifetime, partner, or another event
+      const pidKey = String(playerId);
+      const playerEvents = (state.tournaments || []).filter(t =>
+        (t.playerIds || []).some(id => String(id) === pidKey)
+      );
+      const recentT = playerEvents.slice().sort((a, b) => {
+        const ta = Number(a.rankingAppliedAt || a.createdAt || 0);
+        const tb = Number(b.rankingAppliedAt || b.createdAt || 0);
+        if (tb !== ta) return tb - ta;
+        return Number(b.createdAt || 0) - Number(a.createdAt || 0);
+      })[0] || null;
       let recentWl = { w: 0, l: 0, gd: 0 };
       if (recentT && hist.length) {
         hist.filter(h => h.tId === recentT.id).forEach(h => {
@@ -11476,13 +11484,28 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const inEnt = (ent) => {
           if (!ent) return false;
           const ids = typeof entityPlayerIds === 'function' ? entityPlayerIds(ent) : (ent.playerIds || (ent.id ? [ent.id] : []));
-          return (ids || []).includes(playerId);
+          return (ids || []).some(id => String(id) === pidKey);
         };
         if (inEnt(placeEnt.first)) recentPlace = '1st';
         else if (inEnt(placeEnt.second)) recentPlace = '2nd';
         else if (inEnt(placeEnt.third)) recentPlace = '3rd';
       }
-      const recentDelta = recentT && recentT.rankingDeltas ? recentT.rankingDeltas[playerId] : null;
+      // Strict: only this event's map; missing key => null (show —); 0 stays 0
+      let recentDelta = null;
+      if (recentT && recentT.rankingDeltas && typeof recentT.rankingDeltas === 'object') {
+        const rd = recentT.rankingDeltas;
+        if (Object.prototype.hasOwnProperty.call(rd, pidKey)) {
+          const v = Number(rd[pidKey]);
+          recentDelta = Number.isFinite(v) ? v : null;
+        } else {
+          // try exact id from player object in case of type mismatch
+          const hit = Object.keys(rd).find(k => String(k) === pidKey);
+          if (hit != null) {
+            const v = Number(rd[hit]);
+            recentDelta = Number.isFinite(v) ? v : null;
+          }
+        }
+      }
 
       // Podium wall dates from finished events (display)
       const podiumWall = [];
@@ -11535,7 +11558,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
                 <div class="text-sm font-extrabold text-slate-800 truncate">${recentT ? escapeHtml(recentT.name) : 'No events yet'}</div>
                 <div class="text-[11px] text-slate-500 mt-0.5">${recentT ? escapeHtml(recentT.type || '') : 'Join an event to build form'}</div>
               </div>
-              ${recentDelta != null ? `<div class="text-sm font-extrabold tabular-nums ${recentDelta >= 0 ? 'text-emerald-600' : 'text-rose-500'}">${recentDelta > 0 ? '+' : ''}${recentDelta}</div>` : ''}
+              <div class="text-right shrink-0">
+                <div class="text-[9px] uppercase tracking-wider text-slate-500">Rank Δ</div>
+                <div class="text-sm font-extrabold tabular-nums ${recentDelta == null ? 'text-slate-400' : (recentDelta > 0 ? 'text-emerald-600' : (recentDelta < 0 ? 'text-rose-500' : 'text-slate-600'))}">${recentDelta == null ? '—' : ((recentDelta > 0 ? '+' : '') + recentDelta)}</div>
+              </div>
             </div>
             <div class="mt-3 grid grid-cols-3 gap-2 text-center">
               <div><div class="text-[10px] uppercase tracking-wider text-slate-500">W-L</div><div class="text-sm font-extrabold text-slate-800">${recentT ? `${recentWl.w}-${recentWl.l}` : '—'}</div></div>
