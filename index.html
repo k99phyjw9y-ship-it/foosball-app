@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.68 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.69 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.68" />
+  <meta name="lcfc-build" content="6.69" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.68 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.69 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1417,6 +1417,61 @@
       box-shadow:0 0 0 1.2rem rgba(255,255,255,.025),0 0 0 2.4rem rgba(255,255,255,.02);
     }
     #player-profile-panel #profile-name { color:#fff; font-size:1.25rem; line-height:1.25; letter-spacing:-.025em; }
+    #player-profile-panel #profile-sub { color: rgba(226,232,240,.82) !important; }
+    .profile-avatar {
+      width: 3.25rem; height: 3.25rem; border-radius: 9999px;
+      display:flex; align-items:center; justify-content:center;
+      font-weight: 800; font-size: 1rem; letter-spacing: -0.02em;
+      color: #ecfdf5;
+      background: linear-gradient(145deg, #10b981, #0f766e);
+      box-shadow: 0 0 0 3px rgba(16,185,129,.35), 0 8px 20px -8px rgba(16,185,129,.45);
+    }
+    .profile-form-dots { display:flex; flex-wrap:wrap; align-items:center; gap:0.35rem; }
+    .profile-form-dot {
+      width: 0.65rem; height: 0.65rem; border-radius: 9999px;
+      background: rgb(var(--c-slate-300));
+    }
+    .profile-form-dot.win { background: #10b981; box-shadow: 0 0 0 2px rgb(16 185 129 / 0.2); }
+    .profile-form-dot.loss { background: rgb(var(--c-slate-400) / 0.55); }
+    .profile-band-meter {
+      height: 0.45rem; border-radius: 9999px; overflow: hidden;
+      background: rgb(var(--fg-rgb) / 0.08);
+    }
+    .profile-band-meter > span {
+      display:block; height:100%; border-radius:9999px;
+      background: linear-gradient(90deg, #34d399, #10b981);
+    }
+    .profile-tabs {
+      display:grid; grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 0.25rem; padding: 0.25rem; border-radius: 0.9rem;
+      background: rgb(var(--fg-rgb) / 0.04); border: 1px solid var(--border);
+    }
+    .profile-tab {
+      border: 0; background: transparent; border-radius: 0.7rem;
+      padding: 0.45rem 0.25rem; font-size: 0.72rem; font-weight: 700;
+      color: rgb(var(--c-slate-500)); cursor: pointer;
+    }
+    .profile-tab.active {
+      background: var(--raised); color: var(--accent);
+      box-shadow: 0 1px 3px rgb(var(--ink) / 0.08);
+    }
+    .profile-stat-pill {
+      border-radius: 0.9rem; border: 1px solid var(--border);
+      background: var(--raised); padding: 0.75rem 0.85rem;
+    }
+    .profile-share-btn {
+      width: 100%; border: 0; border-radius: 0.9rem; padding: 0.75rem 1rem;
+      font-weight: 700; font-size: 0.9rem; color: #fff;
+      background: linear-gradient(180deg, var(--btn-from), var(--btn-to));
+      box-shadow: 0 4px 14px -4px rgb(var(--btn-rgb) / 0.4);
+    }
+    .profile-podium-chip {
+      display:flex; flex-direction:column; align-items:center; gap:0.25rem;
+      padding: 0.55rem 0.4rem; border-radius: 0.85rem;
+      border: 1px solid var(--border); background: rgb(var(--fg-rgb) / 0.03);
+      min-width: 4.5rem;
+    }
+
     #player-profile-panel #profile-sub { color:#cbd5e1; font-size:.78rem; line-height:1.45; }
     #player-profile-panel .profile-close { color:#e2e8f0; border-color:rgba(226,232,240,.25); background:rgba(255,255,255,.06); }
     #player-profile-panel .profile-close:hover { background:rgba(255,255,255,.13); }
@@ -1779,7 +1834,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.68</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.69</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -1823,14 +1878,17 @@
         </table>
       </div>
 
-      <div id="player-profile-panel" class="hidden surface-card rounded-2xl overflow-hidden">
-        <div class="profile-shell-head flex flex-wrap items-center justify-between gap-3">
-          <div class="relative z-10 min-w-0">
-            <p class="text-[10px] font-extrabold uppercase tracking-[.18em] text-emerald-300 mb-1.5">Player dossier</p>
-            <h3 class="text-lg font-bold text-slate-900" id="profile-name">Player</h3>
-            <p class="text-xs text-slate-500 mt-1" id="profile-sub"></p>
+      <div id="player-profile-panel" class="hidden surface-card rounded-2xl overflow-hidden profile-card-v2">
+        <div class="profile-shell-head flex flex-wrap items-start justify-between gap-3">
+          <div class="relative z-10 min-w-0 flex items-start gap-3">
+            <div id="profile-avatar" class="profile-avatar shrink-0" aria-hidden="true">?</div>
+            <div class="min-w-0">
+              <p class="text-[10px] font-extrabold uppercase tracking-[.18em] text-emerald-300 mb-1">Player card</p>
+              <h3 class="text-lg font-bold text-slate-900" id="profile-name">Player</h3>
+              <p class="text-xs text-slate-500 mt-1" id="profile-sub"></p>
+            </div>
           </div>
-          <button type="button" onclick="closePlayerProfile()" class="profile-close relative z-10 px-3 py-2 text-sm font-semibold rounded-xl border">Close profile</button>
+          <button type="button" onclick="closePlayerProfile()" class="profile-close relative z-10 px-3 py-2 text-sm font-semibold rounded-xl border">Close</button>
         </div>
         <div class="p-4 space-y-4" id="player-profile-body"></div>
       </div>
@@ -2670,7 +2728,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.68';
+    const APP_VERSION = '6.69';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -11323,85 +11381,266 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (!p || !panel || !body) return;
       state.profilePlayerId = playerId;
       ensurePlayerRanking(p);
+
       const band = rankingBandFromPoints(p.rankingPoints);
-      const skillLabel = (typeof SKILL_BAND_LABEL !== 'undefined' ? SKILL_BAND_LABEL[normalizeSkill(p.skill)] : null) || 'Amateur';
-      document.getElementById('profile-name').textContent = p.name;
+      const skillLabel = (typeof SKILL_BAND_LABEL !== 'undefined' ? SKILL_BAND_LABEL[normalizeSkill(p.skill)] : null) || band.label || 'Amateur';
+      const pts = Math.round(Number(p.rankingPoints) || RANK_START_POINTS);
+      const delta = Math.round(Number(p.rankingDelta) || 0);
+
+      // Club rank by ranking points (display only — does not change stored ranking)
+      const rankedPlayers = (state.players || []).slice().sort((a, b) => {
+        const pa = getPlayerRankingPoints(a.id), pb = getPlayerRankingPoints(b.id);
+        if (pb !== pa) return pb - pa;
+        return (a.name || '').localeCompare(b.name || '');
+      });
+      const clubRank = Math.max(1, rankedPlayers.findIndex(x => x.id === playerId) + 1);
+
       const geoCode = (typeof getPlayerGeoCode === 'function') ? getPlayerGeoCode(p) : (p.region || p.homeState || '');
       const stLabel = (typeof stateLabel === 'function' && geoCode) ? stateLabel(geoCode) : '';
-      document.getElementById('profile-sub').textContent = stLabel
-        ? `${skillLabel} · ${band.label} · ${p.rankingPoints} rank pts · ${stLabel}`
-        : `${skillLabel} · ${band.label} · ${p.rankingPoints} rank pts`;
 
+      const avatar = document.getElementById('profile-avatar');
+      if (avatar) {
+        const parts = String(p.name || '?').trim().split(/\s+/).filter(Boolean);
+        const initials = parts.length >= 2
+          ? (parts[0][0] + parts[parts.length - 1][0])
+          : String(p.name || '?').slice(0, 2);
+        avatar.textContent = initials.toUpperCase();
+      }
+
+      document.getElementById('profile-name').textContent = p.name;
+      document.getElementById('profile-sub').textContent = [
+        `#${clubRank} · ${band.label}`,
+        `${pts} pts`,
+        delta ? `${delta > 0 ? '↑' : '↓'} ${delta > 0 ? '+' : ''}${delta} lifetime` : null,
+        stLabel || null
+      ].filter(Boolean).join(' · ');
+
+      // Existing stats engines only — no formula changes
       const { career } = computeAllPlayerStats();
       const s = career[playerId] || emptyPlayerStat();
+      const eventCount = s.eventCount != null ? s.eventCount : 0;
+      const wr = s.played ? Math.round((s.wins / s.played) * 100) : 0;
       const podium = computePodiumStats()[playerId] || { playoffs: 0, first: 0, second: 0, third: 0 };
       const form = getLast10Form(playerId);
-      const formHtml = form.length
-        ? form.map(r => r.won
-            ? '<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500 text-white text-xs font-bold">W</span>'
-            : '<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold">L</span>'
-          ).join('')
-        : '<span class="text-sm text-slate-500">No matches yet</span>';
+      const hist = typeof getPlayerMatchHistory === 'function' ? getPlayerMatchHistory(playerId) : form;
 
-      // Best partners teaser
+      const formDots = form.length
+        ? form.map(r => `<span class="profile-form-dot ${r.won ? 'win' : 'loss'}" title="${r.won ? 'Win' : 'Loss'}"></span>`).join('')
+        : '<span class="text-xs text-slate-500">No matches yet</span>';
+
+      // Next ranking band meter
+      const nextBandMin = band.max >= 99999 ? null : (band.max + 1);
+      const span = nextBandMin != null ? Math.max(1, nextBandMin - band.min) : 1;
+      const progress = nextBandMin != null
+        ? Math.max(0, Math.min(100, ((pts - band.min) / span) * 100))
+        : 100;
+      const nextBandLabel = nextBandMin == null
+        ? 'Master band'
+        : (rankingBandFromPoints(nextBandMin).label || 'Next');
+
+      // Partners (existing maps)
       const maps = typeof computePartnerMaps === 'function' ? computePartnerMaps() : {};
       const partners = Object.entries(maps[playerId] || {}).map(([oid, st]) => {
         const name = state.players.find(x => x.id === oid)?.name || '?';
-        const wr = st.played ? (st.wins / st.played) * 100 : 0;
-        return { name, ...st, wr };
-      }).filter(x => x.played >= 2).sort((a, b) => b.wr - a.wr || b.played - a.played).slice(0, 3);
+        const pwr = st.played ? (st.wins / st.played) * 100 : 0;
+        return { id: oid, name, ...st, wr: pwr };
+      }).filter(x => x.played >= 2).sort((a, b) => b.wr - a.wr || b.played - a.played);
+      const bestPartner = partners[0] || null;
 
-      const geo = (typeof getPlayerGeoCode === 'function') ? getPlayerGeoCode(p) : (p.region || p.homeState || '');
-      const stateSection = geo
-        ? `<div class="surface-card rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-            <div>
-              <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">State</div>
-              <div class="text-sm font-bold text-slate-900 mt-0.5">${escapeHtml(typeof stateLabel === 'function' ? stateLabel(geo) : geo)}</div>
-            </div>
-            <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">${escapeHtml(String(geo).toUpperCase())}</span>
-          </div>`
-        : `<div class="surface-card rounded-xl px-4 py-3 text-sm text-slate-500">State not set · edit player to add</div>`;
+      // Soft rival: closest ranking points among other players
+      let rival = null;
+      let rivalGap = null;
+      rankedPlayers.forEach(o => {
+        if (o.id === playerId) return;
+        const gap = getPlayerRankingPoints(o.id) - pts;
+        if (rivalGap == null || Math.abs(gap) < Math.abs(rivalGap)) {
+          rival = o;
+          rivalGap = gap;
+        }
+      });
+
+      // Most recent event this player entered (display only)
+      const recentT = (state.tournaments || []).slice()
+        .filter(t => (t.playerIds || []).includes(playerId))
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0] || null;
+      let recentWl = { w: 0, l: 0, gd: 0 };
+      if (recentT && hist.length) {
+        hist.filter(h => h.tId === recentT.id).forEach(h => {
+          if (h.won) recentWl.w++; else recentWl.l++;
+          recentWl.gd += (h.scoreFor || 0) - (h.scoreAgainst || 0);
+        });
+      }
+      const placeEnt = recentT && (recentT.placements || recentT.playoffs?.placements);
+      let recentPlace = null;
+      if (placeEnt) {
+        const inEnt = (ent) => {
+          if (!ent) return false;
+          const ids = typeof entityPlayerIds === 'function' ? entityPlayerIds(ent) : (ent.playerIds || (ent.id ? [ent.id] : []));
+          return (ids || []).includes(playerId);
+        };
+        if (inEnt(placeEnt.first)) recentPlace = '1st';
+        else if (inEnt(placeEnt.second)) recentPlace = '2nd';
+        else if (inEnt(placeEnt.third)) recentPlace = '3rd';
+      }
+      const recentDelta = recentT && recentT.rankingDeltas ? recentT.rankingDeltas[playerId] : null;
+
+      // Podium wall dates from finished events (display)
+      const podiumWall = [];
+      (state.tournaments || []).slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).forEach(t => {
+        const pl = t.placements || t.playoffs?.placements;
+        if (!pl) return;
+        const check = (ent, label) => {
+          if (!ent) return;
+          const ids = typeof entityPlayerIds === 'function' ? entityPlayerIds(ent) : (ent.playerIds || (ent.id ? [ent.id] : []));
+          if ((ids || []).includes(playerId)) {
+            const d = t.createdAt ? new Date(t.createdAt) : null;
+            const ds = d && !isNaN(d) ? `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}` : '';
+            podiumWall.push({ label, date: ds, name: t.name || '' });
+          }
+        };
+        check(pl.first, '1st');
+        check(pl.second, '2nd');
+        check(pl.third, '3rd');
+      });
+      const wallShow = podiumWall.slice(0, 6);
+
+      const tab = state.profileTab || 'recent';
 
       body.innerHTML = `
-        <section>
-          <div class="profile-section-label">Player location</div>
-          <div class="profile-location-card px-4 py-3 flex items-center justify-between gap-3">
-            <div class="min-w-0">
-              <div class="text-[10px] font-extrabold uppercase tracking-[.12em] text-slate-500">Home state / region</div>
-              <div class="text-sm font-bold text-slate-900 mt-1">${geo ? escapeHtml(typeof stateLabel === 'function' ? stateLabel(geo) : geo) : 'Not set'}</div>
-              <div class="text-xs text-slate-500 mt-0.5">${geo ? 'Club geography' : 'Edit player details to add a location'}</div>
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Last 10</div>
+          <div class="profile-form-dots">${formDots}</div>
+        </div>
+
+        <div class="profile-stat-pill">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <div class="text-xs font-bold text-slate-700">Next band · <span class="text-emerald-600">${escapeHtml(nextBandLabel)}</span></div>
+            <div class="text-[11px] text-slate-500">${pts} / ${nextBandMin != null ? nextBandMin : pts}</div>
+          </div>
+          <div class="profile-band-meter" aria-hidden="true"><span style="width:${progress.toFixed(1)}%"></span></div>
+          <div class="mt-1 text-[10px] text-slate-500">${nextBandMin != null ? `${Math.max(0, nextBandMin - pts)} pts to ${escapeHtml(nextBandLabel)}` : 'Top ranking band'}</div>
+        </div>
+
+        <div class="profile-tabs" role="tablist" aria-label="Profile sections">
+          ${['recent','season','career','story'].map(k => {
+            const label = k.charAt(0).toUpperCase() + k.slice(1);
+            return `<button type="button" role="tab" class="profile-tab${tab === k ? ' active' : ''}" data-profile-tab="${k}" onclick="setPlayerProfileTab('${k}')">${label}</button>`;
+          }).join('')}
+        </div>
+
+        <div data-profile-pane="recent" class="${tab === 'recent' ? '' : 'hidden'} space-y-3">
+          <div class="profile-stat-pill">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="text-sm font-extrabold text-slate-800 truncate">${recentT ? escapeHtml(recentT.name) : 'No events yet'}</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">${recentT ? escapeHtml(recentT.type || '') : 'Join an event to build form'}</div>
+              </div>
+              ${recentDelta != null ? `<div class="text-sm font-extrabold tabular-nums ${recentDelta >= 0 ? 'text-emerald-600' : 'text-rose-500'}">${recentDelta > 0 ? '+' : ''}${recentDelta}</div>` : ''}
             </div>
-            <span class="shrink-0 text-xs font-extrabold text-slate-600 bg-white border border-slate-200 px-2.5 py-1.5 rounded-lg">${geo ? escapeHtml(String(geo).toUpperCase()) : '—'}</span>
+            <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div><div class="text-[10px] uppercase tracking-wider text-slate-500">W-L</div><div class="text-sm font-extrabold text-slate-800">${recentT ? `${recentWl.w}-${recentWl.l}` : '—'}</div></div>
+              <div><div class="text-[10px] uppercase tracking-wider text-slate-500">GD</div><div class="text-sm font-extrabold text-slate-800">${recentT ? ((recentWl.gd > 0 ? '+' : '') + recentWl.gd) : '—'}</div></div>
+              <div><div class="text-[10px] uppercase tracking-wider text-slate-500">Playoff</div><div class="text-sm font-extrabold text-slate-800">${recentPlace || '—'}</div></div>
+            </div>
           </div>
-        </section>
-        <section>
-          <div class="flex items-end justify-between gap-3 mb-2"><div class="profile-section-label mb-0">Recent form</div><span class="text-[10px] text-slate-400 font-semibold">OLDEST → NEWEST</span></div>
-          <div class="flex flex-wrap gap-2">${form.length ? form.map((r, i) => `<div class="profile-form-chip"><span class="${r.won ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}">${r.won ? 'W' : 'L'}</span><small>${i + 1}</small></div>`).join('') : '<div class="profile-empty w-full">No completed matches yet. Recent form will appear here after results are recorded.</div>'}</div>
-        </section>
-        <section>
-          <div class="profile-section-label">Career snapshot</div>
-          <div class="profile-stat-grid">
-            <div class="profile-stat-card"><div class="profile-stat-label">Matches played</div><div class="profile-stat-value mt-2">${s.played || 0}</div><div class="text-[10px] text-slate-400 mt-1">Career total</div></div>
-            <div class="profile-stat-card primary"><div class="profile-stat-label">Win rate</div><div class="profile-stat-value mt-2">${winRate(s)}%</div><div class="text-[10px] text-emerald-700/70 mt-1">Career wins</div></div>
-            <div class="profile-stat-card"><div class="profile-stat-label">Goal difference</div><div class="profile-stat-value mt-2 ${(s.gd || 0) > 0 ? 'text-emerald-700' : ((s.gd || 0) < 0 ? 'text-rose-600' : '')}">${(s.gd||0) > 0 ? '+' : ''}${s.gd||0}</div><div class="text-[10px] text-slate-400 mt-1">Goals for vs against</div></div>
-            <div class="profile-stat-card"><div class="profile-stat-label inline-flex items-center gap-1.5">Career win points <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full border border-slate-400 text-[9px] font-bold text-slate-500 cursor-help" title="Does not affect club ranking directly" aria-label="Does not affect club ranking directly" role="img">i</span></div><div class="profile-stat-value mt-2">${s.pts||0}</div><div class="text-[10px] text-slate-400 mt-1">Career total</div></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="profile-stat-pill">
+              <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Best partner</div>
+              <div class="text-sm font-bold text-slate-800 truncate">${bestPartner ? escapeHtml(bestPartner.name) : '—'}</div>
+              <div class="text-[11px] text-emerald-600 font-semibold mt-0.5">${bestPartner ? `${bestPartner.wins}-${bestPartner.losses}` : 'Min. 2 matches'}</div>
+            </div>
+            <div class="profile-stat-pill">
+              <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Ranking rival</div>
+              <div class="text-sm font-bold text-slate-800 truncate">${rival ? escapeHtml(rival.name) : '—'}</div>
+              <div class="text-[11px] font-semibold mt-0.5 ${rivalGap != null && rivalGap > 0 ? 'text-rose-500' : 'text-emerald-600'}">${rivalGap == null ? '—' : `${rivalGap > 0 ? '+' : ''}${rivalGap} pts`}</div>
+            </div>
           </div>
-        </section>
-        <section>
-          <div class="profile-section-label">Event record</div>
-          <div class="profile-detail-grid">
-            <div class="profile-detail-card"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Events entered</div><div class="profile-detail-value">${s.events?.size || 0}</div></div>
-            <div class="profile-detail-card"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Playoff appearances</div><div class="profile-detail-value">${podium.playoffs||0}</div></div>
-            <div class="profile-detail-card"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Podium finishes</div><div class="profile-detail-value">${(podium.first||0) + (podium.second||0) + (podium.third||0)}</div><div class="text-[10px] text-slate-400 mt-1">🥇 ${podium.first||0} · 🥈 ${podium.second||0} · 🥉 ${podium.third||0}</div></div>
-            <div class="profile-detail-card"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Rank movement</div><div class="profile-detail-value ${(p.rankingDelta||0)>=0?'text-emerald-700':'text-rose-600'}">${(p.rankingDelta||0)>0?'+':''}${p.rankingDelta||0}</div><div class="text-[10px] text-slate-400 mt-1">Current stored delta</div></div>
+        </div>
+
+        <div data-profile-pane="season" class="${tab === 'season' ? '' : 'hidden'} space-y-3">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="profile-stat-pill text-center"><div class="text-[10px] text-slate-500 uppercase">Played</div><div class="text-lg font-extrabold tabular-nums">${s.played}</div></div>
+            <div class="profile-stat-pill text-center"><div class="text-[10px] text-slate-500 uppercase">Win %</div><div class="text-lg font-extrabold tabular-nums">${wr}%</div></div>
+            <div class="profile-stat-pill text-center"><div class="text-[10px] text-slate-500 uppercase">GD</div><div class="text-lg font-extrabold tabular-nums">${s.gd > 0 ? '+' : ''}${s.gd}</div></div>
+            <div class="profile-stat-pill text-center"><div class="text-[10px] text-slate-500 uppercase">Pts</div><div class="text-lg font-extrabold tabular-nums">${s.pts}</div></div>
           </div>
-        </section>
-        <section>
-          <div class="flex items-end justify-between gap-3 mb-1"><div class="profile-section-label mb-0">Best partners</div><span class="text-[10px] text-slate-400">MIN. 2 MATCHES</span></div>
-          ${partners.length ? partners.map((x, i) => `<div class="profile-partner-row"><div class="flex items-center gap-3 min-w-0"><span class="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100 border border-slate-200 text-xs font-extrabold text-slate-600">${i + 1}</span><div class="min-w-0"><div class="font-bold text-sm text-slate-800 truncate">${escapeHtml(x.name)}</div><div class="text-[11px] text-slate-500">${x.played} matches together</div></div></div><div class="text-right shrink-0"><div class="text-sm font-extrabold text-slate-900 tabular-nums">${x.wr.toFixed(0)}%</div><div class="text-[10px] text-slate-500">${x.wins}W · ${x.losses}L</div></div></div>`).join('') : '<div class="profile-empty">Partner chemistry appears after at least two matches together.</div>'}
-        </section>`;
+          <p class="text-[11px] text-slate-500">Season view uses the same career totals currently tracked in Stats (all scored matches). Weekly filters stay on the Stats page.</p>
+        </div>
+
+        <div data-profile-pane="career" class="${tab === 'career' ? '' : 'hidden'} space-y-3">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="profile-stat-pill"><div class="text-[10px] text-slate-500 uppercase">Record</div><div class="text-base font-extrabold">${s.wins}W – ${s.losses}L</div><div class="text-[11px] text-slate-500">${s.played} matches · ${wr}% WR</div></div>
+            <div class="profile-stat-pill"><div class="text-[10px] text-slate-500 uppercase">Goals</div><div class="text-base font-extrabold">${s.gf} – ${s.ga}</div><div class="text-[11px] text-slate-500">GD ${s.gd > 0 ? '+' : ''}${s.gd}</div></div>
+            <div class="profile-stat-pill"><div class="text-[10px] text-slate-500 uppercase">Events</div><div class="text-base font-extrabold">${eventCount}</div><div class="text-[11px] text-slate-500">Playoffs ${podium.playoffs || 0}</div></div>
+            <div class="profile-stat-pill"><div class="text-[10px] text-slate-500 uppercase">Rank Δ</div><div class="text-base font-extrabold ${delta >= 0 ? 'text-emerald-600' : 'text-rose-500'}">${delta > 0 ? '+' : ''}${delta}</div><div class="text-[11px] text-slate-500">Lifetime club ranking</div></div>
+          </div>
+          <div class="profile-stat-pill">
+            <div class="text-[10px] text-slate-500 uppercase mb-1">Podiums</div>
+            <div class="text-sm font-bold">🥇 ${podium.first || 0} · 🥈 ${podium.second || 0} · 🥉 ${podium.third || 0}</div>
+          </div>
+        </div>
+
+        <div data-profile-pane="story" class="${tab === 'story' ? '' : 'hidden'} space-y-3">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Podium wall</div>
+              <div class="text-[10px] text-slate-400">Recent first</div>
+            </div>
+            <div class="flex gap-2 overflow-x-auto pb-1">
+              ${wallShow.length ? wallShow.map(w => `
+                <div class="profile-podium-chip">
+                  <div class="text-sm font-extrabold">${w.label === '1st' ? '🥇' : w.label === '2nd' ? '🥈' : '🥉'}</div>
+                  <div class="text-[11px] font-bold text-slate-700">${w.label}</div>
+                  <div class="text-[10px] text-slate-500">${escapeHtml(w.date || '—')}</div>
+                </div>`).join('') : '<div class="text-sm text-slate-500">No podium finishes yet</div>'}
+            </div>
+          </div>
+          <div>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Best partners</div>
+            ${partners.length ? partners.slice(0, 5).map((x, i) => `
+              <div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-100/80">
+                <div class="min-w-0"><span class="text-xs font-bold text-slate-400 mr-2">${i + 1}</span><span class="text-sm font-semibold text-slate-800">${escapeHtml(x.name)}</span></div>
+                <div class="text-xs font-bold tabular-nums text-slate-700">${x.wr.toFixed(0)}% · ${x.wins}W-${x.losses}L</div>
+              </div>`).join('') : '<div class="text-sm text-slate-500">Partner chemistry after 2+ matches together</div>'}
+          </div>
+          ${stLabel ? `<div class="profile-stat-pill text-sm"><span class="text-slate-500">Home · </span><span class="font-semibold">${escapeHtml(stLabel)}</span></div>` : ''}
+        </div>
+
+        <button type="button" class="profile-share-btn" onclick="sharePlayerProfileCard()">Share profile card</button>
+      `;
+
       panel.classList.remove('hidden');
       if (!soft) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function setPlayerProfileTab(tab) {
+      state.profileTab = tab || 'recent';
+      if (state.profilePlayerId) openPlayerProfile(state.profilePlayerId, true);
+    }
+
+    function sharePlayerProfileCard() {
+      const p = state.players.find(x => x.id === state.profilePlayerId);
+      if (!p) return;
+      ensurePlayerRanking(p);
+      const band = rankingBandFromPoints(p.rankingPoints);
+      const { career } = computeAllPlayerStats();
+      const s = career[p.id] || emptyPlayerStat();
+      const podium = computePodiumStats()[p.id] || {};
+      const lines = [
+        `${p.name} · LCFC`,
+        `${band.label} · ${Math.round(p.rankingPoints || 0)} rank pts`,
+        `Record ${s.wins}W-${s.losses}L · GD ${s.gd > 0 ? '+' : ''}${s.gd}`,
+        `Podiums 🥇${podium.first || 0} 🥈${podium.second || 0} 🥉${podium.third || 0}`
+      ];
+      const text = lines.join('\n');
+      const done = () => { try { toast('Profile summary copied', 'success'); } catch (e) {} };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => {
+          prompt('Copy profile summary:', text);
+        });
+      } else {
+        prompt('Copy profile summary:', text);
+      }
     }
 
     function closePlayerProfile() {
