@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.59 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.60 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.59" />
+  <meta name="lcfc-build" content="6.60" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.59 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.60 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1452,6 +1452,56 @@
     @keyframes lcfc-score-number-pulse { 0% { transform:scale(.86); filter:brightness(1); } 45% { transform:scale(1.12); filter:brightness(1.8); text-shadow:0 0 24px currentColor; } 100% { transform:scale(1); filter:brightness(1); } }
     @media(max-width:540px) { #score-modal .score-entry-top { padding:.8rem .8rem .25rem !important; } #score-modal > .score-entry-panel > .flex-1 { padding:.4rem .6rem .7rem !important; } #score-modal .score-entry-matchup { gap:.35rem !important; } #score-modal .score-entry-team { padding:.2rem 0 .4rem !important; } #score-modal .score-entry-score-ring { width:clamp(4.6rem,23vw,6.2rem); height:clamp(4.6rem,23vw,6.2rem); } #score-modal .score-entry-score-ring:before { inset:-.25rem; border-width:2px; } #score-modal .clubhouse-score-control { gap:.55rem !important; } #score-modal .clubhouse-score-step { width:2.55rem !important; height:2.55rem !important; font-size:1.55rem !important; } #score-modal .score-entry-versus { font-size:.75rem !important; } }
     @media(prefers-reduced-motion:reduce) { #score-modal .score-entry-score-ring:before,#score-modal .score-pulse { animation:none !important; } }
+
+    /* v6.60: desktop score entry fits quick-score controls without inner scrolling. */
+    @media (min-width: 768px) and (min-height: 650px) {
+      #score-modal { padding: 1rem !important; }
+      #score-modal > .score-entry-panel {
+        max-height: calc(100dvh - 2rem) !important;
+        height: auto !important;
+      }
+      #score-modal > .score-entry-panel > .score-entry-top {
+        padding: .65rem 1.2rem .2rem !important;
+      }
+      #score-modal > .score-entry-panel > .flex-1.min-h-0 {
+        flex: 0 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: visible !important;
+        overscroll-behavior: auto !important;
+        padding: .25rem 1.1rem .55rem !important;
+        gap: .45rem !important;
+      }
+      #score-modal .score-entry-matchup {
+        padding: .25rem .25rem .45rem !important;
+        gap: clamp(.5rem, 1.5vw, 1.25rem) !important;
+      }
+      #score-modal .score-entry-team { padding: .15rem .2rem .25rem !important; }
+      #score-modal .score-team-label { min-height: 2.2em !important; }
+      #score-modal .score-entry-score-ring {
+        width: clamp(5rem, 10vh, 7rem) !important;
+        height: clamp(5rem, 10vh, 7rem) !important;
+      }
+      #score-modal .score-entry-score-ring:before { inset: -.3rem !important; border-width: 2px !important; }
+      #score-modal .score-entry-score-wrap { gap: .45rem !important; }
+      #score-modal .score-input { font-size: clamp(2.5rem, 5.5vh, 3.7rem) !important; }
+      #score-modal .clubhouse-score-control { gap: .65rem !important; }
+      #score-modal .clubhouse-score-step { width: 2.8rem !important; height: 2.8rem !important; font-size: 1.65rem !important; }
+      #score-modal .score-entry-versus { margin-top: 0 !important; }
+      #score-modal .score-entry-quick { padding: .45rem .6rem .4rem !important; }
+      #score-modal .score-entry-section-label { margin-bottom: .3rem !important; }
+      #score-modal .quick-chip { height: 1.8rem !important; min-height: 1.8rem !important; font-size: .75rem !important; }
+      #score-modal #quick-score-rows { gap: .35rem !important; }
+      #score-modal #quick-score-hint { margin-top: .15rem !important; }
+      #score-modal #quick-autosave { margin-top: 0 !important; }
+      #score-modal #score-projection { padding: .35rem .6rem !important; }
+      #score-modal > .score-entry-panel > .flex-shrink-0.flex { padding-top: .55rem !important; padding-bottom: .55rem !important; }
+    }
+    @media (min-width: 768px) and (max-height: 649px) {
+      #score-modal { align-items: flex-start !important; overflow-y: auto !important; }
+      #score-modal > .score-entry-panel { max-height: none !important; margin: .25rem auto !important; }
+      #score-modal > .score-entry-panel > .flex-1.min-h-0 { overflow: visible !important; }
+    }
+
 </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -2463,7 +2513,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.59';
+    const APP_VERSION = '6.60';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
