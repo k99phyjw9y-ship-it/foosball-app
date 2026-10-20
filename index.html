@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.73 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.74 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.73" />
+  <meta name="lcfc-build" content="6.74" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.73 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.74 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1864,7 +1864,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.73</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.74</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -1898,8 +1898,9 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-200">
+              <th class="text-left px-3 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-14">Rank</th>
               <th class="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-              <th class="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Skill</th>
+              <th class="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:table-cell">Band</th>
               <th class="text-left px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:table-cell">Form</th>
               <th class="text-right px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
             </tr>
@@ -2770,7 +2771,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.73';
+    const APP_VERSION = '6.74';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -4077,21 +4078,28 @@
 
     function renderPlayers() {
       const tbody = document.getElementById('players-table-body');
+      if (!tbody) return;
       if (state.players.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-12 text-center text-slate-500 text-sm">No players yet. Add your roster to get started.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-12 text-center text-slate-500 text-sm">No players yet. Add your roster to get started.</td></tr>';
         return;
       }
       migratePlayerRankings();
-      tbody.innerHTML = state.players.slice().sort((a, b) => {
+      const sorted = state.players.slice().sort((a, b) => {
         ensurePlayerRanking(a); ensurePlayerRanking(b);
         if (b.rankingPoints !== a.rankingPoints) return b.rankingPoints - a.rankingPoints;
         return a.name.localeCompare(b.name);
-      }).map(p => {
+      });
+      tbody.innerHTML = sorted.map((p, idx) => {
         ensurePlayerRanking(p);
+        const rank = idx + 1;
         const band = rankingBandFromPoints(p.rankingPoints);
         const form = formatLast10FormHtml(p.id);
+        const rankCls = rank <= 3
+          ? 'text-emerald-600 font-extrabold'
+          : 'text-slate-500 font-bold';
         return `
         <tr class="border-t border-slate-200 table-row">
+          <td class="px-3 py-3.5 tabular-nums ${rankCls} text-sm">#${rank}</td>
           <td class="px-4 py-3.5">
             <button type="button" onclick="openPlayerProfile('${p.id}')" class="font-medium text-slate-900 hover:text-emerald-700 text-left">${escapeHtml(p.name)}</button>
           </td>
