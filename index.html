@@ -11932,7 +11932,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         `${band.label} · ${Math.round(p.rankingPoints || 0)} rank pts`,
         `Record ${s.wins}W-${s.losses}L · GD ${s.gd > 0 ? '+' : ''}${s.gd}`,
         `Podiums 🥇${podium.first || 0} 🥈${podium.second || 0} 🥉${podium.third || 0}`
-      ].join('\\n');
+      ].join('\n');
     }
 
     function sharePlayerProfileCard() {
@@ -13586,15 +13586,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
               <td class="px-1.5 text-right spec-pts">${s.pts}</td>
               <td class="pl-1 pr-2 text-right">${s.gd > 0 ? '+' : ''}${s.gd}</td>
             </tr>`).join('')}</tbody></table>`;
-      }
-
-      if (recentEl) {
-        const recent = recentDone.slice(-8).reverse();
-        recentEl.innerHTML = recent.length ? recent.map(m => `
-          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 py-1.5 border-b" style="border-color:var(--border)">
-            <span class="min-w-0 leading-snug break-words">${escapeHtml(m.nameA)} <span class="spec-muted">vs</span> ${escapeHtml(m.nameB)}</span>
-            <span class="font-semibold shrink-0">${m.scoreA}–${m.scoreB}</span>
-          </div>`).join('') : '<p class="spec-muted">No completed matches yet</p>';
       }
     }
 
