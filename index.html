@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.61 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.62 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.60" />
+  <meta name="lcfc-build" content="6.62" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.61 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.62 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1453,6 +1453,9 @@
     @media(max-width:540px) { #score-modal .score-entry-top { padding:.8rem .8rem .25rem !important; } #score-modal > .score-entry-panel > .flex-1 { padding:.4rem .6rem .7rem !important; } #score-modal .score-entry-matchup { gap:.35rem !important; } #score-modal .score-entry-team { padding:.2rem 0 .4rem !important; } #score-modal .score-entry-score-ring { width:clamp(4.6rem,23vw,6.2rem); height:clamp(4.6rem,23vw,6.2rem); } #score-modal .score-entry-score-ring:before { inset:-.25rem; border-width:2px; } #score-modal .clubhouse-score-control { gap:.55rem !important; } #score-modal .clubhouse-score-step { width:2.55rem !important; height:2.55rem !important; font-size:1.55rem !important; } #score-modal .score-entry-versus { font-size:.75rem !important; } }
     @media(prefers-reduced-motion:reduce) { #score-modal .score-entry-score-ring:before,#score-modal .score-pulse { animation:none !important; } }
 
+    .score-overtime-toggle { color: var(--fg, #e2e8f0); }
+    #score-modal .score-overtime-toggle input { accent-color: #10b981; }
+    /* v6.62: optional per-match overtime override */
     /* v6.61: desktop score entry fits quick-score controls without inner scrolling. */
     @media (min-width: 768px) and (min-height: 650px) {
       #score-modal { padding: 1rem !important; }
@@ -2497,6 +2500,7 @@
         <div class="score-entry-kicker"><span class="score-entry-live-dot"></span> MATCH SCORE</div>
         <h3 class="text-lg font-extrabold text-center leading-tight mt-1" id="score-modal-title">Enter Score</h3>
         <div class="score-entry-target"><span class="score-target-star">★</span><span>Race to <strong id="score-target-number">5</strong></span><span class="score-target-divider"></span><span>First to the finish</span></div>
+        <label class="score-overtime-toggle mt-2 inline-flex items-center justify-center gap-2 text-xs font-semibold cursor-pointer select-none"><input type="checkbox" id="score-overtime" onchange="onScoreOvertimeChange(this.checked)" class="accent-emerald-500 w-4 h-4" /><span>OT <span class="font-normal opacity-75">(allow scores up to 8)</span></span></label>
       </div>
       <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pt-1 pb-3 space-y-3">
         <div id="score-match-timer" class="hidden text-center font-mono text-xs font-semibold tracking-wide text-slate-600" aria-live="polite"></div>
@@ -2566,7 +2570,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.61';
+    const APP_VERSION = '6.62';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -7555,6 +7559,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (!match) return;
 
       state.scoreMatchId = { mode: 'round', roundNum: parseInt(roundNum, 10), matchId };
+      resetScoreOvertime();
       document.getElementById('score-modal-title').textContent = 'Enter Score';
       const targetEl = document.getElementById('score-target-number');
       if (targetEl) targetEl.textContent = String(quickRaceTo());
@@ -7601,9 +7606,34 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     /** Goals needed to win a game in this event (falls back to 5 for old/imported data). */
     function quickRaceTo() {
+      // Overtime is a per-match override, intentionally never persisted.
+      const ot = document.getElementById('score-overtime');
+      if (ot && ot.checked) return 8;
       const t = getCurrentTournament();
       const n = parseInt(t && t.raceTo, 10);
       return n >= 1 && n <= 30 ? n : 5;
+    }
+
+    function resetScoreOvertime() {
+      const ot = document.getElementById('score-overtime');
+      if (ot) ot.checked = false;
+    }
+
+    function onScoreOvertimeChange(enabled) {
+      const R = quickRaceTo();
+      const target = document.getElementById('score-target-number');
+      if (target) target.textContent = String(R);
+      ['score-a', 'score-b'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.max = R;
+        if (el.value !== '' && Number(el.value) > R) el.value = String(R);
+      });
+      refreshQuickScore();
+      if (typeof pulseScoreNumeral === 'function') {
+        pulseScoreNumeral('score-a');
+        pulseScoreNumeral('score-b');
+      }
     }
 
     /** Keyboard flow on desktop; on touch screens skip focus so the keyboard doesn't cover the tap targets. */
@@ -8832,6 +8862,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
 
       state.scoreMatchId = { mode: 'bracket', matchId };
+      resetScoreOvertime();
       document.getElementById('score-modal-title').textContent = 'Enter Score';
       const targetEl = document.getElementById('score-target-number');
       if (targetEl) targetEl.textContent = String(quickRaceTo());
