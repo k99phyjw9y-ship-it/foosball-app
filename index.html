@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.76 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.77 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.76" />
+  <meta name="lcfc-build" content="6.77" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.76 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.77 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1295,6 +1295,27 @@
       color: var(--text);
       border: 1px solid var(--border-strong);
     }
+    /* v6.77: LIVE pill on TV "Playing" cards */
+    #view-spectator .spec-meta-live {
+      gap: 0.35rem;
+      background: #dc2626;
+      color: #fff;
+      border: 1px solid #ef4444;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    #view-spectator .spec-live-dot {
+      width: 0.5em;
+      height: 0.5em;
+      border-radius: 9999px;
+      background: #fff;
+      box-shadow: 0 0 0 2px rgb(255 255 255 / 0.28);
+      animation: lcfc-live-dot 1.4s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #view-spectator .spec-live-dot { animation: none; }
+    }
     #view-spectator .spec-meta-round {
       background: rgb(var(--fg-rgb) / 0.04);
       color: var(--text-muted);
@@ -1864,7 +1885,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.76</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.77</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2771,7 +2792,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.76';
+    const APP_VERSION = '6.77';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -13368,6 +13389,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
             ? `<span class="spec-meta-chip spec-meta-deck">On deck · Table ${m.table}</span>`
             : `<span class="spec-meta-chip spec-meta-table">Table ${m.table}</span>`)
           : '';
+        const liveChip = kind === 'live'
+          ? '<span class="spec-meta-chip spec-meta-live" title="Match in progress"><span class="spec-live-dot" aria-hidden="true"></span>Live</span>'
+          : '';
         const timerChip = (typeof matchTimerBadgeHtml === 'function')
           ? matchTimerBadgeHtml({
               id: m.matchId,
@@ -13395,6 +13419,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             ${eventTitle}
             ${phaseHtml}
             <div class="spec-match-meta flex flex-wrap items-center justify-center gap-1.5">
+              ${liveChip}
               ${tableChip}
               ${timerChip}
               <span class="spec-meta-chip spec-meta-round">${escapeHtml(roundLabel)}</span>
