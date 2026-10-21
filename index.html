@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.77 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.78 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.77" />
+  <meta name="lcfc-build" content="6.78" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.77 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.78 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1885,7 +1885,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.77</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.78</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2792,7 +2792,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.77';
+    const APP_VERSION = '6.78';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -12429,7 +12429,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
             if (!m || m.void || m.winner) return;
             const nameA = m.a?.entity?.name || m.entityA?.name || 'TBD';
             const nameB = m.b?.entity?.name || m.entityB?.name || 'TBD';
-            if (!(m.a?.entity || m.b?.entity || m.entityA || m.entityB)) return;
+            // Only matches with BOTH sides known: waiting matches (one side TBD) have no table/timer yet
+            if (typeof isBracketMatchReady === 'function'
+              ? !isBracketMatchReady(m)
+              : !((m.a?.entity || m.entityA) && (m.b?.entity || m.entityB))) return;
             if (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB && !(m.scoreA === 0 && m.scoreB === 0)) return;
             const serveSide = m.coinToss?.serveSide || null;
             const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
@@ -12873,6 +12876,13 @@ function flipRankingMatchCoin(roundNum, matchId) {
      * cancel() then speak() in the same tick often drops audio (Chromium bug).
      * Speak on next task if we had to cancel; otherwise speak immediately.
      */
+    /** Spoken text only: always read "St." / "St" as "Saint" (never "Street"). Display text is unchanged. */
+    function normalizeTvSpeechText(text) {
+      return String(text == null ? '' : text)
+        .replace(/\bSt\b\.?(?=[A-Za-z])/g, 'Saint ')
+        .replace(/\bSt\b\.?/g, 'Saint');
+    }
+
     function speakTvMatchLine(text, opts) {
       opts = opts || {};
       var finished = false;
@@ -12897,7 +12907,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         complete();
         return;
       }
-      var line = String(text).replace(/\s+/g, ' ').trim();
+      var line = normalizeTvSpeechText(text).replace(/\s+/g, ' ').trim();
       var mode = { rate: 0.92, pitch: 0.9 };
       try {
         if (typeof getTvVoiceModeConfig === 'function') {
@@ -13365,7 +13375,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       const liveEl = document.getElementById('spec-matches-live') || matchesEl;
       const deckEl = document.getElementById('spec-matches-deck');
-      const playingList = live.filter(m => !m.onDeck);
+      const playingList = live.filter(m => !m.onDeck && m.table);
       const deckList = live.filter(m => m.onDeck);
 
       try { processTvMatchAnnouncements(playingList); } catch (e) { console.warn('TV announce', e); }
