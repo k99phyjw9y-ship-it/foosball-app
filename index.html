@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.78 | 2026-10-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.79 | 2026-10-21 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.78 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.79 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1000,7 +1000,7 @@
       display: flex;
       flex-direction: column;
       flex: 0 0 auto;
-      width: 13rem;
+      width: 15.5rem;
       position: relative;
       z-index: 1;
     }
@@ -1034,7 +1034,7 @@
       position: relative;
       z-index: 2;
       width: 100%;
-      max-width: 11.5rem;
+      max-width: 14.25rem;
       border-radius: 0.6rem;
       border: 1px solid var(--border, rgb(226 232 240));
       background: var(--raised, #fff);
@@ -1053,9 +1053,9 @@
       justify-content: space-between;
       align-items: center;
       gap: 0.3rem;
-      padding: 0.32rem 0.45rem;
-      line-height: 1.2;
-      min-height: 0;
+      padding: 0.38rem 0.5rem;
+      line-height: 1.25;
+      min-height: 2rem;
       color: inherit;
     }
     .bracket-tree-side + .bracket-tree-side { border-top: 1px solid var(--border, rgb(241 245 249)); }
@@ -1068,9 +1068,9 @@
     .bracket-tree-name {
       flex: 1 1 auto;
       min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: normal;
       color: inherit;
       font-weight: 600;
     }
@@ -1885,7 +1885,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.78</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.79</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2792,7 +2792,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.78';
+    const APP_VERSION = '6.79';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -8903,8 +8903,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
     /** Traditional connected tree: each slot tall enough for a full card (no overlap). */
     function roundsTreeHtml(rounds, accent) {
       if (!rounds?.length) return '<p class="bracket-tree-empty">No bracket rounds</p>';
-      // Must be >= tallest tree node (2 names + meta + Enter score). Later rounds = BASE * 2^ri.
-      const BASE = 148;
+      // Leave enough vertical room for wrapped partner names and match controls.
+      // Later rounds = BASE * 2^ri; this keeps connected cards from overlapping.
+      const BASE = 176;
       let html = '<div class="bracket-tree" role="region" aria-label="Bracket tree">';
       rounds.forEach((round, ri) => {
         const matches = round.matches || [];
