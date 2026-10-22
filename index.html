@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.80 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.81 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.80 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.81 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1885,7 +1885,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.80</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.81</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2792,7 +2792,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.80';
+    const APP_VERSION = '6.81';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -5343,6 +5343,9 @@
     function serveBadgeHtml(match) {
       const ct = match && match.coinToss;
       if (!ct || !ct.serveSide) return '';
+      if (ct.result === 'ghost-dog') {
+        return `<span class="serve-badge" title="Ghost Dog is a placeholder: its team plays solo and automatically receives the serve">🐾 Ghost Dog Team Serves</span>`;
+      }
       const who = ct.serveSide === 'a' ? 'A' : 'B';
       return `<span class="serve-badge" title="Serving team">Serve ${who}</span>`;
     }
@@ -5367,7 +5370,7 @@
             <div class="coin-face" style="width:2rem;height:2rem;font-size:0.65rem">GD</div>
             ${serveBadgeHtml(match)}
           </div>
-          <div class="mt-0.5 text-[11px] font-semibold text-indigo-700">Serve → ${escapeHtml(ghostName)} (automatic)</div>
+          <div class="mt-0.5 text-[11px] font-semibold text-indigo-700">Automatic serve awarded to Ghost Dog’s team</div>
         </div>`;
       }
       const face = ct.result === 'tails' ? 'T' : 'H';
