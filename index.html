@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.82 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.83 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.82 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.83 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1885,7 +1885,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.82</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.83</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2792,7 +2792,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.82';
+    const APP_VERSION = '6.83';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -11614,11 +11614,50 @@ function flipRankingMatchCoin(roundNum, matchId) {
         { key:'Teamwork', icon:'🤝', score: partnerPlayed >= 2 ? Math.round(Math.min(100, (partnerRows.reduce((n,x)=>n+(x.wins||0),0) / Math.max(1,partnerPlayed))*100)) : null, detail: partnerPlayed >= 2 ? `${uniquePartners} partner${uniquePartners===1?'':'s'} · ${partnerPlayed} partner-match records` : 'Needs more doubles history' },
         { key:'Adaptability', icon:'🔄', score: played >= 3 ? Math.round(Math.min(100, (Math.min(events,6)/6)*60 + (Math.min(uniquePartners,5)/5)*40)) : null, detail: played >= 3 ? `${events} events · ${uniquePartners} distinct partners` : `Need 3+ matches · ${played} recorded` }
       ];
-      const valid = traits.filter(t => t.score != null);
-      const leader = valid.slice().sort((a,b)=>b.score-a.score)[0] || null;
+      const valid = traits.filter(t => t.score != null).sort((a,b)=>b.score-a.score);
+      const leader = valid[0] || null;
+      const runnerUp = valid[1] || null;
       const overall = valid.length ? Math.round(valid.reduce((n,t)=>n+t.score,0)/valid.length) : null;
-      const identity = !played ? 'DNA Building' : played < 5 ? 'Rookie Blueprint' : leader && leader.key === 'Clutch' && leader.score >= 65 ? 'Clutch Performer' : leader && leader.key === 'Offense' && leader.score >= 65 ? 'Attack Engine' : leader && leader.key === 'Defense' && leader.score >= 65 ? 'Defensive Wall' : leader && leader.key === 'Teamwork' && leader.score >= 65 ? 'Doubles Catalyst' : 'All-Around Competitor';
-      return { traits, overall, identity, played, wins, losses: played-wins, recentWR: Math.round(recentWR*100), careerWR: Math.round(careerWR*100), avgFor, avgAgainst, closeCount: close.length, events, uniquePartners, leader };
+      // Archetypes describe the strongest observed pattern, with sample-size safeguards.
+      // The copy deliberately uses the player's own recorded numbers, not generic praise.
+      let identity = 'DNA Building';
+      let identityDescription = 'Complete a few matches and your profile will start to reveal patterns from your own results.';
+      if (played > 0 && played < 5) {
+        identity = 'Early Pattern';
+        identityDescription = `This is an early read from ${played} completed match${played===1?'':'es'}. Keep playing before treating any strength as a reliable trend.`;
+      } else if (played >= 5 && valid.length) {
+        const gap = leader && runnerUp ? leader.score - runnerUp.score : 0;
+        const closeWR = close.length ? Math.round(closeWins / close.length * 100) : null;
+        if (leader.key === 'Offense' && leader.score >= 65 && avgFor >= 3.5) {
+          identity = avgFor >= 4.2 ? 'Goal-Pressure Driver' : 'Attacking Initiator';
+          identityDescription = `Scores ${avgFor.toFixed(2)} goals per match, making scoring output the clearest measured strength${gap >= 12 ? ' in this profile' : ', though the top traits are fairly close'}.`;
+        } else if (leader.key === 'Defense' && leader.score >= 65 && avgAgainst <= 2.0) {
+          identity = avgAgainst <= 1.5 ? 'Low-Concession Keeper' : 'Defensive Stabilizer';
+          identityDescription = `Allows ${avgAgainst.toFixed(2)} goals per match across ${played} matches. That is the strongest signal in the recorded profile, not a measure of defense in isolation.`;
+        } else if (leader.key === 'Clutch' && leader.score >= 60 && close.length >= 3) {
+          identity = closeWR >= 70 ? 'Tight-Game Finisher' : 'Close-Match Regular';
+          identityDescription = `Won ${closeWins} of ${close.length} matches decided by one goal or less (${closeWR}%); useful evidence from close scores, with a modest sample.`;
+        } else if (leader.key === 'Teamwork' && leader.score >= 60 && partnerPlayed >= 2) {
+          identity = uniquePartners >= 4 ? 'Flexible Doubles Link' : 'Partner Chemistry Builder';
+          identityDescription = `Doubles history covers ${uniquePartners} distinct partner${uniquePartners===1?'':'s'} and ${partnerPlayed} partner-match records. This reflects recorded team results, not proof that one player caused them.`;
+        } else if (leader.key === 'Consistency' && leader.score >= 60) {
+          identity = recentWR > careerWR + 10 ? 'Recent Form Riser' : recentWR + 10 < careerWR ? 'Form-Seeking Veteran' : 'Steady-Form Competitor';
+          identityDescription = `Last 10 (or fewer) matches: ${recentWR}% wins versus ${careerWR}% career win rate. The label reflects how recent results compare with the longer record.`;
+        } else if (leader.key === 'Adaptability' && leader.score >= 60) {
+          identity = uniquePartners >= 4 && events >= 3 ? 'Multi-Partner Operator' : 'Format Explorer';
+          identityDescription = `Has appeared across ${events} event${events===1?'':'s'} with ${uniquePartners} distinct partner${uniquePartners===1?'':'s'}, suggesting variety in recorded event/partner experience.`;
+        } else if (valid.length >= 3 && valid[0].score - valid[2].score <= 12) {
+          identity = 'Balanced Toolkit';
+          identityDescription = `Top measured traits sit within ${valid[0].score-valid[2].score} points of each other. No single available metric dominates this profile.`;
+        } else if (leader && leader.score < 55) {
+          identity = 'Developing Profile';
+          identityDescription = `No measured trait has reached 55/100 yet. The current record points to opportunities to build consistency across several areas, rather than one clear signature strength.`;
+        } else {
+          identity = runnerUp && leader && leader.score-runnerUp.score <= 5 ? `${leader.key} + ${runnerUp.key} Blend` : `${leader ? leader.key : 'Emerging'} Profile`;
+          identityDescription = leader ? `${leader.key} is currently the highest available signal at ${leader.score}/100${runnerUp ? `, with ${runnerUp.key} at ${runnerUp.score}/100` : ''}. These are descriptive indicators based on recorded results, not scouting grades.` : 'More completed match data is needed to identify a meaningful pattern.';
+        }
+      }
+      return { traits, overall, identity, identityDescription, played, wins, losses: played-wins, recentWR: Math.round(recentWR*100), careerWR: Math.round(careerWR*100), avgFor, avgAgainst, closeCount: close.length, events, uniquePartners, leader };
     }
 
     function buildPlayerDNARadar(traits) {
@@ -11811,7 +11850,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
         <div class="profile-tabs" role="tablist" aria-label="Profile sections">
           ${['recent','season','career','story','dna'].map(k => {
-            const label = k.charAt(0).toUpperCase() + k.slice(1);
+            const label = k === 'dna' ? 'DNA' : k.charAt(0).toUpperCase() + k.slice(1);
             return `<button type="button" role="tab" class="profile-tab${tab === k ? ' active' : ''}" data-profile-tab="${k}" onclick="setPlayerProfileTab('${k}')">${label}</button>`;
           }).join('')}
         </div>
@@ -11901,13 +11940,13 @@ function flipRankingMatchCoin(roundNum, matchId) {
           <div class="rounded-2xl overflow-hidden border border-cyan-400/30 text-slate-100" style="background:radial-gradient(ellipse at top right,rgba(8,145,178,.22),transparent 45%),linear-gradient(145deg,#071426,#0b1d36 60%,#071426);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)">
             <div class="p-4 sm:p-5">
               <div class="flex items-start justify-between gap-3 mb-4">
-                <div><div class="text-[10px] uppercase tracking-[.22em] text-cyan-300 font-bold">LCFC · PLAYER INTELLIGENCE</div><h4 class="text-xl sm:text-2xl font-black tracking-tight mt-1">PLAYER DNA <span class="text-cyan-300">//</span></h4><p class="text-xs text-slate-400 mt-1">A match-data fingerprint, updated from completed results</p></div>
+                <div><div class="text-[10px] uppercase tracking-[.22em] text-cyan-300 font-bold">LCFC · PLAYER INTELLIGENCE</div><h4 class="text-xl sm:text-2xl font-black tracking-tight mt-1">DNA <span class="text-cyan-300">//</span></h4><p class="text-xs text-slate-400 mt-1">A match-data fingerprint, updated from completed results</p></div>
                 <div class="rounded-xl border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-right shrink-0"><div class="text-[9px] uppercase tracking-wider text-cyan-200">DNA Index</div><div class="text-2xl font-black text-cyan-300 tabular-nums">${dna.overall == null ? '—' : dna.overall}<span class="text-xs text-slate-400"> /100</span></div></div>
               </div>
               <div class="grid md:grid-cols-2 gap-3 items-center">
                 <div class="rounded-xl border border-white/10 bg-slate-950/40 p-2">${dnaRadar}<div class="text-center text-[10px] text-slate-500">Unrated traits are omitted until enough matches exist</div></div>
                 <div class="space-y-2">
-                  <div class="rounded-xl border border-cyan-300/25 bg-cyan-300/10 p-3"><div class="text-[10px] uppercase tracking-widest text-cyan-200">Current archetype</div><div class="text-lg font-extrabold mt-1">${dna.identity}</div><div class="text-xs text-slate-400 mt-1">${dna.played ? `Built from ${dna.played} completed matches` : 'Play scored matches to begin building your profile'}</div></div>
+                  <div class="rounded-xl border border-cyan-300/25 bg-cyan-300/10 p-3"><div class="text-[10px] uppercase tracking-widest text-cyan-200">Current archetype</div><div class="text-lg font-extrabold mt-1">${escapeHtml(dna.identity)}</div><div class="text-xs text-slate-300 mt-1">${escapeHtml(dna.identityDescription)}</div><div class="text-[10px] text-slate-500 mt-2">${dna.played ? `Based on ${dna.played} completed matches · descriptive, not predictive` : 'Play scored matches to begin building your profile'}</div></div>
                   <div class="grid grid-cols-2 gap-2">
                     <div class="rounded-xl border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Career win rate</div><div class="text-xl font-bold text-emerald-300">${dna.played ? dna.careerWR+'%' : '—'}</div></div>
                     <div class="rounded-xl border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Last 10 form</div><div class="text-xl font-bold text-cyan-300">${hist.length ? dna.recentWR+'%' : '—'}</div></div>
