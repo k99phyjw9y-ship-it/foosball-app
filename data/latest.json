@@ -1,7 +1,7 @@
 {
   "app": "LCFC Manager",
   "version": "6.79",
-  "exportedAt": "2026-10-22T01:59:54.785Z",
+  "exportedAt": "2026-10-22T14:15:58.805Z",
   "type": "full",
   "players": [
     {
@@ -228,21 +228,12 @@
       "rankingDelta": 57,
       "region": "NY",
       "homeState": "NY"
-    },
-    {
-      "id": "mvipm9u2p3cm7r",
-      "name": "Ghostdoq",
-      "skill": 3,
-      "rankingPoints": 2000,
-      "rankingDelta": 0,
-      "region": "",
-      "homeState": ""
     }
   ],
   "tournaments": [
     {
       "id": "mvilbllifnhya1",
-      "name": "Monster",
+      "name": "10/21/26",
       "type": "monster",
       "format": "swiss",
       "raceTo": 5,
