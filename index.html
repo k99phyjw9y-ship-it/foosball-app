@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.79 | 2026-10-21 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.80 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.79 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.80 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1885,7 +1885,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.79</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.80</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2792,7 +2792,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.79';
+    const APP_VERSION = '6.80';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -5280,9 +5280,34 @@
       return `<span class="text-amber-800 font-semibold">H</span> ${escapeHtml(headsName)} · <span class="text-slate-600 font-semibold">T</span> ${escapeHtml(tailsName)}`;
     }
 
+    function isGhostDogEntity(ent) {
+      if (!ent) return false;
+      if (String(ent.name || '').trim().toLowerCase() === 'ghost dog') return true;
+      const ids = Array.isArray(ent.playerIds) ? ent.playerIds : (ent.id && state.players.some(p => p.id === ent.id) ? [ent.id] : []);
+      return ids.some(id => {
+        const player = state.players.find(p => p.id === id);
+        return player && String(player.name || '').trim().toLowerCase() === 'ghost dog';
+      });
+    }
+
+    function ghostDogServeSide(match) {
+      const a = match?.entityA || match?.a?.entity;
+      const b = match?.entityB || match?.b?.entity;
+      if (isGhostDogEntity(a)) return 'a';
+      if (isGhostDogEntity(b)) return 'b';
+      return null;
+    }
+
     function flipCoinToss(match) {
       const ct = ensureCoinToss(match);
       if (!ct) return null;
+      const ghostSide = ghostDogServeSide(match);
+      if (ghostSide) {
+        ct.result = 'ghost-dog';
+        ct.serveSide = ghostSide;
+        ct.flippedAt = Date.now();
+        return ct;
+      }
       const result = Math.random() < 0.5 ? 'heads' : 'tails';
       ct.result = result;
       ct.serveSide = result === 'heads' ? ct.headsSide : (ct.headsSide === 'a' ? 'b' : 'a');
@@ -5300,6 +5325,13 @@
       const b = match.entityB || match.b?.entity;
       if (!a || !b) return;
       ensureCoinToss(match);
+      const ghostSide = ghostDogServeSide(match);
+      if (ghostSide) {
+        match.coinToss.result = 'ghost-dog';
+        match.coinToss.serveSide = ghostSide;
+        match.coinToss.flippedAt = match.coinToss.flippedAt || Date.now();
+        return;
+      }
       if (match.coinToss && match.coinToss.serveSide) return;
       flipCoinToss(match);
     }
@@ -5324,6 +5356,20 @@
       }
       ensureCoinToss(match);
       const ct = match.coinToss;
+      const ghostSide = ghostDogServeSide(match);
+      if (ghostSide) {
+        ct.result = 'ghost-dog';
+        ct.serveSide = ghostSide;
+        const ghostName = coinSideLabel(match, ghostSide, isBracket);
+        return `<div class="coin-toss-wrap w-full mt-2 pt-2 border-t border-slate-100">
+          <div class="text-[10px] font-semibold text-emerald-700">🐾 Ghost Dog rule</div>
+          <div class="flex items-center justify-center gap-2 mt-1 flex-wrap">
+            <div class="coin-face" style="width:2rem;height:2rem;font-size:0.65rem">GD</div>
+            ${serveBadgeHtml(match)}
+          </div>
+          <div class="mt-0.5 text-[11px] font-semibold text-indigo-700">Serve → ${escapeHtml(ghostName)} (automatic)</div>
+        </div>`;
+      }
       const face = ct.result === 'tails' ? 'T' : 'H';
       const faceClass = ct.result === 'tails' ? 'coin-face tails' : 'coin-face';
       const resultLine = ct.serveSide
