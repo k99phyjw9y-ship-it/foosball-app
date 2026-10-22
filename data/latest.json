@@ -1,15 +1,15 @@
 {
   "app": "LCFC Manager",
-  "version": "6.46",
-  "exportedAt": "2026-10-15T02:00:19.767Z",
+  "version": "6.79",
+  "exportedAt": "2026-10-22T01:59:54.785Z",
   "type": "full",
   "players": [
     {
       "id": "mt0nwn4xmpohds",
       "name": "Mark Drollette",
       "skill": 3,
-      "rankingPoints": 2152,
-      "rankingDelta": 152,
+      "rankingPoints": 2257,
+      "rankingDelta": 257,
       "region": "NY",
       "homeState": "NY"
     },
@@ -35,8 +35,8 @@
       "id": "mt0nxay02r25zq",
       "name": "Travis Watts",
       "skill": 3,
-      "rankingPoints": 2277,
-      "rankingDelta": 277,
+      "rankingPoints": 2326,
+      "rankingDelta": 326,
       "region": "NY",
       "homeState": "NY"
     },
@@ -53,8 +53,8 @@
       "id": "mt0nxqh1l4i29f",
       "name": "Kayden Dupee",
       "skill": 3,
-      "rankingPoints": 2397,
-      "rankingDelta": 397,
+      "rankingPoints": 2403,
+      "rankingDelta": 403,
       "region": "NY",
       "homeState": "NY"
     },
@@ -71,8 +71,8 @@
       "id": "mt0ny0jxioo10e",
       "name": "John Friedrich",
       "skill": 3,
-      "rankingPoints": 2557,
-      "rankingDelta": 557,
+      "rankingPoints": 2638,
+      "rankingDelta": 638,
       "region": "NY",
       "homeState": "NY"
     },
@@ -152,8 +152,8 @@
       "id": "mtuomtl3wnieej",
       "name": "Dennis Carman",
       "skill": 3,
-      "rankingPoints": 2154,
-      "rankingDelta": 154,
+      "rankingPoints": 2168,
+      "rankingDelta": 168,
       "region": "VT",
       "homeState": "VT"
     },
@@ -201,9 +201,2782 @@
       "rankingDelta": 0,
       "region": "NY",
       "homeState": "NY"
+    },
+    {
+      "id": "mvijllxg0577wq",
+      "name": "Jacob Martin",
+      "skill": 3,
+      "rankingPoints": 2000,
+      "rankingDelta": 0,
+      "region": "NY",
+      "homeState": "NY"
+    },
+    {
+      "id": "mvijnk0tqe78nr",
+      "name": "Gabe Sisco",
+      "skill": 3,
+      "rankingPoints": 2000,
+      "rankingDelta": 0,
+      "region": "NY",
+      "homeState": "NY"
+    },
+    {
+      "id": "mvimiet5y6gnxp",
+      "name": "Loren Gosselin",
+      "skill": 3,
+      "rankingPoints": 2057,
+      "rankingDelta": 57,
+      "region": "NY",
+      "homeState": "NY"
+    },
+    {
+      "id": "mvipm9u2p3cm7r",
+      "name": "Ghostdoq",
+      "skill": 3,
+      "rankingPoints": 2000,
+      "rankingDelta": 0,
+      "region": "",
+      "homeState": ""
     }
   ],
   "tournaments": [
+    {
+      "id": "mvilbllifnhya1",
+      "name": "Monster",
+      "type": "monster",
+      "format": "swiss",
+      "raceTo": 5,
+      "bestOf": 1,
+      "tables": 2,
+      "drawStyle": "random",
+      "monsterPositions": false,
+      "colorBand": "spec-ec-monster",
+      "playerIds": [
+        "mt0nwn4xmpohds",
+        "mt0nxay02r25zq",
+        "mvimiet5y6gnxp",
+        "mt0nx3tat1qdas",
+        "mtuomtl3wnieej",
+        "mt0nxqh1l4i29f",
+        "mt0oabvkv4ftoq",
+        "mt0qmkfrn6n3xe",
+        "mt0ny0jxioo10e"
+      ],
+      "absentIds": [
+        "mt0oabvkv4ftoq",
+        "mt0qmkfrn6n3xe",
+        "mt0nx3tat1qdas"
+      ],
+      "teams": [
+        {
+          "id": "mvitkc2swuw4gl",
+          "playerIds": [
+            "mvimiet5y6gnxp",
+            "mt0nxay02r25zq"
+          ],
+          "name": "Loren Gosselin + Travis Watts"
+        },
+        {
+          "id": "mvitkc2sm7r9pv",
+          "playerIds": [
+            "mt0nxqh1l4i29f",
+            "mtuomtl3wnieej"
+          ],
+          "name": "Kayden Dupee + Dennis Carman"
+        },
+        {
+          "id": "mvitkc2sjlzznt",
+          "playerIds": [
+            "mt0nwn4xmpohds",
+            "mt0ny0jxioo10e"
+          ],
+          "name": "Mark Drollette + John Friedrich"
+        }
+      ],
+      "rounds": [
+        {
+          "number": 1,
+          "matches": [
+            {
+              "id": "mvinc47umaub1u",
+              "entityA": {
+                "id": "mvinc477wtvwp4",
+                "name": "Dennis Carman + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvinc4770z3jtl",
+                "name": "Loren Gosselin + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1792619450203
+              },
+              "timerStartAt": 1792619480203,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792619898517
+            }
+          ],
+          "sitOutIds": [
+            "mt0nx3tat1qdas",
+            "mt0nwn4xmpohds"
+          ],
+          "teams": [
+            {
+              "id": "mvinc4770z3jtl",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Loren Gosselin + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mvinc477wtvwp4",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Dennis Carman + Kayden Dupee",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "matches": [
+            {
+              "id": "mvinls3bg3c31o",
+              "entityA": {
+                "id": "mvinls16bua7bv",
+                "name": "Kayden Dupee + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvinls17ji4ymo",
+                "name": "Dennis Carman + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1792619901047
+              },
+              "timerStartAt": 1792619931047,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792620273768
+            }
+          ],
+          "sitOutIds": [
+            "mt0nxay02r25zq",
+            "mvimiet5y6gnxp"
+          ],
+          "teams": [
+            {
+              "id": "mvinls16bua7bv",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Kayden Dupee + Alan Faezelle",
+              "positions": null
+            },
+            {
+              "id": "mvinls17ji4ymo",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Dennis Carman + Mark Drollette",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "matches": [
+            {
+              "id": "mvintwcyfrboo8",
+              "entityA": {
+                "id": "mvintwc65y2zi9",
+                "name": "Loren Gosselin + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvintwc6j3b4du",
+                "name": "Travis Watts + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1792620279826
+              },
+              "timerStartAt": 1792620309826,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792620898898
+            }
+          ],
+          "sitOutIds": [
+            "mtuomtl3wnieej",
+            "mt0nxqh1l4i29f"
+          ],
+          "teams": [
+            {
+              "id": "mvintwc65y2zi9",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Loren Gosselin + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mvintwc6j3b4du",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Travis Watts + Alan Faezelle",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "matches": [
+            {
+              "id": "mvio7767jf2jhx",
+              "entityA": {
+                "id": "mvio775cgdz1v9",
+                "name": "Dennis Carman + Loren Gosselin",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mvimiet5y6gnxp"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvio775cvhfen0",
+                "name": "Travis Watts + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792620900368
+              },
+              "timerStartAt": 1792620930368,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792621410249
+            }
+          ],
+          "sitOutIds": [
+            "mt0nx3tat1qdas",
+            "mt0nwn4xmpohds"
+          ],
+          "teams": [
+            {
+              "id": "mvio775cgdz1v9",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mvimiet5y6gnxp"
+              ],
+              "name": "Dennis Carman + Loren Gosselin",
+              "positions": null
+            },
+            {
+              "id": "mvio775cvhfen0",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Travis Watts + Kayden Dupee",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "matches": [
+            {
+              "id": "mvioi5x88dikb9",
+              "entityA": {
+                "id": "mvioi5wl9fyo6o",
+                "name": "Dennis Carman + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvioi5wl4nvuco",
+                "name": "Kayden Dupee + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "scoreA": 1,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1792621411965
+              },
+              "timerStartAt": 1792621441965,
+              "games": [
+                {
+                  "scoreA": 1,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792621689247
+            }
+          ],
+          "sitOutIds": [
+            "mt0nxay02r25zq",
+            "mvimiet5y6gnxp"
+          ],
+          "teams": [
+            {
+              "id": "mvioi5wl4nvuco",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Kayden Dupee + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mvioi5wl9fyo6o",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Dennis Carman + Alan Faezelle",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 6,
+          "matches": [
+            {
+              "id": "mvioo4s8ehy6on",
+              "entityA": {
+                "id": "mvioo4rmx3ul40",
+                "name": "Travis Watts + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvioo4rm1dyzhj",
+                "name": "Loren Gosselin + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "scoreA": 1,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1792621690424
+              },
+              "timerStartAt": 1792621720424,
+              "games": [
+                {
+                  "scoreA": 1,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792622025994
+            }
+          ],
+          "sitOutIds": [
+            "mtuomtl3wnieej",
+            "mt0nxqh1l4i29f"
+          ],
+          "teams": [
+            {
+              "id": "mvioo4rm1dyzhj",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Loren Gosselin + Alan Faezelle",
+              "positions": null
+            },
+            {
+              "id": "mvioo4rmx3ul40",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Travis Watts + Mark Drollette",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 7,
+          "matches": [
+            {
+              "id": "mviovd8ut5yp1t",
+              "entityA": {
+                "id": "mviovd8b18ew76",
+                "name": "Loren Gosselin + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mviovd8bvd6mif",
+                "name": "Dennis Carman + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 0,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1792622027982
+              },
+              "timerStartAt": 1792622057982,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 0
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792622402203
+            }
+          ],
+          "sitOutIds": [
+            "mt0nx3tat1qdas",
+            "mt0nwn4xmpohds"
+          ],
+          "teams": [
+            {
+              "id": "mviovd8b18ew76",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Loren Gosselin + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mviovd8bvd6mif",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Dennis Carman + Travis Watts",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 8,
+          "matches": [
+            {
+              "id": "mvip3gcubg4h4w",
+              "entityA": {
+                "id": "mvip3gblxlwefh",
+                "name": "Kayden Dupee + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvip3gblenlo6j",
+                "name": "Mark Drollette + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792622405262
+              },
+              "timerStartAt": 1792622435262,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792622719834
+            }
+          ],
+          "sitOutIds": [
+            "mt0nxay02r25zq",
+            "mvimiet5y6gnxp",
+            "mtuomtl3wnieej"
+          ],
+          "teams": [
+            {
+              "id": "mvip3gblxlwefh",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Kayden Dupee + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mvip3gblenlo6j",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Mark Drollette + Alan Faezelle",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 9,
+          "matches": [
+            {
+              "id": "mvipa8v7joem2i",
+              "entityA": {
+                "id": "mvipa8tsh36xmf",
+                "name": "Loren Gosselin + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvipa8ts00c66m",
+                "name": "Travis Watts + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1792622722150
+              },
+              "timerStartAt": 1792622752150,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792623179079
+            }
+          ],
+          "sitOutIds": [
+            "mt0oabvkv4ftoq",
+            "mt0nxqh1l4i29f",
+            "mt0nx3tat1qdas"
+          ],
+          "teams": [
+            {
+              "id": "mvipa8tsh36xmf",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Loren Gosselin + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mvipa8ts00c66m",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Travis Watts + Dennis Carman",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 10,
+          "matches": [
+            {
+              "id": "mvipnzwt6gwly4",
+              "entityA": {
+                "id": "mvipnzvwgqv045",
+                "name": "Loren Gosselin + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvipnzvwosn45a",
+                "name": "Kayden Dupee + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792623363726
+              },
+              "timerStartAt": 1792623393726,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792623909465
+            },
+            {
+              "id": "mvipnzwuspg8fo",
+              "entityA": {
+                "id": "mvipnzvwru99fd",
+                "name": "Dennis Carman + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvipnzvwtxf5eg",
+                "name": "Travis Watts + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792623363726
+              },
+              "timerStartAt": 1792623393726,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792623732052
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mvipnzvwosn45a",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Kayden Dupee + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mvipnzvwgqv045",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Loren Gosselin + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mvipnzvwru99fd",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Dennis Carman + Alan Faezelle",
+              "positions": null
+            },
+            {
+              "id": "mvipnzvwtxf5eg",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Travis Watts + Mark Drollette",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 11,
+          "matches": [
+            {
+              "id": "mvipzpzqhk53yx",
+              "entityA": {
+                "id": "mvipzpxr7nd0w3",
+                "name": "Dennis Carman + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvipzpxr4x3c3a",
+                "name": "Travis Watts + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1792623910742
+              },
+              "timerStartAt": 1792623940742,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792624363622
+            },
+            {
+              "id": "mvipzpzqru2zf1",
+              "entityA": {
+                "id": "mvipzpxrqp53kk",
+                "name": "Kayden Dupee + Loren Gosselin",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mvimiet5y6gnxp"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvipzpxrxro6de",
+                "name": "Alan Faezelle + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792623910742
+              },
+              "timerStartAt": 1792623940742,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792624304018
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mvipzpxrqp53kk",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mvimiet5y6gnxp"
+              ],
+              "name": "Kayden Dupee + Loren Gosselin",
+              "positions": null
+            },
+            {
+              "id": "mvipzpxr7nd0w3",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Dennis Carman + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mvipzpxr4x3c3a",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Travis Watts + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mvipzpxrxro6de",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Alan Faezelle + Mark Drollette",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 12,
+          "matches": [
+            {
+              "id": "mviq9hrd5buq69",
+              "entityA": {
+                "id": "mviq9hqno8fsvm",
+                "name": "Loren Gosselin + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mviq9hqny549ds",
+                "name": "Mark Drollette + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1792624366636
+              },
+              "timerStartAt": 1792624396636,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792624757481
+            },
+            {
+              "id": "mviq9hrfse4tlr",
+              "entityA": {
+                "id": "mviq9hqnkuffza",
+                "name": "Kayden Dupee + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mviq9hqnwcfdc0",
+                "name": "Travis Watts + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "scoreA": 0,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1792624366636
+              },
+              "timerStartAt": 1792624396636,
+              "games": [
+                {
+                  "scoreA": 0,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792624855492
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mviq9hqnkuffza",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Kayden Dupee + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mviq9hqno8fsvm",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Loren Gosselin + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mviq9hqnwcfdc0",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Travis Watts + Alan Faezelle",
+              "positions": null
+            },
+            {
+              "id": "mviq9hqny549ds",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Mark Drollette + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 13,
+          "matches": [
+            {
+              "id": "mviqk0zjxgplx6",
+              "entityA": {
+                "id": "mviqk0ya44t18k",
+                "name": "Mark Drollette + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mviqk0yasbphby",
+                "name": "Travis Watts + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792624858111
+              },
+              "timerStartAt": 1792624888111,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792625160374
+            },
+            {
+              "id": "mviqk0zjinjtaw",
+              "entityA": {
+                "id": "mviqk0yacxtu5q",
+                "name": "Alan Faezelle + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mviqk0ya96ozyw",
+                "name": "Kayden Dupee + Loren Gosselin",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mvimiet5y6gnxp"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1792624858111
+              },
+              "timerStartAt": 1792624888111,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792625407075
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mviqk0ya96ozyw",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mvimiet5y6gnxp"
+              ],
+              "name": "Kayden Dupee + Loren Gosselin",
+              "positions": null
+            },
+            {
+              "id": "mviqk0yasbphby",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Travis Watts + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mviqk0ya44t18k",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Mark Drollette + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mviqk0yacxtu5q",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Alan Faezelle + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 14,
+          "matches": [
+            {
+              "id": "mviqvvpx3fe7np",
+              "entityA": {
+                "id": "mviqvvorwmbz4l",
+                "name": "Kayden Dupee + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mviqvvorfvcsw2",
+                "name": "Mark Drollette + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792625411157
+              },
+              "timerStartAt": 1792625441157,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792625709405
+            },
+            {
+              "id": "mviqvvpx4w2dl7",
+              "entityA": {
+                "id": "mviqvvor4z7ftv",
+                "name": "Dennis Carman + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mviqvvor3cpgot",
+                "name": "Loren Gosselin + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 0,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792625411157
+              },
+              "timerStartAt": 1792625441157,
+              "games": [
+                {
+                  "scoreA": 0,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792625853183
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mviqvvor3cpgot",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Loren Gosselin + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mviqvvorwmbz4l",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Kayden Dupee + Alan Faezelle",
+              "positions": null
+            },
+            {
+              "id": "mviqvvorfvcsw2",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Mark Drollette + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mviqvvor4z7ftv",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Dennis Carman + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 15,
+          "matches": [
+            {
+              "id": "mvir5ecgq4d6ux",
+              "entityA": {
+                "id": "mvir5ebkv0c4p2",
+                "name": "Alan Faezelle + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvir5ebkocyuee",
+                "name": "Loren Gosselin + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "scoreA": 1,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1792625855201
+              },
+              "timerStartAt": 1792625885201,
+              "games": [
+                {
+                  "scoreA": 1,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792626494653
+            },
+            {
+              "id": "mvir5ecgnmfgjr",
+              "entityA": {
+                "id": "mvir5ebkv8osmo",
+                "name": "Mark Drollette + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvir5ebfh93xbr",
+                "name": "Travis Watts + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 0,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1792625855201
+              },
+              "timerStartAt": 1792625885201,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 0
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792626137185
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mvir5ebfh93xbr",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Travis Watts + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mvir5ebkocyuee",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Loren Gosselin + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mvir5ebkv8osmo",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Mark Drollette + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mvir5ebkv0c4p2",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Alan Faezelle + Ghost Dog",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 16,
+          "matches": [
+            {
+              "id": "mvirja6vyqaqc3",
+              "entityA": {
+                "id": "mvirja5wptsyhu",
+                "name": "Dennis Carman + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvirja5w4izits",
+                "name": "Ghost Dog + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0qmkfrn6n3xe",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "scoreA": 1,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792626502999
+              },
+              "timerStartAt": 1792626532999,
+              "games": [
+                {
+                  "scoreA": 1,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792626826268
+            },
+            {
+              "id": "mvirja6v6gv2h0",
+              "entityA": {
+                "id": "mvirja5vwb7y5p",
+                "name": "Kayden Dupee + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvirja5whh16ij",
+                "name": "Loren Gosselin + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1792626502999
+              },
+              "timerStartAt": 1792626532999,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792627077441
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mvirja5vwb7y5p",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Kayden Dupee + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mvirja5whh16ij",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Loren Gosselin + Alan Faezelle",
+              "positions": null
+            },
+            {
+              "id": "mvirja5wptsyhu",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Dennis Carman + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mvirja5w4izits",
+              "playerIds": [
+                "mt0qmkfrn6n3xe",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Ghost Dog + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 17,
+          "matches": [
+            {
+              "id": "mvirvw7pztd2vw",
+              "entityA": {
+                "id": "mvirvw6j0wkdd8",
+                "name": "John Fairchild + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvirvw6jdl2jn6",
+                "name": "Alan Faezelle + Loren Gosselin",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mvimiet5y6gnxp"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792627091414
+              },
+              "timerStartAt": 1792627121414,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792628123059
+            },
+            {
+              "id": "mvirvw7pm99s1k",
+              "entityA": {
+                "id": "mvirvw6jp1ex2g",
+                "name": "Dennis Carman + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvirvw6jxkmsfy",
+                "name": "Kayden Dupee + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "scoreA": 1,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792627091414
+              },
+              "timerStartAt": 1792627121414,
+              "games": [
+                {
+                  "scoreA": 1,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792627614085
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mvirvw6j0wkdd8",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0nxay02r25zq"
+              ],
+              "name": "John Fairchild + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mvirvw6jp1ex2g",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Dennis Carman + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mvirvw6jdl2jn6",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mvimiet5y6gnxp"
+              ],
+              "name": "Alan Faezelle + Loren Gosselin",
+              "positions": null
+            },
+            {
+              "id": "mvirvw6jxkmsfy",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Kayden Dupee + Mark Drollette",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 18,
+          "matches": [
+            {
+              "id": "mvisjosttiww1r",
+              "entityA": {
+                "id": "mvisjorzybva3j",
+                "name": "Travis Watts + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvisjory3z9lap",
+                "name": "Loren Gosselin + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 1,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792628201550
+              },
+              "timerStartAt": 1792628231550,
+              "games": [
+                {
+                  "scoreA": 1,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792628664723
+            },
+            {
+              "id": "mvisjostv2bxwd",
+              "entityA": {
+                "id": "mvisjorzvwk7k7",
+                "name": "Mark Drollette + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvisjorzt5fqzh",
+                "name": "John Fairchild + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1792628201550
+              },
+              "timerStartAt": 1792628231550,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792628677064
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mvisjory3z9lap",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Loren Gosselin + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mvisjorzvwk7k7",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Mark Drollette + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mvisjorzt5fqzh",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "John Fairchild + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mvisjorzybva3j",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Travis Watts + Alan Faezelle",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 19,
+          "matches": [
+            {
+              "id": "mvisty733ay8et",
+              "entityA": {
+                "id": "mvisty64z9pt1o",
+                "name": "Loren Gosselin + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mvimiet5y6gnxp",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvisty64r5ib3a",
+                "name": "Travis Watts + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 1,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1792628680287
+              },
+              "timerStartAt": 1792628710287,
+              "games": [
+                {
+                  "scoreA": 1,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792628916627
+            },
+            {
+              "id": "mvisty735bot9e",
+              "entityA": {
+                "id": "mvisty64b3s9o5",
+                "name": "Mark Drollette + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvisty64q3mmef",
+                "name": "Kayden Dupee + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1792628680287
+              },
+              "timerStartAt": 1792628710287,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792629229001
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mvisty64z9pt1o",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Loren Gosselin + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mvisty64r5ib3a",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Travis Watts + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mvisty64b3s9o5",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Mark Drollette + Alan Faezelle",
+              "positions": null
+            },
+            {
+              "id": "mvisty64q3mmef",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Kayden Dupee + Dennis Carman",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 20,
+          "matches": [
+            {
+              "id": "mvit69osmrabcw",
+              "entityA": {
+                "id": "mvit69nt4d2cgh",
+                "name": "Dennis Carman + Alan Faezelle",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvit69nt8dfnnp",
+                "name": "Kayden Dupee + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1792629255052
+              },
+              "timerStartAt": 1792629285052,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "timerEndedAt": 1792629853483
+            },
+            {
+              "id": "mvit69os5r5fnw",
+              "entityA": {
+                "id": "mvit69nt958osv",
+                "name": "Travis Watts + Loren Gosselin",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mvimiet5y6gnxp"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mvit69ntqv3kdj",
+                "name": "Ghost Dog + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0qmkfrn6n3xe",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1792629255052
+              },
+              "timerStartAt": 1792629285052,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "timerEndedAt": 1792629726158
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mvit69nt958osv",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mvimiet5y6gnxp"
+              ],
+              "name": "Travis Watts + Loren Gosselin",
+              "positions": null
+            },
+            {
+              "id": "mvit69nt8dfnnp",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Kayden Dupee + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mvit69ntqv3kdj",
+              "playerIds": [
+                "mt0qmkfrn6n3xe",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Ghost Dog + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mvit69nt4d2cgh",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Dennis Carman + Alan Faezelle",
+              "positions": null
+            }
+          ]
+        }
+      ],
+      "currentRound": 20,
+      "playoffs": {
+        "type": "double-elim",
+        "size": 4,
+        "rounds": [
+          {
+            "number": 1,
+            "name": "Winners SF",
+            "matches": [
+              {
+                "id": "mvitkc2vi0m17f",
+                "a": {
+                  "seed": 1,
+                  "entity": {
+                    "id": "mvitkc2swuw4gl",
+                    "name": "Loren Gosselin + Travis Watts",
+                    "type": "team",
+                    "playerIds": [
+                      "mvimiet5y6gnxp",
+                      "mt0nxay02r25zq"
+                    ]
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": null,
+                  "entity": null,
+                  "score": null
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 0,
+                "scoreB": 0,
+                "bracket": "winners"
+              },
+              {
+                "id": "mvitkc2vy9vz7k",
+                "a": {
+                  "seed": 2,
+                  "entity": {
+                    "id": "mvitkc2sm7r9pv",
+                    "name": "Kayden Dupee + Dennis Carman",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxqh1l4i29f",
+                      "mtuomtl3wnieej"
+                    ]
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 3,
+                  "entity": {
+                    "id": "mvitkc2sjlzznt",
+                    "name": "Mark Drollette + John Friedrich",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nwn4xmpohds",
+                      "mt0ny0jxioo10e"
+                    ]
+                  },
+                  "score": null
+                },
+                "winner": null,
+                "loser": null,
+                "scoreA": null,
+                "scoreB": null,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "b",
+                  "result": "tails",
+                  "serveSide": "a",
+                  "flippedAt": 1792629911336
+                },
+                "table": 1,
+                "onDeck": false,
+                "timerStartAt": 1792629941338
+              }
+            ]
+          },
+          {
+            "number": 2,
+            "name": "Winners Final",
+            "matches": [
+              {
+                "id": "mvitkc2w81a9oy",
+                "a": {
+                  "seed": 0,
+                  "entity": {
+                    "id": "mvitkc2swuw4gl",
+                    "name": "Loren Gosselin + Travis Watts",
+                    "type": "team",
+                    "playerIds": [
+                      "mvimiet5y6gnxp",
+                      "mt0nxay02r25zq"
+                    ]
+                  },
+                  "score": null,
+                  "fromMatch": "mvitkc2vi0m17f",
+                  "fromLoser": false
+                },
+                "b": {
+                  "seed": 0,
+                  "entity": null,
+                  "score": null,
+                  "fromMatch": "mvitkc2vy9vz7k",
+                  "fromLoser": false
+                },
+                "winner": null,
+                "loser": null,
+                "scoreA": null,
+                "scoreB": null,
+                "bracket": "winners"
+              }
+            ]
+          }
+        ],
+        "winnersRounds": [
+          {
+            "number": 1,
+            "name": "Winners SF",
+            "matches": [
+              {
+                "id": "mvitkc2vi0m17f",
+                "a": {
+                  "seed": 1,
+                  "entity": {
+                    "id": "mvitkc2swuw4gl",
+                    "name": "Loren Gosselin + Travis Watts",
+                    "type": "team",
+                    "playerIds": [
+                      "mvimiet5y6gnxp",
+                      "mt0nxay02r25zq"
+                    ]
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": null,
+                  "entity": null,
+                  "score": null
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 0,
+                "scoreB": 0,
+                "bracket": "winners"
+              },
+              {
+                "id": "mvitkc2vy9vz7k",
+                "a": {
+                  "seed": 2,
+                  "entity": {
+                    "id": "mvitkc2sm7r9pv",
+                    "name": "Kayden Dupee + Dennis Carman",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxqh1l4i29f",
+                      "mtuomtl3wnieej"
+                    ]
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 3,
+                  "entity": {
+                    "id": "mvitkc2sjlzznt",
+                    "name": "Mark Drollette + John Friedrich",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nwn4xmpohds",
+                      "mt0ny0jxioo10e"
+                    ]
+                  },
+                  "score": null
+                },
+                "winner": "b",
+                "loser": "a",
+                "scoreA": 0,
+                "scoreB": 2,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "b",
+                  "result": "tails",
+                  "serveSide": "a",
+                  "flippedAt": 1792629911336
+                },
+                "table": 1,
+                "timerStartAt": 1792629941338,
+                "games": [
+                  {
+                    "scoreA": 4,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 3,
+                    "scoreB": 5
+                  }
+                ],
+                "seriesA": 0,
+                "seriesB": 2,
+                "timerEndedAt": 1792631568257
+              }
+            ]
+          },
+          {
+            "number": 2,
+            "name": "Winners Final",
+            "matches": [
+              {
+                "id": "mvitkc2w81a9oy",
+                "a": {
+                  "seed": 0,
+                  "entity": {
+                    "id": "mvitkc2swuw4gl",
+                    "name": "Loren Gosselin + Travis Watts",
+                    "type": "team",
+                    "playerIds": [
+                      "mvimiet5y6gnxp",
+                      "mt0nxay02r25zq"
+                    ]
+                  },
+                  "score": null,
+                  "fromMatch": "mvitkc2vi0m17f",
+                  "fromLoser": false
+                },
+                "b": {
+                  "seed": 0,
+                  "entity": {
+                    "id": "mvitkc2sjlzznt",
+                    "name": "Mark Drollette + John Friedrich",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nwn4xmpohds",
+                      "mt0ny0jxioo10e"
+                    ]
+                  },
+                  "score": null,
+                  "fromMatch": "mvitkc2vy9vz7k",
+                  "fromLoser": false
+                },
+                "winner": "b",
+                "loser": "a",
+                "scoreA": 0,
+                "scoreB": 2,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "tails",
+                  "serveSide": "b",
+                  "flippedAt": 1792631568258
+                },
+                "table": 1,
+                "timerStartAt": 1792631598261,
+                "games": [
+                  {
+                    "scoreA": 1,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 3,
+                    "scoreB": 5
+                  }
+                ],
+                "seriesA": 0,
+                "seriesB": 2,
+                "timerEndedAt": 1792632009807
+              }
+            ]
+          }
+        ],
+        "losersRounds": [
+          {
+            "number": 1,
+            "name": "Losers R1",
+            "matches": [
+              {
+                "id": "mvitkc2w5ebndh",
+                "a": {
+                  "seed": 0,
+                  "entity": {
+                    "id": "mvitkc2sm7r9pv",
+                    "name": "Kayden Dupee + Dennis Carman",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxqh1l4i29f",
+                      "mtuomtl3wnieej"
+                    ]
+                  },
+                  "score": null,
+                  "fromMatch": "mvitkc2vy9vz7k",
+                  "fromLoser": true
+                },
+                "b": {
+                  "seed": null,
+                  "entity": null,
+                  "score": null
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 0,
+                "scoreB": 0,
+                "bracket": "losers"
+              }
+            ]
+          },
+          {
+            "number": 2,
+            "name": "Losers Final",
+            "matches": [
+              {
+                "id": "mvitkc2ws8bxjg",
+                "a": {
+                  "seed": 0,
+                  "entity": {
+                    "id": "mvitkc2sm7r9pv",
+                    "name": "Kayden Dupee + Dennis Carman",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxqh1l4i29f",
+                      "mtuomtl3wnieej"
+                    ]
+                  },
+                  "score": null,
+                  "fromMatch": "mvitkc2w5ebndh",
+                  "fromLoser": false
+                },
+                "b": {
+                  "seed": 0,
+                  "entity": {
+                    "id": "mvitkc2swuw4gl",
+                    "name": "Loren Gosselin + Travis Watts",
+                    "type": "team",
+                    "playerIds": [
+                      "mvimiet5y6gnxp",
+                      "mt0nxay02r25zq"
+                    ]
+                  },
+                  "score": null,
+                  "fromMatch": "mvitkc2w81a9oy",
+                  "fromLoser": true
+                },
+                "winner": "b",
+                "loser": "a",
+                "scoreA": 1,
+                "scoreB": 2,
+                "bracket": "losers",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "tails",
+                  "serveSide": "b",
+                  "flippedAt": 1792632009808
+                },
+                "table": 1,
+                "timerStartAt": 1792632039811,
+                "games": [
+                  {
+                    "scoreA": 3,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 4
+                  },
+                  {
+                    "scoreA": 2,
+                    "scoreB": 5
+                  }
+                ],
+                "seriesA": 1,
+                "seriesB": 2,
+                "timerEndedAt": 1792633015128
+              }
+            ]
+          }
+        ],
+        "grandFinal": {
+          "id": "mvitkc2wljoc1m",
+          "a": {
+            "seed": 0,
+            "entity": {
+              "id": "mvitkc2sjlzznt",
+              "name": "Mark Drollette + John Friedrich",
+              "type": "team",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mt0ny0jxioo10e"
+              ]
+            },
+            "score": null,
+            "fromMatch": "mvitkc2w81a9oy",
+            "fromLoser": false
+          },
+          "b": {
+            "seed": 0,
+            "entity": {
+              "id": "mvitkc2swuw4gl",
+              "name": "Loren Gosselin + Travis Watts",
+              "type": "team",
+              "playerIds": [
+                "mvimiet5y6gnxp",
+                "mt0nxay02r25zq"
+              ]
+            },
+            "score": null,
+            "fromMatch": "mvitkc2ws8bxjg",
+            "fromLoser": false
+          },
+          "winner": "a",
+          "loser": "b",
+          "scoreA": 2,
+          "scoreB": 0,
+          "bracket": "gf",
+          "isGrandFinal": true,
+          "coinToss": {
+            "headsSide": "b",
+            "result": "heads",
+            "serveSide": "b",
+            "flippedAt": 1792633015128
+          },
+          "table": 1,
+          "timerStartAt": 1792633045129,
+          "games": [
+            {
+              "scoreA": 5,
+              "scoreB": 4
+            },
+            {
+              "scoreA": 5,
+              "scoreB": 3
+            }
+          ],
+          "seriesA": 2,
+          "seriesB": 0,
+          "timerEndedAt": 1792633754676
+        },
+        "grandFinal2": {
+          "id": "mvitkc2wo38jhh",
+          "a": {
+            "entity": null,
+            "fromMatch": null,
+            "fromLoser": false
+          },
+          "b": {
+            "entity": null,
+            "fromMatch": null,
+            "fromLoser": false
+          },
+          "winner": null,
+          "loser": null,
+          "scoreA": null,
+          "scoreB": null,
+          "bracket": "gf2",
+          "isGrandFinal": true,
+          "isReset": true,
+          "void": true
+        },
+        "bronze": null,
+        "placements": {
+          "first": {
+            "id": "mvitkc2sjlzznt",
+            "name": "Mark Drollette + John Friedrich",
+            "type": "team",
+            "playerIds": [
+              "mt0nwn4xmpohds",
+              "mt0ny0jxioo10e"
+            ]
+          },
+          "second": {
+            "id": "mvitkc2swuw4gl",
+            "name": "Loren Gosselin + Travis Watts",
+            "type": "team",
+            "playerIds": [
+              "mvimiet5y6gnxp",
+              "mt0nxay02r25zq"
+            ]
+          },
+          "third": {
+            "id": "mvitkc2sm7r9pv",
+            "name": "Kayden Dupee + Dennis Carman",
+            "type": "team",
+            "playerIds": [
+              "mt0nxqh1l4i29f",
+              "mtuomtl3wnieej"
+            ]
+          }
+        },
+        "gfResetRequired": false,
+        "gfResetActive": false,
+        "tieredDraw": true,
+        "tieredPairs": [
+          "#1+#4",
+          "#2+#5",
+          "#3+#6"
+        ],
+        "bestOf": 3
+      },
+      "createdAt": 1792616066838,
+      "status": "finished",
+      "sitOutQueue": [
+        "mt0nwn4xmpohds",
+        "mt0nxay02r25zq",
+        "mvimiet5y6gnxp",
+        "mtuomtl3wnieej",
+        "mt0oabvkv4ftoq",
+        "mt0nxqh1l4i29f",
+        "mt0nx3tat1qdas"
+      ],
+      "currentSitOutIds": [],
+      "playoffTeams": [
+        {
+          "id": "mvitkc2swuw4gl",
+          "playerIds": [
+            "mvimiet5y6gnxp",
+            "mt0nxay02r25zq"
+          ],
+          "name": "Loren Gosselin + Travis Watts",
+          "seed": 1,
+          "tieredFrom": {
+            "top": "mvimiet5y6gnxp",
+            "bottom": "mt0nxay02r25zq",
+            "ranks": [
+              1,
+              4
+            ]
+          }
+        },
+        {
+          "id": "mvitkc2sm7r9pv",
+          "playerIds": [
+            "mt0nxqh1l4i29f",
+            "mtuomtl3wnieej"
+          ],
+          "name": "Kayden Dupee + Dennis Carman",
+          "seed": 2,
+          "tieredFrom": {
+            "top": "mt0nxqh1l4i29f",
+            "bottom": "mtuomtl3wnieej",
+            "ranks": [
+              2,
+              5
+            ]
+          }
+        },
+        {
+          "id": "mvitkc2sjlzznt",
+          "playerIds": [
+            "mt0nwn4xmpohds",
+            "mt0ny0jxioo10e"
+          ],
+          "name": "Mark Drollette + John Friedrich",
+          "seed": 3,
+          "tieredFrom": {
+            "top": "mt0nwn4xmpohds",
+            "bottom": "mt0ny0jxioo10e",
+            "ranks": [
+              3,
+              6
+            ]
+          }
+        }
+      ],
+      "placements": {
+        "first": {
+          "id": "mvitkc2sjlzznt",
+          "name": "Mark Drollette + John Friedrich",
+          "type": "team",
+          "playerIds": [
+            "mt0nwn4xmpohds",
+            "mt0ny0jxioo10e"
+          ]
+        },
+        "second": {
+          "id": "mvitkc2swuw4gl",
+          "name": "Loren Gosselin + Travis Watts",
+          "type": "team",
+          "playerIds": [
+            "mvimiet5y6gnxp",
+            "mt0nxay02r25zq"
+          ]
+        },
+        "third": {
+          "id": "mvitkc2sm7r9pv",
+          "name": "Kayden Dupee + Dennis Carman",
+          "type": "team",
+          "playerIds": [
+            "mt0nxqh1l4i29f",
+            "mtuomtl3wnieej"
+          ]
+        }
+      },
+      "rankingApplied": true,
+      "rankingAppliedAt": 1792633754682,
+      "rankingDeltas": {
+        "mt0nwn4xmpohds": 105,
+        "mt0ny0jxioo10e": 81,
+        "mvimiet5y6gnxp": 57,
+        "mt0nxay02r25zq": 49,
+        "mt0nxqh1l4i29f": 6,
+        "mtuomtl3wnieej": 14
+      }
+    },
     {
       "id": "mv8l8vkix15g5p",
       "name": "10/14/26",
