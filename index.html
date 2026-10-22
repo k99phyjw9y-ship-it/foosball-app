@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.83 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.84 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.83 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.84 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1885,7 +1885,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.83</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.84</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2792,7 +2792,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.83';
+    const APP_VERSION = '6.84';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -11606,6 +11606,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const recent = matches.slice(-10);
       const recentWR = recent.length ? recent.filter(m => m.won).length / recent.length : 0;
       const careerWR = played ? wins / played : 0;
+      const goalDiff = matches.reduce((n,m)=>n+(Number(m.scoreFor)||0)-(Number(m.scoreAgainst)||0),0);
+      const shutoutWins = matches.filter(m=>m.won && Number(m.scoreAgainst)===0).length;
+      const heavyLosses = matches.filter(m=>!m.won && (Number(m.scoreAgainst||0)-Number(m.scoreFor||0))>=3).length;
+      const oneGoalWins = matches.filter(m=>m.won && Math.abs((Number(m.scoreFor)||0)-(Number(m.scoreAgainst)||0))===1).length;
+      const avgMargin = played ? goalDiff / played : 0;
       const traits = [
         { key:'Offense', icon:'⚡', score: played ? Math.round(Math.min(100, avgFor / 5 * 100)) : null, detail: played ? `${avgFor.toFixed(2)} goals scored per match` : 'Needs scored matches' },
         { key:'Defense', icon:'🛡️', score: played ? Math.round(Math.max(0, Math.min(100, (1 - avgAgainst / 5) * 100))) : null, detail: played ? `${avgAgainst.toFixed(2)} goals allowed per match` : 'Needs scored matches' },
@@ -11657,7 +11662,20 @@ function flipRankingMatchCoin(roundNum, matchId) {
           identityDescription = leader ? `${leader.key} is currently the highest available signal at ${leader.score}/100${runnerUp ? `, with ${runnerUp.key} at ${runnerUp.score}/100` : ''}. These are descriptive indicators based on recorded results, not scouting grades.` : 'More completed match data is needed to identify a meaningful pattern.';
         }
       }
-      return { traits, overall, identity, identityDescription, played, wins, losses: played-wins, recentWR: Math.round(recentWR*100), careerWR: Math.round(careerWR*100), avgFor, avgAgainst, closeCount: close.length, events, uniquePartners, leader };
+      const growth = !played ? {title:'No tape, no takes', text:'Get a few matches on the board first. The algorithm refuses to roast a player based on vibes alone.'}
+        : played < 5 ? {title:'Sample-size protection', text:`Only ${played} match${played===1?'':'es'} logged. Too early for a verdict. Play more before the scouting department starts talking.`}
+        : recent.length >= 5 && recentWR + .2 <= careerWR ? {title:'The sequel is underperforming', text:`Recent form is ${Math.round(recentWR*100)}% against a ${Math.round(careerWR*100)}% career rate. The highlights are currently living in the past.`}
+        : close.length >= 3 && closeWins/close.length < .4 ? {title:'Close-game panic button', text:`Only ${closeWins} of ${close.length} one-goal-or-less matches won. When the score gets spicy, the results say the seasoning is not there yet.`}
+        : heavyLosses >= 3 ? {title:'Stop the bleeding', text:`${heavyLosses} losses by 3+ goals. Tighten the scoreline first; a highlight reel cannot hide a leaky result sheet.`}
+        : avgFor < 2.5 && played >= 5 ? {title:'Goals are not going to score themselves', text:`${avgFor.toFixed(2)} goals per match. The attack needs more end product, not another motivational speech.`}
+        : avgAgainst > 3.2 && played >= 5 ? {title:'Chaos is not a defensive system', text:`Allowing ${avgAgainst.toFixed(2)} goals per match. This is a scoreline problem, not an automatic “play better defense” lecture.`}
+        : recentWR > careerWR + .2 && recent.length >= 5 ? {title:'New form, who dis?', text:`Recent win rate is ${Math.round(recentWR*100)}%, up from ${Math.round(careerWR*100)}% career. Keep it up before we call it a revolution.`}
+        : uniquePartners >= 4 && partnerPlayed >= 5 ? {title:'Social butterfly, results pending', text:`Played with ${uniquePartners} partners. Versatility is great; now make those pairings pay rent with wins.`}
+        : shutoutWins >= 3 ? {title:'Clean-sheet collector', text:`${shutoutWins} wins without conceding. Someone has occasionally remembered that the other side is allowed to score zero.`}
+        : avgMargin > 1 ? {title:'Winning with room to spare', text:`Average goal margin: +${avgMargin.toFixed(2)}. Efficient work. Try not to get smug until the next club night.`}
+        : avgMargin < -1 ? {title:'Scoreboard says: recalibrate', text:`Average goal margin: ${avgMargin.toFixed(2)}. The numbers are not being subtle. Find one thing to change next session.`}
+        : {title:'Dangerously middle-of-the-road', text:'No single weakness dominates the numbers yet. The next useful clue is a bigger sample, not a made-up flaw.'};
+      return { traits, overall, identity, identityDescription, played, wins, losses: played-wins, recentWR: Math.round(recentWR*100), careerWR: Math.round(careerWR*100), avgFor, avgAgainst, closeCount: close.length, events, uniquePartners, partnerPlayed, goalDiff, avgMargin, shutoutWins, heavyLosses, oneGoalWins, growth, leader };
     }
 
     function buildPlayerDNARadar(traits) {
@@ -11955,10 +11973,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
                   </div>
                 </div>
               </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+                <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Goal differential</div><div class="text-lg font-black ${dna.goalDiff>0?'text-emerald-300':dna.goalDiff<0?'text-rose-300':'text-slate-200'}">${dna.played?(dna.goalDiff>0?'+':'')+dna.goalDiff:'—'}</div><div class="text-[10px] text-slate-500">Career goals for − against</div></div>
+                <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Avg. margin</div><div class="text-lg font-black">${dna.played?(dna.avgMargin>0?'+':'')+dna.avgMargin.toFixed(2):'—'}</div><div class="text-[10px] text-slate-500">Per match</div></div>
+                <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Shutout wins</div><div class="text-lg font-black text-cyan-200">${dna.shutoutWins}</div><div class="text-[10px] text-slate-500">Wins allowing 0 goals</div></div>
+                <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Heavy losses</div><div class="text-lg font-black ${dna.heavyLosses>=3?'text-rose-300':'text-slate-200'}">${dna.heavyLosses}</div><div class="text-[10px] text-slate-500">Lost by 3+ goals</div></div>
+              </div>
               <div class="mt-4"><div class="text-[10px] uppercase tracking-[.18em] text-slate-400 mb-2">Trait breakdown</div><div class="grid sm:grid-cols-2 gap-2">
                 ${dna.traits.map(t=>`<div class="rounded-lg border border-white/10 bg-slate-950/35 p-3"><div class="flex items-center justify-between gap-2"><div class="text-sm font-bold">${t.icon} ${t.key}</div><div class="text-sm font-black tabular-nums ${t.score==null?'text-slate-500':'text-cyan-200'}">${t.score==null?'BUILDING':t.score+'/100'}</div></div><div class="h-1.5 rounded-full bg-slate-800 mt-2 overflow-hidden"><div class="h-full rounded-full" style="width:${t.score==null?0:t.score}%;background:linear-gradient(90deg,#0891b2,#67e8f9)"></div></div><div class="text-[11px] text-slate-400 mt-2">${escapeHtml(t.detail)}</div></div>`).join('')}
               </div></div>
-              <div class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/5 p-3"><div class="text-xs font-bold text-amber-200">NEXT LEVEL // DATA-DRIVEN INSIGHT</div><div class="text-sm text-slate-200 mt-1">${!dna.played ? 'Record your first completed match to start your DNA profile.' : dna.played < 5 ? `Play ${5-dna.played} more match${5-dna.played===1?'':'es'} to unlock more reliable consistency insights.` : dna.traits.filter(t=>t.score!=null).sort((a,b)=>a.score-b.score)[0] ? `Your current growth area is ${dna.traits.filter(t=>t.score!=null).sort((a,b)=>a.score-b.score)[0].key.toLowerCase()}. ${escapeHtml(dna.traits.filter(t=>t.score!=null).sort((a,b)=>a.score-b.score)[0].detail)}.` : 'Keep playing to reveal more insights.'}</div><div class="text-[10px] text-slate-500 mt-2">DNA is descriptive, not a ranking formula. Scores use completed match results and available partner/event history.</div></div>
+              <div class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/5 p-3"><div class="text-xs font-bold text-amber-200">SCOUT'S REPORT // NO FLUFF</div><div class="text-base font-extrabold text-amber-100 mt-1">${escapeHtml(dna.growth.title)}</div><div class="text-sm text-slate-200 mt-1">${escapeHtml(dna.growth.text)}</div><div class="text-[10px] text-slate-500 mt-2">Insights use recorded scores and match history. Sassy commentary, not a ranking formula.</div></div></div>
             </div>
           </div>
         </div>
