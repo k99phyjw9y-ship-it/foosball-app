@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.90 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.91 | 2026-10-23 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.78" />
+  <meta name="lcfc-build" content="6.91" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.90 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.91 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -215,7 +215,7 @@
             sky: cssScale('sky')
           },
           fontFamily: {
-            sans: ['"DM Sans"', 'Inter', 'system-ui', 'sans-serif'],
+            sans: ['var(--app-font)', 'Inter', '"DM Sans"', 'system-ui', 'sans-serif'],
           },
           boxShadow: {
             'card': '0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 16px -4px rgba(15, 23, 42, 0.08)',
@@ -226,7 +226,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Montserrat:wght@500;600;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Montserrat:wght@500;600;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <style>
     /* Theme variables (--bg, --raised, --accent, --c-*-NNN …) are written by the theme engine in <head>. */
     html { color-scheme: light; font-size: 16.5px; }
@@ -237,7 +237,7 @@
     }
     * { -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: var(--app-font, 'DM Sans', Inter, system-ui, sans-serif);
+      font-family: var(--app-font, Inter, 'DM Sans', system-ui, sans-serif);
       background: var(--bg);
       background-image:
         radial-gradient(ellipse 80% 50% at 50% -20%, rgb(var(--c-accent-500) / var(--glow-1)), transparent),
@@ -1950,7 +1950,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.90</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.91</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -1958,6 +1958,10 @@
           <div class="home-wm-row">
             <span class="home-wm-label">Club file</span>
             <span id="home-club-snapshot-status" class="home-wm-value tabular-nums">—</span>
+          </div>
+          <div class="home-wm-row">
+            <span class="home-wm-label">Code</span>
+            <span id="home-loc-status" class="home-wm-value tabular-nums">—</span>
           </div>
           <div id="home-backup-nudge" class="hidden text-amber-600/90 mt-0.5 text-right">Back up soon</div>
         </div>
@@ -2857,8 +2861,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.90';
-    const APP_UPDATED = 'Oct 20, 2026';
+    const APP_VERSION = '6.91';
+    const APP_UPDATED = 'Oct 23, 2026';
+    /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
+    const APP_LINES = 14237;
 
     let state = {
       players: [],
@@ -14073,7 +14079,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       });
       const navMap = { home: 'home', players: 'players', stats: 'stats', create: 'home', tournament: 'home' };
       updateNav(navMap[name] || name);
-      if (name === 'home') { renderHome(); renderBackupStatus(); const vw = document.getElementById('home-version-watermark'); if (vw) vw.textContent = 'v' + APP_VERSION; }
+      if (name === 'home') { renderHome(); renderBackupStatus(); const vw = document.getElementById('home-version-watermark'); if (vw) vw.textContent = 'v' + APP_VERSION; stampCodeWatermark(); }
       if (name === 'players') renderPlayers();
       if (name === 'tournament') renderTournament();
       if (name === 'stats') { if (typeof setStatsTab === 'function') setStatsTab(statsActiveTab || 'week'); renderStats(); }
@@ -14179,6 +14185,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
     });
 
+    function stampCodeWatermark() {
+      const lw = document.getElementById('home-loc-status');
+      if (lw) lw.textContent = APP_LINES > 0 ? APP_LINES.toLocaleString('en-US') + ' lines' : '—';
+    }
+
     // ==================== INIT ====================
     try {
       window.toggleTvMatchAnnouncements = toggleTvMatchAnnouncements;
@@ -14192,9 +14203,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
     (function stampVersionWatermark() {
       const vw = document.getElementById('home-version-watermark');
       if (vw) vw.textContent = 'v' + APP_VERSION;
+      stampCodeWatermark();
       try {
         document.title = 'LCFC Manager v' + APP_VERSION + ' – Lake Champlain Foosball Club';
         document.documentElement.setAttribute('data-lcfc-build', APP_VERSION);
+        const bm = document.querySelector('meta[name="lcfc-build"]');
+        if (bm) bm.setAttribute('content', APP_VERSION);
       } catch (e) {}
     })();
     syncOperatorModeButton();
