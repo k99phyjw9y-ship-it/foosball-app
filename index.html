@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.91 | 2026-10-23 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.92 | 2026-10-23 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.91" />
+  <meta name="lcfc-build" content="6.92" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.91 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.92 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1897,7 +1897,12 @@
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div class="min-w-0">
           <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Tournaments</h2>
-          <p class="text-sm text-slate-500 mt-1">Singles · Doubles · DYP · Monster DYP</p>
+          <div class="mt-2 flex flex-wrap items-center gap-2" aria-label="Tournament event types">
+            <span class="inline-flex items-center rounded-full bg-green-600 px-3 py-1 text-xs sm:text-sm font-semibold text-white">Singles</span>
+            <span class="inline-flex items-center rounded-full bg-blue-600 px-3 py-1 text-xs sm:text-sm font-semibold text-white">Doubles</span>
+            <span class="inline-flex items-center rounded-full bg-yellow-400 px-3 py-1 text-xs sm:text-sm font-semibold text-yellow-950">DYP</span>
+            <span class="inline-flex items-center rounded-full bg-orange-500 px-3 py-1 text-xs sm:text-sm font-semibold text-white">Monster DYP</span>
+          </div>
         </div>
         <div class="flex flex-col gap-2 w-full sm:w-auto sm:items-end">
           <button type="button" onclick="startCreateTournament()" class="btn-primary w-full sm:w-auto px-4 py-2.5 rounded-xl font-semibold text-sm text-white inline-flex items-center justify-center gap-2">
@@ -1950,7 +1955,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.91</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.92</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2861,7 +2866,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.91';
+    const APP_VERSION = '6.92';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
