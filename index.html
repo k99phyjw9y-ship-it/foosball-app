@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.84 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.85 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.84 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.85 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1885,7 +1885,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.84</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.85</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2792,7 +2792,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.84';
+    const APP_VERSION = '6.85';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -11662,19 +11662,71 @@ function flipRankingMatchCoin(roundNum, matchId) {
           identityDescription = leader ? `${leader.key} is currently the highest available signal at ${leader.score}/100${runnerUp ? `, with ${runnerUp.key} at ${runnerUp.score}/100` : ''}. These are descriptive indicators based on recorded results, not scouting grades.` : 'More completed match data is needed to identify a meaningful pattern.';
         }
       }
-      const growth = !played ? {title:'No tape, no takes', text:'Get a few matches on the board first. The algorithm refuses to roast a player based on vibes alone.'}
-        : played < 5 ? {title:'Sample-size protection', text:`Only ${played} match${played===1?'':'es'} logged. Too early for a verdict. Play more before the scouting department starts talking.`}
-        : recent.length >= 5 && recentWR + .2 <= careerWR ? {title:'The sequel is underperforming', text:`Recent form is ${Math.round(recentWR*100)}% against a ${Math.round(careerWR*100)}% career rate. The highlights are currently living in the past.`}
-        : close.length >= 3 && closeWins/close.length < .4 ? {title:'Close-game panic button', text:`Only ${closeWins} of ${close.length} one-goal-or-less matches won. When the score gets spicy, the results say the seasoning is not there yet.`}
-        : heavyLosses >= 3 ? {title:'Stop the bleeding', text:`${heavyLosses} losses by 3+ goals. Tighten the scoreline first; a highlight reel cannot hide a leaky result sheet.`}
-        : avgFor < 2.5 && played >= 5 ? {title:'Goals are not going to score themselves', text:`${avgFor.toFixed(2)} goals per match. The attack needs more end product, not another motivational speech.`}
-        : avgAgainst > 3.2 && played >= 5 ? {title:'Chaos is not a defensive system', text:`Allowing ${avgAgainst.toFixed(2)} goals per match. This is a scoreline problem, not an automatic “play better defense” lecture.`}
-        : recentWR > careerWR + .2 && recent.length >= 5 ? {title:'New form, who dis?', text:`Recent win rate is ${Math.round(recentWR*100)}%, up from ${Math.round(careerWR*100)}% career. Keep it up before we call it a revolution.`}
-        : uniquePartners >= 4 && partnerPlayed >= 5 ? {title:'Social butterfly, results pending', text:`Played with ${uniquePartners} partners. Versatility is great; now make those pairings pay rent with wins.`}
-        : shutoutWins >= 3 ? {title:'Clean-sheet collector', text:`${shutoutWins} wins without conceding. Someone has occasionally remembered that the other side is allowed to score zero.`}
-        : avgMargin > 1 ? {title:'Winning with room to spare', text:`Average goal margin: +${avgMargin.toFixed(2)}. Efficient work. Try not to get smug until the next club night.`}
-        : avgMargin < -1 ? {title:'Scoreboard says: recalibrate', text:`Average goal margin: ${avgMargin.toFixed(2)}. The numbers are not being subtle. Find one thing to change next session.`}
-        : {title:'Dangerously middle-of-the-road', text:'No single weakness dominates the numbers yet. The next useful clue is a bigger sample, not a made-up flaw.'};
+      // Data-led report categories with stable per-player wording variation.
+      const reportOptions = !played ? [
+        {title:'The scouting department has no tape', text:'Zero recorded matches. Right now this is a mystery novel with the first 40 pages missing.'},
+        {title:'Unscouted territory', text:'No match history, no verdict. Give the scoreboard something to work with before asking for a hot take.'},
+        {title:'All reputation, no receipts', text:'There are no recorded results to inspect yet. The scouts refuse to grade a blank page.'}
+      ] : played < 5 ? [
+        {title:'Tiny sample, loud opinions', text:`${played} match${played===1?'':'es'} logged. Anyone declaring a legacy from this is selling snake oil.`},
+        {title:'The jury is still warming up', text:`Only ${played} match${played===1?'':'es'} on file. There are hints, not a verdict. Get more games in.`},
+        {title:'Early days, easy headlines', text:`${played} result${played===1?'':'s'} is not a trend. The scouting report is keeping its mouth shut until the evidence shows up.`}
+      ] : recent.length >= 5 && recentWR + .2 <= careerWR ? [
+        {title:'The old highlights are doing overtime', text:`Recent win rate: ${Math.round(recentWR*100)}%. Career: ${Math.round(careerWR*100)}%. Nostalgia is not a game plan; the latest results need to catch up.`},
+        {title:'Form has left the group chat', text:`The last ${recent.length} are at ${Math.round(recentWR*100)}%, against ${Math.round(careerWR*100)}% for the career. Whatever used to work is not showing up lately.`},
+        {title:'The sequel needs a rewrite', text:`Recent results are ${Math.round(recentWR*100)}% wins, down from a ${Math.round(careerWR*100)}% career rate. No panic, but the current chapter is not the best one.`}
+      ] : close.length >= 3 && closeWins/close.length < .4 ? [
+        {title:'Close games: premium stress, basic results', text:`${closeWins}/${close.length} close matches won. The finish is not finishing. Find a reliable last-goal plan.`},
+        {title:'Crunch time called. It wants a refund.', text:`Only ${closeWins} wins from ${close.length} one-goal-or-less games. These are the points where composure needs to cash the check.`},
+        {title:'Too close for comfort, too few wins', text:`A ${Math.round(closeWins/close.length*100)}% win rate in close matches is the blunt part. Tight scorelines are happening; closing them is the missing bit.`}
+      ] : heavyLosses >= 3 ? [
+        {title:'Stop donating goal difference', text:`${heavyLosses} losses by 3+ goals. Some defeats are not coin flips. Find what keeps turning a game into a runaway.`},
+        {title:'The scoreline has filed a complaint', text:`There are ${heavyLosses} heavy losses on record. Before chasing spectacular wins, make the ugly losses less ugly.`},
+        {title:'Less blowout, more fight', text:`${heavyLosses} defeats by at least three. The first target is simple: stay in the match long enough to make the other side earn it.`}
+      ] : avgFor < 2.5 && played >= 5 ? [
+        {title:'Possession of the ball is not a goal', text:`${avgFor.toFixed(2)} goals per match. The attack needs an end product, not a longer preamble.`},
+        {title:'The goal is not a decorative feature', text:`Scoring average: ${avgFor.toFixed(2)}. Something needs to turn chances into actual numbers on the board.`},
+        {title:'More threat, fewer almosts', text:`${avgFor.toFixed(2)} goals per match is a light return. Aim for more pressure that ends with the ball in the net.`}
+      ] : avgAgainst > 3.2 && played >= 5 ? [
+        {title:'The back door is wide open', text:`${avgAgainst.toFixed(2)} goals allowed per match. The scoreboard keeps finding the same problem. Make opponents work harder for every goal.`},
+        {title:'Defense by hopeful thinking', text:`Conceding ${avgAgainst.toFixed(2)} per match is expensive. The numbers suggest tightening things up, not blaming bad luck every time.`},
+        {title:'Opponents are getting comfortable', text:`Average goals allowed: ${avgAgainst.toFixed(2)}. Make the other team solve a problem instead of offering an open invitation.`}
+      ] : recentWR > careerWR + .2 && recent.length >= 5 ? [
+        {title:'A hot streak has entered the chat', text:`Recent win rate: ${Math.round(recentWR*100)}%, versus ${Math.round(careerWR*100)}% career. The form is real enough to notice. Now make it last.`},
+        {title:'Receipts are looking better lately', text:`The last ${recent.length} are at ${Math.round(recentWR*100)}%, ahead of the ${Math.round(careerWR*100)}% career rate. Keep stacking results before ordering the statue.`},
+        {title:'Current form: actually convincing', text:`Recent results have climbed to ${Math.round(recentWR*100)}% wins. That is a proper upswing, provided it survives the next club night.`}
+      ] : uniquePartners >= 4 && partnerPlayed >= 5 ? [
+        {title:'A lot of partners, now show the chemistry', text:`${uniquePartners} partners and ${partnerPlayed} partner-match records. Adaptability is useful; turn that range into more reliable team results.`},
+        {title:'Doubles dating profile is stacked', text:`You have played with ${uniquePartners} partners. Good range. The next question is which combinations actually deliver.`},
+        {title:'Chemistry cannot stay theoretical', text:`${uniquePartners} different partners in the book. The experiment phase is covered; start identifying the pairings that get results.`}
+      ] : shutoutWins >= 3 ? [
+        {title:'Somebody brought a lock for the goal', text:`${shutoutWins} shutout wins. That is a real result, not just a pretty stat. Keep making clean sheets uncomfortable for opponents.`},
+        {title:'Zero is a very rude number', text:`${shutoutWins} wins without conceding. On those nights, the other side got absolutely no return on investment.`},
+        {title:'Clean sheets, dirty work', text:`${shutoutWins} shutout wins on file. Whatever clicked in those matches deserves a repeat performance.`}
+      ] : avgMargin > 1 ? [
+        {title:'Winning with a little breathing room', text:`Average goal margin: +${avgMargin.toFixed(2)}. The results have some cushion. Keep the foot on the gas and skip the victory speeches.`},
+        {title:'The scoreboard is doing the talking', text:`A +${avgMargin.toFixed(2)} average margin is solid work. Not invincible, just making opponents climb uphill.`},
+        {title:'Comfortable wins. Stay humble.', text:`Average margin: +${avgMargin.toFixed(2)}. The numbers look good; the next job is proving it was not a one-night rental.`}
+      ] : avgMargin < -1 ? [
+        {title:'The goal difference needs adult supervision', text:`Average margin: ${avgMargin.toFixed(2)}. The numbers are not subtle. Pick one change to test next session and see if the gap shrinks.`},
+        {title:'Currently losing the arithmetic', text:`A ${avgMargin.toFixed(2)} average margin means too many matches are going the wrong way. Start by making the scorelines competitive.`},
+        {title:'The scoreboard is not your publicist', text:`Average margin: ${avgMargin.toFixed(2)}. No spin needed: results have room to improve. Find a repeatable adjustment and measure it.`}
+      ] : goalDiff > 0 ? [
+        {title:'Winning the margins, not the headlines', text:`Goal difference is +${goalDiff}, but the average margin is only ${avgMargin.toFixed(2)}. Good work, mostly close work. Keep closing the door.`},
+        {title:'A small edge is still an edge', text:`Net goal difference: +${goalDiff}. The record is on the right side of zero, though there is not much room for coasting.`},
+        {title:'Not flashy, just getting it done', text:`A +${goalDiff} goal difference says the results lean your way. Keep building the advantage instead of living on narrow escapes.`}
+      ] : goalDiff < 0 ? [
+        {title:'The margins are telling on you', text:`Goal difference: ${goalDiff}. Wins and losses aside, the total score says there is ground to make up.`},
+        {title:'A few goals would change the story', text:`Net goal difference is ${goalDiff}. Find the matches where the gap gets away and stop those from snowballing.`},
+        {title:'Not a disaster, not a victory lap', text:`Goal difference: ${goalDiff}. The profile is still taking shape, but the scoreboard says the next step is reducing the deficit.`}
+      ] : [
+        {title:'The numbers refuse to pick a side', text:`Goal difference is ${goalDiff}, with a ${Math.round(careerWR*100)}% career win rate. No dramatic claim fits yet; the next batch of matches can change that.`},
+        {title:'A perfectly annoying middle ground', text:`The margin is ${avgMargin.toFixed(2)} per match. No obvious smoking gun, no free pass. Keep collecting results and watch what moves.`},
+        {title:'The scouts want a bigger sample', text:`So far the margin sits at ${avgMargin.toFixed(2)} per match. There is a pattern trying to emerge, but it has not earned a confident headline.`}
+      ];
+      const playerKey = String(playerId ?? 'unknown');
+      const playerHash = Array.from(playerKey).reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7);
+      const growth = reportOptions[playerHash % reportOptions.length];
       return { traits, overall, identity, identityDescription, played, wins, losses: played-wins, recentWR: Math.round(recentWR*100), careerWR: Math.round(careerWR*100), avgFor, avgAgainst, closeCount: close.length, events, uniquePartners, partnerPlayed, goalDiff, avgMargin, shutoutWins, heavyLosses, oneGoalWins, growth, leader };
     }
 
