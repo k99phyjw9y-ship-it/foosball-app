@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.87 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.88 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.87 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.88 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1765,7 +1765,7 @@
 </style>
 
   <style id="lcfc-polish-v686">
-    /* v6.87 visual polish: stronger contrast, clearer hierarchy, no behavior changes. */
+    /* v6.88 visual polish: stronger contrast, clearer hierarchy, no behavior changes. */
     :root {
       --lcfc-heading-font: 'Montserrat', 'DM Sans', system-ui, sans-serif;
       --lcfc-text-primary-light: #172033;
@@ -1946,7 +1946,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.87</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.88</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2853,7 +2853,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.87';
+    const APP_VERSION = '6.88';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -11675,13 +11675,32 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const heavyLosses = matches.filter(m=>!m.won && (Number(m.scoreAgainst||0)-Number(m.scoreFor||0))>=3).length;
       const oneGoalWins = matches.filter(m=>m.won && Math.abs((Number(m.scoreFor)||0)-(Number(m.scoreAgainst)||0))===1).length;
       const avgMargin = played ? goalDiff / played : 0;
+      const margins = matches.map(m => (Number(m.scoreFor)||0) - (Number(m.scoreAgainst)||0));
+      const marginMean = margins.length ? margins.reduce((a,b)=>a+b,0)/margins.length : 0;
+      const marginSD = margins.length ? Math.sqrt(margins.reduce((n,v)=>n+Math.pow(v-marginMean,2),0)/margins.length) : 0;
+      const last5 = matches.slice(-5), prior5 = matches.slice(-10,-5);
+      const last5WR = last5.length ? last5.filter(m=>m.won).length/last5.length : 0;
+      const prior5WR = prior5.length ? prior5.filter(m=>m.won).length/prior5.length : 0;
+      const momentumDelta = last5.length && prior5.length ? last5WR-prior5WR : null;
+      const eventMap = new Map();
+      matches.forEach(m=>{ const k=String(m.tId); if(!eventMap.has(k)) eventMap.set(k,{w:0,n:0,gd:0}); const e=eventMap.get(k); e.n++; e.w+=m.won?1:0; e.gd+=(Number(m.scoreFor)||0)-(Number(m.scoreAgainst)||0); });
+      const eventRows = Array.from(eventMap.values());
+      const dominantEvent = eventRows.length ? eventRows.slice().sort((a,b)=>(b.w/Math.max(1,b.n))-(a.w/Math.max(1,a.n)))[0] : null;
+      const sessionWR = eventRows.length ? eventRows.reduce((n,e)=>n+e.w,0)/Math.max(1,eventRows.reduce((n,e)=>n+e.n,0)) : 0;
       const traits = [
         { key:'Offense', icon:'⚡', score: played ? Math.round(Math.min(100, avgFor / 5 * 100)) : null, detail: played ? `${avgFor.toFixed(2)} goals scored per match` : 'Needs scored matches' },
         { key:'Defense', icon:'🛡️', score: played ? Math.round(Math.max(0, Math.min(100, (1 - avgAgainst / 5) * 100))) : null, detail: played ? `${avgAgainst.toFixed(2)} goals allowed per match` : 'Needs scored matches' },
         { key:'Clutch', icon:'🎯', score: close.length >= 3 ? Math.round(closeWins / close.length * 100) : null, detail: close.length >= 3 ? `${closeWins} wins in ${close.length} close matches` : `${close.length} close matches recorded · need 3` },
         { key:'Consistency', icon:'📈', score: played >= 5 ? Math.round(Math.max(0, Math.min(100, 100 - Math.abs(recentWR - careerWR) * 200))) : null, detail: played >= 5 ? `Last ${recent.length}: ${Math.round(recentWR*100)}% · career ${Math.round(careerWR*100)}%` : `Need 5+ matches · ${played} recorded` },
         { key:'Teamwork', icon:'🤝', score: partnerPlayed >= 2 ? Math.round(Math.min(100, (partnerRows.reduce((n,x)=>n+(x.wins||0),0) / Math.max(1,partnerPlayed))*100)) : null, detail: partnerPlayed >= 2 ? `${uniquePartners} partner${uniquePartners===1?'':'s'} · ${partnerPlayed} partner-match records` : 'Needs more doubles history' },
-        { key:'Adaptability', icon:'🔄', score: played >= 3 ? Math.round(Math.min(100, (Math.min(events,6)/6)*60 + (Math.min(uniquePartners,5)/5)*40)) : null, detail: played >= 3 ? `${events} events · ${uniquePartners} distinct partners` : `Need 3+ matches · ${played} recorded` }
+        { key:'Adaptability', icon:'🔄', score: played >= 3 ? Math.round(Math.min(100, (Math.min(events,6)/6)*60 + (Math.min(uniquePartners,5)/5)*40)) : null, detail: played >= 3 ? `${events} events · ${uniquePartners} distinct partners` : `Need 3+ matches · ${played} recorded` },
+        { key:'Lockdown Defense', icon:'🧱', score: played >= 5 ? Math.round(Math.max(0,Math.min(100,(1-avgAgainst/5)*100))) : null, detail: played >= 5 ? `${avgAgainst.toFixed(2)} goals allowed per match · ${shutoutWins} shutout wins` : `Need 5+ matches · ${played} recorded` },
+        { key:'Finishing Power', icon:'🥅', score: played >= 5 ? Math.round(Math.min(100,avgFor/5*100)) : null, detail: played >= 5 ? `${avgFor.toFixed(2)} goals scored per match` : `Need 5+ matches · ${played} recorded` },
+        { key:'Momentum', icon:'🌊', score: momentumDelta == null ? null : Math.round(Math.max(0,Math.min(100,50+momentumDelta*100))), detail: momentumDelta == null ? 'Need two groups of 5 matches' : `Last 5: ${Math.round(last5WR*100)}% · previous 5: ${Math.round(prior5WR*100)}%` },
+        { key:'Consistency Index', icon:'📏', score: played >= 5 ? Math.round(Math.max(0,Math.min(100,100-marginSD*20))) : null, detail: played >= 5 ? `Goal-margin variation: ${marginSD.toFixed(2)} goals · lower variation scores higher` : `Need 5+ matches · ${played} recorded` },
+        { key:'Session Dominance', icon:'🏆', score: played >= 5 && eventRows.length >= 2 ? Math.round(sessionWR*100) : null, detail: played >= 5 && eventRows.length >= 2 ? `${eventRows.length} events · ${Math.round(sessionWR*100)}% match win rate across them` : `Need 5+ matches across 2+ events` },
+        { key:'Partner Chemistry', icon:'🧪', score: partnerPlayed >= 3 ? Math.round(Math.min(100,((partnerRows||[]).reduce((n,x)=>n+(x.wins||0),0)/Math.max(1,partnerPlayed))*100)) : null, detail: partnerPlayed >= 3 ? `${uniquePartners} partners with 2+ recorded matches · results are shared team outcomes` : `Need 3+ partner-match records` },
+        { key:'Volatility', icon:'🎢', score: played >= 5 ? Math.round(Math.max(0,Math.min(100,marginSD*20))) : null, detail: played >= 5 ? `${marginSD.toFixed(2)} goal margin variation · higher means more unpredictable scorelines` : `Need 5+ matches · ${played} recorded` }
       ];
       const valid = traits.filter(t => t.score != null).sort((a,b)=>b.score-a.score);
       const leader = valid[0] || null;
@@ -11791,7 +11810,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const playerKey = String(playerId ?? 'unknown');
       const playerHash = Array.from(playerKey).reduce((n, ch) => (n * 31 + ch.charCodeAt(0)) >>> 0, 7);
       const growth = reportOptions[playerHash % reportOptions.length];
-      return { traits, overall, identity, identityDescription, played, wins, losses: played-wins, recentWR: Math.round(recentWR*100), careerWR: Math.round(careerWR*100), avgFor, avgAgainst, closeCount: close.length, events, uniquePartners, partnerPlayed, goalDiff, avgMargin, shutoutWins, heavyLosses, oneGoalWins, growth, leader };
+      return { traits, overall, identity, identityDescription, played, wins, losses: played-wins, recentWR: Math.round(recentWR*100), careerWR: Math.round(careerWR*100), avgFor, avgAgainst, closeCount: close.length, events, uniquePartners, partnerPlayed, goalDiff, avgMargin, shutoutWins, heavyLosses, oneGoalWins, marginSD, momentumDelta, eventCount:eventRows.length, dominantEvent, growth, leader };
     }
 
     function buildPlayerDNARadar(traits) {
@@ -12094,11 +12113,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
                 <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Avg. margin</div><div class="text-lg font-black">${dna.played?(dna.avgMargin>0?'+':'')+dna.avgMargin.toFixed(2):'—'}</div><div class="text-[10px] text-slate-500">Per match</div></div>
                 <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Shutout wins</div><div class="text-lg font-black text-cyan-200">${dna.shutoutWins}</div><div class="text-[10px] text-slate-500">Wins allowing 0 goals</div></div>
                 <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Heavy losses</div><div class="text-lg font-black ${dna.heavyLosses>=3?'text-rose-300':'text-slate-200'}">${dna.heavyLosses}</div><div class="text-[10px] text-slate-500">Lost by 3+ goals</div></div>
+                <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Momentum</div><div class="text-lg font-black ${dna.momentumDelta==null?'text-slate-400':dna.momentumDelta>0?'text-emerald-300':dna.momentumDelta<0?'text-rose-300':'text-slate-200'}">${dna.momentumDelta==null?'—':(dna.momentumDelta>0?'+':'')+Math.round(dna.momentumDelta*100)+' pts'}</div><div class="text-[10px] text-slate-500">Last 5 vs previous 5 win rate</div></div>
+                <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Events played</div><div class="text-lg font-black">${dna.eventCount}</div><div class="text-[10px] text-slate-500">Distinct historical events</div></div>
+                <div class="rounded-lg border border-white/10 bg-white/5 p-3"><div class="text-[10px] uppercase text-slate-400">Scoreline volatility</div><div class="text-lg font-black">${dna.played?dna.marginSD.toFixed(2):'—'}</div><div class="text-[10px] text-slate-500">Variation in goal margins</div></div>
               </div>
               <div class="mt-4"><div class="text-[10px] uppercase tracking-[.18em] text-slate-400 mb-2">Trait breakdown</div><div class="grid sm:grid-cols-2 gap-2">
                 ${dna.traits.map(t=>`<div class="rounded-lg border border-white/10 bg-slate-950/35 p-3"><div class="flex items-center justify-between gap-2"><div class="text-sm font-bold">${t.icon} ${t.key}</div><div class="text-sm font-black tabular-nums ${t.score==null?'text-slate-500':'text-cyan-200'}">${t.score==null?'BUILDING':t.score+'/100'}</div></div><div class="h-1.5 rounded-full bg-slate-800 mt-2 overflow-hidden"><div class="h-full rounded-full" style="width:${t.score==null?0:t.score}%;background:linear-gradient(90deg,#0891b2,#67e8f9)"></div></div><div class="text-[11px] text-slate-400 mt-2">${escapeHtml(t.detail)}</div></div>`).join('')}
               </div></div>
-              <div class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/5 p-3"><div class="text-xs font-bold text-amber-200">SCOUT'S REPORT // NO FLUFF</div><div class="text-base font-extrabold text-amber-100 mt-1">${escapeHtml(dna.growth.title)}</div><div class="text-sm text-slate-200 mt-1">${escapeHtml(dna.growth.text)}</div><div class="text-[10px] text-slate-500 mt-2">Insights use recorded scores and match history. Sassy commentary, not a ranking formula.</div></div></div>
+              <div class="mt-4 rounded-xl border border-amber-300/20 bg-amber-300/5 p-3"><div class="text-xs font-bold text-amber-200">SCOUT'S REPORT // NO FLUFF</div><div class="text-base font-extrabold text-amber-100 mt-1">${escapeHtml(dna.growth.title)}</div><div class="text-sm text-slate-200 mt-1">${escapeHtml(dna.growth.text)}</div><div class="text-[10px] text-slate-500 mt-2">Insights use historical scores and event results. Comebacks, opponent-rank upsets, and pressure-round performance are not scored unless those details exist in the match records.</div></div></div>
             </div>
           </div>
         </div>
