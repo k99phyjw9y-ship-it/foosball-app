@@ -507,6 +507,14 @@
     .event-band-dyp { border-left: 5px solid #eab308 !important; border-left-style: solid !important; }
     #view-spectator .spec-card.spec-ec-monster,
     .event-band-monster { border-left: 5px solid #f97316 !important; border-left-style: solid !important; }
+
+    /* Home event-type pills use the same palette as the event card bands */
+    .event-type-pill { display:inline-flex; align-items:center; padding:2px 7px; border-radius:999px; font-size:10px; line-height:1.35; font-weight:800; letter-spacing:.015em; border:1px solid transparent; white-space:nowrap; }
+    .event-pill-singles { color:#047857; background:rgba(16,185,129,.13); border-color:rgba(16,185,129,.32); }
+    .event-pill-doubles { color:#1d4ed8; background:rgba(59,130,246,.13); border-color:rgba(59,130,246,.32); }
+    .event-pill-dyp { color:#a16207; background:rgba(234,179,8,.17); border-color:rgba(234,179,8,.38); }
+    .event-pill-monster { color:#c2410c; background:rgba(249,115,22,.14); border-color:rgba(249,115,22,.35); }
+
     /* Monster playoff: full red card (ranking stays orange band only) */
     #view-spectator .spec-card.spec-ec-monster-po {
       border: 1px solid #dc2626 !important;
@@ -675,16 +683,16 @@
       margin-bottom: 0.55rem;
     }
 
-    /* Compact estimated win odds chip for TV match cards */
+    /* v6.92: compact estimated win odds on TV match cards */
     #view-spectator .spec-card { position: relative; }
-    #view-spectator .spec-odds-chip { position:absolute; top:8px; right:8px; z-index:2; width:min(43%, 168px); padding:4px 6px; border:1px solid rgba(148,163,184,.28); border-radius:8px; background:rgba(15,23,42,.88); color:#e2e8f0; font-size:10px; line-height:1.25; }
+    #view-spectator .spec-odds-chip { position:absolute; top:8px; right:8px; z-index:2; width:min(43%, 168px); padding:4px 6px; border:1px solid rgba(148,163,184,.28); border-radius:8px; background:rgba(15,23,42,.92); color:#e2e8f0; font-size:10px; line-height:1.25; }
     #view-spectator .spec-odds-row { display:flex; align-items:center; justify-content:space-between; gap:5px; min-width:0; }
     #view-spectator .spec-odds-row + .spec-odds-row { margin-top:3px; padding-top:3px; border-top:1px solid rgba(148,163,184,.2); }
     #view-spectator .spec-odds-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.9; }
     #view-spectator .spec-odds-pct { flex:none; padding:2px 4px; border-radius:5px; background:rgba(100,116,139,.3); font-weight:800; font-variant-numeric:tabular-nums; }
     #view-spectator .spec-odds-pct.is-fav { background:#064e3b; color:#a7f3d0; }
-    #view-spectator .spec-event-title { padding-right: min(45%, 176px); }
-    @media (max-width: 520px) { #view-spectator .spec-odds-chip { top:6px; right:6px; width:42%; font-size:9px; padding:3px 4px; } }
+    #view-spectator .spec-event-title { padding-right:min(45%,176px); }
+    @media (max-width:520px) { #view-spectator .spec-odds-chip { top:6px; right:6px; width:42%; font-size:9px; padding:3px 4px; } }
 
     /* TV board serve indicator */
     #view-spectator .spec-team-row {
@@ -4652,7 +4660,7 @@
               }">${typeIcon[t.type] || '⚽'}</div>
               <div class="min-w-0">
                 <h3 class="font-semibold text-slate-900 truncate">${escapeHtml(t.name)}</h3>
-                <p class="text-xs text-slate-500 mt-1">${typeLabel[t.type] || t.type} · Race to ${t.raceTo}</p>
+                <p class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-1.5"><span class="event-type-pill ${t.type === 'singles' ? 'event-pill-singles' : t.type === 'doubles' ? 'event-pill-doubles' : t.type === 'dyp' ? 'event-pill-dyp' : t.type === 'monster' ? 'event-pill-monster' : 'event-pill-singles'}">${typeLabel[t.type] || t.type}</span><span>· Race to ${t.raceTo}</span></p>
               </div>
             </div>
             <span class="badge px-2 py-1 rounded-lg shrink-0 ${t.status === 'finished' ? 'bg-slate-100 text-slate-500' : t.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'}">${t.status}</span>
@@ -13768,8 +13776,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const scoreLine = kind === 'live'
           ? `<div class="mt-2 text-center font-black tracking-tight spec-score">${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}</div>`
           : `<div class="mt-2 text-center text-sm font-semibold spec-muted">Waiting for table</div>`;
-        const odds = (kind !== 'done' && m.entA && m.entB && typeof projectMatchWinPct === 'function')
-          ? projectMatchWinPct(m.entA, m.entB, {}) : null;
+        const odds = (kind !== 'done' && m.entA && m.entB && typeof projectMatchWinPct === 'function') ? projectMatchWinPct(m.entA, m.entB, {}) : null;
         const oddsChip = odds ? `<div class="spec-odds-chip" title="Estimated win chances, based on available club data"><div class="spec-odds-row"><span class="spec-odds-name">${escapeHtml(m.nameA || 'Team 1')}</span><span class="spec-odds-pct ${odds.pctA >= odds.pctB ? 'is-fav' : ''}">${odds.pctA}%</span></div><div class="spec-odds-row"><span class="spec-odds-name">${escapeHtml(m.nameB || 'Team 2')}</span><span class="spec-odds-pct ${odds.pctB > odds.pctA ? 'is-fav' : ''}">${odds.pctB}%</span></div></div>` : '';
         const eventTitle = (!hideEventOnCard && m.eventName)
           ? `<div class="spec-event-title" title="${escapeHtml(m.eventName)}">${escapeHtml(m.eventName)}</div>`
