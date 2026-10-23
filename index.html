@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.88 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.89 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.88 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.89 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1765,7 +1765,7 @@
 </style>
 
   <style id="lcfc-polish-v686">
-    /* v6.88 visual polish: stronger contrast, clearer hierarchy, no behavior changes. */
+    /* v6.89 DNA radar overlap fix: stronger contrast, clearer hierarchy, no behavior changes. */
     :root {
       --lcfc-heading-font: 'Montserrat', 'DM Sans', system-ui, sans-serif;
       --lcfc-text-primary-light: #172033;
@@ -1946,7 +1946,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.88</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.89</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2853,7 +2853,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.88';
+    const APP_VERSION = '6.89';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -11814,13 +11814,23 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     function buildPlayerDNARadar(traits) {
-      const cx=150, cy=126, maxR=78;
-      const axes=traits.map((t,i)=>({ ...t, angle:(-90+i*60)*Math.PI/180 }));
+      // Space every trait evenly. The original fixed 60-degree increment only fit six traits,
+      // so newer DNA traits were drawn on top of one another.
+      const cx=180, cy=154, maxR=78;
+      const shortLabels = {
+        'Lockdown Defense':'Lockdown', 'Finishing Power':'Finishing',
+        'Consistency Index':'Consistency', 'Session Dominance':'Session',
+        'Partner Chemistry':'Partner', 'Scoreline Volatility':'Volatility',
+        'Adaptability':'Adaptability', 'Teamwork':'Teamwork', 'Offense':'Offense',
+        'Defense':'Defense', 'Clutch':'Clutch', 'Momentum':'Momentum', 'Consistency':'Consist.'
+      };
+      const axes=traits.map((t,i)=>({ ...t, angle:(-90+i*(360/Math.max(1,traits.length)))*Math.PI/180 }));
       const rings=[20,40,60,80,100].map(v=>`<polygon points="${axes.map(a=>`${(cx+Math.cos(a.angle)*maxR*v/100).toFixed(1)},${(cy+Math.sin(a.angle)*maxR*v/100).toFixed(1)}`).join(' ')}" fill="none" stroke="rgba(125,211,252,.18)" stroke-width="1"/>`).join('');
       const spokes=axes.map(a=>`<line x1="${cx}" y1="${cy}" x2="${(cx+Math.cos(a.angle)*maxR).toFixed(1)}" y2="${(cy+Math.sin(a.angle)*maxR).toFixed(1)}" stroke="rgba(125,211,252,.25)"/>`).join('');
       const points=axes.map(a=>{const v=a.score==null?0:a.score;return `${(cx+Math.cos(a.angle)*maxR*v/100).toFixed(1)},${(cy+Math.sin(a.angle)*maxR*v/100).toFixed(1)}`}).join(' ');
       const dots=axes.map(a=>{if(a.score==null)return '';const x=(cx+Math.cos(a.angle)*maxR*a.score/100).toFixed(1),y=(cy+Math.sin(a.angle)*maxR*a.score/100).toFixed(1);return `<circle cx="${x}" cy="${y}" r="3.5" fill="#67e8f9" stroke="#082f49" stroke-width="2"/>`}).join('');
-      return `<svg viewBox="0 0 300 252" role="img" aria-label="Player DNA radar chart" class="w-full max-w-sm mx-auto">${rings}${spokes}<polygon points="${points}" fill="rgba(34,211,238,.22)" stroke="#67e8f9" stroke-width="2.5" stroke-linejoin="round"/>${dots}${axes.map(a=>{const x=cx+Math.cos(a.angle)* (maxR+20),y=cy+Math.sin(a.angle)*(maxR+20);return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" fill="#cbd5e1" font-size="9" text-anchor="middle" dominant-baseline="middle">${a.key}</text>`}).join('')}</svg>`;
+      const labels=axes.map(a=>{const r=maxR+24,x=cx+Math.cos(a.angle)*r,y=cy+Math.sin(a.angle)*r;const anchor=Math.cos(a.angle)>.25?'start':Math.cos(a.angle)<-.25?'end':'middle';return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" fill="#cbd5e1" font-size="8" text-anchor="${anchor}" dominant-baseline="middle">${shortLabels[a.key]||a.key}</text>`}).join('');
+      return `<svg viewBox="0 0 360 308" role="img" aria-label="Player DNA radar chart" class="w-full max-w-sm mx-auto">${rings}${spokes}<polygon points="${points}" fill="rgba(34,211,238,.22)" stroke="#67e8f9" stroke-width="2.5" stroke-linejoin="round"/>${dots}${labels}</svg>`;
     }
 
     function openPlayerProfile(playerId, soft = false) {
