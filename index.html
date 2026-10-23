@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.86 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.87 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.86 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.87 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -47,7 +47,7 @@
         { id: 'midnight', name: 'Midnight', dark: true,  accent: 'indigo',  neutral: 'midnightN', bg: '#0b0f1c', raised: '#121829', overlay: '#171e33', btn: [5, 6] },
         { id: 'arena',    name: 'Arena',    dark: true,  accent: 'amber',   neutral: 'arenaN',    bg: '#12100e', raised: '#1a1714', overlay: '#221e1a', btn: [5, 6] }
       ];
-      var cur = { pref: 'pitch', theme: THEMES[0] };
+      var cur = { pref: 'lake', theme: THEMES.filter(function (t) { return t.id === 'lake'; })[0] || THEMES[0] };
 
       function h2r(h) { var n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
       function trip(h) { return h2r(h).join(' '); }
@@ -142,9 +142,9 @@
         }
       };
 
-      var saved = 'fog';
-      try { saved = localStorage.getItem(KEY) || 'fog'; } catch (e) {}
-      if (saved !== 'auto' && !find(saved)) saved = 'fog';
+      var saved = 'lake';
+      try { saved = localStorage.getItem(KEY) || 'lake'; } catch (e) {}
+      if (saved !== 'auto' && !find(saved)) saved = 'lake';
       apply(saved);
 
       if (window.matchMedia) {
@@ -155,10 +155,11 @@
       }
     })();
 
-    /* ===== Font preference (DM Sans default) ===== */
+    /* ===== Font preference (Inter default) ===== */
     (function () {
       var KEY = 'lcfc_font_v1';
       var FONTS = [
+        { id: 'inter', name: 'Inter', stack: "Inter, 'DM Sans', system-ui, sans-serif" },
         { id: 'dm-sans', name: 'DM Sans', stack: "'DM Sans', Inter, system-ui, sans-serif" },
         { id: 'jakarta', name: 'Plus Jakarta', stack: "'Plus Jakarta Sans', 'DM Sans', system-ui, sans-serif" },
         { id: 'plex', name: 'IBM Plex', stack: "'IBM Plex Sans', 'DM Sans', system-ui, sans-serif" }
@@ -173,12 +174,12 @@
         document.documentElement.setAttribute('data-font', f.id);
         try { localStorage.setItem(KEY, f.id); } catch (e) {}
       }
-      var saved = 'dm-sans';
-      try { saved = localStorage.getItem(KEY) || 'dm-sans'; } catch (e) {}
+      var saved = 'inter';
+      try { saved = localStorage.getItem(KEY) || 'inter'; } catch (e) {}
       apply(saved);
       window.LCFCFont = {
         list: function () { return FONTS.slice(); },
-        current: function () { return find((function () { try { return localStorage.getItem(KEY) || 'dm-sans'; } catch (e) { return 'dm-sans'; } })()).id; },
+        current: function () { return find((function () { try { return localStorage.getItem(KEY) || 'inter'; } catch (e) { return 'inter'; } })()).id; },
         set: function (id) { apply(id); }
       };
     })();
@@ -1764,7 +1765,7 @@
 </style>
 
   <style id="lcfc-polish-v686">
-    /* v6.86 visual polish: stronger contrast, clearer hierarchy, no behavior changes. */
+    /* v6.87 visual polish: stronger contrast, clearer hierarchy, no behavior changes. */
     :root {
       --lcfc-heading-font: 'Montserrat', 'DM Sans', system-ui, sans-serif;
       --lcfc-text-primary-light: #172033;
@@ -1945,7 +1946,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.86</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.87</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2852,7 +2853,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.86';
+    const APP_VERSION = '6.87';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
@@ -2975,6 +2976,7 @@
 
     function setOperatorMode(on) {
       try { localStorage.setItem(OPERATOR_MODE_KEY, on ? '1' : '0'); } catch (e) {}
+      if (!on && typeof closeThemeMenu === 'function') closeThemeMenu();
       syncOperatorModeButton();
       renderClubSnapshotStatus();
       try { renderPlayers(); } catch (e) {}
@@ -3004,6 +3006,8 @@
 
     function syncOperatorModeButton() {
       const on = isOperatorMode();
+      const themeWrap = document.getElementById('theme-menu-wrap');
+      if (themeWrap) themeWrap.classList.toggle('hidden', !on);
       const btn = document.getElementById('btn-operator-mode');
       if (btn) {
         btn.textContent = on ? 'Operator mode · ON' : 'Operator mode';
@@ -14074,7 +14078,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             ${fonts.map(f => {
               const on = fid === f.id;
               return `<button type="button" role="radio" aria-checked="${on}" onclick="chooseFont('${f.id}')" class="theme-opt${on ? ' selected' : ''}" style="font-family:${f.stack.replace(/"/g, '')}">
-                <span class="theme-opt-name" style="flex:1;padding:6px 4px"><span>${f.name}${f.id === 'dm-sans' ? ' <span class="text-[10px] font-normal text-slate-500">(default)</span>' : ''}</span>${on ? THEME_CHECK_SVG : ''}</span>
+                <span class="theme-opt-name" style="flex:1;padding:6px 4px"><span>${f.name}${f.id === 'inter' ? ' <span class="text-[10px] font-normal text-slate-500">(default)</span>' : ''}</span>${on ? THEME_CHECK_SVG : ''}</span>
               </button>`;
             }).join('')}
           </div>`;
