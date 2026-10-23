@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.92" />
+  <meta name="lcfc-build" content="6.91" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -674,6 +674,18 @@
     #view-spectator .spec-match-meta {
       margin-bottom: 0.55rem;
     }
+
+    /* Compact estimated win odds chip for TV match cards */
+    #view-spectator .spec-card { position: relative; }
+    #view-spectator .spec-odds-chip { position:absolute; top:8px; right:8px; z-index:2; width:min(43%, 168px); padding:4px 6px; border:1px solid rgba(148,163,184,.28); border-radius:8px; background:rgba(15,23,42,.88); color:#e2e8f0; font-size:10px; line-height:1.25; }
+    #view-spectator .spec-odds-row { display:flex; align-items:center; justify-content:space-between; gap:5px; min-width:0; }
+    #view-spectator .spec-odds-row + .spec-odds-row { margin-top:3px; padding-top:3px; border-top:1px solid rgba(148,163,184,.2); }
+    #view-spectator .spec-odds-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.9; }
+    #view-spectator .spec-odds-pct { flex:none; padding:2px 4px; border-radius:5px; background:rgba(100,116,139,.3); font-weight:800; font-variant-numeric:tabular-nums; }
+    #view-spectator .spec-odds-pct.is-fav { background:#064e3b; color:#a7f3d0; }
+    #view-spectator .spec-event-title { padding-right: min(45%, 176px); }
+    @media (max-width: 520px) { #view-spectator .spec-odds-chip { top:6px; right:6px; width:42%; font-size:9px; padding:3px 4px; } }
+
     /* TV board serve indicator */
     #view-spectator .spec-team-row {
       display: flex;
@@ -1897,12 +1909,7 @@
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div class="min-w-0">
           <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Tournaments</h2>
-          <div class="mt-2 flex flex-wrap items-center gap-2" aria-label="Tournament event types">
-            <span class="inline-flex items-center rounded-full bg-green-600 px-3 py-1 text-xs sm:text-sm font-semibold text-white">Singles</span>
-            <span class="inline-flex items-center rounded-full bg-blue-600 px-3 py-1 text-xs sm:text-sm font-semibold text-white">Doubles</span>
-            <span class="inline-flex items-center rounded-full bg-yellow-400 px-3 py-1 text-xs sm:text-sm font-semibold text-yellow-950">DYP</span>
-            <span class="inline-flex items-center rounded-full bg-orange-500 px-3 py-1 text-xs sm:text-sm font-semibold text-white">Monster DYP</span>
-          </div>
+          <p class="text-sm text-slate-500 mt-1">Singles · Doubles · DYP · Monster DYP</p>
         </div>
         <div class="flex flex-col gap-2 w-full sm:w-auto sm:items-end">
           <button type="button" onclick="startCreateTournament()" class="btn-primary w-full sm:w-auto px-4 py-2.5 rounded-xl font-semibold text-sm text-white inline-flex items-center justify-center gap-2">
@@ -2866,7 +2873,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.92';
+    const APP_VERSION = '6.91';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -12760,7 +12767,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           live.push({
             eventId: t.id, eventName, eventType: t.type || '',
             phase, phaseLabel: 'Ranking',
-            round: r.number, nameA, nameB,
+            round: r.number, nameA, nameB, entA: m.entityA, entB: m.entityB,
             scoreA: m.scoreA, scoreB: m.scoreB, table: m.table,
             onDeck: !!m.onDeck, matchId: m.id,
             timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt,
@@ -12788,7 +12795,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             live.push({
               eventId: t.id, eventName, eventType: t.type || '',
               phase, phaseLabel: 'Playoffs',
-              round: m.bracket || 'bracket', nameA, nameB,
+              round: m.bracket || 'bracket', nameA, nameB, entA: m.a?.entity || m.entityA, entB: m.b?.entity || m.entityB,
               scoreA: m.scoreA, scoreB: m.scoreB, table: m.table || null,
               onDeck: !!m.onDeck, matchId: m.id,
               timerStartAt: m.timerStartAt, timerEndedAt: m.timerEndedAt,
@@ -13761,6 +13768,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const scoreLine = kind === 'live'
           ? `<div class="mt-2 text-center font-black tracking-tight spec-score">${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}</div>`
           : `<div class="mt-2 text-center text-sm font-semibold spec-muted">Waiting for table</div>`;
+        const odds = (kind !== 'done' && m.entA && m.entB && typeof projectMatchWinPct === 'function')
+          ? projectMatchWinPct(m.entA, m.entB, {}) : null;
+        const oddsChip = odds ? `<div class="spec-odds-chip" title="Estimated win chances, based on available club data"><div class="spec-odds-row"><span class="spec-odds-name">${escapeHtml(m.nameA || 'Team 1')}</span><span class="spec-odds-pct ${odds.pctA >= odds.pctB ? 'is-fav' : ''}">${odds.pctA}%</span></div><div class="spec-odds-row"><span class="spec-odds-name">${escapeHtml(m.nameB || 'Team 2')}</span><span class="spec-odds-pct ${odds.pctB > odds.pctA ? 'is-fav' : ''}">${odds.pctB}%</span></div></div>` : '';
         const eventTitle = (!hideEventOnCard && m.eventName)
           ? `<div class="spec-event-title" title="${escapeHtml(m.eventName)}">${escapeHtml(m.eventName)}</div>`
           : '';
@@ -13772,6 +13782,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const phaseHtml = `<div class="spec-phase-sub">${trophyHtml}<span>${escapeHtml(phaseSub)}</span></div>`;
         return `
           <div class="spec-card ${kind === 'live' ? 'spec-card-live' : 'spec-card-deck'} ${ec}${isPlayoff ? ' spec-card-playoff' : ''}">
+            ${oddsChip}
             ${eventTitle}
             ${phaseHtml}
             <div class="spec-match-meta flex flex-wrap items-center justify-center gap-1.5">
