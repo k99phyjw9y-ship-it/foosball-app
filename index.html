@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.85 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.86 | 2026-10-22 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.85 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.86 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -40,7 +40,7 @@
         { id: 'pitch',    name: 'Pitch',    dark: false, accent: 'emerald', neutral: 'slate',     bg: '#f4f7f5', raised: '#ffffff', overlay: '#eef2f0', btn: [5, 6] },
         { id: 'lake',     name: 'Lake',     dark: false, accent: 'sky',     neutral: 'slate',     bg: '#f1f6fa', raised: '#ffffff', overlay: '#e8f0f6', btn: [6, 7] },
         { id: 'tornado',  name: 'Tornado',  dark: false, accent: 'teal',    neutral: 'slate',     bg: '#f0f5f4', raised: '#ffffff', overlay: '#e6efed', btn: [5, 6] },
-        { id: 'fog',      name: 'Fog',      dark: false, accent: 'slate',   neutral: 'gray',      bg: '#f3f4f6', raised: '#ffffff', overlay: '#eaeaee', btn: [6, 7] },
+        { id: 'fog',      name: 'Slate Light',      dark: false, accent: 'slate',   neutral: 'gray',      bg: '#f3f4f6', raised: '#ffffff', overlay: '#eaeaee', btn: [6, 7] },
         { id: 'sunset',   name: 'Sunset',   dark: false, accent: 'orange',  neutral: 'stone',     bg: '#faf6f1', raised: '#ffffff', overlay: '#f3ede5', btn: [6, 7] },
         { id: 'grape',    name: 'Grape',    dark: false, accent: 'violet',  neutral: 'gray',      bg: '#f6f4fa', raised: '#ffffff', overlay: '#eeeaf5', btn: [5, 6] },
         { id: 'night',    name: 'Night',    dark: true,  accent: 'emerald', neutral: 'nightN',    bg: '#0c1411', raised: '#131d19', overlay: '#182420', btn: [6, 7] },
@@ -142,9 +142,9 @@
         }
       };
 
-      var saved = 'pitch';
-      try { saved = localStorage.getItem(KEY) || 'pitch'; } catch (e) {}
-      if (saved !== 'auto' && !find(saved)) saved = 'pitch';
+      var saved = 'fog';
+      try { saved = localStorage.getItem(KEY) || 'fog'; } catch (e) {}
+      if (saved !== 'auto' && !find(saved)) saved = 'fog';
       apply(saved);
 
       if (window.matchMedia) {
@@ -225,7 +225,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Montserrat:wght@500;600;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <style>
     /* Theme variables (--bg, --raised, --accent, --c-*-NNN …) are written by the theme engine in <head>. */
     html { color-scheme: light; }
@@ -1762,6 +1762,66 @@
     }
 
 </style>
+
+  <style id="lcfc-polish-v686">
+    /* v6.86 visual polish: stronger contrast, clearer hierarchy, no behavior changes. */
+    :root {
+      --lcfc-heading-font: 'Montserrat', 'DM Sans', system-ui, sans-serif;
+      --lcfc-text-primary-light: #172033;
+      --lcfc-text-secondary-light: #475569;
+      --lcfc-border-light: #cbd5e1;
+    }
+    body { letter-spacing: 0.002em; }
+    h1, h2, h3, h4, h5, h6,
+    .font-display, [data-display-heading="true"] {
+      font-family: var(--lcfc-heading-font);
+      letter-spacing: -0.025em;
+      text-wrap: pretty;
+    }
+    /* Scores, rankings, metrics and timestamps stay aligned as values change. */
+    .tabular-nums, [data-metric], .score-value, .stat-value,
+    input[type="number"], .ranking-value {
+      font-variant-numeric: tabular-nums lining-nums;
+      font-feature-settings: "tnum" 1, "lnum" 1;
+    }
+    /* Slate Light: white cards on a cool slate canvas, with stronger boundaries. */
+    html[data-theme="fog"] {
+      --text: #172033;
+      --text-muted: #475569;
+      --grid: #cbd5e1;
+      --border: rgba(51, 65, 85,  0.18);
+      --border-strong: rgba(51, 65, 85, 0.30);
+    }
+    html[data-theme="fog"] body {
+      background-image: radial-gradient(ellipse 70% 36% at 50% -18%, rgba(37, 99, 235, 0.09), transparent);
+    }
+    html[data-theme="fog"] .text-slate-400,
+    html[data-theme="fog"] .text-slate-500,
+    html[data-theme="fog"] .text-gray-400,
+    html[data-theme="fog"] .text-gray-500 {
+      color: #475569 !important;
+    }
+    html[data-theme="fog"] .border-slate-100,
+    html[data-theme="fog"] .border-slate-200,
+    html[data-theme="fog"] .border-gray-100,
+    html[data-theme="fog"] .border-gray-200 { border-color: #d7dee8 !important; }
+    html[data-theme="fog"] .bg-slate-50,
+    html[data-theme="fog"] .bg-gray-50 { background-color: #f1f5f9 !important; }
+    html[data-theme="fog"] .glass {
+      background: rgba(255,255,255,0.94);
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 5px rgba(15,23,42,0.045), 0 10px 24px -18px rgba(15,23,42,0.18);
+    }
+    /* Keep keyboard navigation visible across all themes. */
+    :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+      outline: 3px solid #2563eb;
+      outline-offset: 2px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+
 </head>
 <body class="text-slate-800 antialiased">
   <!-- Toast container -->
@@ -1885,7 +1945,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.85</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.86</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2792,7 +2852,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.85';
+    const APP_VERSION = '6.86';
     const APP_UPDATED = 'Oct 20, 2026';
 
     let state = {
