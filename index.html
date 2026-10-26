@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.94 | 2026-10-23 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.95 | 2026-10-23 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.94" />
+  <meta name="lcfc-build" content="6.95" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.94 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.95 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -407,6 +407,37 @@
       background: var(--bg) !important;
       color: var(--text);
     }
+    #view-spectator .spec-sandbox-watermark {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(-18deg);
+      z-index: 120;
+      pointer-events: none;
+      font-size: clamp(2.75rem, 9vw, 5.5rem);
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(245, 158, 11, 0.16);
+      text-shadow: 0 1px 0 rgba(0,0,0,0.25);
+      white-space: nowrap;
+      user-select: none;
+    }
+    #view-spectator .spec-sandbox-badge {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 0.5rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.4rem;
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(245, 158, 11, 0.22);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      vertical-align: middle;
+    }
     #view-spectator .spec-kicker { color: var(--accent); }
     #view-spectator .spec-muted { color: var(--text-muted); }
     #view-spectator .spec-title { color: var(--text); }
@@ -685,10 +716,10 @@
 
     /* v6.92: compact estimated win odds on TV match cards */
     #view-spectator .spec-card { position: relative; }
-    #view-spectator .spec-odds-chip { position:absolute; top:8px; right:8px; z-index:2; width:min(43%, 168px); padding:4px 6px; border:1px solid rgba(148,163,184,.28); border-radius:8px; background:rgba(15,23,42,.92); color:#e2e8f0; font-size:10px; line-height:1.25; }
-    #view-spectator .spec-odds-row { display:flex; align-items:center; justify-content:space-between; gap:5px; min-width:0; }
+    #view-spectator .spec-odds-chip { position:absolute; top:8px; right:8px; z-index:2; width:auto; min-width:3.25rem; padding:4px 6px; border:1px solid rgba(148,163,184,.28); border-radius:8px; background:rgba(15,23,42,.92); color:#e2e8f0; font-size:10px; line-height:1.25; }
+    #view-spectator .spec-odds-row { display:flex; align-items:center; justify-content:center; gap:0; min-width:0; }
     #view-spectator .spec-odds-row + .spec-odds-row { margin-top:3px; padding-top:3px; border-top:1px solid rgba(148,163,184,.2); }
-    #view-spectator .spec-odds-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.9; }
+    #view-spectator .spec-odds-name { display:none; }
     #view-spectator .spec-odds-pct { flex:none; padding:2px 4px; border-radius:5px; background:rgba(100,116,139,.3); font-weight:800; font-variant-numeric:tabular-nums; }
     #view-spectator .spec-odds-pct.is-fav { background:#064e3b; color:#a7f3d0; }
     #view-spectator .spec-event-title { padding-right:min(45%,176px); }
@@ -1970,7 +2001,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.94</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.95</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2038,6 +2069,7 @@
 
     <!-- SPECTATOR / TV BOARD -->
     <div id="view-spectator" class="hidden fixed inset-0 z-[100] overflow-auto">
+      <div id="spec-sandbox-watermark" class="spec-sandbox-watermark hidden" aria-hidden="true">SANDBOX</div>
       <div class="min-h-full p-3 sm:p-4 max-w-[1800px] mx-auto">
         <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
           <div class="min-w-0">
@@ -2889,7 +2921,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.94';
+    const APP_VERSION = '6.95';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -13750,7 +13782,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
         ? events.some(e => isSandboxTournament(e))
         : isSandboxTournament(t);
       const wm = document.getElementById('spec-sandbox-watermark');
-      if (wm) wm.classList.toggle('hidden', !sandboxTv);
+      if (wm) {
+        wm.classList.toggle('hidden', !sandboxTv);
+        wm.style.display = sandboxTv ? '' : 'none';
+      }
       if (allMode) {
         if (title) {
           title.textContent = '';
@@ -13832,7 +13867,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           ? `<div class="mt-2 text-center font-black tracking-tight spec-score">${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}</div>`
           : `<div class="mt-2 text-center text-sm font-semibold spec-muted">Waiting for table</div>`;
         const odds = (kind !== 'done' && m.entA && m.entB && typeof projectMatchWinPct === 'function') ? projectMatchWinPct(m.entA, m.entB, {}) : null;
-        const oddsChip = odds ? `<div class="spec-odds-chip" title="Estimated win chances, based on available club data"><div class="spec-odds-row"><span class="spec-odds-name">${escapeHtml(m.nameA || 'Team 1')}</span><span class="spec-odds-pct ${odds.pctA >= odds.pctB ? 'is-fav' : ''}">${odds.pctA}%</span></div><div class="spec-odds-row"><span class="spec-odds-name">${escapeHtml(m.nameB || 'Team 2')}</span><span class="spec-odds-pct ${odds.pctB > odds.pctA ? 'is-fav' : ''}">${odds.pctB}%</span></div></div>` : '';
+        const oddsChip = odds ? `<div class="spec-odds-chip" title="Estimated win chances (top = team A, bottom = team B)"><div class="spec-odds-row"><span class="spec-odds-pct ${odds.pctA >= odds.pctB ? 'is-fav' : ''}">${odds.pctA}%</span></div><div class="spec-odds-row"><span class="spec-odds-pct ${odds.pctB > odds.pctA ? 'is-fav' : ''}">${odds.pctB}%</span></div></div>` : '';
         const eventTitle = (!hideEventOnCard && m.eventName)
           ? `<div class="spec-event-title" title="${escapeHtml(m.eventName)}">${escapeHtml(m.eventName)}</div>`
           : '';
