@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.93 | 2026-10-23 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.94 | 2026-10-23 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.93" />
+  <meta name="lcfc-build" content="6.94" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.93 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.94 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -685,14 +685,14 @@
 
     /* v6.92: compact estimated win odds on TV match cards */
     #view-spectator .spec-card { position: relative; }
-    #view-spectator .spec-odds-chip { position:absolute; top:8px; right:8px; z-index:2; width:auto; min-width:3.25rem; padding:4px 6px; border:1px solid rgba(148,163,184,.28); border-radius:8px; background:rgba(15,23,42,.92); color:#e2e8f0; font-size:10px; line-height:1.25; }
-    #view-spectator .spec-odds-row { display:flex; align-items:center; justify-content:center; gap:0; min-width:0; }
+    #view-spectator .spec-odds-chip { position:absolute; top:8px; right:8px; z-index:2; width:min(43%, 168px); padding:4px 6px; border:1px solid rgba(148,163,184,.28); border-radius:8px; background:rgba(15,23,42,.92); color:#e2e8f0; font-size:10px; line-height:1.25; }
+    #view-spectator .spec-odds-row { display:flex; align-items:center; justify-content:space-between; gap:5px; min-width:0; }
     #view-spectator .spec-odds-row + .spec-odds-row { margin-top:3px; padding-top:3px; border-top:1px solid rgba(148,163,184,.2); }
-    #view-spectator .spec-odds-name { display:none; }
-    #view-spectator .spec-odds-pct { flex:none; padding:2px 6px; border-radius:5px; background:rgba(100,116,139,.3); font-weight:800; font-variant-numeric:tabular-nums; }
+    #view-spectator .spec-odds-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.9; }
+    #view-spectator .spec-odds-pct { flex:none; padding:2px 4px; border-radius:5px; background:rgba(100,116,139,.3); font-weight:800; font-variant-numeric:tabular-nums; }
     #view-spectator .spec-odds-pct.is-fav { background:#064e3b; color:#a7f3d0; }
-    #view-spectator .spec-event-title { padding-right:4.5rem; }
-    @media (max-width:520px) { #view-spectator .spec-odds-chip { top:6px; right:6px; font-size:9px; padding:3px 5px; } }
+    #view-spectator .spec-event-title { padding-right:min(45%,176px); }
+    @media (max-width:520px) { #view-spectator .spec-odds-chip { top:6px; right:6px; width:42%; font-size:9px; padding:3px 4px; } }
 
     /* TV board serve indicator */
     #view-spectator .spec-team-row {
@@ -1970,7 +1970,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.93</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.94</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2494,6 +2494,14 @@
           </div>
         </div>
 
+        <label class="flex items-start gap-3 p-3.5 rounded-2xl border border-slate-200 bg-slate-50/80 cursor-pointer">
+          <input id="t-sandbox" type="checkbox" class="mt-1 rounded border-slate-300" />
+          <span class="min-w-0">
+            <span class="block text-sm font-semibold text-slate-800">Sandbox event</span>
+            <span class="block text-xs text-slate-500 mt-0.5">Full scoring, TV, and podium — excluded from career stats, club ranking, awards, and official standings totals.</span>
+          </span>
+        </label>
+
         <div id="draw-options" class="hidden">
           <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Partner Draw</label>
           <div class="flex flex-wrap gap-3">
@@ -2881,7 +2889,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.93';
+    const APP_VERSION = '6.94';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -3625,6 +3633,7 @@
      */
     function applyRankingPointsForTournament(t) {
       if (!t || t.rankingApplied) return false;
+      if (isSandboxTournament(t)) return false;
       // Must have a completed playoff/bracket with at least 1st & 2nd
       if (!t.playoffs) return false;
       const placements = t.placements || t.playoffs.placements || {};
@@ -4242,6 +4251,8 @@
       document.getElementById('t-race').value = '5';
       document.getElementById('t-bestof').value = '1';
       document.getElementById('t-tables').value = '2';
+      const sb0 = document.getElementById('t-sandbox');
+      if (sb0) sb0.checked = false;
       const posCb0 = document.getElementById('t-monster-positions');
       if (posCb0) posCb0.checked = false;
       document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
@@ -4291,6 +4302,7 @@
         drawStyle,
         monsterPositions: state.selectedType === 'monster' && !!document.getElementById('t-monster-positions')?.checked,
         colorBand: eventTypeColorClass(state.selectedType), // fixed: singles green, doubles blue, dyp yellow, monster orange
+        sandbox: !!document.getElementById('t-sandbox')?.checked,
         playerIds: [],
         absentIds: [],       // players who left early (kept on roster/standings, skipped in draws & playoffs)
         teams: [],           // for doubles / dyp: [{id, playerIds: [a,b], name}]
@@ -4309,6 +4321,14 @@
 
     function getCurrentTournament() {
       return state.tournaments.find(t => t.id === state.currentTournamentId);
+    }
+
+    /** Practice / experimental nights — full play, excluded from official stats & ranking. */
+    function isSandboxTournament(t) {
+      return !!(t && t.sandbox);
+    }
+    function isOfficialTournament(t) {
+      return !!(t && !t.sandbox);
     }
 
     function openTournament(id) {
@@ -9758,6 +9778,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       };
 
       state.tournaments.forEach(t => {
+        if (isSandboxTournament(t)) return;
         const weekKey = getISOWeekKey(t.createdAt || Date.now());
         if (!byWeek[weekKey]) byWeek[weekKey] = {};
         const typeKey = (t.type === 'singles' || t.type === 'doubles' || t.type === 'dyp' || t.type === 'monster')
@@ -9859,6 +9880,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       };
 
       state.tournaments.forEach(t => {
+        if (isSandboxTournament(t)) return;
         const p = t.placements || t.playoffs?.placements;
         if (!t.playoffs) return;
         countPlayoffAppearance(t);
@@ -9947,6 +9969,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return ids;
       };
       state.tournaments.forEach(t => {
+        if (isSandboxTournament(t)) return;
         const handle = (m, entityA, entityB) => {
           if (!m || m.void) return;
           if (m.status && m.status !== 'done' && !m.winner) return;
@@ -10079,6 +10102,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return map[pid][pos];
       };
       state.tournaments.forEach(t => {
+        if (isSandboxTournament(t)) return;
         if (t.type !== 'monster') return;
         (t.rounds || []).forEach(round => {
           (round.matches || []).forEach(m => {
@@ -10168,6 +10192,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const counts = {};
       state.players.forEach(p => { counts[p.id] = 0; });
       state.tournaments.forEach(t => {
+        if (isSandboxTournament(t)) return;
         (t.rounds || []).forEach(r => {
           (r.sitOutIds || []).forEach(id => {
             counts[id] = (counts[id] || 0) + 1;
@@ -10181,6 +10206,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     function computeBestSingleNight() {
       const best = {}; // pid -> { pts, eventName }
       state.tournaments.forEach(t => {
+        if (isSandboxTournament(t)) return;
         const night = {};
         const bump = (ids, win) => {
           ids.forEach(pid => {
@@ -10228,6 +10254,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       };
       // Ranking rounds
       state.tournaments.forEach(t => {
+        if (isSandboxTournament(t)) return;
         (t.rounds || []).forEach(round => {
           (round.matches || []).forEach(m => {
             if (!m || m.void || m.status !== 'done') return;
@@ -10280,6 +10307,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const wins = {};
       state.players.forEach(p => { wins[p.id] = 0; });
       state.tournaments.forEach(t => {
+        if (isSandboxTournament(t)) return;
         collectBracketMatches(t.playoffs).forEach(m => {
           if (!m || m.void) return;
           if (!m.winner && m.status !== 'done') return;
@@ -11106,6 +11134,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       let timerCount = 0;
 
       (state.tournaments || []).forEach(t => {
+        if (isSandboxTournament(t)) return;
         if (!t) return;
         const typeKey = (t.type === 'singles' || t.type === 'doubles' || t.type === 'dyp' || t.type === 'monster')
           ? t.type
@@ -11446,6 +11475,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       let totalMatches = 0;
       state.tournaments.forEach(t => {
+        if (isSandboxTournament(t)) return;
         const wk = getISOWeekKey(t.createdAt || Date.now());
         if (wk !== selectedWeek) return;
         (t.rounds || []).forEach(round => {
@@ -13710,16 +13740,41 @@ function flipRankingMatchCoin(roundNum, matchId) {
         standEl.innerHTML = '';
         const roomEmpty = document.getElementById('spec-room-status');
         if (roomEmpty) roomEmpty.innerHTML = '';
+        const wm0 = document.getElementById('spec-sandbox-watermark');
+        if (wm0) wm0.classList.add('hidden');
         return;
       }
 
       const t = events[0];
+      const sandboxTv = allMode
+        ? events.some(e => isSandboxTournament(e))
+        : isSandboxTournament(t);
+      const wm = document.getElementById('spec-sandbox-watermark');
+      if (wm) wm.classList.toggle('hidden', !sandboxTv);
       if (allMode) {
-        if (title) title.textContent = 'All active events';
-        if (meta) meta.textContent = events.map(e => e.name).join(' · ');
+        if (title) {
+          title.textContent = '';
+          title.appendChild(document.createTextNode('All active events'));
+          if (sandboxTv) {
+            const b = document.createElement('span');
+            b.className = 'spec-sandbox-badge';
+            b.textContent = 'Sandbox';
+            title.appendChild(b);
+          }
+        }
+        if (meta) meta.textContent = events.map(e => e.name + (e.sandbox ? ' (sandbox)' : '')).join(' · ');
       } else {
-        if (title) title.textContent = t.name;
-        if (meta) meta.textContent = `${typeLabel[t.type] || t.type} · Round ${t.currentRound || 0} · ${t.status} · ${t.playerIds?.length || 0} players`;
+        if (title) {
+          title.textContent = '';
+          title.appendChild(document.createTextNode(t.name || 'Event'));
+          if (sandboxTv) {
+            const b = document.createElement('span');
+            b.className = 'spec-sandbox-badge';
+            b.textContent = 'Sandbox';
+            title.appendChild(b);
+          }
+        }
+        if (meta) meta.textContent = `${sandboxTv ? 'Sandbox · ' : ''}${typeLabel[t.type] || t.type} · Round ${t.currentRound || 0} · ${t.status} · ${t.playerIds?.length || 0} players`;
       }
 
       const live = [];
@@ -13777,7 +13832,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           ? `<div class="mt-2 text-center font-black tracking-tight spec-score">${m.scoreA != null && m.scoreB != null ? `${m.scoreA}–${m.scoreB}` : '—'}</div>`
           : `<div class="mt-2 text-center text-sm font-semibold spec-muted">Waiting for table</div>`;
         const odds = (kind !== 'done' && m.entA && m.entB && typeof projectMatchWinPct === 'function') ? projectMatchWinPct(m.entA, m.entB, {}) : null;
-        const oddsChip = odds ? `<div class="spec-odds-chip" title="Estimated win chances (top = team A, bottom = team B)"><div class="spec-odds-row"><span class="spec-odds-pct ${odds.pctA >= odds.pctB ? 'is-fav' : ''}">${odds.pctA}%</span></div><div class="spec-odds-row"><span class="spec-odds-pct ${odds.pctB > odds.pctA ? 'is-fav' : ''}">${odds.pctB}%</span></div></div>` : '';
+        const oddsChip = odds ? `<div class="spec-odds-chip" title="Estimated win chances, based on available club data"><div class="spec-odds-row"><span class="spec-odds-name">${escapeHtml(m.nameA || 'Team 1')}</span><span class="spec-odds-pct ${odds.pctA >= odds.pctB ? 'is-fav' : ''}">${odds.pctA}%</span></div><div class="spec-odds-row"><span class="spec-odds-name">${escapeHtml(m.nameB || 'Team 2')}</span><span class="spec-odds-pct ${odds.pctB > odds.pctA ? 'is-fav' : ''}">${odds.pctB}%</span></div></div>` : '';
         const eventTitle = (!hideEventOnCard && m.eventName)
           ? `<div class="spec-event-title" title="${escapeHtml(m.eventName)}">${escapeHtml(m.eventName)}</div>`
           : '';
