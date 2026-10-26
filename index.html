@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.95 | 2026-10-23 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v6.96 | 2026-10-23 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.95" />
+  <meta name="lcfc-build" content="6.96" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.95 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v6.96 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -418,8 +418,9 @@
       font-weight: 800;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(245, 158, 11, 0.16);
-      text-shadow: 0 1px 0 rgba(0,0,0,0.25);
+      color: rgba(253, 230, 138, 0.22);
+      -webkit-text-stroke: 1px rgba(251, 191, 36, 0.35);
+      text-shadow: 0 0 24px rgba(251, 191, 36, 0.15);
       white-space: nowrap;
       user-select: none;
     }
@@ -2001,7 +2002,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.95</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.96</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2575,6 +2576,9 @@
           <div class="min-w-0">
             <input type="text" id="td-name" onchange="setTournamentName(this.value)" onkeydown="if(event.key==='Enter'){this.blur();}" class="w-full text-xl font-bold tracking-tight text-slate-900 bg-transparent border border-transparent hover:border-slate-200 focus:border-emerald-300 rounded-lg px-1.5 py-0.5 -ml-1.5 outline-none transition" title="Click to edit name" />
             <p class="text-xs text-slate-500 mt-0.5 truncate" id="td-meta"></p>
+            <div id="td-sandbox-badge" class="hidden mt-1.5">
+              <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">Sandbox · not in official stats</span>
+            </div>
             <div id="td-conflict-lock" class="mt-1.5"></div>
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1.5">
               <div class="flex items-center gap-2">
@@ -2921,7 +2925,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.95';
+    const APP_VERSION = '6.96';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -4701,7 +4705,7 @@
           t.type === 'doubles' ? 'event-band-doubles' :
           t.type === 'dyp' ? 'event-band-dyp' :
           t.type === 'monster' ? 'event-band-monster' : 'event-band-singles'
-        }">
+        }${t.sandbox ? ' ring-1 ring-amber-300/80' : ''}">
           <div class="flex items-start justify-between gap-3">
             <div class="flex items-start gap-3 min-w-0">
               <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${
@@ -4715,7 +4719,10 @@
                 <p class="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-1.5"><span class="event-type-pill ${t.type === 'singles' ? 'event-pill-singles' : t.type === 'doubles' ? 'event-pill-doubles' : t.type === 'dyp' ? 'event-pill-dyp' : t.type === 'monster' ? 'event-pill-monster' : 'event-pill-singles'}">${typeLabel[t.type] || t.type}</span><span>· Race to ${t.raceTo}</span></p>
               </div>
             </div>
-            <span class="badge px-2 py-1 rounded-lg shrink-0 ${t.status === 'finished' ? 'bg-slate-100 text-slate-500' : t.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'}">${t.status}</span>
+            <span class="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
+            ${t.sandbox ? '<span class="badge px-2 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300 font-extrabold tracking-wide">Sandbox</span>' : ''}
+            <span class="badge px-2 py-1 rounded-lg ${t.status === 'finished' ? 'bg-slate-100 text-slate-500' : t.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-500'}">${t.status}</span>
+          </span>
           </div>
           <p class="mt-2.5 text-[12px] leading-snug text-slate-500">${escapeHtml(generateEventRecap(t))}</p>
           <div class="mt-3 flex items-center gap-3 text-[11px] text-slate-500 font-medium">
@@ -4778,7 +4785,9 @@
 
       document.getElementById('td-name').value = t.name;
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
-      document.getElementById('td-meta').textContent = `${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · Bo${getTournamentBestOf(t, 'ranking')}${t.type === 'monster' && t.playoffs ? ' · Playoffs Bo3' : ''} · ${t.tables} table${t.tables>1?'s':''}${t.type === 'monster' && t.monsterPositions ? ' · F/G on' : ''}`;
+      document.getElementById('td-meta').textContent = `${t.sandbox ? 'Sandbox · ' : ''}${typeLabel[t.type]} · ${t.format} · Race to ${t.raceTo} · Bo${getTournamentBestOf(t, 'ranking')}${t.type === 'monster' && t.playoffs ? ' · Playoffs Bo3' : ''} · ${t.tables} table${t.tables>1?'s':''}${t.type === 'monster' && t.monsterPositions ? ' · F/G on' : ''}`;
+      const sbBadge = document.getElementById('td-sandbox-badge');
+      if (sbBadge) sbBadge.classList.toggle('hidden', !t.sandbox);
       const lockEl = document.getElementById('td-conflict-lock');
       if (lockEl && typeof conflictLockSummaryHtml === 'function') lockEl.innerHTML = conflictLockSummaryHtml(t);
       const posWrap = document.getElementById('td-positions-wrap');
