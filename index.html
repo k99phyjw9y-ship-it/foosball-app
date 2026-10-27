@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.01 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.02 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.01" />
+  <meta name="lcfc-build" content="7.02" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.01 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.02 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2013,7 +2013,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.01</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.02</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2936,7 +2936,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.01';
+    const APP_VERSION = '7.02';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -6456,8 +6456,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
         type: e.type,
         playerIds: e.playerIds ? e.playerIds.slice() : undefined
       }));
-      if (shuffleSeeds) shuffle(list);
-      list.forEach((e, i) => { e.seed = i + 1; });
+      if (shuffleSeeds) {
+        shuffle(list);
+        list.forEach((e, i) => { e.seed = i + 1; });
+      } else {
+        // Preserve club/tier seeds: sort by seed ascending, then renumber only if gaps
+        list.sort((a, b) => (a.seed || 0) - (b.seed || 0) || String(a.name || '').localeCompare(String(b.name || '')));
+        list.forEach((e, i) => { e.seed = i + 1; });
+      }
       return list;
     }
 
@@ -6977,7 +6983,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           return;
         }
 
-        const entities = getMatchEntities(t);
+        let entities = getMatchEntities(t);
         if (entities.length < 2) {
           toast('Need at least 2 players or teams', 'error');
           return;
@@ -6988,10 +6994,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
 
         const format = (t.format === 'double-elim') ? 'double-elim' : 'single-elim';
-        t.playoffs = buildBracket(entities, format, { shuffleSeeds: true });
+        // Singles / Doubles / DYP: seed by club ranking (no ranking rounds).
+        // Monster keeps random/shuffled seeds here; tiered night standings use startPlayoffs.
+        let shuffleSeeds = true;
+        let seedNote = '';
+        if (t.type === 'singles' || t.type === 'doubles' || t.type === 'dyp') {
+          entities = applyClubRankingSeeds(entities);
+          shuffleSeeds = false;
+          seedNote = ' · seeded by club ranking';
+        }
+        t.playoffs = buildBracket(entities, format, { shuffleSeeds });
         if (!t.playoffs) {
           toast('Could not build bracket', 'error');
           return;
+        }
+        if (!shuffleSeeds) {
+          t.playoffs.seededBy = 'club-ranking';
         }
         t.status = 'active';
         t.placements = t.playoffs.placements || { first: null, second: null, third: null };
@@ -7005,7 +7023,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const byes = Math.max(0, bracketSize - entities.length);
         const unit = t.type === 'singles' ? 'players' : 'teams';
         const byeNote = byes ? ` · ${byes} bye${byes > 1 ? 's' : ''} → bracket of ${bracketSize}` : '';
-        toast(`${label} · ${entities.length} ${unit}${byeNote}`, 'success');
+        toast(`${label} · ${entities.length} ${unit}${byeNote}${seedNote}`, 'success');
       } catch (e) {
         console.error('startBracketTournament', e);
         toast('Bracket failed: ' + (e && e.message ? e.message : 'unknown error'), 'error');
@@ -7144,6 +7162,39 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const unit = t.type === 'singles' ? 'players' : 'teams';
       const byeNote = byes ? ` · ${byes} bye${byes > 1 ? 's' : ''} → bracket of ${bracketSize}` : '';
       toast(`Playoffs · ${entities.length} ${unit}${byeNote}`, 'success');
+    }
+
+
+    function playerClubRankPoints(pid) {
+      const p = state.players.find(x => x.id === pid);
+      if (!p) return (typeof RANK_START_POINTS === 'number' ? RANK_START_POINTS : 2000);
+      const pts = p.rankingPoints;
+      if (pts != null && !isNaN(Number(pts))) return Number(pts);
+      return (typeof RANK_START_POINTS === 'number' ? RANK_START_POINTS : 2000);
+    }
+
+    /** Club ranking strength for a singles player or doubles/DYP team entity. */
+    function clubStrengthForEntity(ent) {
+      if (!ent) return 0;
+      if (ent.playerIds && ent.playerIds.length) {
+        return ent.playerIds.reduce((s, id) => s + playerClubRankPoints(id), 0);
+      }
+      return playerClubRankPoints(ent.id);
+    }
+
+    /**
+     * Seed bracket entities by club ranking (highest points = seed #1).
+     * Singles: player points. Doubles/DYP: sum of partner points.
+     */
+    function applyClubRankingSeeds(entities) {
+      const list = (entities || []).map(e => Object.assign({}, e));
+      list.sort((a, b) => {
+        const d = clubStrengthForEntity(b) - clubStrengthForEntity(a);
+        if (d !== 0) return d;
+        return String(a.name || '').localeCompare(String(b.name || ''));
+      });
+      list.forEach((e, i) => { e.seed = i + 1; });
+      return list;
     }
 
     function getMatchEntities(t) {
