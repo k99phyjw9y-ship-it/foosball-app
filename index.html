@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v6.98 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.00 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="6.98" />
+  <meta name="lcfc-build" content="7.00" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v6.98 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.00 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -745,7 +745,7 @@
       font-size: 1rem;
       font-weight: 800;
       letter-spacing: 0.06em;
-      color: rgb(252 211 77);
+      color: rgb(52 211 153);
       font-variant-numeric: tabular-nums;
     }
     #view-spectator .spec-serve-tag {
@@ -2013,7 +2013,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v6.98</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.00</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2936,7 +2936,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '6.98';
+    const APP_VERSION = '7.00';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -6451,11 +6451,41 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return list;
     }
 
+    
+    /** Resolve display seed for a bracket side / entity (slot seed or entity.seed). */
+    function sideDisplaySeed(side, ent) {
+      if (side && side.seed > 0) return side.seed;
+      if (ent && ent.seed > 0) return ent.seed;
+      return null;
+    }
+
+    /** Map entityId → seed from all sides that still carry a seed (for TV after advances). */
+    function buildPlayoffSeedMap(playoffs) {
+      const map = {};
+      if (!playoffs || typeof collectBracketMatches !== 'function') return map;
+      const remember = (side) => {
+        if (!side) return;
+        const ent = side.entity;
+        const seed = side.seed > 0 ? side.seed : (ent && ent.seed > 0 ? ent.seed : null);
+        if (seed > 0 && ent && ent.id != null) map[ent.id] = seed;
+      };
+      try {
+        collectBracketMatches(playoffs).forEach(m => {
+          remember(m.a);
+          remember(m.b);
+          remember({ entity: m.entityA, seed: m.entityA?.seed });
+          remember({ entity: m.entityB, seed: m.entityB?.seed });
+        });
+      } catch (e) {}
+      return map;
+    }
+
     function entityPayload(ent) {
       if (!ent) return null;
       const out = { id: ent.id, name: ent.name };
       if (ent.type) out.type = ent.type;
       if (ent.playerIds?.length) out.playerIds = ent.playerIds.slice();
+      if (ent.seed != null && ent.seed > 0) out.seed = ent.seed;
       return out;
     }
 
@@ -8465,8 +8495,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
       delete match._byePropagated;
       stopMatchTimer(match);
 
-      const winnerEntity = match.winner === 'a' ? match.a.entity : match.b.entity;
-      const loserEntity = match.winner === 'a' ? match.b.entity : match.a.entity;
+      const _wSide = match.winner === 'a' ? match.a : match.b;
+      const _lSide = match.winner === 'a' ? match.b : match.a;
+      const winnerEntity = _wSide?.entity
+        ? Object.assign({}, _wSide.entity, { seed: (_wSide.seed > 0 ? _wSide.seed : _wSide.entity.seed) || undefined })
+        : null;
+      if (winnerEntity && !(winnerEntity.seed > 0)) delete winnerEntity.seed;
+      const loserEntity = _lSide?.entity
+        ? Object.assign({}, _lSide.entity, { seed: (_lSide.seed > 0 ? _lSide.seed : _lSide.entity.seed) || undefined })
+        : null;
+      if (loserEntity && !(loserEntity.seed > 0)) delete loserEntity.seed;
 
       if (!found.isBronze) {
         propagateBracketResult(t, matchId, winnerEntity, loserEntity);
@@ -8634,6 +8672,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (side.fromLoser) {
         if (loserEntity) {
           side.entity = loserEntity;
+          if (loserEntity.seed > 0) side.seed = loserEntity.seed;
         } else {
           // Source match was a bye — no loser drops into LB. Convert pending TBD → permanent BYE
           // so the other team can auto-advance instead of being stuck on TBD.
@@ -8644,6 +8683,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
       } else {
         side.entity = winnerEntity || null;
+        if (winnerEntity && winnerEntity.seed > 0) side.seed = winnerEntity.seed;
       }
     }
 
@@ -12884,8 +12924,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
             m.tvColorClass = band;
             const entApo = m.a?.entity || m.entityA;
             const entBpo = m.b?.entity || m.entityB;
-            const seedA = (entApo && entApo.seed > 0) ? entApo.seed : (m.a?.seed > 0 ? m.a.seed : null);
-            const seedB = (entBpo && entBpo.seed > 0) ? entBpo.seed : (m.b?.seed > 0 ? m.b.seed : null);
+            const seedMap = buildPlayoffSeedMap(t.playoffs);
+            let seedA = sideDisplaySeed(m.a, entApo);
+            let seedB = sideDisplaySeed(m.b, entBpo);
+            if (!(seedA > 0) && entApo && seedMap[entApo.id] > 0) seedA = seedMap[entApo.id];
+            if (!(seedB > 0) && entBpo && seedMap[entBpo.id] > 0) seedB = seedMap[entBpo.id];
             live.push({
               eventId: t.id, eventName, eventType: t.type || '',
               phase, phaseLabel: 'Playoffs',
