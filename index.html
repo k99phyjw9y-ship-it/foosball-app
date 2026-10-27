@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.00 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.01 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.00" />
+  <meta name="lcfc-build" content="7.01" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.00 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.01 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2013,7 +2013,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.00</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.01</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2936,7 +2936,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.00';
+    const APP_VERSION = '7.01';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -6414,29 +6414,39 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     /** Pair players so byes never face byes: (player vs bye) then (player vs player). */
     function arrangeFirstRoundSides(list, size) {
-      // Higher seeds get byes first (list is seed order 1..n)
-      const players = list.map(e => ({
-        seed: e.seed,
-        entity: entityPayload(e),
-        score: null
-      }));
-      const byeCount = Math.max(0, size - players.length);
+      // Standard bracket placement (1 vs last, etc.). Tiered *partner* draw is unchanged;
+      // this only places already-seeded teams into R1 slots.
+      // Build classic seed order for a power-of-two bracket: e.g. 4→[1,4,2,3], 8→[1,8,4,5,2,7,3,6]
+      const seedOrder = (n) => {
+        let pos = [1, 2];
+        for (let s = 2; s < n; s *= 2) {
+          const next = [];
+          for (const p of pos) {
+            next.push(p);
+            next.push(s * 2 + 1 - p);
+          }
+          pos = next;
+        }
+        return pos;
+      };
+      const bye = () => ({ seed: null, entity: null, score: null });
+      const bySeed = {};
+      (list || []).forEach((e, idx) => {
+        const seed = e.seed != null ? e.seed : idx + 1;
+        bySeed[seed] = {
+          seed,
+          entity: entityPayload(e),
+          score: null
+        };
+      });
+      const order = seedOrder(Math.max(2, size));
+      const slots = order.map(s => bySeed[s] || bye());
       const pairs = [];
-      let pi = 0;
-      // Assign byes to top seeds so the bracket fills to a power of 2 (e.g. 3 teams → 4 slots, 1 bye)
-      for (let i = 0; i < byeCount && pi < players.length; i++) {
-        pairs.push([players[pi++], { seed: null, entity: null, score: null }]);
+      for (let k = 0; k < slots.length; k += 2) {
+        pairs.push([slots[k] || bye(), slots[k + 1] || bye()]);
       }
-      while (pi < players.length) {
-        pairs.push([players[pi++], players[pi++] || { seed: null, entity: null, score: null }]);
-      }
-      while (pairs.length < size / 2) {
-        pairs.push([{ seed: null, entity: null, score: null }, { seed: null, entity: null, score: null }]);
-      }
-      return pairs.slice(0, size / 2);
+      return pairs;
     }
-
-
 
     function prepareSeedList(entities, shuffleSeeds) {
       const list = entities.map((e, i) => ({
