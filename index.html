@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.05 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.06 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.05" />
+  <meta name="lcfc-build" content="7.06" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.05 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.06 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -812,7 +812,7 @@
       box-shadow: 0 24px 70px rgb(2 6 23 / 0.28);
     }
     #score-modal #score-modal-title { font-size: 1.05rem; letter-spacing: -0.02em; }
-    #score-modal .clubhouse-score-control { display:flex; align-items:center; justify-content:center; gap:0.35rem; }
+    #score-modal .clubhouse-score-control { display:none !important; /* +/- removed */ flex: align-items:center; justify-content:center; gap:0.35rem; }
     #score-modal .clubhouse-score-step {
       width:2.1rem; height:2.35rem; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
       border-radius:0.7rem; border:1px solid rgb(148 163 184 / 0.4); background:rgb(148 163 184 / 0.10);
@@ -2242,7 +2242,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.05</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.06</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3109,10 +3109,6 @@
               <div class="score-entry-score-ring score-entry-ring-a">
                 <input id="score-a" type="number" min="0" max="30" inputmode="numeric" placeholder="0" aria-label="Side A score" class="score-input input-field text-center mx-auto block" />
               </div>
-              <div class="clubhouse-score-control">
-                <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', -1)" aria-label="Decrease score for side A">−</button>
-                <button type="button" class="clubhouse-score-step" onclick="adjustScore('a', 1)" aria-label="Increase score for side A">+</button>
-              </div>
             </div>
           </div>
           <div class="score-entry-versus shrink-0">VS</div>
@@ -3121,10 +3117,6 @@
             <div class="score-entry-score-wrap">
               <div class="score-entry-score-ring score-entry-ring-b">
                 <input id="score-b" type="number" min="0" max="30" inputmode="numeric" placeholder="0" aria-label="Side B score" class="score-input input-field text-center mx-auto block" />
-              </div>
-              <div class="clubhouse-score-control">
-                <button type="button" class="clubhouse-score-step" onclick="adjustScore('b', -1)" aria-label="Decrease score for side B">−</button>
-                <button type="button" class="clubhouse-score-step" onclick="adjustScore('b', 1)" aria-label="Increase score for side B">+</button>
               </div>
             </div>
           </div>
@@ -3165,7 +3157,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.05';
+    const APP_VERSION = '7.06';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
