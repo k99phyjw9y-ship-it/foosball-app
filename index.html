@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.06 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.07 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.06" />
+  <meta name="lcfc-build" content="7.07" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.06 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.07 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2242,7 +2242,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.06</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.07</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3157,7 +3157,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.06';
+    const APP_VERSION = '7.07';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -8623,8 +8623,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return null;
       }
       const R = quickRaceTo();
-      if (!quickResultValid(scoreA, scoreB, R)) {
-        toast(`Winner needs exactly ${R}; the other side 0–${R - 1}`, 'error');
+      const ot = isScoreOvertime();
+      if (!quickResultValid(scoreA, scoreB, R, ot)) {
+        toast(
+          ot
+            ? `OT: winner must reach ${R}+ and win by 2 (e.g. ${R + 2}–${R}, 7–5)`
+            : `Winner needs exactly ${R}; the other side 0–${R - 1} — enable OT for win-by-2`,
+          'error'
+        );
         return null;
       }
       return { scoreA, scoreB };
