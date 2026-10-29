@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.03 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.04 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.03" />
+  <meta name="lcfc-build" content="7.04" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.03 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.04 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1529,9 +1529,14 @@
     }
     /* Readable on light + dark themes (avoid slate-700 on dark surfaces) */
     .quick-chip-label {
-      color: #ffffff !important;
+      color: #1c1917 !important;
       opacity: 1;
-      text-shadow: 0 1px 2px rgb(0 0 0 / 0.55);
+      text-shadow: none !important;
+      font-weight: 700 !important;
+    }
+    #score-modal .quick-chip-label {
+      color: #1c1917 !important;
+      text-shadow: none !important;
     }
     #quick-score-hint {
       color: var(--text-muted) !important;
@@ -1768,8 +1773,8 @@
     #score-modal .score-entry-team-b .clubhouse-score-step { border-color:rgba(96,165,250,.78) !important; background:rgba(59,130,246,.18) !important; color:#eff6ff !important; }
     #score-modal .score-entry-quick { background:#fffdf8 !important; border-color:#e7dcc8 !important; color:#1c1917 !important; }
     #score-modal .score-entry-section-label { color:#94a3b8 !important; }
-    #score-modal .quick-chip { color:#e2e8f0 !important; background:rgba(30,41,59,.75) !important; border-color:rgba(100,116,139,.45) !important; }
-    #score-modal .quick-chip.selected { background:rgba(16,185,129,.22) !important; color:#d1fae5 !important; }
+    #score-modal .quick-chip { color:#1c1917 !important; background:#efe6d6 !important; border:2px solid #a8a29e !important; }
+    #score-modal .quick-chip.selected { background:#059669 !important; color:#ffffff !important; border-color:#047857 !important; }
     #score-modal #score-modal-title:after { content:""; }
     #score-modal > .score-entry-panel > .score-entry-footer { background:rgba(4,16,31,.92) !important; border-color:rgba(100,116,139,.28) !important; }
     #score-modal .score-entry-live-dot { box-shadow:0 0 0 4px rgba(16,185,129,.15),0 0 12px rgba(16,185,129,.45) !important; }
@@ -1993,6 +1998,97 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
+  
+    /* ===== Score modal paper sheet — high contrast (final cascade) ===== */
+    #score-modal .score-entry-panel {
+      background: #f7f1e6 !important;
+      color: #1c1917 !important;
+    }
+    #score-modal .score-entry-top,
+    #score-modal #score-modal-title,
+    #score-modal .score-team-label,
+    #score-modal .score-input {
+      color: #1c1917 !important;
+      text-shadow: none !important;
+    }
+    #score-modal .score-entry-kicker { color: #9a3412 !important; font-weight: 900 !important; }
+    #score-modal .score-entry-target,
+    #score-modal #score-match-timer,
+    #score-modal #score-series-label,
+    #score-modal #score-series-game,
+    #score-modal #score-series-history,
+    #score-modal #score-proj-sub,
+    #score-modal #quick-score-hint {
+      color: #44403c !important;
+    }
+    #score-modal .score-entry-section-label {
+      color: #292524 !important;
+      font-weight: 900 !important;
+      letter-spacing: 0.1em !important;
+    }
+    #score-modal .quick-chip-label,
+    #score-modal #quick-score-rows .text-xs,
+    #score-modal #quick-score-rows .text-slate-500,
+    #score-modal #quick-score-rows [class*="text-"] {
+      color: #1c1917 !important;
+      opacity: 1 !important;
+      text-shadow: none !important;
+      font-weight: 700 !important;
+    }
+    #score-modal .quick-chip {
+      color: #1c1917 !important;
+      background: #ffffff !important;
+      border: 2px solid #78716c !important;
+      font-weight: 800 !important;
+    }
+    #score-modal .quick-chip.win {
+      color: #065f46 !important;
+      background: #d1fae5 !important;
+      border-color: #059669 !important;
+    }
+    #score-modal .quick-chip.selected {
+      color: #ffffff !important;
+      background: #047857 !important;
+      border-color: #065f46 !important;
+    }
+    #score-modal .score-entry-team {
+      background: #ffffff !important;
+      border: 1px solid #a8a29e !important;
+    }
+    #score-modal .score-entry-versus { color: #57534e !important; font-weight: 800 !important; }
+    #score-modal .clubhouse-score-step {
+      color: #1c1917 !important;
+      background: #e7e5e4 !important;
+      border: 1px solid #78716c !important;
+    }
+    #score-modal .score-entry-footer {
+      background: #efe8dc !important;
+      color: #1c1917 !important;
+      border-top: 1px solid #a8a29e !important;
+    }
+    #score-modal .score-entry-footer label,
+    #score-modal .score-entry-footer #score-proj-b,
+    #score-modal .score-entry-footer #score-proj-sub {
+      color: #292524 !important;
+    }
+    #score-modal #score-projection,
+    #score-modal #score-series-banner {
+      background: #ffffff !important;
+      border: 1px solid #a8a29e !important;
+      color: #1c1917 !important;
+    }
+    #score-modal #score-series-score,
+    #score-modal #score-proj-a {
+      color: #065f46 !important;
+      font-weight: 800 !important;
+    }
+    #score-modal .score-entry-footer .btn-ghost,
+    #score-modal .score-entry-footer button.btn-ghost {
+      color: #1c1917 !important;
+      background: #ffffff !important;
+      border: 1px solid #78716c !important;
+    }
+
   </style>
 
 </head>
@@ -2118,7 +2214,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.03</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.04</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3041,7 +3137,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.03';
+    const APP_VERSION = '7.04';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
