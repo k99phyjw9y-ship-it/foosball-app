@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.07 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.09 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.07" />
+  <meta name="lcfc-build" content="7.09" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.07 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.09 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2242,7 +2242,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.07</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.09</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3157,7 +3157,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.07';
+    const APP_VERSION = '7.09';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -8470,13 +8470,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     function onScoreOvertimeChange(enabled) {
       const R = quickRaceTo();
+      const max = enabled ? Math.max(R + 10, 15) : R;
       const target = document.getElementById('score-target-number');
-      if (target) target.textContent = String(R);
+      if (target) target.textContent = enabled ? (R + ' · win by 2') : String(R);
       ['score-a', 'score-b'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.max = R;
-        if (el.value !== '' && Number(el.value) > R) el.value = String(R);
+        el.max = max;
+        if (!enabled && el.value !== '' && Number(el.value) > R) el.value = String(R);
       });
       refreshQuickScore();
       if (typeof pulseScoreNumeral === 'function') {
@@ -8498,10 +8499,37 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return isNaN(n) ? null : n;
     }
 
-    /** A finished game: the winner has exactly race-to goals, the loser 0…race-to−1. */
-    function quickResultValid(a, b, R) {
+    function isScoreOvertime() {
+      const ot = document.getElementById('score-overtime');
+      return !!(ot && ot.checked);
+    }
+
+    function quickScoreMax(R) {
+      R = R == null ? quickRaceTo() : R;
+      if (isScoreOvertime()) return Math.max(R + 10, 15);
+      return R;
+    }
+
+    /**
+     * Normal: winner exactly R, loser 0…R−1.
+     * OT (win by 2): winner >= R and margin >= 2.
+     */
+    function quickResultValid(a, b, R, ot) {
       if (a === null || b === null) return false;
-      return (a === R && b >= 0 && b < R) || (b === R && a >= 0 && a < R);
+      if (a === b) return false;
+      if (ot == null) ot = isScoreOvertime();
+      const hi = Math.max(a, b);
+      const lo = Math.min(a, b);
+      if (!ot) return hi === R && lo >= 0 && lo < R;
+      return hi >= R && (hi - lo) >= 2;
+    }
+
+    function pulseScoreNumeral(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('score-pulse');
+      void el.offsetWidth;
+      el.classList.add('score-pulse');
     }
 
     /**
@@ -8513,15 +8541,20 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const box = document.getElementById('quick-score-rows');
       if (!box) return;
       const R = quickRaceTo();
+      const ot = isScoreOvertime();
+      const max = quickScoreMax(R);
       const a = scoreInputNumber('score-a');
       const b = scoreInputNumber('score-b');
-      ['score-a', 'score-b'].forEach(id => { document.getElementById(id).max = R; });
-      // Always one row (0…R), including OT — never split 0–4 / 5–8
+      ['score-a', 'score-b'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.max = max;
+      });
       const row = (side, mine) => {
         const name = quickNames[side];
-        const chips = Array.from({ length: R + 1 }, (_, n) => {
+        const chips = Array.from({ length: max + 1 }, (_, n) => {
           const on = mine === n;
-          return `<button type="button" onclick="quickScore('${side}', ${n})" aria-pressed="${on}" aria-label="${escapeHtml(name)} scored ${n}" class="quick-chip${n === R ? ' win' : ''}${on ? ' selected' : ''}">${n}</button>`;
+          const winish = ot ? (n >= R) : (n === R);
+          return `<button type="button" onclick="quickScore('${side}', ${n})" aria-pressed="${on}" aria-label="${escapeHtml(name)} scored ${n}" class="quick-chip${winish ? ' win' : ''}${on ? ' selected' : ''}">${n}</button>`;
         }).join('');
         return `<div>
           <div class="quick-chip-label mb-0.5 px-0.5 truncate text-[12px] font-semibold">${escapeHtml(name)}</div>
@@ -8533,68 +8566,51 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const hint = document.getElementById('quick-score-hint');
       if (hint) {
         let msg, ok = false;
-        if (quickResultValid(a, b, R)) {
-          const w = a === R ? 'a' : 'b';
-          msg = `${quickNames[w]} wins ${R}–${w === 'a' ? b : a}`;
+        if (quickResultValid(a, b, R, ot)) {
+          const w = a > b ? 'a' : 'b';
+          msg = `${quickNames[w]} wins ${Math.max(a, b)}–${Math.min(a, b)}${ot ? ' (OT)' : ''}`;
           ok = true;
+        } else if (ot) {
+          if (a !== null && b !== null) {
+            msg = `OT: win by 2 after ${R} (e.g. ${R + 2}–${R}, 7–5)`;
+          } else {
+            msg = `OT · win by 2 — tap both final scores (winner ≥ ${R}, lead by 2)`;
+          }
         } else if (a === R && b === null) {
           msg = `Now tap ${quickNames.b}'s score (0–${R - 1})`;
         } else if (b === R && a === null) {
           msg = `Now tap ${quickNames.a}'s score (0–${R - 1})`;
         } else if (a !== null && b !== null) {
-          msg = `Winner needs ${R}, the other side 0–${R - 1}`;
+          msg = `Winner needs ${R}, the other side 0–${R - 1} — or enable OT for win-by-2`;
         } else {
           msg = `Tap the losing score (0–${R - 1}); the other side gets ${R}`;
         }
         hint.textContent = msg;
         hint.classList.toggle('text-emerald-700', ok);
         hint.classList.toggle('font-semibold', ok);
-        hint.classList.toggle('text-slate-500', !ok);
       }
-      const cb = document.getElementById('quick-autosave');
-      if (cb) cb.checked = quickAutosaveOn();
-    }
-
-    function adjustScore(side, delta) {
-      const id = side === 'a' ? 'score-a' : 'score-b';
-      const el = document.getElementById(id);
-      if (!el) return;
-      const current = el.value === '' ? 0 : Number.parseInt(el.value, 10);
-      const next = Math.max(0, Math.min(quickRaceTo(), (Number.isFinite(current) ? current : 0) + delta));
-      el.value = String(next);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      pulseScoreNumeral(id);
-      refreshQuickScore();
-    }
-
-    function pulseScoreNumeral(id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.classList.remove('score-pulse');
-      // Restart the short animation for consecutive taps without adding timers.
-      void el.offsetWidth;
-      el.classList.add('score-pulse');
     }
 
     function quickScore(side, n) {
       if (!state.scoreMatchId) return;
       const R = quickRaceTo();
+      const ot = isScoreOvertime();
       const mineEl = document.getElementById(side === 'a' ? 'score-a' : 'score-b');
       const otherEl = document.getElementById(side === 'a' ? 'score-b' : 'score-a');
-      if (n < R) {
-        // this side lost with n → the other side wins with exactly race-to
+      if (ot) {
+        mineEl.value = n;
+      } else if (n < R) {
         mineEl.value = n;
         otherEl.value = R;
       } else {
-        // this side won → keep the other side's losing score if it has one, otherwise ask for it
         mineEl.value = R;
         const o = scoreInputNumber(otherEl.id);
         if (o === null || o >= R) otherEl.value = '';
       }
       refreshQuickScore();
       pulseScoreNumeral(mineEl.id);
-      if (otherEl.value !== '' && parseInt(otherEl.value, 10) === R) pulseScoreNumeral(otherEl.id);
-      if (quickAutosaveOn() && quickResultValid(scoreInputNumber('score-a'), scoreInputNumber('score-b'), R)) submitScore();
+      if (scoreInputNumber(otherEl.id) !== null) pulseScoreNumeral(otherEl.id);
+      if (quickAutosaveOn() && quickResultValid(scoreInputNumber('score-a'), scoreInputNumber('score-b'), R, ot)) submitScore();
     }
 
     function closeScoreModal() {
