@@ -1,15 +1,15 @@
 {
   "app": "LCFC Manager",
-  "version": "7.02",
-  "exportedAt": "2026-10-29T02:09:23.305Z",
+  "version": "7.13",
+  "exportedAt": "2026-10-30T19:25:02.870Z",
   "type": "full",
   "players": [
     {
       "id": "mt0nwn4xmpohds",
       "name": "Mark Drollette",
       "skill": 3,
-      "rankingPoints": 2396,
-      "rankingDelta": 396,
+      "rankingPoints": 2335,
+      "rankingDelta": 335,
       "region": "NY",
       "homeState": "NY"
     },
@@ -17,8 +17,8 @@
       "id": "mt0nwvyixcpl7a",
       "name": "Todd Theofrastou",
       "skill": 3,
-      "rankingPoints": 2581,
-      "rankingDelta": 581,
+      "rankingPoints": 2514,
+      "rankingDelta": 514,
       "region": "VT",
       "homeState": "VT"
     },
@@ -26,8 +26,8 @@
       "id": "mt0nx3tat1qdas",
       "name": "Alan Feazelle",
       "skill": 3,
-      "rankingPoints": 2025,
-      "rankingDelta": 25,
+      "rankingPoints": 2041,
+      "rankingDelta": 41,
       "region": "NY",
       "homeState": "NY"
     },
@@ -35,8 +35,8 @@
       "id": "mt0nxay02r25zq",
       "name": "Travis Watts",
       "skill": 3,
-      "rankingPoints": 2326,
-      "rankingDelta": 326,
+      "rankingPoints": 2268,
+      "rankingDelta": 268,
       "region": "NY",
       "homeState": "NY"
     },
@@ -44,8 +44,8 @@
       "id": "mt0nxl7zmqfnkf",
       "name": "Cayden Garrand",
       "skill": 3,
-      "rankingPoints": 2464,
-      "rankingDelta": 464,
+      "rankingPoints": 2390,
+      "rankingDelta": 390,
       "region": "NY",
       "homeState": "NY"
     },
@@ -53,8 +53,8 @@
       "id": "mt0nxqh1l4i29f",
       "name": "Kayden Dupee",
       "skill": 3,
-      "rankingPoints": 2403,
-      "rankingDelta": 403,
+      "rankingPoints": 2405,
+      "rankingDelta": 405,
       "region": "NY",
       "homeState": "NY"
     },
@@ -62,8 +62,8 @@
       "id": "mt0nxv9u55yuou",
       "name": "Luke Bolton",
       "skill": 3,
-      "rankingPoints": 2385,
-      "rankingDelta": 385,
+      "rankingPoints": 2342,
+      "rankingDelta": 342,
       "region": "VT",
       "homeState": "VT"
     },
@@ -71,8 +71,8 @@
       "id": "mt0ny0jxioo10e",
       "name": "John Friedrich",
       "skill": 3,
-      "rankingPoints": 2668,
-      "rankingDelta": 668,
+      "rankingPoints": 2682,
+      "rankingDelta": 682,
       "region": "NY",
       "homeState": "NY"
     },
@@ -89,8 +89,8 @@
       "id": "mt0qmkfrn6n3xe",
       "name": "Ghost Dog",
       "skill": 3,
-      "rankingPoints": 2098,
-      "rankingDelta": 98,
+      "rankingPoints": 2090,
+      "rankingDelta": 90,
       "region": "NY",
       "homeState": "NY"
     },
@@ -107,8 +107,8 @@
       "id": "mtam67ye1sz0lm",
       "name": "Jared Ashline",
       "skill": 3,
-      "rankingPoints": 2372,
-      "rankingDelta": 372,
+      "rankingPoints": 2321,
+      "rankingDelta": 321,
       "region": "NY",
       "homeState": "NY"
     },
@@ -143,8 +143,8 @@
       "id": "mtuomnekqx8nju",
       "name": "Malia Doroha",
       "skill": 3,
-      "rankingPoints": 2008,
-      "rankingDelta": 8,
+      "rankingPoints": 1992,
+      "rankingDelta": -8,
       "region": "CA",
       "homeState": "CA"
     },
@@ -152,8 +152,8 @@
       "id": "mtuomtl3wnieej",
       "name": "Dennis Carman",
       "skill": 3,
-      "rankingPoints": 2253,
-      "rankingDelta": 253,
+      "rankingPoints": 2217,
+      "rankingDelta": 217,
       "region": "VT",
       "homeState": "VT"
     },
@@ -161,8 +161,8 @@
       "id": "mu4bkj50z5q8j1",
       "name": "Bill Pettis",
       "skill": 3,
-      "rankingPoints": 2016,
-      "rankingDelta": 16,
+      "rankingPoints": 2000,
+      "rankingDelta": 0,
       "region": "NY",
       "homeState": "NY"
     },
@@ -170,8 +170,8 @@
       "id": "muemob2o07rknp",
       "name": "Brian Turman",
       "skill": 3,
-      "rankingPoints": 2112,
-      "rankingDelta": 112,
+      "rankingPoints": 2095,
+      "rankingDelta": 95,
       "region": "VT",
       "homeState": "VT"
     },
@@ -206,8 +206,8 @@
       "id": "mvijllxg0577wq",
       "name": "Jacob Martin",
       "skill": 3,
-      "rankingPoints": 2062,
-      "rankingDelta": 62,
+      "rankingPoints": 2030,
+      "rankingDelta": 30,
       "region": "NY",
       "homeState": "NY"
     },
@@ -224,8 +224,8 @@
       "id": "mvimiet5y6gnxp",
       "name": "Loren Gosselin",
       "skill": 3,
-      "rankingPoints": 2057,
-      "rankingDelta": 57,
+      "rankingPoints": 2032,
+      "rankingDelta": 32,
       "region": "NY",
       "homeState": "NY"
     },
@@ -242,8 +242,8 @@
       "id": "mvsm8s8wknybmu",
       "name": "Regan Norton",
       "skill": 3,
-      "rankingPoints": 2008,
-      "rankingDelta": 8,
+      "rankingPoints": 1992,
+      "rankingDelta": -8,
       "region": "VT",
       "homeState": "VT"
     }
@@ -251,7 +251,7 @@
   "tournaments": [
     {
       "id": "mvsm99law5zg6n",
-      "name": "Monster",
+      "name": "10/28/26",
       "type": "monster",
       "format": "swiss",
       "raceTo": 5,
@@ -4134,7 +4134,19 @@
           "#4+#9",
           "#5+#10"
         ],
-        "bestOf": 3
+        "bestOf": 3,
+        "bonusPoolLocked": {
+          "bonusPool": 231,
+          "fieldSize": 10,
+          "fieldPoints": 23096,
+          "shares": [
+            116,
+            69,
+            46
+          ],
+          "mode": "50-30-20",
+          "lockedAt": 1793388209050
+        }
       },
       "createdAt": 1793222299342,
       "status": "finished",
@@ -4270,19 +4282,126 @@
           "seed": 1
         }
       },
+      "rankingDeltaDetail": {
+        "mt0nwn4xmpohds": {
+          "place": 1,
+          "expected": 3,
+          "seedDelta": 16,
+          "bonus": 116,
+          "total": 132
+        },
+        "mt0nwvyixcpl7a": {
+          "place": 1,
+          "expected": 3,
+          "seedDelta": 16,
+          "bonus": 116,
+          "total": 132
+        },
+        "mt0nxv9u55yuou": {
+          "place": 2,
+          "expected": 5,
+          "seedDelta": 16,
+          "bonus": 69,
+          "total": 85
+        },
+        "mtuomtl3wnieej": {
+          "place": 2,
+          "expected": 5,
+          "seedDelta": 16,
+          "bonus": 69,
+          "total": 85
+        },
+        "mt0ny0jxioo10e": {
+          "place": 3,
+          "expected": 1,
+          "seedDelta": -16,
+          "bonus": 46,
+          "total": 30
+        },
+        "mvijllxg0577wq": {
+          "place": 3,
+          "expected": 1,
+          "seedDelta": -16,
+          "bonus": 46,
+          "total": 30
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 4,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        },
+        "mtam67ye1sz0lm": {
+          "place": 4,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        },
+        "mt0nxay02r25zq": {
+          "place": 5,
+          "expected": 4,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        },
+        "mvsm8s8wknybmu": {
+          "place": 5,
+          "expected": 4,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        }
+      },
+      "rankingBonusShare": [
+        116,
+        69,
+        46
+      ],
+      "rankingBonusPool": 231,
+      "bonusPoolLocked": {
+        "fieldIds": [
+          "mt0ny0jxioo10e",
+          "mvijllxg0577wq",
+          "mt0nxqh1l4i29f",
+          "mtam67ye1sz0lm",
+          "mt0nwn4xmpohds",
+          "mt0nwvyixcpl7a",
+          "mt0nxay02r25zq",
+          "mvsm8s8wknybmu",
+          "mt0nxv9u55yuou",
+          "mtuomtl3wnieej"
+        ],
+        "fieldSize": 10,
+        "fieldPoints": 23096,
+        "bonusPool": 231,
+        "shares": [
+          116,
+          69,
+          46
+        ],
+        "fr": [
+          0.5,
+          0.3,
+          0.2
+        ],
+        "mode": "50-30-20",
+        "lockedAt": 1793388209050
+      },
       "rankingApplied": true,
-      "rankingAppliedAt": 1793238297975,
+      "rankingAppliedAt": 1793388249992,
       "rankingDeltas": {
-        "mt0nwn4xmpohds": 139,
-        "mt0nwvyixcpl7a": 123,
+        "mt0nwn4xmpohds": 132,
+        "mt0nwvyixcpl7a": 132,
         "mt0nxv9u55yuou": 85,
         "mtuomtl3wnieej": 85,
         "mt0ny0jxioo10e": 30,
-        "mvijllxg0577wq": 62,
-        "mt0nxqh1l4i29f": 0,
-        "mtam67ye1sz0lm": 0,
-        "mt0nxay02r25zq": 0,
-        "mvsm8s8wknybmu": 8
+        "mvijllxg0577wq": 30,
+        "mt0nxqh1l4i29f": -8,
+        "mtam67ye1sz0lm": -8,
+        "mt0nxay02r25zq": -8,
+        "mvsm8s8wknybmu": -8
       }
     },
     {
@@ -7011,15 +7130,65 @@
           ]
         }
       },
+      "rankingDeltaDetail": {
+        "mt0nwn4xmpohds": {
+          "place": 1,
+          "expected": 3,
+          "seedDelta": 16,
+          "bonus": 67,
+          "total": 83
+        },
+        "mt0ny0jxioo10e": {
+          "place": 1,
+          "expected": 3,
+          "seedDelta": 16,
+          "bonus": 67,
+          "total": 83
+        },
+        "mvimiet5y6gnxp": {
+          "place": 2,
+          "expected": 1,
+          "seedDelta": -8,
+          "bonus": 40,
+          "total": 32
+        },
+        "mt0nxay02r25zq": {
+          "place": 2,
+          "expected": 1,
+          "seedDelta": -8,
+          "bonus": 40,
+          "total": 32
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 3,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 27,
+          "total": 19
+        },
+        "mtuomtl3wnieej": {
+          "place": 3,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 27,
+          "total": 19
+        }
+      },
+      "rankingBonusShare": [
+        67,
+        40,
+        27
+      ],
+      "rankingBonusPool": 134,
       "rankingApplied": true,
-      "rankingAppliedAt": 1792633754682,
+      "rankingAppliedAt": 1793388249991,
       "rankingDeltas": {
-        "mt0nwn4xmpohds": 105,
-        "mt0ny0jxioo10e": 81,
-        "mvimiet5y6gnxp": 57,
-        "mt0nxay02r25zq": 49,
-        "mt0nxqh1l4i29f": 6,
-        "mtuomtl3wnieej": 14
+        "mt0nwn4xmpohds": 83,
+        "mt0ny0jxioo10e": 83,
+        "mvimiet5y6gnxp": 32,
+        "mt0nxay02r25zq": 32,
+        "mt0nxqh1l4i29f": 19,
+        "mtuomtl3wnieej": 19
       }
     },
     {
@@ -10936,17 +11105,81 @@
           ]
         }
       },
+      "rankingDeltaDetail": {
+        "mt0nwvyixcpl7a": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 92,
+          "total": 92
+        },
+        "mt0nxl7zmqfnkf": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 92,
+          "total": 92
+        },
+        "mt0nxay02r25zq": {
+          "place": 2,
+          "expected": 4,
+          "seedDelta": 8,
+          "bonus": 55,
+          "total": 63
+        },
+        "mt0ny0jxioo10e": {
+          "place": 2,
+          "expected": 4,
+          "seedDelta": 8,
+          "bonus": 55,
+          "total": 63
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 3,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 36,
+          "total": 28
+        },
+        "mt0nxv9u55yuou": {
+          "place": 3,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 36,
+          "total": 28
+        },
+        "mt0nwn4xmpohds": {
+          "place": 4,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        },
+        "mtam67ye1sz0lm": {
+          "place": 4,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        }
+      },
+      "rankingBonusShare": [
+        92,
+        55,
+        36
+      ],
+      "rankingBonusPool": 183,
       "rankingApplied": true,
-      "rankingAppliedAt": 1792029455088,
+      "rankingAppliedAt": 1793388249991,
       "rankingDeltas": {
-        "mt0nwvyixcpl7a": 109,
-        "mt0nxl7zmqfnkf": 117,
-        "mt0nxay02r25zq": 72,
-        "mt0ny0jxioo10e": 48,
-        "mt0nxqh1l4i29f": 37,
-        "mt0nxv9u55yuou": 45,
-        "mtam67ye1sz0lm": -8,
-        "mt0nwn4xmpohds": 0
+        "mt0nwvyixcpl7a": 92,
+        "mt0nxl7zmqfnkf": 92,
+        "mt0nxay02r25zq": 63,
+        "mt0ny0jxioo10e": 63,
+        "mt0nxqh1l4i29f": 28,
+        "mt0nxv9u55yuou": 28,
+        "mt0nwn4xmpohds": 0,
+        "mtam67ye1sz0lm": 0
       }
     },
     {
@@ -17484,16 +17717,80 @@
           ]
         }
       },
+      "rankingDeltaDetail": {
+        "mt0nxl7zmqfnkf": {
+          "place": 1,
+          "expected": 2,
+          "seedDelta": 8,
+          "bonus": 90,
+          "total": 98
+        },
+        "mt0nwvyixcpl7a": {
+          "place": 1,
+          "expected": 2,
+          "seedDelta": 8,
+          "bonus": 90,
+          "total": 98
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 2,
+          "expected": 4,
+          "seedDelta": 8,
+          "bonus": 54,
+          "total": 62
+        },
+        "mt0ny0jxioo10e": {
+          "place": 2,
+          "expected": 4,
+          "seedDelta": 8,
+          "bonus": 54,
+          "total": 62
+        },
+        "mt0nxay02r25zq": {
+          "place": 3,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 36,
+          "total": 36
+        },
+        "mt0nxv9u55yuou": {
+          "place": 3,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 36,
+          "total": 36
+        },
+        "mt0nwn4xmpohds": {
+          "place": 4,
+          "expected": 1,
+          "seedDelta": -16,
+          "bonus": 0,
+          "total": -16
+        },
+        "mtam67ye1sz0lm": {
+          "place": 4,
+          "expected": 1,
+          "seedDelta": -16,
+          "bonus": 0,
+          "total": -16
+        }
+      },
+      "rankingBonusShare": [
+        90,
+        54,
+        36
+      ],
+      "rankingBonusPool": 180,
       "rankingApplied": true,
-      "rankingAppliedAt": 1792011145725,
+      "rankingAppliedAt": 1793388249990,
       "rankingDeltas": {
-        "mt0nxl7zmqfnkf": 107,
-        "mt0nwvyixcpl7a": 115,
+        "mt0nxl7zmqfnkf": 98,
+        "mt0nwvyixcpl7a": 98,
         "mt0nxqh1l4i29f": 62,
-        "mt0ny0jxioo10e": 46,
-        "mt0nxay02r25zq": 44,
-        "mt0nxv9u55yuou": 44,
-        "mt0nwn4xmpohds": 8,
+        "mt0ny0jxioo10e": 62,
+        "mt0nxay02r25zq": 36,
+        "mt0nxv9u55yuou": 36,
+        "mt0nwn4xmpohds": -16,
         "mtam67ye1sz0lm": -16
       }
     },
@@ -20737,16 +21034,80 @@
           ]
         }
       },
+      "rankingDeltaDetail": {
+        "muemob2o07rknp": {
+          "place": 1,
+          "expected": 2,
+          "seedDelta": 8,
+          "bonus": 87,
+          "total": 95
+        },
+        "mtam67ye1sz0lm": {
+          "place": 1,
+          "expected": 2,
+          "seedDelta": 8,
+          "bonus": 87,
+          "total": 95
+        },
+        "mt0ny0jxioo10e": {
+          "place": 2,
+          "expected": 1,
+          "seedDelta": -8,
+          "bonus": 52,
+          "total": 44
+        },
+        "mt0nxv9u55yuou": {
+          "place": 2,
+          "expected": 1,
+          "seedDelta": -8,
+          "bonus": 52,
+          "total": 44
+        },
+        "mt0nxl7zmqfnkf": {
+          "place": 3,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 35,
+          "total": 35
+        },
+        "mt0nwn4xmpohds": {
+          "place": 3,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 35,
+          "total": 35
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 4,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        },
+        "muemoj7w6hgpwi": {
+          "place": 4,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        }
+      },
+      "rankingBonusShare": [
+        87,
+        52,
+        35
+      ],
+      "rankingBonusPool": 174,
       "rankingApplied": true,
-      "rankingAppliedAt": 1792011145725,
+      "rankingAppliedAt": 1793388249990,
       "rankingDeltas": {
-        "muemob2o07rknp": 112,
-        "mtam67ye1sz0lm": 104,
-        "mt0ny0jxioo10e": 45,
-        "mt0nxv9u55yuou": 69,
+        "muemob2o07rknp": 95,
+        "mtam67ye1sz0lm": 95,
+        "mt0ny0jxioo10e": 44,
+        "mt0nxv9u55yuou": 44,
         "mt0nxl7zmqfnkf": 35,
-        "mt0nwn4xmpohds": 43,
-        "mt0nxqh1l4i29f": -8,
+        "mt0nwn4xmpohds": 35,
+        "mt0nxqh1l4i29f": 0,
         "muemoj7w6hgpwi": 0
       }
     },
@@ -24730,20 +25091,112 @@
           ]
         }
       },
+      "rankingDeltaDetail": {
+        "mt0ny0jxioo10e": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 127,
+          "total": 127
+        },
+        "mtam67ye1sz0lm": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 127,
+          "total": 127
+        },
+        "mt0nwvyixcpl7a": {
+          "place": 2,
+          "expected": 4,
+          "seedDelta": 8,
+          "bonus": 76,
+          "total": 84
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 2,
+          "expected": 4,
+          "seedDelta": 8,
+          "bonus": 76,
+          "total": 84
+        },
+        "mt0nxl7zmqfnkf": {
+          "place": 3,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 51,
+          "total": 43
+        },
+        "mtuomtl3wnieej": {
+          "place": 3,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 51,
+          "total": 43
+        },
+        "mt0nxay02r25zq": {
+          "place": 4,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        },
+        "mu4bkj50z5q8j1": {
+          "place": 4,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        },
+        "mt0nwn4xmpohds": {
+          "place": 5,
+          "expected": 5,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        },
+        "mt0qmkfrn6n3xe": {
+          "place": 5,
+          "expected": 5,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        },
+        "mt0nxv9u55yuou": {
+          "place": 6,
+          "expected": 6,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        },
+        "mtuomnekqx8nju": {
+          "place": 6,
+          "expected": 6,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        }
+      },
+      "rankingBonusShare": [
+        127,
+        76,
+        51
+      ],
+      "rankingBonusPool": 254,
       "rankingApplied": true,
-      "rankingAppliedAt": 1792011145725,
+      "rankingAppliedAt": 1793388249989,
       "rankingDeltas": {
-        "mt0ny0jxioo10e": 128,
-        "mtam67ye1sz0lm": 144,
-        "mt0nwvyixcpl7a": 93,
-        "mt0nxqh1l4i29f": 77,
-        "mt0nxl7zmqfnkf": 59,
-        "mtuomtl3wnieej": 67,
-        "mu4bkj50z5q8j1": 16,
+        "mt0ny0jxioo10e": 127,
+        "mtam67ye1sz0lm": 127,
+        "mt0nwvyixcpl7a": 84,
+        "mt0nxqh1l4i29f": 84,
+        "mt0nxl7zmqfnkf": 43,
+        "mtuomtl3wnieej": 43,
+        "mt0nxay02r25zq": 0,
+        "mu4bkj50z5q8j1": 0,
         "mt0nwn4xmpohds": 0,
+        "mt0qmkfrn6n3xe": 0,
         "mt0nxv9u55yuou": 0,
-        "mt0nxay02r25zq": -8,
-        "mt0qmkfrn6n3xe": 8,
         "mtuomnekqx8nju": 0
       }
     },
@@ -27514,19 +27967,97 @@
           ]
         }
       },
+      "rankingDeltaDetail": {
+        "mt0ny0jxioo10e": {
+          "place": 1,
+          "expected": 2,
+          "seedDelta": 8,
+          "bonus": 104,
+          "total": 112
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 1,
+          "expected": 2,
+          "seedDelta": 8,
+          "bonus": 104,
+          "total": 112
+        },
+        "mt0nwvyixcpl7a": {
+          "place": 2,
+          "expected": 4,
+          "seedDelta": 8,
+          "bonus": 62,
+          "total": 70
+        },
+        "mtuomtl3wnieej": {
+          "place": 2,
+          "expected": 4,
+          "seedDelta": 8,
+          "bonus": 62,
+          "total": 70
+        },
+        "mtam67ye1sz0lm": {
+          "place": 3,
+          "expected": 5,
+          "seedDelta": 8,
+          "bonus": 42,
+          "total": 50
+        },
+        "mt0qmkfrn6n3xe": {
+          "place": 3,
+          "expected": 5,
+          "seedDelta": 8,
+          "bonus": 42,
+          "total": 50
+        },
+        "mt0nxay02r25zq": {
+          "place": 4,
+          "expected": 1,
+          "seedDelta": -16,
+          "bonus": 0,
+          "total": -16
+        },
+        "mt0nxl7zmqfnkf": {
+          "place": 4,
+          "expected": 1,
+          "seedDelta": -16,
+          "bonus": 0,
+          "total": -16
+        },
+        "mt0nwn4xmpohds": {
+          "place": 5,
+          "expected": 3,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        },
+        "mtuomnekqx8nju": {
+          "place": 5,
+          "expected": 3,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        }
+      },
+      "rankingBonusShare": [
+        104,
+        62,
+        42
+      ],
+      "rankingBonusPool": 208,
       "rankingApplied": true,
-      "rankingAppliedAt": 1792011145724,
+      "rankingAppliedAt": 1793388249987,
       "rankingDeltas": {
-        "mt0ny0jxioo10e": 105,
-        "mt0nxqh1l4i29f": 129,
-        "mt0nwvyixcpl7a": 79,
-        "mtuomtl3wnieej": 87,
+        "mt0ny0jxioo10e": 112,
+        "mt0nxqh1l4i29f": 112,
+        "mt0nwvyixcpl7a": 70,
+        "mtuomtl3wnieej": 70,
         "mtam67ye1sz0lm": 50,
         "mt0qmkfrn6n3xe": 50,
-        "mt0nxl7zmqfnkf": 0,
-        "mt0nwn4xmpohds": -8,
         "mt0nxay02r25zq": -16,
-        "mtuomnekqx8nju": 8
+        "mt0nxl7zmqfnkf": -16,
+        "mt0nwn4xmpohds": -8,
+        "mtuomnekqx8nju": -8
       }
     },
     {
@@ -29553,15 +30084,65 @@
           "name": "Luke Bolton + Jared Ashline"
         }
       },
+      "rankingDeltaDetail": {
+        "mt0nxay02r25zq": {
+          "place": 1,
+          "expected": 3,
+          "seedDelta": 16,
+          "bonus": 63,
+          "total": 79
+        },
+        "mt0ny0jxioo10e": {
+          "place": 1,
+          "expected": 3,
+          "seedDelta": 16,
+          "bonus": 63,
+          "total": 79
+        },
+        "mt0nxl7zmqfnkf": {
+          "place": 2,
+          "expected": 1,
+          "seedDelta": -8,
+          "bonus": 38,
+          "total": 30
+        },
+        "mt0nwvyixcpl7a": {
+          "place": 2,
+          "expected": 1,
+          "seedDelta": -8,
+          "bonus": 38,
+          "total": 30
+        },
+        "mt0nxv9u55yuou": {
+          "place": 3,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 24,
+          "total": 16
+        },
+        "mtam67ye1sz0lm": {
+          "place": 3,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 24,
+          "total": 16
+        }
+      },
+      "rankingBonusShare": [
+        63,
+        38,
+        24
+      ],
+      "rankingBonusPool": 125,
       "rankingApplied": true,
-      "rankingAppliedAt": 1792011145724,
+      "rankingAppliedAt": 1793388249986,
       "rankingDeltas": {
-        "mt0nxay02r25zq": 71,
+        "mt0nxay02r25zq": 79,
         "mt0ny0jxioo10e": 79,
-        "mt0nxl7zmqfnkf": 46,
-        "mt0nwvyixcpl7a": 54,
-        "mt0nxv9u55yuou": 9,
-        "mtam67ye1sz0lm": 33
+        "mt0nxl7zmqfnkf": 30,
+        "mt0nwvyixcpl7a": 30,
+        "mt0nxv9u55yuou": 16,
+        "mtam67ye1sz0lm": 16
       }
     },
     {
@@ -30262,19 +30843,97 @@
         }
       },
       "absentIds": [],
+      "rankingDeltaDetail": {
+        "mt0nxl7zmqfnkf": {
+          "place": 1,
+          "expected": 4,
+          "seedDelta": 16,
+          "bonus": 100,
+          "total": 116
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 1,
+          "expected": 4,
+          "seedDelta": 16,
+          "bonus": 100,
+          "total": 116
+        },
+        "mt0nwn4xmpohds": {
+          "place": 2,
+          "expected": 8,
+          "seedDelta": 16,
+          "bonus": 60,
+          "total": 76
+        },
+        "mt0nxv9u55yuou": {
+          "place": 2,
+          "expected": 8,
+          "seedDelta": 16,
+          "bonus": 60,
+          "total": 76
+        },
+        "mt0oabvkv4ftoq": {
+          "place": 3,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 40,
+          "total": 40
+        },
+        "mt0qmkfrn6n3xe": {
+          "place": 3,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 40,
+          "total": 40
+        },
+        "mt0nwvyixcpl7a": {
+          "place": 4,
+          "expected": 5,
+          "seedDelta": 8,
+          "bonus": 0,
+          "total": 8
+        },
+        "mt0nx3tat1qdas": {
+          "place": 4,
+          "expected": 5,
+          "seedDelta": 8,
+          "bonus": 0,
+          "total": 8
+        },
+        "mt0nxay02r25zq": {
+          "place": 5,
+          "expected": 8,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        },
+        "mt0ny0jxioo10e": {
+          "place": 5,
+          "expected": 8,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        }
+      },
+      "rankingBonusShare": [
+        100,
+        60,
+        40
+      ],
+      "rankingBonusPool": 200,
       "rankingApplied": true,
-      "rankingAppliedAt": 1792011145719,
+      "rankingAppliedAt": 1793388249980,
       "rankingDeltas": {
-        "mt0nxl7zmqfnkf": 108,
-        "mt0nxqh1l4i29f": 124,
+        "mt0nxl7zmqfnkf": 116,
+        "mt0nxqh1l4i29f": 116,
         "mt0nwn4xmpohds": 76,
         "mt0nxv9u55yuou": 76,
         "mt0oabvkv4ftoq": 40,
         "mt0qmkfrn6n3xe": 40,
-        "mt0nx3tat1qdas": -16,
-        "mt0ny0jxioo10e": 0,
         "mt0nwvyixcpl7a": 8,
-        "mt0nxay02r25zq": 8
+        "mt0nx3tat1qdas": 8,
+        "mt0nxay02r25zq": 0,
+        "mt0ny0jxioo10e": 0
       }
     },
     {
@@ -33070,17 +33729,81 @@
           "name": "Mark Drollette + Alan Faezelle"
         }
       },
+      "rankingDeltaDetail": {
+        "mt0ny0jxioo10e": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 82,
+          "total": 82
+        },
+        "mt0nxay02r25zq": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 82,
+          "total": 82
+        },
+        "mt0nxv9u55yuou": {
+          "place": 2,
+          "expected": 3,
+          "seedDelta": 8,
+          "bonus": 49,
+          "total": 57
+        },
+        "mtam67ye1sz0lm": {
+          "place": 2,
+          "expected": 3,
+          "seedDelta": 8,
+          "bonus": 49,
+          "total": 57
+        },
+        "mt0nwn4xmpohds": {
+          "place": 3,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 33,
+          "total": 33
+        },
+        "mt0nx3tat1qdas": {
+          "place": 3,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 33,
+          "total": 33
+        },
+        "mt0nxl7zmqfnkf": {
+          "place": 4,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 4,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        }
+      },
+      "rankingBonusShare": [
+        82,
+        49,
+        33
+      ],
+      "rankingBonusPool": 164,
       "rankingApplied": true,
-      "rankingAppliedAt": 1792011145723,
+      "rankingAppliedAt": 1793388249984,
       "rankingDeltas": {
-        "mt0ny0jxioo10e": 106,
-        "mt0nxay02r25zq": 106,
+        "mt0ny0jxioo10e": 82,
+        "mt0nxay02r25zq": 82,
         "mt0nxv9u55yuou": 57,
-        "mtam67ye1sz0lm": 65,
+        "mtam67ye1sz0lm": 57,
         "mt0nwn4xmpohds": 33,
-        "mt0nx3tat1qdas": 41,
+        "mt0nx3tat1qdas": 33,
         "mt0nxl7zmqfnkf": -8,
-        "mt0nxqh1l4i29f": -24
+        "mt0nxqh1l4i29f": -8
       }
     }
   ]
