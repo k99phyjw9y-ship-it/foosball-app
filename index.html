@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.09 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.10 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.09" />
+  <meta name="lcfc-build" content="7.10" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.09 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.10 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2242,7 +2242,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.09</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.10</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3157,7 +3157,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.09';
+    const APP_VERSION = '7.10';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -4975,6 +4975,48 @@
 
     // ==================== TOURNAMENT DETAIL ====================
     // Operations overview is display-only. It reads existing event fields and never mutates tournament state.
+
+    /** Preview ranking bonus pool once playoffs exist (does not apply points). */
+    function previewEventBonusPool(t) {
+      if (!t || !t.playoffs) return null;
+      if (typeof isSandboxTournament === 'function' && isSandboxTournament(t)) return null;
+      const ids = new Set();
+      try {
+        (t.playoffTeams || []).forEach(team => {
+          (team.playerIds || []).forEach(id => { if (id) ids.add(id); });
+        });
+        if (!ids.size && typeof getBracketParticipantIds === 'function') {
+          getBracketParticipantIds(t).forEach(id => ids.add(id));
+        }
+        if (!ids.size) {
+          const placements = t.placements || t.playoffs.placements || {};
+          [placements.first, placements.second, placements.third].forEach(ent => {
+            if (typeof rankingEntityPlayerIds === 'function') {
+              rankingEntityPlayerIds(t, ent).forEach(id => ids.add(id));
+            }
+          });
+        }
+      } catch (e) {}
+      const fieldIds = [...ids];
+      if (fieldIds.length < 2) return null;
+      const fieldPoints = fieldIds.reduce(
+        (s, id) => s + (typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(id) : 2000),
+        0
+      );
+      const bonusPool = Math.round(fieldPoints * 0.01);
+      const fr = (typeof getBonusShareFractions === 'function') ? getBonusShareFractions() : [0.50, 0.30, 0.20];
+      const mode = (typeof getBonusSplitMode === 'function') ? getBonusSplitMode() : '50-30-20';
+      return {
+        fieldSize: fieldIds.length,
+        fieldPoints,
+        bonusPool,
+        shares: [Math.round(bonusPool * fr[0]), Math.round(bonusPool * fr[1]), Math.round(bonusPool * fr[2])],
+        fr,
+        mode,
+        applied: !!t.rankingApplied
+      };
+    }
+
     function renderTournamentOperationsOverview(t) {
       const kpis = document.getElementById('td-ops-kpis');
       if (!kpis || !t) return;
@@ -5008,6 +5050,45 @@
       if (pctEl) pctEl.textContent = `${pct}%`;
       if (progress) progress.setAttribute('aria-valuenow', String(pct));
       if (fill) fill.style.width = `${pct}%`;
+
+      // Bonus pool breakdown once playoffs/bracket exist
+      const bonusEl = document.getElementById('td-ops-bonus-pool');
+      if (bonusEl) {
+        const hasPlayoffs = !!(t.playoffs && (
+          (t.playoffs.winnersRounds && t.playoffs.winnersRounds.length) ||
+          (t.playoffs.rounds && t.playoffs.rounds.length) ||
+          t.playoffs.grandFinal ||
+          (t.playoffTeams && t.playoffTeams.length)
+        ));
+        const preview = hasPlayoffs && typeof previewEventBonusPool === 'function'
+          ? previewEventBonusPool(t)
+          : null;
+        if (!preview) {
+          bonusEl.classList.add('hidden');
+        } else {
+          bonusEl.classList.remove('hidden');
+          const splitEl = document.getElementById('td-ops-bonus-split');
+          const totalEl = document.getElementById('td-ops-bonus-total');
+          const metaEl = document.getElementById('td-ops-bonus-meta');
+          const sharesEl = document.getElementById('td-ops-bonus-shares');
+          const labels = ['1st', '2nd', '3rd'];
+          const pcts = preview.fr.map(x => Math.round(x * 100));
+          if (splitEl) {
+            splitEl.textContent = preview.mode === '60-30-10' ? '60/30/10' : '50/30/20';
+          }
+          if (totalEl) totalEl.textContent = `${preview.bonusPool} pts`;
+          if (metaEl) {
+            metaEl.textContent = preview.applied
+              ? `Applied · ${preview.fieldSize} playoff players · ${preview.fieldPoints.toLocaleString()} combined ranking`
+              : `Projected · 1% of ${preview.fieldPoints.toLocaleString()} ranking pts · ${preview.fieldSize} playoff players`;
+          }
+          if (sharesEl) {
+            sharesEl.innerHTML = preview.shares.map((pts, i) =>
+              `<div class="ops-bonus-share"><div class="ops-bonus-share-place">${labels[i]}</div><div class="ops-bonus-share-pts">+${pts}</div><div class="ops-bonus-share-pct">${pcts[i]}% of pool</div></div>`
+            ).join('');
+          }
+        }
+      }
     }
 
     function renderTournament() {
