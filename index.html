@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.11 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.12 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.11" />
+  <meta name="lcfc-build" content="7.12" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.11 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.12 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2270,7 +2270,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.11</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.12</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3194,7 +3194,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.11';
+    const APP_VERSION = '7.12';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -3958,16 +3958,25 @@
       const expectedPlace = {};
       seeded.forEach((id, i) => { expectedPlace[id] = i + 1; });
 
-      const fieldPoints = fieldIds.reduce((s, id) => s + getPlayerRankingPoints(id), 0);
-      const bonusPool = Math.round(fieldPoints * 0.01);
-      const fr = (typeof getBonusShareFractions === 'function')
-        ? getBonusShareFractions()
-        : [0.50, 0.30, 0.20];
-      const bonusShare = [
-        Math.round(bonusPool * fr[0]),
-        Math.round(bonusPool * fr[1]),
-        Math.round(bonusPool * fr[2])
-      ];
+      const locked = t.bonusPoolLocked || t.playoffs?.bonusPoolLocked;
+      let fieldPoints, bonusPool, fr, bonusShare;
+      if (locked && locked.bonusPool != null && Array.isArray(locked.shares) && locked.shares.length >= 3) {
+        fieldPoints = locked.fieldPoints;
+        bonusPool = locked.bonusPool;
+        fr = locked.fr || ((typeof getBonusShareFractions === 'function') ? getBonusShareFractions() : [0.50, 0.30, 0.20]);
+        bonusShare = locked.shares.slice(0, 3);
+      } else {
+        fieldPoints = fieldIds.reduce((s, id) => s + getPlayerRankingPoints(id), 0);
+        bonusPool = Math.round(fieldPoints * 0.01);
+        fr = (typeof getBonusShareFractions === 'function')
+          ? getBonusShareFractions()
+          : [0.50, 0.30, 0.20];
+        bonusShare = [
+          Math.round(bonusPool * fr[0]),
+          Math.round(bonusPool * fr[1]),
+          Math.round(bonusPool * fr[2])
+        ];
+      }
 
       const deltas = {};
       fieldIds.forEach(id => {
@@ -5014,20 +5023,17 @@
     // Operations overview is display-only. It reads existing event fields and never mutates tournament state.
 
     /** Preview ranking bonus pool once playoffs exist (does not apply points). */
-    function previewEventBonusPool(t) {
-      if (!t || !t.playoffs) return null;
-      if (typeof isSandboxTournament === 'function' && isSandboxTournament(t)) return null;
+    function collectPlayoffFieldIds(t) {
       const ids = new Set();
+      if (!t) return ids;
       try {
         (t.playoffTeams || []).forEach(team => {
           (team.playerIds || []).forEach(id => { if (id) ids.add(id); });
         });
-        // Bracket entities (singles/doubles/DYP start-bracket)
-        if (typeof collectBracketMatches === 'function') {
+        if (t.playoffs && typeof collectBracketMatches === 'function') {
           collectBracketMatches(t.playoffs).forEach(m => {
             if (!m) return;
-            const sides = [m.a?.entity || m.entityA, m.b?.entity || m.entityB];
-            sides.forEach(ent => {
+            [m.a?.entity || m.entityA, m.b?.entity || m.entityB].forEach(ent => {
               if (!ent) return;
               if (ent.playerIds && ent.playerIds.length) ent.playerIds.forEach(id => ids.add(id));
               else if (ent.id && (!ent.type || ent.type === 'player')) ids.add(ent.id);
@@ -5037,13 +5043,19 @@
         if (!ids.size && typeof getBracketParticipantIds === 'function') {
           getBracketParticipantIds(t).forEach(id => ids.add(id));
         }
-        // Fallback: everyone still in the event who isn't absent
         if (!ids.size && Array.isArray(t.playerIds)) {
           const absent = new Set(t.absentIds || []);
           t.playerIds.forEach(id => { if (!absent.has(id)) ids.add(id); });
         }
       } catch (e) {}
-      const fieldIds = [...ids];
+      return ids;
+    }
+
+    /** Compute bonus pool from current field (used only to lock at playoff create). */
+    function computeBonusPoolSnapshot(t) {
+      if (!t || !t.playoffs) return null;
+      if (typeof isSandboxTournament === 'function' && isSandboxTournament(t)) return null;
+      const fieldIds = [...collectPlayoffFieldIds(t)];
       if (fieldIds.length < 2) return null;
       const fieldPoints = fieldIds.reduce(
         (s, id) => s + (typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(id) : 2000),
@@ -5053,13 +5065,69 @@
       const fr = (typeof getBonusShareFractions === 'function') ? getBonusShareFractions() : [0.50, 0.30, 0.20];
       const mode = (typeof getBonusSplitMode === 'function') ? getBonusSplitMode() : '50-30-20';
       return {
+        fieldIds,
         fieldSize: fieldIds.length,
         fieldPoints,
         bonusPool,
         shares: [Math.round(bonusPool * fr[0]), Math.round(bonusPool * fr[1]), Math.round(bonusPool * fr[2])],
-        fr,
+        fr: fr.slice(),
         mode,
-        applied: !!t.rankingApplied
+        lockedAt: Date.now()
+      };
+    }
+
+    /** Freeze pool when playoffs/bracket are created — does not change as matches progress. */
+    function lockBonusPoolSnapshot(t) {
+      if (!t || !t.playoffs) return null;
+      if (typeof isSandboxTournament === 'function' && isSandboxTournament(t)) {
+        delete t.bonusPoolLocked;
+        return null;
+      }
+      const snap = computeBonusPoolSnapshot(t);
+      if (!snap) return null;
+      t.bonusPoolLocked = snap;
+      try {
+        t.playoffs.bonusPoolLocked = {
+          bonusPool: snap.bonusPool,
+          fieldSize: snap.fieldSize,
+          fieldPoints: snap.fieldPoints,
+          shares: snap.shares.slice(),
+          mode: snap.mode,
+          lockedAt: snap.lockedAt
+        };
+      } catch (e) {}
+      return snap;
+    }
+
+    /** Control center / UI: always prefer locked snapshot from playoff create. */
+    function previewEventBonusPool(t) {
+      if (!t || !t.playoffs) return null;
+      if (typeof isSandboxTournament === 'function' && isSandboxTournament(t)) return null;
+      const locked = t.bonusPoolLocked || t.playoffs.bonusPoolLocked;
+      if (locked && locked.bonusPool != null) {
+        return {
+          fieldSize: locked.fieldSize,
+          fieldPoints: locked.fieldPoints,
+          bonusPool: locked.bonusPool,
+          shares: (locked.shares || []).slice(),
+          fr: locked.fr || ((typeof getBonusShareFractions === 'function') ? getBonusShareFractions() : [0.50, 0.30, 0.20]),
+          mode: locked.mode || ((typeof getBonusSplitMode === 'function') ? getBonusSplitMode() : '50-30-20'),
+          applied: !!t.rankingApplied,
+          locked: true
+        };
+      }
+      // Legacy events with no lock yet: compute once and lock so it stops moving
+      const snap = lockBonusPoolSnapshot(t);
+      if (!snap) return null;
+      return {
+        fieldSize: snap.fieldSize,
+        fieldPoints: snap.fieldPoints,
+        bonusPool: snap.bonusPool,
+        shares: snap.shares.slice(),
+        fr: snap.fr,
+        mode: snap.mode,
+        applied: !!t.rankingApplied,
+        locked: true
       };
     }
 
@@ -5135,9 +5203,10 @@
           }
           if (totalEl) totalEl.textContent = `${preview.bonusPool} pts`;
           if (metaEl) {
+            const lockNote = preview.locked ? 'Locked at playoff start' : 'Projected';
             metaEl.textContent = preview.applied
-              ? `Applied · ${preview.fieldSize} playoff players · ${preview.fieldPoints.toLocaleString()} combined ranking`
-              : `Projected · 1% of ${preview.fieldPoints.toLocaleString()} ranking pts · ${preview.fieldSize} playoff players`;
+              ? `Applied · ${preview.fieldSize} players · pool ${preview.bonusPool} pts`
+              : `${lockNote} · 1% of ${preview.fieldPoints.toLocaleString()} ranking pts · ${preview.fieldSize} players`;
           }
           if (sharesEl) {
             sharesEl.innerHTML = preview.shares.map((pts, i) =>
@@ -7370,6 +7439,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (!shuffleSeeds) {
           t.playoffs.seededBy = 'club-ranking';
         }
+        if (typeof lockBonusPoolSnapshot === 'function') lockBonusPoolSnapshot(t);
         t.status = 'active';
         t.placements = t.playoffs.placements || { first: null, second: null, third: null };
         try { assignBracketTables(t); } catch (e) { console.error('assignBracketTables', e); }
@@ -7481,6 +7551,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         t.playoffs = buildBracket(entities, format, { shuffleSeeds: false });
         t.playoffs.tieredDraw = true;
         t.playoffs.tieredPairs = built.pairsLabel;
+        if (typeof lockBonusPoolSnapshot === 'function') lockBonusPoolSnapshot(t);
         // Monster playoffs are always Best of 3 (ranking rounds keep event bestOf)
         if (t.type === 'monster') {
           t.playoffs.bestOf = 3;
@@ -7509,6 +7580,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
       const format = t.format === 'double-elim' ? 'double-elim' : 'single-elim';
       t.playoffs = buildBracket(entities, format, { shuffleSeeds: false });
+      if (typeof lockBonusPoolSnapshot === 'function') lockBonusPoolSnapshot(t);
       t.placements = t.playoffs.placements;
       t.status = 'active';
       assignBracketTables(t);
