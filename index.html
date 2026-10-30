@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.10 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.11 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.10" />
+  <meta name="lcfc-build" content="7.11" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.10 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.11 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -1939,7 +1939,35 @@
       #score-modal .quick-chip { width: 3.68rem !important; height: 3.68rem !important; min-width: 3.68rem !important; min-height: 3.68rem !important; border-radius: 9999px !important; font-size: 0.95rem !important; }
     }
 
-</style>
+
+    .ops-bonus-share {
+      border-radius: 0.65rem;
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      background: rgba(15, 23, 42, 0.35);
+      padding: 0.45rem 0.5rem;
+      text-align: center;
+    }
+    .ops-bonus-share-place {
+      font-size: 0.58rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgb(253 230 138);
+    }
+    .ops-bonus-share-pts {
+      margin-top: 0.15rem;
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+    .ops-bonus-share-pct {
+      font-size: 0.58rem;
+      font-weight: 700;
+      color: rgb(203 213 225);
+    }
+
+  </style>
 
   <style id="lcfc-polish-v686">
     /* v6.90 DNA radar overlap fix: stronger contrast, clearer hierarchy, no behavior changes. */
@@ -2242,7 +2270,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.10</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.11</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2864,6 +2892,15 @@
           <div class="flex items-center justify-between gap-3 text-[11px] text-slate-300 mb-2"><span>Match completion</span><span id="td-ops-progress-label" class="font-bold text-white">0%</span></div>
           <div class="ops-progress-track" role="progressbar" aria-label="Match completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="td-ops-progress"><div class="ops-progress-fill" id="td-ops-progress-fill" style="width:0%"></div></div>
         </div>
+        <div id="td-ops-bonus-pool" class="ops-bonus-pool hidden mt-4 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3.5 py-3" aria-live="polite">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="text-[10px] font-extrabold uppercase tracking-[.14em] text-amber-200">Bonus point pool</div>
+            <div id="td-ops-bonus-split" class="text-[10px] font-bold text-amber-100/90">50/30/20</div>
+          </div>
+          <div id="td-ops-bonus-total" class="text-lg font-black text-white tabular-nums">—</div>
+          <div id="td-ops-bonus-meta" class="text-[11px] text-slate-300 mt-0.5">Shown when playoffs start</div>
+          <div id="td-ops-bonus-shares" class="mt-2.5 grid grid-cols-3 gap-2"></div>
+        </div>
       </section>
 
       <div class="ops-tabs flex gap-1 overflow-x-auto border-b border-slate-200 -mx-1 px-1">
@@ -3157,7 +3194,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.10';
+    const APP_VERSION = '7.11';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -4985,16 +5022,25 @@
         (t.playoffTeams || []).forEach(team => {
           (team.playerIds || []).forEach(id => { if (id) ids.add(id); });
         });
+        // Bracket entities (singles/doubles/DYP start-bracket)
+        if (typeof collectBracketMatches === 'function') {
+          collectBracketMatches(t.playoffs).forEach(m => {
+            if (!m) return;
+            const sides = [m.a?.entity || m.entityA, m.b?.entity || m.entityB];
+            sides.forEach(ent => {
+              if (!ent) return;
+              if (ent.playerIds && ent.playerIds.length) ent.playerIds.forEach(id => ids.add(id));
+              else if (ent.id && (!ent.type || ent.type === 'player')) ids.add(ent.id);
+            });
+          });
+        }
         if (!ids.size && typeof getBracketParticipantIds === 'function') {
           getBracketParticipantIds(t).forEach(id => ids.add(id));
         }
-        if (!ids.size) {
-          const placements = t.placements || t.playoffs.placements || {};
-          [placements.first, placements.second, placements.third].forEach(ent => {
-            if (typeof rankingEntityPlayerIds === 'function') {
-              rankingEntityPlayerIds(t, ent).forEach(id => ids.add(id));
-            }
-          });
+        // Fallback: everyone still in the event who isn't absent
+        if (!ids.size && Array.isArray(t.playerIds)) {
+          const absent = new Set(t.absentIds || []);
+          t.playerIds.forEach(id => { if (!absent.has(id)) ids.add(id); });
         }
       } catch (e) {}
       const fieldIds = [...ids];
@@ -5052,13 +5098,24 @@
       if (fill) fill.style.width = `${pct}%`;
 
       // Bonus pool breakdown once playoffs/bracket exist
-      const bonusEl = document.getElementById('td-ops-bonus-pool');
+      let bonusEl = document.getElementById('td-ops-bonus-pool');
+      if (!bonusEl) {
+        const ops = document.getElementById('td-ops-overview');
+        if (ops) {
+          bonusEl = document.createElement('div');
+          bonusEl.id = 'td-ops-bonus-pool';
+          bonusEl.className = 'ops-bonus-pool hidden mt-4 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3.5 py-3';
+          bonusEl.innerHTML = '<div class="flex items-center justify-between gap-2 mb-2"><div class="text-[10px] font-extrabold uppercase tracking-[.14em] text-amber-200">Bonus point pool</div><div id="td-ops-bonus-split" class="text-[10px] font-bold text-amber-100/90">50/30/20</div></div><div id="td-ops-bonus-total" class="text-lg font-black text-white tabular-nums">—</div><div id="td-ops-bonus-meta" class="text-[11px] text-slate-300 mt-0.5"></div><div id="td-ops-bonus-shares" class="mt-2.5 grid grid-cols-3 gap-2"></div>';
+          ops.appendChild(bonusEl);
+        }
+      }
       if (bonusEl) {
         const hasPlayoffs = !!(t.playoffs && (
           (t.playoffs.winnersRounds && t.playoffs.winnersRounds.length) ||
           (t.playoffs.rounds && t.playoffs.rounds.length) ||
           t.playoffs.grandFinal ||
-          (t.playoffTeams && t.playoffTeams.length)
+          (t.playoffTeams && t.playoffTeams.length) ||
+          t.playoffs.size
         ));
         const preview = hasPlayoffs && typeof previewEventBonusPool === 'function'
           ? previewEventBonusPool(t)
