@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.12 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.13 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.12" />
+  <meta name="lcfc-build" content="7.13" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.12 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.13 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2270,7 +2270,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.12</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.13</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3194,7 +3194,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.12';
+    const APP_VERSION = '7.13';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -3936,10 +3936,20 @@
      * Seed: ±8 per placement-tier difference vs pre-event ranking order.
      * Bonus: 1% of bracket-field ranking pool — full share to EACH player on that podium step.
      */
+    
+    /** Split bonus pool into 1st/2nd/3rd so shares always sum to the pool. */
+    function splitBonusPoolShares(bonusPool, fr) {
+      fr = fr || [0.50, 0.30, 0.20];
+      const pool = Math.max(0, Math.round(Number(bonusPool) || 0));
+      const s1 = Math.round(pool * fr[0]);
+      const s2 = Math.round(pool * fr[1]);
+      const s3 = Math.max(0, pool - s1 - s2);
+      return [s1, s2, s3];
+    }
+
     function applyRankingPointsForTournament(t) {
       if (!t || t.rankingApplied) return false;
       if (isSandboxTournament(t)) return false;
-      // Must have a completed playoff/bracket with at least 1st & 2nd
       if (!t.playoffs) return false;
       const placements = t.placements || t.playoffs.placements || {};
       if (!placements.first || !placements.second) return false;
@@ -3947,7 +3957,7 @@
       const { ids: fieldIds, placeOf } = getEventFinishPlaces(t);
       if (fieldIds.length < 2) return false;
 
-      // Pre-event seeds by current ranking points (stable name tiebreak)
+      // Individual ranking order (for singles / fallback)
       const seeded = fieldIds.slice().sort((a, b) => {
         const pa = getPlayerRankingPoints(a), pb = getPlayerRankingPoints(b);
         if (pb !== pa) return pb - pa;
@@ -3958,36 +3968,58 @@
       const expectedPlace = {};
       seeded.forEach((id, i) => { expectedPlace[id] = i + 1; });
 
+      // Playoff team seed → same expected place for both partners
+      const teamExpected = {};
+      (t.playoffTeams || []).forEach(team => {
+        if (team.seed == null) return;
+        (team.playerIds || []).forEach(id => { teamExpected[id] = Number(team.seed); });
+      });
+
       const locked = t.bonusPoolLocked || t.playoffs?.bonusPoolLocked;
       let fieldPoints, bonusPool, fr, bonusShare;
-      if (locked && locked.bonusPool != null && Array.isArray(locked.shares) && locked.shares.length >= 3) {
+      if (locked && locked.bonusPool != null) {
         fieldPoints = locked.fieldPoints;
-        bonusPool = locked.bonusPool;
+        bonusPool = Math.round(Number(locked.bonusPool));
         fr = locked.fr || ((typeof getBonusShareFractions === 'function') ? getBonusShareFractions() : [0.50, 0.30, 0.20]);
-        bonusShare = locked.shares.slice(0, 3);
+        bonusShare = (typeof splitBonusPoolShares === 'function')
+          ? splitBonusPoolShares(bonusPool, fr)
+          : [Math.round(bonusPool * fr[0]), Math.round(bonusPool * fr[1]), Math.round(bonusPool * fr[2])];
       } else {
         fieldPoints = fieldIds.reduce((s, id) => s + getPlayerRankingPoints(id), 0);
         bonusPool = Math.round(fieldPoints * 0.01);
         fr = (typeof getBonusShareFractions === 'function')
           ? getBonusShareFractions()
           : [0.50, 0.30, 0.20];
-        bonusShare = [
-          Math.round(bonusPool * fr[0]),
-          Math.round(bonusPool * fr[1]),
-          Math.round(bonusPool * fr[2])
-        ];
+        bonusShare = splitBonusPoolShares(bonusPool, fr);
       }
 
-      const deltas = {};
+      // Group by finish place so partners always share the exact same Δ
+      const byPlace = {};
       fieldIds.forEach(id => {
-        const actual = placeOf[id] || fieldIds.length;
-        const expected = expectedPlace[id] || actual;
+        const pl = placeOf[id] || fieldIds.length;
+        (byPlace[pl] = byPlace[pl] || []).push(id);
+      });
+
+      const deltas = {};
+      const deltaDetail = {};
+      Object.keys(byPlace).forEach(k => {
+        const ids = byPlace[k];
+        const actual = Number(k);
+        const exps = ids.map(id =>
+          teamExpected[id] != null ? teamExpected[id] : (expectedPlace[id] || actual)
+        );
+        // One expected place for the whole place-group (avg of partners / group)
+        const expected = Math.round(exps.reduce((s, x) => s + x, 0) / exps.length);
         const seedDelta = (placementTierIndex(expected) - placementTierIndex(actual)) * SEED_POINTS_PER_TIER;
         let bonus = 0;
         if (actual === 1) bonus = bonusShare[0];
         else if (actual === 2) bonus = bonusShare[1];
         else if (actual === 3) bonus = bonusShare[2];
-        deltas[id] = seedDelta + bonus;
+        const d = seedDelta + bonus;
+        ids.forEach(id => {
+          deltas[id] = d;
+          deltaDetail[id] = { place: actual, expected, seedDelta, bonus, total: d };
+        });
       });
 
       Object.entries(deltas).forEach(([id, d]) => {
@@ -3996,7 +4028,6 @@
         ensurePlayerRanking(p);
         p.rankingPoints = Math.max(0, Math.round(p.rankingPoints + d));
         p.rankingDelta = Math.round((p.rankingDelta || 0) + d);
-        // Keep skill badge roughly aligned with ranking band (optional soft sync)
         const band = rankingBandFromPoints(p.rankingPoints);
         if (p.skill == null) p.skill = band.skill;
       });
@@ -4004,6 +4035,9 @@
       t.rankingApplied = true;
       t.rankingAppliedAt = Date.now();
       t.rankingDeltas = deltas;
+      t.rankingDeltaDetail = deltaDetail;
+      t.rankingBonusShare = bonusShare.slice();
+      t.rankingBonusPool = bonusPool;
       return true;
     }
 
@@ -5064,12 +5098,15 @@
       const bonusPool = Math.round(fieldPoints * 0.01);
       const fr = (typeof getBonusShareFractions === 'function') ? getBonusShareFractions() : [0.50, 0.30, 0.20];
       const mode = (typeof getBonusSplitMode === 'function') ? getBonusSplitMode() : '50-30-20';
+      const shares = (typeof splitBonusPoolShares === 'function')
+        ? splitBonusPoolShares(bonusPool, fr)
+        : [Math.round(bonusPool * fr[0]), Math.round(bonusPool * fr[1]), Math.round(bonusPool * fr[2])];
       return {
         fieldIds,
         fieldSize: fieldIds.length,
         fieldPoints,
         bonusPool,
-        shares: [Math.round(bonusPool * fr[0]), Math.round(bonusPool * fr[1]), Math.round(bonusPool * fr[2])],
+        shares,
         fr: fr.slice(),
         mode,
         lockedAt: Date.now()
