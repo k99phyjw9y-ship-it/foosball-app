@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.16 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.17 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.16" />
+  <meta name="lcfc-build" content="7.17" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.16 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.17 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2270,7 +2270,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.16</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.17</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3194,7 +3194,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.16';
+    const APP_VERSION = '7.17';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -4811,71 +4811,6 @@
     }
 
     
-    /** Night recap stats for home tournament cards (display only). */
-    function homeNightRecapStats(t) {
-      if (!t) return null;
-      const playerN = Array.isArray(t.playerIds) ? t.playerIds.length : 0;
-      let matches = 0, goals = 0;
-      const durations = [];
-      const tallyMatch = (m) => {
-        if (!m || m.status !== 'done') return;
-        matches += 1;
-        const games = (typeof getMatchGames === 'function') ? getMatchGames(m) : (m.games || []);
-        if (games.length) {
-          games.forEach(g => {
-            goals += (Number(g.scoreA) || 0) + (Number(g.scoreB) || 0);
-          });
-        } else {
-          goals += (Number(m.scoreA) || 0) + (Number(m.scoreB) || 0);
-        }
-        if (m.timerStartAt && m.timerEndedAt && m.timerEndedAt > m.timerStartAt) {
-          durations.push(m.timerEndedAt - m.timerStartAt);
-        }
-      };
-      (t.rounds || []).forEach(r => (r.matches || []).forEach(tallyMatch));
-      if (t.playoffs && typeof collectBracketMatches === 'function') {
-        try { collectBracketMatches(t.playoffs).forEach(tallyMatch); } catch (e) {}
-      } else if (t.playoffs) {
-        const lists = []
-          .concat(t.playoffs.winnersRounds || [])
-          .concat(t.playoffs.losersRounds || [])
-          .concat(t.playoffs.rounds || []);
-        lists.forEach(r => (r.matches || []).forEach(tallyMatch));
-        if (t.playoffs.grandFinal) tallyMatch(t.playoffs.grandFinal);
-        if (t.playoffs.grandFinal2 && !t.playoffs.grandFinal2.void) tallyMatch(t.playoffs.grandFinal2);
-      }
-      if (matches === 0 && playerN === 0) return null;
-      let avgLabel = null;
-      if (durations.length) {
-        const avgMs = durations.reduce((a, b) => a + b, 0) / durations.length;
-        const secs = Math.round(avgMs / 1000);
-        const mm = Math.floor(secs / 60);
-        const ss = String(secs % 60).padStart(2, '0');
-        avgLabel = `${mm}:${ss}`;
-      }
-      return { playerN, matches, goals, avgLabel, finished: t.status === 'finished' };
-    }
-
-    function homeNightRecapHtml(t) {
-      const s = homeNightRecapStats(t);
-      if (!s || s.matches === 0) return '';
-      const cell = (val, label) =>
-        `<div class="min-w-0 text-center flex-1">
-          <div class="text-sm font-black text-slate-800 tabular-nums leading-none">${val}</div>
-          <div class="text-[9px] font-bold uppercase tracking-wide text-slate-400 mt-1">${label}</div>
-        </div>`;
-      const parts = [
-        cell(s.playerN, 'Players'),
-        cell(s.matches, 'Matches'),
-        cell(s.goals, 'Goals')
-      ];
-      if (s.avgLabel) parts.push(cell(s.avgLabel, 'Avg time'));
-      return `<div class="mt-3 pt-3 border-t border-slate-100">
-        <div class="text-[9px] font-extrabold uppercase tracking-[0.14em] text-emerald-600/90 mb-2">Night recap</div>
-        <div class="flex gap-1 sm:gap-2 items-start">${parts.join('<div class="w-px self-stretch bg-slate-100 shrink-0"></div>')}</div>
-      </div>`;
-    }
-
     function getTournamentPodiumLabels(t) {
       const pl = t.placements || t.playoffs?.placements || {};
       return {
@@ -5111,7 +5046,6 @@
             <span>${new Date(t.createdAt).toLocaleDateString()}</span>
           </div>
           ${podiumBlock}
-          ${homeNightRecapHtml(t)}
         </div>`;
       }).join('');
       requestAnimationFrame(() => {
