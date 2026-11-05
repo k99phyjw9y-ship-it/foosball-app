@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.17 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.18 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.17" />
+  <meta name="lcfc-build" content="7.18" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.17 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.18 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -531,14 +531,31 @@
       background: rgb(var(--fg-rgb) / 0.03);
     }
     /* Fixed event-type color bands: Singles green, BYP/doubles blue, DYP yellow, Monster orange */
-    #view-spectator .spec-card.spec-ec-singles,
     .event-band-singles { border-left: 5px solid #34d399 !important; border-left-style: solid !important; }
-    #view-spectator .spec-card.spec-ec-doubles,
     .event-band-doubles { border-left: 5px solid #3b82f6 !important; border-left-style: solid !important; }
-    #view-spectator .spec-card.spec-ec-dyp,
     .event-band-dyp { border-left: 5px solid #eab308 !important; border-left-style: solid !important; }
-    #view-spectator .spec-card.spec-ec-monster,
     .event-band-monster { border-left: 5px solid #f97316 !important; border-left-style: solid !important; }
+    /* TV board: thicker event color band + soft glow for distance readability */
+    #view-spectator .spec-card.spec-ec-singles {
+      border-left: 12px solid #34d399 !important;
+      box-shadow: inset 4px 0 14px rgb(52 211 153 / 0.18);
+    }
+    #view-spectator .spec-card.spec-ec-doubles {
+      border-left: 12px solid #3b82f6 !important;
+      box-shadow: inset 4px 0 14px rgb(59 130 246 / 0.18);
+    }
+    #view-spectator .spec-card.spec-ec-dyp {
+      border-left: 12px solid #eab308 !important;
+      box-shadow: inset 4px 0 14px rgb(234 179 8 / 0.18);
+    }
+    #view-spectator .spec-card.spec-ec-monster {
+      border-left: 12px solid #f97316 !important;
+      box-shadow: inset 4px 0 14px rgb(249 115 22 / 0.2);
+    }
+    #view-spectator .spec-card.spec-ec-monster-po {
+      border-left: 12px solid #ef4444 !important;
+      box-shadow: inset 4px 0 14px rgb(239 68 68 / 0.22);
+    }
 
     /* Home event-type pills use the same palette as the event card bands */
     .event-type-pill { display:inline-flex; align-items:center; padding:2px 7px; border-radius:999px; font-size:10px; line-height:1.35; font-weight:800; letter-spacing:.015em; border:1px solid transparent; white-space:nowrap; }
@@ -751,18 +768,29 @@
     #view-spectator .spec-serve-tag {
       display: inline-block;
       flex: 0 0 auto;
-      font-size: 0.7rem !important;
+      font-size: 0.78rem !important;
       font-weight: 800;
       letter-spacing: 0.08em;
       line-height: 1.2;
-      padding: 0.15rem 0.45rem;
-      border-radius: 0.3rem;
-      background: rgb(99 102 241 / 0.35);
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.35rem;
+      background: rgb(99 102 241 / 0.45);
       color: #eef2ff;
-      border: 1px solid rgb(165 180 252 / 0.55);
+      border: 1px solid rgb(165 180 252 / 0.7);
       text-transform: uppercase;
-      /* never shrink with parent name fit */
       transform: none !important;
+      animation: specServePulse 1.6s ease-in-out infinite;
+    }
+    @keyframes specServePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgb(129 140 248 / 0.55); filter: brightness(1); }
+      50% { box-shadow: 0 0 0 6px rgb(129 140 248 / 0); filter: brightness(1.15); }
+    }
+    #view-spectator .spec-serve-team {
+      animation: specServeTeamGlow 1.6s ease-in-out infinite;
+    }
+    @keyframes specServeTeamGlow {
+      0%, 100% { text-shadow: 0 0 0 transparent; }
+      50% { text-shadow: 0 0 12px rgb(165 180 252 / 0.55); }
     }
     html[data-mode="light"] #view-spectator .spec-serve-tag {
       background: rgb(99 102 241 / 0.12);
@@ -1967,6 +1995,50 @@
       color: rgb(203 213 225);
     }
 
+
+    #view-spectator .spec-table-plate {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.28rem 0.65rem 0.28rem 0.5rem;
+      border-radius: 0.45rem;
+      background: linear-gradient(180deg, rgb(15 23 42 / 0.92), rgb(15 23 42 / 0.75));
+      border: 2px solid rgb(52 211 153 / 0.65);
+      color: #ecfdf5;
+      box-shadow: 0 2px 8px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.08);
+      line-height: 1;
+    }
+    #view-spectator .spec-table-plate-deck {
+      border-color: rgb(148 163 184 / 0.55);
+      background: linear-gradient(180deg, rgb(30 41 59 / 0.9), rgb(15 23 42 / 0.8));
+      color: #e2e8f0;
+    }
+    #view-spectator .spec-table-plate-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+    #view-spectator .spec-table-plate-num {
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      min-width: 1.1rem;
+      text-align: center;
+    }
+    html[data-mode="light"] #view-spectator .spec-table-plate {
+      background: linear-gradient(180deg, #fff, #f1f5f9);
+      border-color: #059669;
+      color: #064e3b;
+      box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
+    }
+    html[data-mode="light"] #view-spectator .spec-table-plate-deck {
+      border-color: #94a3b8;
+      color: #334155;
+    }
+
   </style>
 
   <style id="lcfc-polish-v686">
@@ -2270,7 +2342,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.17</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.18</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3194,7 +3266,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.17';
+    const APP_VERSION = '7.18';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -14475,8 +14547,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           : ('R' + m.round);
         const tableChip = m.table
           ? (kind === 'deck'
-            ? `<span class="spec-meta-chip spec-meta-deck">On deck · Table ${m.table}</span>`
-            : `<span class="spec-meta-chip spec-meta-table">Table ${m.table}</span>`)
+            ? `<span class="spec-table-plate spec-table-plate-deck" title="On deck"><span class="spec-table-plate-label">On deck</span><span class="spec-table-plate-num">T${m.table}</span></span>`
+            : `<span class="spec-table-plate" title="Table ${m.table}"><span class="spec-table-plate-label">Table</span><span class="spec-table-plate-num">${m.table}</span></span>`)
           : '';
         const liveChip = kind === 'live'
           ? '<span class="spec-meta-chip spec-meta-live" title="Match in progress"><span class="spec-live-dot" aria-hidden="true"></span>Live</span>'
