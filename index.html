@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.14 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.15 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.14" />
+  <meta name="lcfc-build" content="7.15" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.14 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.15 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2270,7 +2270,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.14</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.15</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3194,7 +3194,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.14';
+    const APP_VERSION = '7.15';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -9183,17 +9183,27 @@ function flipRankingMatchCoin(roundNum, matchId) {
         body.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">No results yet</td></tr>';
         return;
       }
-      body.innerHTML = standings.map((s, i) => `
-        <tr class="border-t border-slate-200 table-row">
-          <td class="px-3 py-2.5 text-slate-500 font-medium">${i + 1}</td>
-          <td class="px-3 py-2.5 font-medium text-slate-900">${escapeHtml(s.name)}</td>
-          <td class="px-2 py-2.5 text-center text-slate-500">${s.played}</td>
-          <td class="px-2 py-2.5 text-center text-emerald-400">${s.wins}</td>
-          <td class="px-2 py-2.5 text-center text-red-400/80">${s.losses}</td>
-          <td class="px-2 py-2.5 text-center text-slate-500">${s.gd > 0 ? '+' : ''}${s.gd}</td>
-          <td class="px-2 py-2.5 text-center font-bold text-slate-900">${s.pts}</td>
-        </tr>
-      `).join('');
+      const absent = new Set(t.absentIds || []);
+      body.innerHTML = standings.map((s, i) => {
+        const isAbsent = absent.has(s.id);
+        const rowMuted = isAbsent ? ' opacity-60' : '';
+        const nameCell = isAbsent
+          ? `<span class="text-slate-400 font-medium">${escapeHtml(s.name)}</span>
+             <span class="ml-1.5 inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-500">Absent</span>`
+          : `<span class="font-medium text-slate-900">${escapeHtml(s.name)}</span>`;
+        const numClass = isAbsent ? 'text-slate-400' : 'text-slate-500';
+        const ptsClass = isAbsent ? 'text-slate-400' : 'text-slate-900';
+        return `
+        <tr class="border-t border-slate-200 table-row${rowMuted}">
+          <td class="px-3 py-2.5 ${numClass} font-medium">${i + 1}</td>
+          <td class="px-3 py-2.5">${nameCell}</td>
+          <td class="px-2 py-2.5 text-center ${numClass}">${s.played}</td>
+          <td class="px-2 py-2.5 text-center ${isAbsent ? 'text-slate-400' : 'text-emerald-400'}">${s.wins}</td>
+          <td class="px-2 py-2.5 text-center ${isAbsent ? 'text-slate-400' : 'text-red-400/80'}">${s.losses}</td>
+          <td class="px-2 py-2.5 text-center ${numClass}">${s.gd > 0 ? '+' : ''}${s.gd}</td>
+          <td class="px-2 py-2.5 text-center font-bold ${ptsClass}">${s.pts}</td>
+        </tr>`;
+      }).join('');
     }
 
     // ==================== BRACKET UI ====================
