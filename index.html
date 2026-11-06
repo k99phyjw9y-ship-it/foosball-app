@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.18 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.19 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.18" />
+  <meta name="lcfc-build" content="7.19" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.18 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.19 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2039,6 +2039,111 @@
       color: #334155;
     }
 
+
+    /* ===== TV Bar mode ===== */
+    #view-spectator.spec-bar-mode #spec-sidebar { display: none !important; }
+    #view-spectator.spec-bar-mode #spec-main-col {
+      width: 100% !important;
+      max-width: none !important;
+    }
+    #view-spectator.spec-bar-mode .grid.lg\:grid-cols-12 {
+      display: block !important;
+    }
+    #view-spectator.spec-bar-mode #spec-matches-live {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 1rem !important;
+    }
+    #view-spectator.spec-bar-mode #spec-ondeck-section { display: none !important; }
+    #view-spectator.spec-bar-mode .spec-card { min-height: 11.5rem; }
+    #view-spectator.spec-bar-mode .spec-team-name {
+      font-size: clamp(1.15rem, 2.4vw, 1.75rem) !important;
+      font-weight: 800;
+    }
+    #view-spectator.spec-bar-mode .spec-event-title {
+      font-size: 0.95rem !important;
+      font-weight: 800;
+    }
+    #view-spectator .spec-next-up {
+      display: flex;
+      align-items: stretch;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgb(52 211 153 / 0.35);
+      background: linear-gradient(90deg, rgb(6 78 59 / 0.35), rgb(15 23 42 / 0.55));
+    }
+    #view-spectator .spec-next-up.hidden { display: none !important; }
+    #view-spectator .spec-next-up-label {
+      flex: 0 0 auto;
+      align-self: center;
+      font-size: 0.7rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #6ee7b7;
+      padding-right: 0.65rem;
+      border-right: 1px solid rgb(52 211 153 / 0.35);
+    }
+    #view-spectator .spec-next-up-track {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.85rem;
+      align-items: center;
+      min-width: 0;
+    }
+    #view-spectator .spec-next-up-item {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 0.45rem;
+      background: rgb(15 23 42 / 0.55);
+      border: 1px solid rgb(148 163 184 / 0.25);
+      max-width: 100%;
+    }
+    #view-spectator .spec-next-up-table {
+      font-size: 0.8rem;
+      font-weight: 900;
+      color: #34d399;
+      font-variant-numeric: tabular-nums;
+    }
+    #view-spectator .spec-next-up-names {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    #view-spectator .spec-next-up-vs {
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: lowercase;
+      padding: 0 0.15rem;
+    }
+    #view-spectator .spec-next-up-event {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #a7f3d0;
+      opacity: 0.9;
+    }
+    #view-spectator.spec-bar-mode .spec-next-up {
+      padding: 0.85rem 1rem;
+      margin-top: 1rem;
+    }
+    #view-spectator.spec-bar-mode .spec-next-up-names { font-size: 1rem; }
+    html[data-mode="light"] #view-spectator .spec-next-up {
+      background: linear-gradient(90deg, #ecfdf5, #f8fafc);
+      border-color: #6ee7b7;
+    }
+    html[data-mode="light"] #view-spectator .spec-next-up-label { color: #047857; border-color: #a7f3d0; }
+    html[data-mode="light"] #view-spectator .spec-next-up-item {
+      background: #fff;
+      border-color: #cbd5e1;
+    }
+    html[data-mode="light"] #view-spectator .spec-next-up-names { color: #0f172a; }
+    html[data-mode="light"] #view-spectator .spec-next-up-table { color: #047857; }
+
   </style>
 
   <style id="lcfc-polish-v686">
@@ -2342,7 +2447,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.18</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.19</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2421,6 +2526,7 @@
           <div class="flex flex-wrap gap-2">
             <select id="spec-tournament-select" onchange="setSpectatorTournament(this.value)" class="spec-control px-3 py-2 text-sm max-w-[14rem]"></select>
             <button type="button" id="spec-group-toggle" onclick="toggleSpectatorGroupByEvent()" class="spec-control px-3 py-2 text-sm font-medium" title="Group match cards under each event name">Group by event</button>
+            <button type="button" id="spec-bar-toggle" onclick="toggleSpectatorBarMode()" class="spec-control px-3 py-2 text-sm font-medium" title="Bar mode: larger cards, next-up ticker, hide sidebar">Bar mode</button>
             <button type="button" id="spec-announce-btn" class="spec-control spec-announce-off px-3 py-2 text-sm font-medium cursor-pointer relative z-10" title="Chime + spoken names when a match goes live (TV board only)">Sound · Off</button>
             <button type="button" id="spec-announce-test-btn" onclick="testTvAnnouncerVoice()" class="spec-control px-3 py-2 text-sm font-medium" title="Test Chrome speech directly, without the arena chime">Test voice</button>
             
@@ -2434,8 +2540,12 @@
               <div>
                 <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mb-2">Playing</h3>
                 <div id="spec-matches-live" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"></div>
+                <div id="spec-next-up" class="spec-next-up hidden mt-3" aria-live="polite">
+                  <div class="spec-next-up-label">Next up</div>
+                  <div id="spec-next-up-track" class="spec-next-up-track"></div>
+                </div>
               </div>
-              <div>
+              <div id="spec-ondeck-section">
                 <h3 class="text-xs font-semibold uppercase tracking-wider spec-muted mb-2">On deck</h3>
                 <div id="spec-matches-deck" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"></div>
               </div>
@@ -3266,7 +3376,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.18';
+    const APP_VERSION = '7.19';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -13580,6 +13690,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
 
     const SPEC_GROUP_KEY = 'lcfc_tv_group_by_event';
+    const SPEC_BAR_KEY = 'lcfc_tv_bar_mode';
 
     function isSpectatorGroupByEvent() {
       try { return localStorage.getItem(SPEC_GROUP_KEY) === '1'; } catch (e) { return false; }
@@ -13592,6 +13703,60 @@ function flipRankingMatchCoin(roundNum, matchId) {
     function toggleSpectatorGroupByEvent() {
       setSpectatorGroupByEvent(!isSpectatorGroupByEvent());
       renderSpectatorBoard();
+    }
+
+    function isSpectatorBarMode() {
+      try { return localStorage.getItem(SPEC_BAR_KEY) === '1'; } catch (e) { return false; }
+    }
+
+    function setSpectatorBarMode(on) {
+      try { localStorage.setItem(SPEC_BAR_KEY, on ? '1' : '0'); } catch (e) {}
+    }
+
+    function toggleSpectatorBarMode() {
+      setSpectatorBarMode(!isSpectatorBarMode());
+      applySpectatorBarMode();
+      renderSpectatorBoard();
+    }
+
+    function syncSpectatorBarToggleBtn() {
+      const btn = document.getElementById('spec-bar-toggle');
+      if (!btn) return;
+      const on = isSpectatorBarMode();
+      btn.classList.toggle('active-toggle', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.textContent = on ? 'Bar mode · On' : 'Bar mode';
+    }
+
+    function applySpectatorBarMode() {
+      const root = document.getElementById('view-spectator');
+      if (!root) return;
+      root.classList.toggle('spec-bar-mode', isSpectatorBarMode());
+      syncSpectatorBarToggleBtn();
+    }
+
+    function renderSpecNextUpTicker(deckList) {
+      const wrap = document.getElementById('spec-next-up');
+      const track = document.getElementById('spec-next-up-track');
+      if (!wrap || !track) return;
+      const list = Array.isArray(deckList) ? deckList : [];
+      if (!list.length) {
+        wrap.classList.add('hidden');
+        track.innerHTML = '';
+        return;
+      }
+      wrap.classList.remove('hidden');
+      track.innerHTML = list.map(m => {
+        const table = m.table != null ? ('T' + m.table) : '—';
+        const ev = m.eventName ? ('<span class="spec-next-up-event">' + escapeHtml(m.eventName) + '</span>') : '';
+        return '<div class="spec-next-up-item">'
+          + '<span class="spec-next-up-table">' + escapeHtml(String(table)) + '</span>'
+          + '<span class="spec-next-up-names">' + escapeHtml(m.nameA || 'TBD')
+          + ' <span class="spec-next-up-vs">vs</span> '
+          + escapeHtml(m.nameB || 'TBD') + '</span>'
+          + ev
+          + '</div>';
+      }).join('');
     }
 
     /**
@@ -14534,6 +14699,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       const groupBy = isSpectatorGroupByEvent();
       syncSpectatorGroupToggleBtn();
+      applySpectatorBarMode();
 
       const cardHtml = (m, kind, opts = {}) => {
         const hideEventOnCard = !!opts.hideEventOnCard;
@@ -14676,6 +14842,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             : '<div class="spec-section-empty">No one on deck</div>';
         }
       }
+      if (typeof renderSpecNextUpTicker === 'function') renderSpecNextUpTicker(deckList);
       if (matchesEl && matchesEl !== liveEl) matchesEl.innerHTML = '';
       requestAnimationFrame(() => {
         fitSpectatorTeamNames(liveEl);
