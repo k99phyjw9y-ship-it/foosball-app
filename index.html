@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.27 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.28 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.27" />
+  <meta name="lcfc-build" content="7.28" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.27 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.28 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2164,7 +2164,10 @@
       line-height: 1.12 !important;
     }
     #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="2"] .spec-team-name {
-      font-size: clamp(2rem, 4.6vw, 3.25rem) !important;
+      font-size: clamp(1.45rem, 2.8vw, 2.05rem) !important;
+    }
+    #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="2"] .spec-team-line {
+      font-size: inherit !important;
     }
     #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="3"] .spec-team-name {
       font-size: clamp(1.35rem, 2.6vw, 2.05rem) !important;
@@ -2650,7 +2653,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.27</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.28</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3579,7 +3582,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.27';
+    const APP_VERSION = '7.28';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -13796,10 +13799,20 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const names = root.querySelectorAll('.spec-team-name');
       const bar = !!(root.closest && root.closest('#view-spectator.spec-bar-mode'))
         || (typeof isSpectatorBarMode === 'function' && isSpectatorBarMode());
-      const maxPx = bar
-        ? Math.min(42, Math.max(22, Math.floor(window.innerWidth / 28)))
-        : Math.min(26, Math.max(18, Math.floor(window.innerWidth / 42)));
-      const minPx = bar ? 16 : 15;
+      const liveCount = parseInt(root.querySelector?.('#spec-matches-live')?.getAttribute('data-live-count')
+        || document.getElementById('spec-matches-live')?.getAttribute('data-live-count')
+        || '0', 10) || 0;
+      let maxPx;
+      if (!bar) {
+        maxPx = Math.min(26, Math.max(18, Math.floor(window.innerWidth / 42)));
+      } else if (liveCount >= 3) {
+        maxPx = Math.min(28, Math.max(18, Math.floor(window.innerWidth / 36)));
+      } else if (liveCount === 2) {
+        maxPx = Math.min(30, Math.max(18, Math.floor(window.innerWidth / 34)));
+      } else {
+        maxPx = Math.min(36, Math.max(20, Math.floor(window.innerWidth / 30)));
+      }
+      const minPx = bar ? 15 : 15;
       names.forEach(el => {
         const stacked = el.querySelectorAll('.spec-team-line').length >= 2;
         el.style.display = stacked || bar ? 'flex' : 'block';
