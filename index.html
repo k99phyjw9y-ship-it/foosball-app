@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.24 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.25 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.24" />
+  <meta name="lcfc-build" content="7.25" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.24 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.25 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2320,6 +2320,26 @@
     html[data-mode="light"] #view-spectator .spec-next-up-table { color: #047857; }
 
 
+
+    #view-spectator .spec-team-name {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    #view-spectator .spec-team-line {
+      display: block;
+      white-space: nowrap;
+      line-height: 1.15;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #view-spectator.spec-bar-mode .spec-team-line {
+      text-overflow: clip;
+    }
+
   </style>
 
   <style id="lcfc-polish-v686">
@@ -2623,7 +2643,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.24</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.25</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3552,7 +3572,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.24';
+    const APP_VERSION = '7.25';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -13753,26 +13773,54 @@ function flipRankingMatchCoin(roundNum, matchId) {
      * Auto-size team names on the TV board so the full name is visible.
      * Shrinks font from max→min; if still wide, allows wrap at a readable size.
      */
+    
+    /** Stack partner names on TV cards ( "A + B" → two lines ). */
+    function formatSpecTeamNameHtml(name) {
+      const raw = String(name || 'TBD').trim();
+      const parts = raw.split(/\s*\+\s*/).map(s => s.trim()).filter(Boolean);
+      if (parts.length < 2) {
+        return '<span class="spec-team-line">' + escapeHtml(raw || 'TBD') + '</span>';
+      }
+      return parts.map(p => '<span class="spec-team-line">' + escapeHtml(p) + '</span>').join('');
+    }
+
     function fitSpectatorTeamNames(root) {
       if (!root) return;
       const names = root.querySelectorAll('.spec-team-name');
-      // TV: prefer readable size; wrap rather than shrink into unreadable text
-      const maxPx = Math.min(26, Math.max(18, Math.floor(window.innerWidth / 42)));
-      const minPx = 15;
+      const bar = !!(root.closest && root.closest('#view-spectator.spec-bar-mode'))
+        || (typeof isSpectatorBarMode === 'function' && isSpectatorBarMode());
+      const maxPx = bar
+        ? Math.min(42, Math.max(22, Math.floor(window.innerWidth / 28)))
+        : Math.min(26, Math.max(18, Math.floor(window.innerWidth / 42)));
+      const minPx = bar ? 16 : 15;
       names.forEach(el => {
-        el.style.display = 'block';
+        const stacked = el.querySelectorAll('.spec-team-line').length >= 2;
+        el.style.display = stacked || bar ? 'flex' : 'block';
+        el.style.flexDirection = 'column';
+        el.style.alignItems = 'center';
         el.style.width = '100%';
-        el.style.lineHeight = '1.25';
-        el.style.whiteSpace = 'nowrap';
+        el.style.lineHeight = stacked ? '1.15' : '1.25';
+        el.style.gap = stacked ? '0.12em' : '';
+        // Stacked partners: never mid-name wrap; each person stays one line
+        el.style.whiteSpace = stacked ? 'normal' : 'nowrap';
         el.style.overflow = 'hidden';
+        el.style.wordBreak = 'normal';
+        el.style.overflowWrap = 'normal';
         let size = maxPx;
         el.style.fontSize = size + 'px';
+        const lines = stacked ? el.querySelectorAll('.spec-team-line') : [el];
         let guard = 40;
-        while (guard-- > 0 && size > minPx && el.scrollWidth > el.clientWidth + 1) {
+        const overflows = () => {
+          if (stacked) {
+            return Array.from(lines).some(line => line.scrollWidth > el.clientWidth + 1);
+          }
+          return el.scrollWidth > el.clientWidth + 1;
+        };
+        while (guard-- > 0 && size > minPx && overflows()) {
           size -= 1;
           el.style.fontSize = size + 'px';
         }
-        if (el.scrollWidth > el.clientWidth + 1) {
+        if (!stacked && overflows()) {
           el.style.whiteSpace = 'normal';
           el.style.overflow = 'visible';
           el.style.fontSize = Math.max(minPx, Math.min(size, 18)) + 'px';
@@ -14955,12 +15003,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
             </div>
             <div class="text-center flex-1 flex flex-col justify-center py-1 gap-0.5">
               <div class="spec-team-row">
-                <div class="spec-team-name px-0.5${m.serveSide === 'a' ? ' spec-serve-team' : ''}" title="${escapeHtml(m.nameA)}${m.serveSide === 'a' ? ' · Serve' : ''}">${escapeHtml(m.nameA)}</div>
+                <div class="spec-team-name px-0.5${m.serveSide === 'a' ? ' spec-serve-team' : ''}" title="${escapeHtml(m.nameA)}${m.serveSide === 'a' ? ' · Serve' : ''}">${formatSpecTeamNameHtml(m.nameA)}</div>
                 ${m.serveSide === 'a' ? '<span class="spec-serve-tag">SERVE</span>' : ''}
               </div>
               <div class="spec-vs">vs</div>
               <div class="spec-team-row">
-                <div class="spec-team-name px-0.5${m.serveSide === 'b' ? ' spec-serve-team' : ''}" title="${escapeHtml(m.nameB)}${m.serveSide === 'b' ? ' · Serve' : ''}">${escapeHtml(m.nameB)}</div>
+                <div class="spec-team-name px-0.5${m.serveSide === 'b' ? ' spec-serve-team' : ''}" title="${escapeHtml(m.nameB)}${m.serveSide === 'b' ? ' · Serve' : ''}">${formatSpecTeamNameHtml(m.nameB)}</div>
                 ${m.serveSide === 'b' ? '<span class="spec-serve-tag">SERVE</span>' : ''}
               </div>
             </div>
