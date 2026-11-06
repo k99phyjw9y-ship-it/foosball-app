@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.19 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.20 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.19" />
+  <meta name="lcfc-build" content="7.20" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.19 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.20 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2051,17 +2051,39 @@
     }
     #view-spectator.spec-bar-mode #spec-matches-live {
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      gap: 1rem !important;
+      gap: 1.25rem !important;
     }
     #view-spectator.spec-bar-mode #spec-ondeck-section { display: none !important; }
-    #view-spectator.spec-bar-mode .spec-card { min-height: 11.5rem; }
+    #view-spectator.spec-bar-mode .spec-card {
+      min-height: 16rem;
+      padding: 1rem 1.1rem !important;
+    }
     #view-spectator.spec-bar-mode .spec-team-name {
-      font-size: clamp(1.15rem, 2.4vw, 1.75rem) !important;
+      font-size: clamp(1.45rem, 3.1vw, 2.25rem) !important;
       font-weight: 800;
+      line-height: 1.15 !important;
     }
     #view-spectator.spec-bar-mode .spec-event-title {
-      font-size: 0.95rem !important;
+      font-size: 1.05rem !important;
       font-weight: 800;
+    }
+    #view-spectator.spec-bar-mode .spec-table-plate-num {
+      font-size: 1.35rem !important;
+    }
+    #view-spectator.spec-bar-mode .spec-table-plate {
+      padding: 0.4rem 0.85rem 0.4rem 0.65rem !important;
+    }
+    #view-spectator.spec-bar-mode .spec-serve-tag {
+      font-size: 0.9rem !important;
+      padding: 0.28rem 0.65rem !important;
+    }
+    #view-spectator.spec-bar-mode .spec-meta-chip {
+      font-size: 0.95rem !important;
+      padding: 0.3rem 0.7rem !important;
+    }
+    #view-spectator.spec-bar-mode .spec-seed-line {
+      font-size: 1.05rem !important;
+      margin-top: 0.35rem !important;
     }
     #view-spectator .spec-next-up {
       display: flex;
@@ -2447,7 +2469,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.19</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.20</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3376,7 +3398,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.19';
+    const APP_VERSION = '7.20';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -13740,7 +13762,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const track = document.getElementById('spec-next-up-track');
       if (!wrap || !track) return;
       const list = Array.isArray(deckList) ? deckList : [];
-      if (!list.length) {
+      // Ticker is bar-mode only
+      if (!isSpectatorBarMode() || !list.length) {
         wrap.classList.add('hidden');
         track.innerHTML = '';
         return;
