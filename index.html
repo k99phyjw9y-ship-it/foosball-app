@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.26 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.27 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.26" />
+  <meta name="lcfc-build" content="7.27" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.26 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.27 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2113,8 +2113,8 @@
     }
     #view-spectator.spec-bar-mode #spec-matches-live > .spec-card {
       height: 100%;
-      min-height: min(58vh, 32rem);
-      max-height: 100%;
+      min-height: min(52vh, 28rem);
+      max-height: calc(100vh - 12rem);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -2122,10 +2122,12 @@
       overflow: hidden;
     }
     #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="2"] > .spec-card {
-      min-height: min(64vh, 36rem);
+      min-height: min(56vh, 30rem);
+      max-height: calc(100vh - 11.5rem);
     }
     #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="3"] > .spec-card {
-      min-height: min(58vh, 30rem);
+      min-height: min(52vh, 28rem);
+      max-height: calc(100vh - 11.5rem);
       padding: 1.15rem 1.15rem !important;
     }
     #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="4"] > .spec-card {
@@ -2145,10 +2147,15 @@
       position: relative;
       z-index: 5;
       flex: 0 0 auto !important;
-      margin-top: 0.5rem !important;
-      margin-bottom: 0.15rem !important;
+      margin-top: 1rem !important;
+      margin-bottom: 0.35rem !important;
       max-height: 3.1rem !important;
       padding: 0.5rem 0.9rem !important;
+      clear: both;
+    }
+    #view-spectator.spec-bar-mode #spec-matches-live {
+      margin-bottom: 0.25rem !important;
+      padding-bottom: 0.15rem !important;
     }
     #view-spectator.spec-bar-mode #spec-ondeck-section { display: none !important; }
     #view-spectator.spec-bar-mode .spec-team-name {
@@ -2643,7 +2650,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.26</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.27</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3572,7 +3579,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.26';
+    const APP_VERSION = '7.27';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
