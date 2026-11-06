@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.21 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.23 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.21" />
+  <meta name="lcfc-build" content="7.23" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.21 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.23 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2041,9 +2041,18 @@
 
 
     /* ===== TV Bar mode ===== */
-    #view-spectator.spec-bar-mode {
+    /* Must not override Tailwind .hidden or Exit cannot close the board */
+    #view-spectator.spec-bar-mode:not(.hidden) {
       display: flex !important;
       flex-direction: column;
+    }
+    #view-spectator.spec-bar-mode.hidden {
+      display: none !important;
+    }
+    #view-spectator.spec-bar-mode > .min-h-full > .flex.flex-wrap.items-start {
+      position: relative;
+      z-index: 50;
+      flex: 0 0 auto;
     }
     #view-spectator.spec-bar-mode > .min-h-full {
       flex: 1 1 auto;
@@ -2086,24 +2095,51 @@
     }
     #view-spectator.spec-bar-mode #spec-matches-live {
       grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-      gap: 1.35rem !important;
+      gap: 1.15rem !important;
       flex: 1 1 auto;
       min-height: 0;
+      max-height: 100%;
       align-content: stretch;
+      overflow: hidden;
+    }
+    /* 3+ live tables: one row so cards never stack over the ticker */
+    #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="3"],
+    #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="4"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 0.85rem !important;
+    }
+    #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="4"] {
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     }
     #view-spectator.spec-bar-mode #spec-matches-live > .spec-card {
       height: 100%;
-      min-height: min(52vh, 28rem);
-      max-height: none;
+      min-height: min(48vh, 26rem);
+      max-height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       padding: 1.25rem 1.35rem !important;
+      overflow: hidden;
+    }
+    #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="3"] > .spec-card,
+    #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="4"] > .spec-card {
+      min-height: min(42vh, 22rem);
+      padding: 1rem 1.05rem !important;
+    }
+    #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="3"] .spec-team-name,
+    #view-spectator.spec-bar-mode #spec-matches-live[data-live-count="4"] .spec-team-name {
+      font-size: clamp(1.25rem, 2.4vw, 1.9rem) !important;
     }
     /* Single live card stretches full width of grid area */
     #view-spectator.spec-bar-mode #spec-matches-live > .spec-card:only-child {
       grid-column: 1 / -1;
-      min-height: min(62vh, 34rem);
+      min-height: min(58vh, 32rem);
+    }
+    #view-spectator.spec-bar-mode #spec-next-up {
+      position: relative;
+      z-index: 5;
+      flex: 0 0 auto !important;
+      margin-top: 0.75rem !important;
     }
     #view-spectator.spec-bar-mode #spec-ondeck-section { display: none !important; }
     #view-spectator.spec-bar-mode .spec-team-name {
@@ -2537,7 +2573,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.21</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.23</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3466,7 +3502,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.21';
+    const APP_VERSION = '7.23';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 14237;
@@ -14933,6 +14969,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
             : '<div class="spec-section-empty">No one on deck</div>';
         }
       }
+      const liveCountEl = document.getElementById('spec-matches-live');
+      if (liveCountEl) liveCountEl.setAttribute('data-live-count', String((playingList && playingList.length) || 0));
       if (typeof renderSpecNextUpTicker === 'function') renderSpecNextUpTicker(deckList);
       if (matchesEl && matchesEl !== liveEl) matchesEl.innerHTML = '';
       requestAnimationFrame(() => {
