@@ -4,9 +4,9 @@
 
 | | |
 |--|--|
-| **Current version** | v7.14 |
+| **Current version** | v7.28 |
 | **Stack** | Single-file HTML / CSS / JavaScript (Tailwind CDN, Chart.js) |
-| **Data** | Browser `localStorage` + optional JSON import/export / GitHub Pages `data/latest.json` |
+| **Data** | Browser `localStorage` + JSON import/export / optional GitHub Pages `data/latest.json` |
 | **Hosting** | Static (GitHub Pages, any static host, or open `index.html` locally) |
 
 ---
@@ -18,7 +18,7 @@ LCFC Manager runs weekly club nights end-to-end:
 - Create **Singles**, **Doubles**, **DYP**, and **Monster DYP** events  
 - Draw partners, assign tables, enter scores (including OT win-by-2)  
 - Run **double-elimination** playoffs with seeds and brackets  
-- Drive a **TV / spectator board** (castable, multi-event)  
+- Drive a **TV / spectator board** (castable, multi-event, optional **Bar mode**)  
 - Track **career stats**, **club ranking points**, awards, and player profiles  
 - Operator PIN protects scoring and admin actions; members can view published data  
 
@@ -40,6 +40,7 @@ LCFC Manager runs weekly club nights end-to-end:
 - **Tiered playoffs:** top half of standings pairs with bottom half (e.g. 1+6, 2+7, …)  
 - Playoffs default to **best of 3**  
 - Optional **absent** status so players leave before playoffs without wiping ranking history  
+- Absent players appear **faded + “Absent” chip** on the standings table  
 
 ### Formats & scoring
 
@@ -47,7 +48,7 @@ LCFC Manager runs weekly club nights end-to-end:
 - Best-of-1 / best-of-3 / best-of-5 series  
 - **OT toggle:** win-by-2 (e.g. 7–5, 8–6)  
 - Quick-score chips + typed scores  
-- Coin toss / serve indicator  
+- Coin toss / serve indicator (auto on draw)  
 - Match timers (start after draw / table free; Hare & Tortoise awards)  
 
 ---
@@ -92,7 +93,8 @@ Operator can **recalculate ranking from events** to rebuild points from history 
 
 ## Operator mode
 
-- PIN: **111784** (same PIN toggles on/off)  
+- PIN-gated (configured in app code — **not documented here**)  
+- Same PIN toggles operator mode **on and off**  
 - Enables import/export, destructive actions, ranking split toggle, recalculate  
 - Members see read-only published club data with a clear viewing badge  
 
@@ -102,11 +104,25 @@ Operator can **recalculate ranking from events** to rebuild points from history 
 
 - Open from **home** (all active events) or **inside an event**  
 - Can open in a **separate tab** for casting while the operator scores on another tab  
-- Color bands by event type (e.g. Monster orange, DYP yellow, …)  
-- Live / on-deck cards, table numbers, serve indicator, seeds on playoffs  
+- Color bands by event type (thicker on TV cards)  
+- Live / on-deck cards, **table plates**, pulsing **SERVE** indicator, seeds on playoffs  
 - Match timers, projected win %, optional **sound on** + match announcements  
+- Partner names **stacked** (one player per line) on team cards  
 - Sandbox watermark when applicable  
 - Auto-refresh; announcement flow can pause refresh while speaking  
+
+### Bar mode
+
+Toggle on the TV board toolbar (persisted in `localStorage`):
+
+| On | Off |
+|----|-----|
+| Larger live match cards (2–4 table layouts) | Standard grid + on-deck cards |
+| Sidebar (room / standings) hidden | Sidebar available |
+| **Next up** single-line scrolling ticker | Ticker hidden |
+| On-deck card grid hidden | Full on-deck section |
+
+Ticker only rebuilds when the on-deck list **actually changes** (stable under auto-refresh).
 
 ---
 
@@ -158,9 +174,9 @@ Live ops strip on the event page:
 
 ---
 
-## Score entry (paper scoresheet UI)
+## Score entry
 
-- Light “club scoresheet” modal (not dark)  
+- Light “club scoresheet” modal  
 - Quick score chips  
 - OT win-by-2 validation  
 - Series support for best-of-3 / best-of-5  
@@ -174,13 +190,6 @@ Live ops strip on the event page:
 - Shared tables with occupancy / on-deck  
 - Conflict highlighting when a player is live elsewhere  
 - Home TV board aggregates all active events  
-
----
-
-## Keyboard / mobile
-
-- Works on desktop and phone browsers  
-- iPhone: add to Home Screen or use Safari; operator typically runs laptop + TV cast  
 
 ---
 
@@ -198,7 +207,7 @@ Live ops strip on the event page:
 ## Privacy & safety
 
 - No server-side accounts required for core use  
-- Operator PIN is a light gate, not strong security  
+- Operator PIN is a light gate, not strong security — do not publish the PIN in docs or public repos  
 - Do not put real passwords or private keys in the JSON backup  
 
 ---
@@ -208,7 +217,7 @@ Live ops strip on the event page:
 1. Open `index.html` (or your GitHub Pages URL).  
 2. Enable **operator mode** (PIN) to score and manage.  
 3. Add players → **Create tournament** → draw / play → playoffs.  
-4. Open **TV board** on a second tab or display.  
+4. Open **TV board** on a second tab or display; use **Bar mode** for wall TVs.  
 5. **Export** a backup after the night.  
 
 ---
@@ -220,7 +229,7 @@ Events: Singles · Doubles · DYP · Monster DYP · Sandbox
 Play:   Ranking rounds · Fair sits · Partner rotation · Tables · Timers
 Bracket: Double-elim · Seeds · Tiered Monster pairs · Conflict lock
 Score:  Quick chips · OT win-by-2 · Series Bo3/Bo5 · Coin / serve
-TV:     Multi-event · Color bands · Announce · Live / on-deck
+TV:     Multi-event · Color bands · Bar mode · Next-up ticker · Announce
 Rank:   2000 start · Locked bonus pool · Seed ±8 tiers · Equal partner Δ
 Stats:  Career · Event · DNA · Awards · Profiles · Rival below
 Ops:    PIN · Import/export · Control center · Recalculate ranking
@@ -235,4 +244,4 @@ Built for weekly in-person foosball — not a generic SaaS bracket tool.
 
 ---
 
-*README aligned with LCFC Manager v7.14.*
+*README aligned with LCFC Manager v7.28. Operator PIN intentionally omitted.*
