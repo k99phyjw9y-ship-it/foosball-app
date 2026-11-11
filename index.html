@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.32 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.33 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.32" />
+  <meta name="lcfc-build" content="7.33" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.32 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.33 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3582,10 +3582,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.32';
+    const APP_VERSION = '7.33';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 15632;
+    const APP_LINES = 15741;
 
     let state = {
       players: [],
@@ -9145,30 +9145,21 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const match = round?.matches.find(m => m.id === matchId);
       if (!match) return;
 
-      state.scoreMatchId = { mode: 'round', roundNum: parseInt(roundNum, 10), matchId };
+      // DISC-03: never mutate match on open/cancel — only on successful submit
+      const bestOf = getTournamentBestOf(t, 'ranking');
+      const reeditSeries = !!(bestOf > 1 && (match.status === 'done' || match.winner === 'a' || match.winner === 'b'));
+      state.scoreMatchId = { mode: 'round', roundNum: parseInt(roundNum, 10), matchId, reeditSeries: reeditSeries };
       resetScoreOvertime();
-      document.getElementById('score-modal-title').textContent = 'Enter Score';
+      document.getElementById('score-modal-title').textContent = reeditSeries ? 'Re-enter Score' : 'Enter Score';
       const targetEl = document.getElementById('score-target-number');
       if (targetEl) targetEl.textContent = String(quickRaceTo());
       setScoreTeamLabels(match.entityA?.name || 'Team A', match.entityB?.name || 'Team B');
-      const bestOf = getTournamentBestOf(t, 'ranking');
       if (!Array.isArray(match.games)) match.games = [];
-      // Re-edit completed series: start fresh so we don't append past the winner
-      if (bestOf > 1 && match.status === 'done') {
-        match.games = [];
-        match.seriesA = 0;
-        match.seriesB = 0;
-        match.scoreA = null;
-        match.scoreB = null;
-        // A corrected series is pending again, so discard the previous result flags.
-        match.winner = null;
-        match.loser = null;
-        match.status = 'pending';
-      }
-      if (bestOf <= 1 && match.scoreA != null) {
+      if (bestOf <= 1 && match.scoreA != null && !reeditSeries) {
         document.getElementById('score-a').value = match.scoreA;
         document.getElementById('score-b').value = match.scoreB;
       } else {
+        // Fresh inputs for new game or full series re-entry (match data untouched until save)
         document.getElementById('score-a').value = '';
         document.getElementById('score-b').value = '';
       }
@@ -9437,13 +9428,32 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const bestOf = getTournamentBestOf(t, 'ranking');
       if (!Array.isArray(match.games)) match.games = [];
 
+      // DISC-03: series re-edit commits only on save (open/cancel left data intact)
+      if (bestOf > 1 && state.scoreMatchId && state.scoreMatchId.reeditSeries) {
+        match.games = [];
+        match.seriesA = 0;
+        match.seriesB = 0;
+        match.scoreA = null;
+        match.scoreB = null;
+        match.winner = null;
+        match.loser = null;
+        match.status = 'pending';
+        state.scoreMatchId.reeditSeries = false;
+      }
+
       if (bestOf <= 1) {
         match.games = [{ scoreA, scoreB }];
         match.scoreA = scoreA;
         match.scoreB = scoreB;
         match.seriesA = scoreA > scoreB ? 1 : 0;
         match.seriesB = scoreB > scoreA ? 1 : 0;
-        match.status = 'done';
+        if (typeof ensureMatchFinishedFlags === 'function') {
+          ensureMatchFinishedFlags(match, scoreA > scoreB ? 'a' : 'b');
+        } else {
+          match.winner = scoreA > scoreB ? 'a' : 'b';
+          match.loser = scoreA > scoreB ? 'b' : 'a';
+          match.status = 'done';
+        }
         stopMatchTimer(match);
         syncTablesAndSave(t);
         closeScoreModal();
@@ -9493,6 +9503,71 @@ function flipRankingMatchCoin(roundNum, matchId) {
       toast(`Game saved · series ${tall.seriesA}–${tall.seriesB} · next game`, 'success');
     }
 
+    function clearBracketMatchResult(om) {
+      if (!om) return;
+      om.winner = null;
+      om.loser = null;
+      om.scoreA = null;
+      om.scoreB = null;
+      om.seriesA = 0;
+      om.seriesB = 0;
+      om.games = [];
+      om.status = 'pending';
+      delete om._byePropagated;
+      delete om.onDeck;
+      delete om.crossConflict;
+      delete om.crossConflictLabel;
+      delete om.crossConflictPlayerIds;
+    }
+
+    /** DISC-01/02/04: recursively clear downstream slots fed by matchId and void their results. */
+    function clearDownstreamBracketFrom(t, matchId) {
+      if (!t?.playoffs || !matchId) return;
+      const queue = [matchId];
+      const seen = new Set();
+      const clearSide = (side, id) => {
+        if (side?.fromMatch === id) {
+          side.entity = null;
+          return true;
+        }
+        return false;
+      };
+      const visit = (om, id) => {
+        if (!om) return;
+        let hit = clearSide(om.a, id);
+        hit = clearSide(om.b, id) || hit;
+        if (!hit) return;
+        if (om.winner || om.status === 'done' || (om.games && om.games.length) || om.scoreA != null) {
+          clearBracketMatchResult(om);
+          if (om.id && !seen.has(om.id)) queue.push(om.id);
+        }
+      };
+      while (queue.length) {
+        const id = queue.shift();
+        if (seen.has(id)) continue;
+        seen.add(id);
+        for (const r of allBracketRoundLists(t.playoffs)) {
+          for (const om of (r.matches || [])) visit(om, id);
+        }
+        visit(t.playoffs.bronze, id);
+        visit(t.playoffs.grandFinal, id);
+        visit(t.playoffs.grandFinal2, id);
+      }
+    }
+
+    /** DISC-05: after podium-changing correction, drop this event's deltas and re-apply. */
+    function reapplyRankingAfterBracketCorrection(t) {
+      if (!t) return;
+      const had = !!(t.rankingApplied || t.rankingDeltas);
+      delete t.rankingApplied;
+      delete t.rankingAppliedAt;
+      delete t.rankingDeltas;
+      if (had) {
+        try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
+      }
+      try { tryApplyRankingOnFinish(t); } catch (e) {}
+    }
+
     function submitBracketScore(scoreA, scoreB) {
       const t = getCurrentTournament();
       const matchId = state.scoreMatchId?.matchId;
@@ -9504,31 +9579,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return;
       }
 
-      // If editing a previous result, clear downstream feeds first
-      if (match.winner) {
-        const clearFeed = (side) => {
-          if (side?.fromMatch === matchId) side.entity = null;
-        };
-        for (const r of allBracketRoundLists(t.playoffs)) {
-          for (const om of r.matches) {
-            clearFeed(om.a);
-            clearFeed(om.b);
-            if ((om.a?.fromMatch === matchId || om.b?.fromMatch === matchId) && om.winner) {
-              om.winner = null; om.loser = null; om.scoreA = null; om.scoreB = null;
-              delete om._byePropagated;
-            }
-          }
-        }
-        if (t.playoffs.bronze) { clearFeed(t.playoffs.bronze.a); clearFeed(t.playoffs.bronze.b); }
-        if (t.playoffs.grandFinal) { clearFeed(t.playoffs.grandFinal.a); clearFeed(t.playoffs.grandFinal.b); }
-        if (t.playoffs.grandFinal2) { clearFeed(t.playoffs.grandFinal2.a); clearFeed(t.playoffs.grandFinal2.b); }
-      }
-
+      const prevWinner = match.winner || state.scoreMatchId?.prevWinner || null;
       const bestOf = getTournamentBestOf(t, 'playoff');
       if (!Array.isArray(match.games)) match.games = [];
 
-      // If re-scoring a finished match, reset series when starting fresh edit
-      // (caller already cleared winner downstream if match.winner was set)
+      // DISC-03: series re-edit commits only on save
+      if (bestOf > 1 && state.scoreMatchId && state.scoreMatchId.reeditSeries) {
+        match.games = [];
+        match.seriesA = 0;
+        match.seriesB = 0;
+        match.scoreA = null;
+        match.scoreB = null;
+        match.winner = null;
+        match.loser = null;
+        match.status = 'pending';
+        state.scoreMatchId.reeditSeries = false;
+      }
 
       if (bestOf <= 1) {
         match.games = [{ scoreA, scoreB }];
@@ -9539,12 +9605,6 @@ function flipRankingMatchCoin(roundNum, matchId) {
         match.winner = scoreA > scoreB ? 'a' : 'b';
         match.loser = scoreA > scoreB ? 'b' : 'a';
       } else {
-        // Continuing series: if previous winner existed we cleared it — also reset games if was complete
-        if (match.winner && isSeriesComplete(match.seriesA || 0, match.seriesB || 0, bestOf)) {
-          match.games = [];
-          match.winner = null;
-          match.loser = null;
-        }
         match.games.push({ scoreA, scoreB });
         const tall = tallySeriesFromGames(match.games);
         match.seriesA = tall.seriesA;
@@ -9554,7 +9614,23 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (!isSeriesComplete(tall.seriesA, tall.seriesB, bestOf)) {
           match.winner = null;
           match.loser = null;
+          match.status = 'pending';
           delete match._byePropagated;
+          // Mid-series re-entry after a finished match: cascade only once when prev had a winner
+          if (prevWinner) {
+            clearDownstreamBracketFrom(t, matchId);
+            if (t.playoffs && t.playoffs.placements) {
+              t.playoffs.placements.first = null;
+              t.playoffs.placements.second = null;
+              t.playoffs.placements.third = null;
+            }
+            t.placements = t.playoffs?.placements || t.placements;
+            if (t.status === 'finished') t.status = 'active';
+            delete t.rankingApplied;
+            delete t.rankingAppliedAt;
+            delete t.rankingDeltas;
+            try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
+          }
           saveState();
           renderTournament();
           updateSeriesBanner(t, match, 'playoff');
@@ -9585,11 +9661,24 @@ function flipRankingMatchCoin(roundNum, matchId) {
         : null;
       if (loserEntity && !(loserEntity.seed > 0)) delete loserEntity.seed;
 
+      // DISC-01/04: only cascade-clear downstream when the winner side changes
+      if (prevWinner && prevWinner !== match.winner) {
+        clearDownstreamBracketFrom(t, matchId);
+      }
+
       if (!found.isBronze) {
         propagateBracketResult(t, matchId, winnerEntity, loserEntity);
       }
 
       updatePlacementsFromBracket(t);
+      // DISC-05: refresh ranking if podium / finish state may have changed
+      if (prevWinner && prevWinner !== match.winner) {
+        reapplyRankingAfterBracketCorrection(t);
+      } else if (t.rankingApplied && t.status === 'finished') {
+        // same winner but scores changed — deltas unchanged; leave ranking
+      } else if (!t.rankingApplied && t.status === 'finished') {
+        try { tryApplyRankingOnFinish(t); } catch (e) {}
+      }
       syncTablesAndSave(t);
       closeScoreModal();
       renderTournament();
@@ -10476,6 +10565,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (!b.placements) b.placements = { first: null, second: null, third: null };
 
       if (b.type === 'double-elim') {
+        // Always recompute from current winners; clear stale podium slots (DISC-02)
+        b.placements.first = null;
+        b.placements.second = null;
+        b.placements.third = null;
         if (b.grandFinal) {
           const gf = b.gfResetActive && b.grandFinal2?.winner ? b.grandFinal2 : b.grandFinal;
           if (gf?.winner) {
@@ -10504,11 +10597,16 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (done) {
           t.status = 'finished';
           tryApplyRankingOnFinish(t);
+        } else if (t.status === 'finished' && !(b.placements.first && b.placements.second)) {
+          t.status = 'active';
         }
         return;
       }
 
-      // Single elim
+      // Single elim — clear then rebuild so corrections cannot leave duplicate podium (DISC-02)
+      b.placements.first = null;
+      b.placements.second = null;
+      b.placements.third = null;
       const finalRound = (b.winnersRounds || b.rounds || [])[(b.winnersRounds || b.rounds || []).length - 1];
       const finalMatch = finalRound?.matches?.[0];
       if (finalMatch?.winner) {
@@ -10518,12 +10616,21 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (b.bronze?.winner) {
         b.placements.third = b.bronze.winner === 'a' ? b.bronze.a.entity : b.bronze.b.entity;
       }
+      // Guard: never allow same entity in two podium slots
+      if (b.placements.first && b.placements.third && b.placements.first.id && b.placements.first.id === b.placements.third.id) {
+        b.placements.third = null;
+      }
+      if (b.placements.second && b.placements.third && b.placements.second.id && b.placements.second.id === b.placements.third.id) {
+        b.placements.third = null;
+      }
       t.placements = b.placements;
       if (b.placements.first && b.placements.second) {
         if (!b.bronze || b.bronze.winner || !(b.bronze.a?.fromMatch)) {
           t.status = 'finished';
           tryApplyRankingOnFinish(t);
         }
+      } else if (t.status === 'finished') {
+        t.status = 'active';
       }
     }
 
@@ -10538,26 +10645,24 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return;
       }
 
-      state.scoreMatchId = { mode: 'bracket', matchId };
+      // DISC-03: never mutate match on open/cancel — only on successful submit
+      const bestOf = getTournamentBestOf(t, 'playoff');
+      const finished = !!(match.winner === 'a' || match.winner === 'b' || match.status === 'done');
+      const reeditSeries = !!(bestOf > 1 && finished);
+      state.scoreMatchId = { mode: 'bracket', matchId, reeditSeries: reeditSeries, prevWinner: match.winner || null };
       resetScoreOvertime();
-      document.getElementById('score-modal-title').textContent = 'Enter Score';
+      document.getElementById('score-modal-title').textContent = finished ? 'Re-enter Score' : 'Enter Score';
       const targetEl = document.getElementById('score-target-number');
       if (targetEl) targetEl.textContent = String(quickRaceTo());
       setScoreTeamLabels(match.a.entity.name || 'Side A', match.b.entity.name || 'Side B');
       if (!Array.isArray(match.games)) match.games = [];
-      const bestOf = getTournamentBestOf(t, 'playoff');
-      if (bestOf > 1 && match.winner && isSeriesComplete(match.seriesA || 0, match.seriesB || 0, bestOf)) {
-        match.games = [];
-        match.seriesA = 0;
-        match.seriesB = 0;
-        match.scoreA = null;
-        match.scoreB = null;
-        match.winner = null;
-        match.loser = null;
-      }
-      if (bestOf <= 1 && match.scoreA != null) {
+      if (bestOf <= 1 && match.scoreA != null && !finished) {
         document.getElementById('score-a').value = match.scoreA;
         document.getElementById('score-b').value = match.scoreB;
+      } else if (bestOf <= 1 && finished) {
+        // Pre-fill existing scores for single-game edit (still no mutation until save)
+        document.getElementById('score-a').value = match.scoreA != null ? match.scoreA : '';
+        document.getElementById('score-b').value = match.scoreB != null ? match.scoreB : '';
       } else {
         document.getElementById('score-a').value = '';
         document.getElementById('score-b').value = '';
@@ -10750,6 +10855,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
               // Keep rankingDeltas from file; only apply ranking to events still missing deltas
               const ranked = applyMissingRankingPointsOnly();
               try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
+              saveState(); // DISC-06: persist import so reload keeps data
               renderHome();
               renderPlayers();
               toast(`Merged: ${pr.added} players, ${tCount} events · ranking from ${ranked} bracket(s)`, 'success');
@@ -10761,6 +10867,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
               // Keep file rankingDeltas; only rank events still missing deltas
               const ranked = applyMissingRankingPointsOnly();
               try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
+              saveState(); // DISC-06: persist replace-import
               renderHome();
               renderPlayers();
               toast(`Data replaced · ranking from ${ranked} bracket/playoff event(s)`, 'success');
@@ -10776,6 +10883,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             importTournamentObject(t);
             const ranked = applyMissingRankingPointsOnly();
             try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
+            saveState(); // DISC-06
             renderHome();
             renderPlayers();
             toast(`Imported event: ${t.name || 'tournament'}${ranked ? ' · ranking updated' : ''}`, 'success');
@@ -10789,6 +10897,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             });
             const ranked = applyMissingRankingPointsOnly();
             try { rebuildPlayerRankingPointsFromEventDeltas(); } catch (e) {}
+            saveState(); // DISC-06
             renderHome();
             renderPlayers();
             toast(`Imported ${data.length} event(s) · ranking from ${ranked} bracket(s)`, 'success');
