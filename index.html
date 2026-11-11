@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.36 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.37 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.36" />
+  <meta name="lcfc-build" content="7.37" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.36 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.37 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3582,7 +3582,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.36';
+    const APP_VERSION = '7.37';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 15799;
@@ -12748,7 +12748,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Players</p><p class="text-3xl font-extrabold text-slate-900 mt-1 tabular-nums">' + d.players + '</p><p class="text-[11px] text-slate-500 mt-1">on roster</p></div>' +
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Events</p><p class="text-3xl font-extrabold text-slate-900 mt-1 tabular-nums">' + d.events + '</p><p class="text-[11px] text-slate-500 mt-1">' + d.finishedEvents + ' finished</p></div>' +
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Matches</p><p class="text-3xl font-extrabold text-emerald-700 mt-1 tabular-nums">' + d.matches + '</p><p class="text-[11px] text-slate-500 mt-1">completed series</p></div>' +
-        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Champions</p><p class="text-3xl font-extrabold text-amber-600 mt-1 tabular-nums">' + d.champions + '</p><p class="text-[11px] text-slate-500 mt-1">1st-place finishes</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Champions</p><p class="text-3xl font-extrabold text-amber-600 mt-1 tabular-nums">' + d.champions + '</p><p class="text-[11px] text-slate-500 mt-1">Titles (events)</p><p class="text-lg font-bold text-slate-800 mt-2 tabular-nums">' + (d.uniqueFirst != null ? d.uniqueFirst : 0) + ' <span class="text-[11px] font-semibold text-slate-500">unique champions</span></p></div>' +
         '</div>' +
         '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">' +
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Goals</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + (Number(d.goals) || 0).toLocaleString() + '</p><p class="text-[11px] text-slate-500 mt-1">combined scored</p></div>' +
