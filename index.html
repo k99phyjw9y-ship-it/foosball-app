@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.31 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.32 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.31" />
+  <meta name="lcfc-build" content="7.32" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.31 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.32 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2653,7 +2653,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.31</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.32</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3582,10 +3582,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.31';
+    const APP_VERSION = '7.32';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 15579;
+    const APP_LINES = 15632;
 
     let state = {
       players: [],
@@ -4364,34 +4364,59 @@
       });
       // Backfill seeds from bracket sides when playoffTeams missing/incomplete (old imports)
       try {
-        if (t.playoffs && typeof buildPlayoffSeedMap === 'function' && typeof collectBracketMatches === 'function') {
-          const seedMap = buildPlayoffSeedMap(t.playoffs);
+        if (t.playoffs) {
           const entPlayers = {};
-          const rememberEnt = (ent) => {
-            if (!ent || ent.id == null) return;
-            const ids = (typeof rankingEntityPlayerIds === 'function')
-              ? rankingEntityPlayerIds(t, ent)
-              : (ent.playerIds || []).slice();
-            if (ids && ids.length) entPlayers[ent.id] = ids;
+          const rememberEnt = (ent, sideSeed) => {
+            if (!ent) return;
+            let ids = [];
+            if (typeof rankingEntityPlayerIds === 'function') ids = rankingEntityPlayerIds(t, ent) || [];
+            if (!ids.length && typeof entityPlayerIds === 'function') ids = entityPlayerIds(ent) || [];
+            if (!ids.length && Array.isArray(ent.playerIds)) ids = ent.playerIds.slice();
+            if (!ids.length && ent.id && (state.players || []).some(p => p.id === ent.id)) ids = [ent.id];
+            if (!ids.length) return;
+            const key = ent.id != null ? String(ent.id) : ids.slice().sort().join('|');
+            entPlayers[key] = ids;
+            const s = sideSeed > 0 ? Number(sideSeed) : (ent.seed > 0 ? Number(ent.seed) : null);
+            if (s > 0) {
+              ids.forEach(pid => {
+                if (teamExpected[pid] == null) teamExpected[pid] = s;
+              });
+            }
           };
-          collectBracketMatches(t.playoffs).forEach(m => {
-            if (!m) return;
-            rememberEnt(m.a?.entity || m.entityA);
-            rememberEnt(m.b?.entity || m.entityB);
-          });
-          Object.keys(seedMap).forEach(entId => {
-            const seed = Number(seedMap[entId]);
-            if (!(seed > 0)) return;
-            (entPlayers[entId] || []).forEach(pid => {
-              if (teamExpected[pid] == null) teamExpected[pid] = seed;
+          if (typeof collectBracketMatches === 'function') {
+            collectBracketMatches(t.playoffs).forEach(m => {
+              if (!m) return;
+              const sa = m.a?.seed > 0 ? m.a.seed : null;
+              const sb = m.b?.seed > 0 ? m.b.seed : null;
+              rememberEnt(m.a?.entity || m.entityA, sa);
+              rememberEnt(m.b?.entity || m.entityB, sb);
             });
-          });
-          // Persist onto playoffTeams when possible so future applies stay stable
+          }
+          if (typeof buildPlayoffSeedMap === 'function') {
+            const seedMap = buildPlayoffSeedMap(t.playoffs);
+            Object.keys(seedMap).forEach(entId => {
+              const seed = Number(seedMap[entId]);
+              if (!(seed > 0)) return;
+              const ids = entPlayers[String(entId)] || [];
+              ids.forEach(pid => {
+                if (teamExpected[pid] == null) teamExpected[pid] = seed;
+              });
+            });
+          }
+          // Also read seeds from playoffTeams by matching player sets
           (t.playoffTeams || []).forEach(team => {
-            if (team.seed != null) return;
+            if (team.seed != null) {
+              (team.playerIds || []).forEach(id => {
+                if (teamExpected[id] == null) teamExpected[id] = Number(team.seed);
+              });
+              return;
+            }
             const ids = team.playerIds || [];
             const seeds = ids.map(id => teamExpected[id]).filter(s => s > 0);
-            if (seeds.length) team.seed = Math.min.apply(null, seeds);
+            if (seeds.length) {
+              team.seed = Math.min.apply(null, seeds);
+              ids.forEach(id => { if (teamExpected[id] == null) teamExpected[id] = team.seed; });
+            }
           });
         }
       } catch (e) {}
@@ -5942,13 +5967,14 @@
 
     function getGlobalLiveTableSet(excludeTournamentId) {
       const occupied = new Set();
-      if (typeof isConflictLockEnabled === 'function' && !isConflictLockEnabled()) return occupied;
+      // Always track live tables across events (table exclusivity ≠ player conflict lock)
       (state.tournaments || []).forEach(ev => {
         if (!ev || ev.status === 'finished') return;
         if (excludeTournamentId && ev.id === excludeTournamentId) return;
         (ev.rounds || []).forEach(r => {
           (r.matches || []).forEach(m => {
-            if (!m || m.status === 'done' || m.void || m.onDeck || m.crossConflict) return;
+            if (!m || m.void || m.onDeck || m.crossConflict) return;
+            if (m.status === 'done' || m.winner === 'a' || m.winner === 'b') return;
             const tn = parseInt(m.table, 10);
             if (tn >= 1) occupied.add(tn);
           });
@@ -6040,7 +6066,7 @@
      */
 
     function isMultiEventTableShare() {
-      if (typeof isConflictLockEnabled === 'function' && !isConflictLockEnabled()) return false;
+      // Club-wide table queue whenever 2+ active events (independent of player conflict lock)
       const n = (state.tournaments || []).filter(t => t && t.status !== 'finished').length;
       return n >= 2;
     }
@@ -6904,17 +6930,38 @@ function flipRankingMatchCoin(roundNum, matchId) {
         byPlayer[idB].add(idA);
       };
 
+      const resolvePairIds = (ent) => {
+        if (!ent) return [];
+        let ids = (ent.playerIds || []).filter(Boolean);
+        if (ids.length >= 2) return ids.slice(0, 2);
+        if (typeof entityPlayerIds === 'function') {
+          ids = entityPlayerIds(ent) || [];
+          if (ids.length >= 2) return ids.slice(0, 2);
+        }
+        if (typeof rankingEntityPlayerIds === 'function') {
+          ids = rankingEntityPlayerIds(t, ent) || [];
+          if (ids.length >= 2) return ids.slice(0, 2);
+        }
+        return [];
+      };
+
       (t.rounds || []).forEach(r => {
         (r.teams || []).forEach(team => {
-          const ids = team.playerIds || [];
+          const ids = resolvePairIds(team);
           if (ids.length >= 2) record(ids[0], ids[1]);
         });
         (r.matches || []).forEach(m => {
-          for (const ent of [m.entityA, m.entityB]) {
-            const ids = ent?.playerIds || [];
+          if (!m || m.void) return;
+          for (const ent of [m.entityA, m.entityB, m.a?.entity, m.b?.entity]) {
+            const ids = resolvePairIds(ent);
             if (ids.length >= 2) record(ids[0], ids[1]);
           }
         });
+      });
+      // Current draw teams (not yet scored into a round)
+      (t.teams || []).forEach(team => {
+        const ids = resolvePairIds(team);
+        if (ids.length >= 2) record(ids[0], ids[1]);
       });
       return { counts, byPlayer };
     }
@@ -8432,7 +8479,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         (ev.rounds || []).forEach(r => {
           (r.matches || []).forEach(m => {
             if (!m) return;
-            if (m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB)) {
+            // Only true finish clears conflict (mid-series scoreA/B must not release)
+            if (m.status === 'done' || m.winner === 'a' || m.winner === 'b') {
               delete m.crossConflict;
               delete m.crossConflictLabel;
               delete m.crossConflictPlayerIds;
@@ -9753,6 +9801,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
             const w = m.winner === 'a' ? m.a?.entity : m.b?.entity;
             const l = m.winner === 'a' ? m.b?.entity : m.a?.entity;
             m._byePropagated = true;
+            if (typeof ensureMatchFinishedFlags === 'function') ensureMatchFinishedFlags(m, m.winner);
+            else if (m.winner) m.status = 'done';
             propagateBracketResult(t, m.id, w, l);
             progressed = true;
           }
@@ -9791,6 +9841,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           const w = m.winner === 'a' ? m.a?.entity : m.b?.entity;
           const l = m.winner === 'a' ? m.b?.entity : m.a?.entity;
           m._byePropagated = true;
+          if (typeof ensureMatchFinishedFlags === 'function') ensureMatchFinishedFlags(m, m.winner);
+          else if (m.winner) m.status = 'done';
           propagateBracketResult(t, m.id, w, l);
         }
       });
