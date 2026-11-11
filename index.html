@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.29 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.30 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.29" />
+  <meta name="lcfc-build" content="7.30" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.29 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.30 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2653,7 +2653,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.29</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.30</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3582,10 +3582,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.29';
+    const APP_VERSION = '7.30';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 15503;
+    const APP_LINES = 15574;
 
     let state = {
       players: [],
@@ -4362,6 +4362,39 @@
         if (team.seed == null) return;
         (team.playerIds || []).forEach(id => { teamExpected[id] = Number(team.seed); });
       });
+      // Backfill seeds from bracket sides when playoffTeams missing/incomplete (old imports)
+      try {
+        if (t.playoffs && typeof buildPlayoffSeedMap === 'function' && typeof collectBracketMatches === 'function') {
+          const seedMap = buildPlayoffSeedMap(t.playoffs);
+          const entPlayers = {};
+          const rememberEnt = (ent) => {
+            if (!ent || ent.id == null) return;
+            const ids = (typeof rankingEntityPlayerIds === 'function')
+              ? rankingEntityPlayerIds(t, ent)
+              : (ent.playerIds || []).slice();
+            if (ids && ids.length) entPlayers[ent.id] = ids;
+          };
+          collectBracketMatches(t.playoffs).forEach(m => {
+            if (!m) return;
+            rememberEnt(m.a?.entity || m.entityA);
+            rememberEnt(m.b?.entity || m.entityB);
+          });
+          Object.keys(seedMap).forEach(entId => {
+            const seed = Number(seedMap[entId]);
+            if (!(seed > 0)) return;
+            (entPlayers[entId] || []).forEach(pid => {
+              if (teamExpected[pid] == null) teamExpected[pid] = seed;
+            });
+          });
+          // Persist onto playoffTeams when possible so future applies stay stable
+          (t.playoffTeams || []).forEach(team => {
+            if (team.seed != null) return;
+            const ids = team.playerIds || [];
+            const seeds = ids.map(id => teamExpected[id]).filter(s => s > 0);
+            if (seeds.length) team.seed = Math.min.apply(null, seeds);
+          });
+        }
+      } catch (e) {}
 
       const locked = t.bonusPoolLocked || t.playoffs?.bonusPoolLocked;
       let fieldPoints, bonusPool, fr, bonusShare;
@@ -8310,6 +8343,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             m.onDeck = true;
             stampQueueSince(m);
           });
+          if (typeof fairPromoteAcrossEvents === 'function') fairPromoteAcrossEvents();
           ensureMatchTimerTicker();
           return;
         }
@@ -9155,6 +9189,29 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return isNaN(n) ? null : n;
     }
 
+
+    /** Keep status and winner in sync on every finish path (TV ranking vs playoff filters). */
+    function ensureMatchFinishedFlags(match, winnerSide) {
+      if (!match) return;
+      if (winnerSide === 'a' || winnerSide === 'b') {
+        match.winner = winnerSide;
+        match.loser = winnerSide === 'a' ? 'b' : 'a';
+      }
+      if (match.winner === 'a' || match.winner === 'b') {
+        match.status = 'done';
+        if (!match.loser) match.loser = match.winner === 'a' ? 'b' : 'a';
+        return;
+      }
+      if (match.status === 'done') {
+        const a = Number(match.scoreA);
+        const b = Number(match.scoreB);
+        if (Number.isFinite(a) && Number.isFinite(b) && a !== b) {
+          match.winner = a > b ? 'a' : 'b';
+          match.loser = a > b ? 'b' : 'a';
+        }
+      }
+    }
+
     function isScoreOvertime() {
       const ot = document.getElementById('score-overtime');
       return !!(ot && ot.checked);
@@ -9354,7 +9411,13 @@ function flipRankingMatchCoin(roundNum, matchId) {
       match.scoreB = tall.seriesB;
 
       if (isSeriesComplete(tall.seriesA, tall.seriesB, bestOf)) {
-        match.status = 'done';
+        if (typeof ensureMatchFinishedFlags === 'function') {
+          ensureMatchFinishedFlags(match, tall.seriesA > tall.seriesB ? 'a' : 'b');
+        } else {
+          match.winner = tall.seriesA > tall.seriesB ? 'a' : 'b';
+          match.loser = tall.seriesA > tall.seriesB ? 'b' : 'a';
+          match.status = 'done';
+        }
         stopMatchTimer(match);
         syncTablesAndSave(t);
         closeScoreModal();
@@ -9452,6 +9515,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         match.winner = tall.seriesA > tall.seriesB ? 'a' : 'b';
         match.loser = tall.seriesA > tall.seriesB ? 'b' : 'a';
       }
+      if (typeof ensureMatchFinishedFlags === 'function') ensureMatchFinishedFlags(match, match.winner);
+      else if (match.winner) match.status = 'done';
       delete match._byePropagated;
       stopMatchTimer(match);
 
@@ -9845,6 +9910,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             m.onDeck = true;
             stampQueueSince(m);
           });
+          if (typeof fairPromoteAcrossEvents === 'function') fairPromoteAcrossEvents();
           ensureMatchTimerTicker();
           return;
         }
@@ -9911,6 +9977,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       // Coin toss for any newly-ready bracket matches (both sides filled)
       (ready || []).forEach(m => { if (typeof autoCoinTossMatch === 'function') autoCoinTossMatch(m); });
+      // Multi-event: promote longest-waiting club-wide (was missing after bracket assign)
+      if (typeof isMultiEventTableShare === 'function' && isMultiEventTableShare()
+          && typeof fairPromoteAcrossEvents === 'function') {
+        fairPromoteAcrossEvents();
+      }
       ensureMatchTimerTicker();
     }
 
@@ -13893,7 +13964,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           const nameA = m.entityA?.name || 'TBD';
           const nameB = m.entityB?.name || 'TBD';
           // Only finished matches leave the board (series mid-scores keep status pending)
-          if (m.status === 'done') return;
+          if (m.status === 'done' || m.winner === 'a' || m.winner === 'b') return;
           const serveSide = m.coinToss?.serveSide || null;
           const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
           // Pin event color on the match so it stays identical on deck → live
