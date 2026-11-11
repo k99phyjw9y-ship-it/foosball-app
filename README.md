@@ -4,10 +4,11 @@
 
 | | |
 |--|--|
-| **Current version** | v7.28 |
+| **Current version** | v7.32 |
 | **Stack** | Single-file HTML / CSS / JavaScript (Tailwind CDN, Chart.js) |
 | **Data** | Browser `localStorage` + JSON import/export / optional GitHub Pages `data/latest.json` |
 | **Hosting** | Static (GitHub Pages, any static host, or open `index.html` locally) |
+| **Size** | ~15.6k lines (see home watermark) |
 
 ---
 
@@ -30,13 +31,13 @@ LCFC Manager runs weekly club nights end-to-end:
 |------|-------------|
 | **Singles** | 1v1 bracket (club ranking seeds when starting bracket-only) |
 | **Doubles** | Fixed teams; club ranking team strength for bracket seeds |
-| **DYP** | Draw Your Partner; random partners; bracket seeding by club ranking when no ranking rounds |
+| **DYP** | Draw Your Partner; fair partner rotation; bracket seeding by club ranking when no ranking rounds |
 | **Monster DYP** | Ranking rounds (fair sit-outs, partner rotation) → **tiered** playoff partners → double-elim |
 
 ### Monster specifics
 
 - Ranking rounds on limited tables (sit-out fairness: no one sits twice until everyone has sat once)  
-- Partner draws avoid repeat partners until the field has cycled  
+- Partner draws prefer never-paired partners until the active field has cycled (`fairPairPlayers` / partnership history)  
 - **Tiered playoffs:** top half of standings pairs with bottom half (e.g. 1+6, 2+7, …)  
 - Playoffs default to **best of 3**  
 - Optional **absent** status so players leave before playoffs without wiping ranking history  
@@ -50,27 +51,30 @@ LCFC Manager runs weekly club nights end-to-end:
 - Quick-score chips + typed scores  
 - Coin toss / serve indicator (auto on draw)  
 - Match timers (start after draw / table free; Hare & Tortoise awards)  
+- Series game scores feed career stats **per game**, not series tally alone  
 
 ---
 
 ## Bracket & playoffs
 
 - **Double elimination** tree (winners / losers / grand final)  
-- Standard bracket placement (1 vs last, etc.)  
+- Standard bracket placement  
 - Seeds shown on TV playoff cards  
 - Table assignment + on-deck queue across matches  
 - Multi-event **conflict lock** (player in a live match elsewhere)  
+- Multi-event **fair table promote** (longest wait / mild event alternate) when 2+ active events  
 - Delete drawn matches when needed  
+- Finish paths keep **`status` and `winner` in sync** (including byes)  
 
 ---
 
 ## Club ranking
 
-Starts every player at **2000** points (bands: Beginner → Master).
+Starts every player at **2000** points (skill bands: Beginner → Rookie → Amateur → Expert → Pro → Master).
 
 ### When points change
 
-Only from **finished bracket / playoff** results (not ranking-round matches alone). Sandbox events are excluded.
+Only from **finished bracket / playoff** results (not ranking-round matches alone). **Sandbox** events are excluded.
 
 ### Formula (per player)
 
@@ -80,8 +84,10 @@ Only from **finished bracket / playoff** results (not ranking-round matches alon
 
 - **Seed adjustment:** expected place vs actual finish (tier bands: 1 · 2 · 3–4 · 5–8 · …)  
 - **Playoff teams:** partners share the **same** Δ (team seed + shared bonus)  
+- Seeds backfilled from bracket sides when `playoffTeams` seeds are missing (imports / older events)  
 - **Bonus pool:** locked at **playoff create** = **1%** of combined ranking points of the playoff field  
 - **Split:** operator toggle **50/30/20** or **60/30/10** (shares always sum to the pool)  
+- Apply prefers **exact locked shares** from the playoff-create snapshot  
 
 Control center shows the **locked** pool and 1st/2nd/3rd shares once playoffs exist.
 
@@ -110,6 +116,7 @@ Operator can **recalculate ranking from events** to rebuild points from history 
 - Partner names **stacked** (one player per line) on team cards  
 - Sandbox watermark when applicable  
 - Auto-refresh; announcement flow can pause refresh while speaking  
+- **Live** pill on playing cards  
 
 ### Bar mode
 
@@ -124,6 +131,11 @@ Toggle on the TV board toolbar (persisted in `localStorage`):
 
 Ticker only rebuilds when the on-deck list **actually changes** (stable under auto-refresh).
 
+### Series-safe live board
+
+Matches leave **Playing** only when finished (`status === 'done'` and/or `winner`).  
+Mid-series scores (e.g. Bo3 at 1–0) **stay on the board**.
+
 ---
 
 ## Stats & player experience
@@ -133,21 +145,21 @@ Ticker only rebuilds when the on-deck list **actually changes** (stable under au
 - Career leaderboard (points, then goal differential)  
 - Per-event leaderboards  
 - Charts / graphs (form, volume, etc.)  
-- Best / worst partners  
+- Best / worst partners (includes ranking rounds)  
 - Fun awards (defaults + Hare / Tortoise, etc.)  
 - **Club DNA:** totals, champions, avg match length, goals/night, shutouts, geography  
 
 ### Player profile
 
 - Rank, ranking points, form  
-- Podiums, rivals (**player one rank below** + pts ahead)  
+- Podiums, rivals (player one rank below + pts ahead)  
 - State / geography  
 - Share-oriented card layout  
 
 ### Home
 
 - Tournament cards with 1st / 2nd / 3rd  
-- Version + last backup / club file timestamps  
+- Version + last backup / club file timestamps + **lines of code** watermark  
 - Theme & font options (Pitch default; Tornado, Fog, Arena, etc.)  
 
 ---
@@ -187,27 +199,44 @@ Live ops strip on the event page:
 ## Multi-event
 
 - Several events can run the same night  
-- Shared tables with occupancy / on-deck  
-- Conflict highlighting when a player is live elsewhere  
+- **Shared tables** with global occupancy (always tracked when 2+ active events)  
+- **Fair promote:** longest-waiting on-deck matches across the club; mild alternate-event bias  
+- Conflict highlighting when a player is live elsewhere (conflict lock setting)  
+- Conflict clears only when the match is truly finished (not mid-series)  
 - Home TV board aggregates all active events  
 
 ---
 
 ## Versioning
 
-`APP_VERSION` is shown on the home watermark and in export metadata. Bump all of:
+`APP_VERSION` is shown on the home watermark and in export metadata. Bump **all** of:
 
 - `APP_VERSION`  
 - HTML comment / `lcfc-build` meta  
 - `<title>`  
 - Home watermark  
+- `APP_LINES` (set to actual file line count)
+
+---
+
+## Recent hardening (v7.29–v7.32)
+
+- TV live filter: series mid-scores no longer drop matches  
+- Ranking apply prefers locked bonus shares  
+- `ensureMatchFinishedFlags` keeps `status` + `winner` aligned (scores + byes)  
+- Seed backfill for older imports without `playoffTeams` seeds  
+- Multi-event fair table promote after bracket assign  
+- Conflict release no longer fires on mid-series score tallies  
+- Global ranking table free on `status` **or** `winner`  
+- Multi-event table share independent of player conflict lock  
+- Stronger partnership history for fair DYP/Monster draws  
 
 ---
 
 ## Privacy & safety
 
 - No server-side accounts required for core use  
-- Operator PIN is a light gate, not strong security — do not publish the PIN in docs or public repos  
+- Operator PIN is a light gate, not strong security — **do not publish the PIN** in docs or public repos  
 - Do not put real passwords or private keys in the JSON backup  
 
 ---
@@ -244,4 +273,4 @@ Built for weekly in-person foosball — not a generic SaaS bracket tool.
 
 ---
 
-*README aligned with LCFC Manager v7.28. Operator PIN intentionally omitted.*
+*README aligned with LCFC Manager v7.32. Operator PIN intentionally omitted.*
