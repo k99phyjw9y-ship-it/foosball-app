@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.34 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.35 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.34" />
+  <meta name="lcfc-build" content="7.35" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.34 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.35 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3179,7 +3179,7 @@
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tables</label>
-            <input id="t-tables" type="number" min="1" max="20" value="2" class="input-field w-full rounded-xl px-4 py-3 text-slate-800" />
+            <input id="t-tables" type="number" min="1" max="20" value="3" class="input-field w-full rounded-xl px-4 py-3 text-slate-800" />
           </div>
         </div>
 
@@ -3582,10 +3582,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.34';
+    const APP_VERSION = '7.35';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 15755;
+    const APP_LINES = 15756;
 
     let state = {
       players: [],
@@ -5064,7 +5064,7 @@
       document.getElementById('t-format').value = 'swiss';
       document.getElementById('t-race').value = '5';
       document.getElementById('t-bestof').value = '1';
-      document.getElementById('t-tables').value = '2';
+      document.getElementById('t-tables').value = '3';
       const sb0 = document.getElementById('t-sandbox');
       if (sb0) sb0.checked = false;
       const posCb0 = document.getElementById('t-monster-positions');
@@ -5212,7 +5212,7 @@
       if (n > 20) n = 20;
       const input = document.getElementById('td-tables');
       if (input) input.value = String(n);
-      if (n === (parseInt(t.tables, 10) || 2)) return;
+      if (n === (parseInt(t.tables, 10) || 3)) return;
       t.tables = n;
       assignBracketTables(t);
       assignRankingRoundTables(t);
@@ -5765,7 +5765,7 @@
       }
       const tablesInput = document.getElementById('td-tables');
       if (tablesInput) {
-        tablesInput.value = String(Math.max(1, parseInt(t.tables, 10) || 2));
+        tablesInput.value = String(Math.max(1, parseInt(t.tables, 10) || 3));
       }
 
       // Show/hide teams section
@@ -6736,7 +6736,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             const p = state.players.find(x => x.id === id);
             return p?.name || '?';
           });
-          const tables = Math.max(1, parseInt(t.tables, 10) || 2);
+          const tables = Math.max(1, parseInt(t.tables, 10) || 3);
           const playing = activeN - need;
           const matchN = Math.floor(playing / 4);
           if (need > 0) {
@@ -6782,7 +6782,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
     /** Sit-out counts from completed rounds (so deleted rounds don't count). */
     /** Concurrent table capacity (info only). Sit-outs use remainder-of-4, not this cap. */
     function monsterFloorCapacity(t) {
-      const tables = Math.max(1, parseInt(t.tables, 10) || 2);
+      const tables = Math.max(1, parseInt(t.tables, 10) || 3);
       return tables * 4;
     }
 
@@ -7251,7 +7251,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
      * Build ranking matches: Swiss-ish — prefer opponents not faced recently.
      */
     function pairRankingEntities(t, ranked) {
-      const tableCount = Math.max(1, parseInt(t.tables, 10) || 2);
+      const tableCount = Math.max(1, parseInt(t.tables, 10) || 3);
       const remaining = ranked.slice();
       const matches = [];
       while (remaining.length >= 2) {
@@ -9273,7 +9273,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     function quickScoreMax(R) {
       R = R == null ? quickRaceTo() : R;
-      if (isScoreOvertime()) return Math.max(R + 10, 15);
+      // OT: chips 0–8 (win-by-2 still validated separately, e.g. 7–5 / 8–6)
+      if (isScoreOvertime()) return 8;
       return R;
     }
 
