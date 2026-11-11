@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.33 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.34 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.33" />
+  <meta name="lcfc-build" content="7.34" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.33 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.34 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3582,10 +3582,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.33';
+    const APP_VERSION = '7.34';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 15741;
+    const APP_LINES = 15755;
 
     let state = {
       players: [],
@@ -7045,27 +7045,31 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (active.length < 2) return [];
       const { counts, byPlayer } = getPartnershipData(t);
       let best = null;
-      let bestMetric = { rematches: Infinity, score: Infinity };
-      const trials = Math.min(120, 20 + active.length * 8);
+      let bestMetric = { forbidden: Infinity, rematches: Infinity, score: Infinity };
+      // More trials for denser fields so "no rematch until full cycle" is realistic
+      const trials = Math.min(400, 40 + active.length * 20);
+      let zeroForbiddenFound = false;
 
       for (let i = 0; i < trials; i++) {
         const pairs = buildOnePairing(t, active, counts, byPlayer);
         if (pairs.length < Math.floor(active.length / 2)) continue;
-        // Prefer pairings that only use allowed partners
         let forbidden = 0;
         pairs.forEach(([a, b]) => {
           if (!isPartnerAllowed(t, counts, byPlayer, a.id, b.id)) forbidden++;
         });
+        if (forbidden === 0) zeroForbiddenFound = true;
+        // Hard rule: once a zero-forbidden pairing exists, never accept rematches
+        if (zeroForbiddenFound && forbidden > 0) continue;
         const metric = scorePairing(pairs, counts);
         metric.forbidden = forbidden;
         if (
-          forbidden < (bestMetric.forbidden != null ? bestMetric.forbidden : Infinity) ||
-          (forbidden === (bestMetric.forbidden || 0) && metric.rematches < bestMetric.rematches) ||
-          (forbidden === (bestMetric.forbidden || 0) && metric.rematches === bestMetric.rematches && metric.score < bestMetric.score)
+          forbidden < bestMetric.forbidden ||
+          (forbidden === bestMetric.forbidden && metric.rematches < bestMetric.rematches) ||
+          (forbidden === bestMetric.forbidden && metric.rematches === bestMetric.rematches && metric.score < bestMetric.score)
         ) {
           bestMetric = metric;
           best = pairs;
-          if (metric.rematches === 0 && metric.score === 0) break;
+          if (forbidden === 0 && metric.rematches === 0) break;
         }
       }
 
@@ -8343,20 +8347,25 @@ function flipRankingMatchCoin(roundNum, matchId) {
      * - When a table frees (score entered), the next on-deck match gets THAT table
      * - Example: T1 finishes → next on-deck becomes active on T1; T2 still playing stays on T2
      */
+    function isRankingMatchFinished(m) {
+      if (!m || m.void) return false;
+      return m.status === 'done' || m.winner === 'a' || m.winner === 'b';
+    }
+
     function assignRankingRoundTablesForMatches(matches, t) {
       if (!matches || !matches.length) return;
       const tableCount = Math.max(1, parseInt(t?.tables, 10) || 1);
       const now = Date.now();
 
       matches.forEach(m => {
-        if (m && m.status === 'done') {
+        if (m && isRankingMatchFinished(m)) {
           delete m.onDeck;
           delete m.crossConflict;
           delete m.crossConflictLabel;
         }
       });
 
-      const pending = matches.filter(m => m && m.status !== 'done');
+      const pending = matches.filter(m => m && !isRankingMatchFinished(m));
       if (!pending.length) {
         ensureMatchTimerTicker();
         return;
@@ -9148,6 +9157,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       // DISC-03: never mutate match on open/cancel — only on successful submit
       const bestOf = getTournamentBestOf(t, 'ranking');
       const reeditSeries = !!(bestOf > 1 && (match.status === 'done' || match.winner === 'a' || match.winner === 'b'));
+      if (reeditSeries) {
+        if (!confirm('Re-enter this completed series?\n\nSaving a new game will replace the previous result. Cancel leaves the match unchanged.')) return;
+      }
       state.scoreMatchId = { mode: 'round', roundNum: parseInt(roundNum, 10), matchId, reeditSeries: reeditSeries };
       resetScoreOvertime();
       document.getElementById('score-modal-title').textContent = reeditSeries ? 'Re-enter Score' : 'Enter Score';
@@ -9671,12 +9683,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
       }
 
       updatePlacementsFromBracket(t);
-      // DISC-05: refresh ranking if podium / finish state may have changed
-      if (prevWinner && prevWinner !== match.winner) {
+      // Re-apply ranking after any correction of a previously finished match (incl. same winner)
+      if (prevWinner || t.rankingApplied) {
         reapplyRankingAfterBracketCorrection(t);
-      } else if (t.rankingApplied && t.status === 'finished') {
-        // same winner but scores changed — deltas unchanged; leave ranking
-      } else if (!t.rankingApplied && t.status === 'finished') {
+      } else if (t.status === 'finished') {
         try { tryApplyRankingOnFinish(t); } catch (e) {}
       }
       syncTablesAndSave(t);
@@ -10649,6 +10659,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const bestOf = getTournamentBestOf(t, 'playoff');
       const finished = !!(match.winner === 'a' || match.winner === 'b' || match.status === 'done');
       const reeditSeries = !!(bestOf > 1 && finished);
+      if (reeditSeries) {
+        if (!confirm('Re-enter this completed series?\n\nSaving a new game will replace the previous result. Cancel leaves the match unchanged.')) return;
+      }
       state.scoreMatchId = { mode: 'bracket', matchId, reeditSeries: reeditSeries, prevWinner: match.winner || null };
       resetScoreOvertime();
       document.getElementById('score-modal-title').textContent = finished ? 'Re-enter Score' : 'Enter Score';
@@ -11660,6 +11673,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         });
       };
       (state.tournaments || []).forEach(t => {
+        if (typeof isSandboxTournament === 'function' && isSandboxTournament(t)) return;
         (t.rounds || []).forEach(r => {
           (r.matches || []).forEach(m => {
             push(t, m, m.entityA?.name, m.entityB?.name, m.entityA, m.entityB);
