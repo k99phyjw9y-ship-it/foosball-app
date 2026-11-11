@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.28 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.29 | 2026-10-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.28" />
+  <meta name="lcfc-build" content="7.29" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.28 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.29 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2653,7 +2653,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.28</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.29</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3582,10 +3582,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.28';
+    const APP_VERSION = '7.29';
     const APP_UPDATED = 'Oct 23, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 14237;
+    const APP_LINES = 15503;
 
     let state = {
       players: [],
@@ -4368,10 +4368,30 @@
       if (locked && locked.bonusPool != null) {
         fieldPoints = locked.fieldPoints;
         bonusPool = Math.round(Number(locked.bonusPool));
-        fr = locked.fr || ((typeof getBonusShareFractions === 'function') ? getBonusShareFractions() : [0.50, 0.30, 0.20]);
-        bonusShare = (typeof splitBonusPoolShares === 'function')
-          ? splitBonusPoolShares(bonusPool, fr)
-          : [Math.round(bonusPool * fr[0]), Math.round(bonusPool * fr[1]), Math.round(bonusPool * fr[2])];
+        fr = locked.fr || locked.modeFractions || ((typeof getBonusShareFractions === 'function') ? getBonusShareFractions() : [0.50, 0.30, 0.20]);
+        if (Array.isArray(locked.shares) && locked.shares.length >= 3) {
+          // Prefer exact shares frozen at playoff create
+          bonusShare = [
+            Math.round(Number(locked.shares[0]) || 0),
+            Math.round(Number(locked.shares[1]) || 0),
+            Math.round(Number(locked.shares[2]) || 0)
+          ];
+          const sum = bonusShare[0] + bonusShare[1] + bonusShare[2];
+          if (sum !== bonusPool && bonusPool > 0 && sum > 0) {
+            // Keep relative shares but force total to locked pool
+            bonusShare = (typeof splitBonusPoolShares === 'function')
+              ? splitBonusPoolShares(bonusPool, [
+                  bonusShare[0] / sum,
+                  bonusShare[1] / sum,
+                  bonusShare[2] / sum
+                ])
+              : bonusShare;
+          }
+        } else {
+          bonusShare = (typeof splitBonusPoolShares === 'function')
+            ? splitBonusPoolShares(bonusPool, fr)
+            : [Math.round(bonusPool * fr[0]), Math.round(bonusPool * fr[1]), Math.round(bonusPool * fr[2])];
+        }
       } else {
         fieldPoints = fieldIds.reduce((s, id) => s + getPlayerRankingPoints(id), 0);
         bonusPool = Math.round(fieldPoints * 0.01);
@@ -13872,8 +13892,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (!m || m.void) return;
           const nameA = m.entityA?.name || 'TBD';
           const nameB = m.entityB?.name || 'TBD';
-          const done = m.status === 'done' || (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB);
-          if (done) return;
+          // Only finished matches leave the board (series mid-scores keep status pending)
+          if (m.status === 'done') return;
           const serveSide = m.coinToss?.serveSide || null;
           const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
           // Pin event color on the match so it stays identical on deck → live
@@ -13902,7 +13922,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
             if (typeof isBracketMatchReady === 'function'
               ? !isBracketMatchReady(m)
               : !((m.a?.entity || m.entityA) && (m.b?.entity || m.entityB))) return;
-            if (m.scoreA != null && m.scoreB != null && m.scoreA !== m.scoreB && !(m.scoreA === 0 && m.scoreB === 0)) return;
+            // Keep live while series in progress; m.winner / status done already excluded above
+            if (m.status === 'done') return;
             const serveSide = m.coinToss?.serveSide || null;
             const serveName = serveSide === 'a' ? nameA : (serveSide === 'b' ? nameB : null);
             const phase = 'playoff';
