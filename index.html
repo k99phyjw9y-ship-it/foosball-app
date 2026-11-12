@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.37 | 2026-11-11 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.38 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.37" />
+  <meta name="lcfc-build" content="7.38" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.37 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.38 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3582,10 +3582,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.37';
+    const APP_VERSION = '7.38';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 15799;
+    const APP_LINES = 16076;
 
     let state = {
       players: [],
@@ -3603,15 +3603,34 @@
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-          const data = JSON.parse(raw);
-          state.players = data.players || [];
-          state.tournaments = data.tournaments || [];
-          migratePlayerHomeState();
-          migratePlayerRankings();
-          backfillRankingFromTournaments();
+          const data = JSON.parse(raw) || {};
+          const players = Array.isArray(data.players) ? data.players : [];
+          const tournaments = Array.isArray(data.tournaments) ? data.tournaments : [];
+          state.players = players.filter(p => p && typeof p === 'object').map(p => {
+            if (p.name == null) p.name = String(p.id || 'Player');
+            else p.name = String(p.name);
+            if (p.id == null || p.id === '') p.id = uid();
+            else p.id = String(p.id);
+            return p;
+          });
+          state.tournaments = tournaments.filter(t => t && typeof t === 'object').map(t => {
+            if (t.name == null || t.name === '') t.name = 'Tournament';
+            else t.name = String(t.name);
+            if (!Array.isArray(t.playerIds)) t.playerIds = [];
+            if (!Array.isArray(t.absentIds)) t.absentIds = [];
+            if (!Array.isArray(t.rounds)) t.rounds = [];
+            if (t.id == null || t.id === '') t.id = uid();
+            else t.id = String(t.id);
+            return t;
+          });
+          try { migratePlayerHomeState(); } catch (e) { console.warn('migratePlayerHomeState', e); }
+          try { migratePlayerRankings(); } catch (e) { console.warn('migratePlayerRankings', e); }
+          try { backfillRankingFromTournaments(); } catch (e) { console.warn('backfillRankingFromTournaments', e); }
         }
       } catch (e) {
         console.error('Failed to load state', e);
+        if (!Array.isArray(state.players)) state.players = [];
+        if (!Array.isArray(state.tournaments)) state.tournaments = [];
       }
     }
 
@@ -4345,6 +4364,9 @@
       const { ids: fieldIds, placeOf } = getEventFinishPlaces(t);
       if (fieldIds.length < 2) return false;
 
+      // Prefer places frozen at playoff create (stable across rebuilds)
+      const lockedExpected = t.expectedPlaceLocked || t.playoffs?.expectedPlaceLocked || null;
+
       // Individual ranking order (for singles / fallback)
       const seeded = fieldIds.slice().sort((a, b) => {
         const pa = getPlayerRankingPoints(a), pb = getPlayerRankingPoints(b);
@@ -4358,9 +4380,17 @@
 
       // Playoff team seed → same expected place for both partners
       const teamExpected = {};
+      if (lockedExpected && typeof lockedExpected === 'object') {
+        Object.keys(lockedExpected).forEach(id => {
+          const n = Number(lockedExpected[id]);
+          if (n > 0) teamExpected[id] = n;
+        });
+      }
       (t.playoffTeams || []).forEach(team => {
         if (team.seed == null) return;
-        (team.playerIds || []).forEach(id => { teamExpected[id] = Number(team.seed); });
+        (team.playerIds || []).forEach(id => {
+          if (teamExpected[id] == null) teamExpected[id] = Number(team.seed);
+        });
       });
       // Backfill seeds from bracket sides when playoffTeams missing/incomplete (old imports)
       try {
@@ -4504,6 +4534,16 @@
       t.rankingDeltaDetail = deltaDetail;
       t.rankingBonusShare = bonusShare.slice();
       t.rankingBonusPool = bonusPool;
+      // Persist pool snapshot when missing so future rebuilds don't drift
+      if (!t.bonusPoolLocked && bonusPool != null) {
+        t.bonusPoolLocked = {
+          bonusPool: bonusPool,
+          fieldPoints: fieldPoints,
+          shares: bonusShare.slice(),
+          fieldSize: (fieldIds && fieldIds.length) || 0,
+          lockedAt: Date.now()
+        };
+      }
       return true;
     }
 
@@ -4894,11 +4934,14 @@
       const keepName = keep.name;
 
       (state.tournaments || []).forEach(t => {
+        if (!t) return;
         if (Array.isArray(t.playerIds)) t.playerIds = rewriteIdList(t.playerIds, removeId, keepId);
         if (Array.isArray(t.absentIds)) t.absentIds = rewriteIdList(t.absentIds, removeId, keepId);
         if (Array.isArray(t.currentSitOutIds)) t.currentSitOutIds = rewriteIdList(t.currentSitOutIds, removeId, keepId);
+        if (Array.isArray(t.sitOutQueue)) t.sitOutQueue = rewriteIdList(t.sitOutQueue, removeId, keepId);
 
         (t.rounds || []).forEach(r => {
+          if (!r) return;
           if (Array.isArray(r.sitOutIds)) r.sitOutIds = rewriteIdList(r.sitOutIds, removeId, keepId);
           (r.teams || []).forEach(team => {
             if (Array.isArray(team.playerIds)) {
@@ -4935,6 +4978,26 @@
             delete t.rankingDeltas[removeId];
           }
         }
+        if (t.rankingDeltaDetail && typeof t.rankingDeltaDetail === 'object') {
+          if (removeId in t.rankingDeltaDetail) {
+            if (!t.rankingDeltaDetail[keepId]) t.rankingDeltaDetail[keepId] = t.rankingDeltaDetail[removeId];
+            delete t.rankingDeltaDetail[removeId];
+          }
+        }
+        if (t.expectedPlaceLocked && typeof t.expectedPlaceLocked === 'object') {
+          if (removeId in t.expectedPlaceLocked) {
+            if (t.expectedPlaceLocked[keepId] == null) t.expectedPlaceLocked[keepId] = t.expectedPlaceLocked[removeId];
+            delete t.expectedPlaceLocked[removeId];
+          }
+        }
+        if (t.playoffs && t.playoffs.expectedPlaceLocked && typeof t.playoffs.expectedPlaceLocked === 'object') {
+          if (removeId in t.playoffs.expectedPlaceLocked) {
+            if (t.playoffs.expectedPlaceLocked[keepId] == null) {
+              t.playoffs.expectedPlaceLocked[keepId] = t.playoffs.expectedPlaceLocked[removeId];
+            }
+            delete t.playoffs.expectedPlaceLocked[removeId];
+          }
+        }
 
         // Placements
         const pl = t.placements || t.playoffs?.placements;
@@ -4961,6 +5024,32 @@
 
       if (state.profilePlayerId === removeId) state.profilePlayerId = keepId;
       if (state.editingPlayerId === removeId) state.editingPlayerId = null;
+
+      // DISC-14: final pass — no leftover references to removed id in serialised state
+      try {
+        const blob = JSON.stringify(state);
+        if (blob.includes(JSON.stringify(removeId)) || blob.includes('"' + removeId + '"')) {
+          const scrub = (obj) => {
+            if (!obj || typeof obj !== 'object') return;
+            if (Array.isArray(obj)) {
+              for (let i = obj.length - 1; i >= 0; i--) {
+                if (obj[i] === removeId) obj[i] = keepId;
+                else if (obj[i] && typeof obj[i] === 'object') scrub(obj[i]);
+              }
+              // dedupe id lists lightly
+            } else {
+              Object.keys(obj).forEach(k => {
+                if (obj[k] === removeId) obj[k] = keepId;
+                else if (k === removeId && keepId !== removeId) {
+                  if (obj[keepId] == null) obj[keepId] = obj[k];
+                  delete obj[k];
+                } else if (obj[k] && typeof obj[k] === 'object') scrub(obj[k]);
+              });
+            }
+          };
+          scrub(state);
+        }
+      } catch (e) { console.warn('merge scrub', e); }
 
       // Rebuild club ranking from bracket results so points are not double-counted
       let ranked = 0;
@@ -5043,14 +5132,14 @@
         <tr class="border-t border-slate-200 table-row">
           <td class="px-3 py-3.5 tabular-nums ${rankCls} text-sm">#${rank}</td>
           <td class="px-4 py-3.5">
-            <button type="button" onclick="openPlayerProfile('${p.id}')" class="font-medium text-slate-900 hover:text-emerald-700 text-left">${escapeHtml(p.name)}</button>
+            <button type="button" onclick="openPlayerProfile('${escapeAttr(p.id)}')" class="font-medium text-slate-900 hover:text-emerald-700 text-left">${escapeHtml(p.name)}</button>
           </td>
           <td class="px-4 py-3.5 text-slate-500 hidden sm:table-cell"><span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">${escapeHtml(band.label)}</span> <span class="text-xs text-slate-400 ml-1">${p.rankingPoints}</span></td>
           <td class="px-4 py-3.5 hidden md:table-cell">${form}</td>
           <td class="px-4 py-3.5 text-right space-x-2 sm:space-x-3">
-            <button onclick="openPlayerProfile('${p.id}')" class="text-slate-500 hover:text-emerald-600 text-sm font-medium">Profile</button>
-            ${opMode ? `<button onclick="editPlayer('${p.id}')" class="text-emerald-600/90 hover:text-emerald-700 text-sm font-medium">Edit</button>
-            <button onclick="deletePlayer('${p.id}')" class="text-red-500/80 hover:text-red-600 text-sm font-medium">Delete</button>` : ''}
+            <button onclick="openPlayerProfile('${escapeAttr(p.id)}')" class="text-slate-500 hover:text-emerald-600 text-sm font-medium">Profile</button>
+            ${opMode ? `<button onclick="editPlayer('${escapeAttr(p.id)}')" class="text-emerald-600/90 hover:text-emerald-700 text-sm font-medium">Edit</button>
+            <button onclick="deletePlayer('${escapeAttr(p.id)}')" class="text-red-500/80 hover:text-red-600 text-sm font-medium">Delete</button>` : ''}
           </td>
         </tr>`;
       }).join('');
@@ -5253,8 +5342,16 @@
 
     function confirmDeleteTournament() {
       if (!confirm('Delete this tournament permanently?')) return;
-      state.tournaments = state.tournaments.filter(t => t.id !== state.currentTournamentId);
+      state.tournaments = state.tournaments.filter(t => t && t.id !== state.currentTournamentId);
       state.currentTournamentId = null;
+      // Rebuild club ranking so deleted event deltas are not left on players (DISC-09)
+      try {
+        if (typeof rebuildPlayerRankingPointsFromEventDeltas === 'function') {
+          rebuildPlayerRankingPointsFromEventDeltas();
+        } else if (typeof recalculateClubRankingsFromEvents === 'function') {
+          recalculateClubRankingsFromEvents();
+        }
+      } catch (e) { console.warn('ranking rebuild after delete', e); }
       saveState();
       showView('home');
       toast('Tournament deleted');
@@ -5436,7 +5533,7 @@
       if (typeof maybeNudgeConflictLock === 'function') maybeNudgeConflictLock();
       const list = document.getElementById('tournament-list');
       const empty = document.getElementById('empty-tournaments');
-      if (state.tournaments.length === 0) {
+      if (!(state.tournaments || []).filter(t => t && t.id).length) {
         list.innerHTML = '';
         empty.classList.remove('hidden');
         return;
@@ -5467,7 +5564,7 @@
       }
       const typeLabel = {singles:'Singles', doubles:'Doubles', dyp:'DYP', monster:'Monster DYP'};
       const typeIcon = {singles:'👤', doubles:'👥', dyp:'🎲', monster:'👹'};
-      const sorted = state.tournaments.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      const sorted = (state.tournaments || []).filter(t => t && t.id).slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       const expandedIds = getHomeExpandedEventIds();
       list.innerHTML = sorted.map(t => {
         const pod = getTournamentPodiumLabels(t);
@@ -5494,14 +5591,14 @@
         const finished = t.status === 'finished';
         const expanded = !finished || expandedIds.has(t.id);
         const chevron = finished
-          ? `<button type="button" onclick="event.stopPropagation(); toggleHomeEventExpanded('${t.id}')" class="ml-0.5 p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="${expanded ? 'Collapse' : 'Expand'} event card" aria-expanded="${expanded}">
+          ? `<button type="button" onclick="event.stopPropagation(); toggleHomeEventExpanded('${escapeAttr(t.id)}')" class="ml-0.5 p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="${expanded ? 'Collapse' : 'Expand'} event card" aria-expanded="${expanded}">
               <svg class="w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>`
           : '';
         const headerClick = finished
-          ? `onclick="event.stopPropagation(); toggleHomeEventExpanded('${t.id}')"`
-          : `onclick="openTournament('${t.id}')"`;
-        const cardClick = finished ? '' : `onclick="openTournament('${t.id}')"`;
+          ? `onclick="event.stopPropagation(); toggleHomeEventExpanded('${escapeAttr(t.id)}')"`
+          : `onclick="openTournament('${escapeAttr(t.id)}')"`;
+        const cardClick = finished ? '' : `onclick="openTournament('${escapeAttr(t.id)}')"`;
         const compactPad = finished && !expanded ? 'p-3.5' : 'p-5';
         return `
         <div ${cardClick} class="${finished ? '' : 'card-interactive cursor-pointer '}surface-card rounded-2xl ${compactPad} ${band}${t.sandbox ? ' ring-1 ring-amber-300/80' : ''}" data-home-event="${t.id}" data-expanded="${expanded}">
@@ -5533,7 +5630,7 @@
             <span>${new Date(t.createdAt).toLocaleDateString()}</span>
           </div>
           ${podiumBlock}
-          ${finished ? `<div class="mt-3"><button type="button" onclick="event.stopPropagation(); openTournament('${t.id}')" class="btn-secondary text-xs px-3 py-1.5 rounded-lg">Open event</button></div>` : ''}
+          ${finished ? `<div class="mt-3"><button type="button" onclick="event.stopPropagation(); openTournament('${escapeAttr(t.id)}')" class="btn-secondary text-xs px-3 py-1.5 rounded-lg">Open event</button></div>` : ''}
           ` : ''}
         </div>`;
       }).join('');
@@ -5628,6 +5725,7 @@
       if (!t || !t.playoffs) return null;
       if (typeof isSandboxTournament === 'function' && isSandboxTournament(t)) {
         delete t.bonusPoolLocked;
+        delete t.expectedPlaceLocked;
         return null;
       }
       const snap = computeBonusPoolSnapshot(t);
@@ -5643,6 +5741,33 @@
           lockedAt: snap.lockedAt
         };
       } catch (e) {}
+      // Freeze expected places at playoff create (seeds + club RP order) so rebuilds don't drift
+      try {
+        const fieldIds = snap.fieldIds || [...(typeof collectPlayoffFieldIds === 'function' ? collectPlayoffFieldIds(t) : [])];
+        const expectedPlaceLocked = {};
+        (t.playoffTeams || []).forEach(team => {
+          if (team && team.seed != null) {
+            (team.playerIds || []).forEach(id => {
+              if (id) expectedPlaceLocked[id] = Number(team.seed);
+            });
+          }
+        });
+        const missing = fieldIds.filter(id => expectedPlaceLocked[id] == null);
+        if (missing.length) {
+          missing.slice().sort((a, b) => {
+            const pa = typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(a) : 2000;
+            const pb = typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(b) : 2000;
+            if (pb !== pa) return pb - pa;
+            const na = (state.players.find(p => p.id === a) || {}).name || '';
+            const nb = (state.players.find(p => p.id === b) || {}).name || '';
+            return String(na).localeCompare(String(nb));
+          }).forEach((id, i) => {
+            expectedPlaceLocked[id] = i + 1;
+          });
+        }
+        t.expectedPlaceLocked = expectedPlaceLocked;
+        if (t.playoffs) t.playoffs.expectedPlaceLocked = Object.assign({}, expectedPlaceLocked);
+      } catch (e) { console.warn('expectedPlaceLocked', e); }
       return snap;
     }
 
@@ -6634,8 +6759,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
               ${busy ? `<span class="ml-2 text-[11px] font-semibold text-violet-700 bg-violet-50 border border-violet-200 px-1.5 py-0.5 rounded" title="${escapeHtml(busyTitle)}">Busy elsewhere</span>` : ''}
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <button onclick="togglePlayerAbsent('${pid}')" class="text-xs font-semibold px-2 py-1 rounded-lg border transition ${absent ? 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100' : 'text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100'}">${absent ? 'Present' : 'Absent'}</button>
-              <button onclick="removePlayerFromTournament('${pid}')" class="text-red-500 hover:text-red-700 text-sm font-medium">Remove</button>
+              <button onclick="togglePlayerAbsent('${escapeAttr(pid)}')" class="text-xs font-semibold px-2 py-1 rounded-lg border transition ${absent ? 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100' : 'text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100'}">${absent ? 'Present' : 'Absent'}</button>
+              <button onclick="removePlayerFromTournament('${escapeAttr(pid)}')" class="text-red-500 hover:text-red-700 text-sm font-medium">Remove</button>
             </div>
           </div>
         `;
@@ -7087,23 +7212,37 @@ function flipRankingMatchCoin(roundNum, matchId) {
     function fairPairPlayers(t, active) {
       if (active.length < 2) return [];
       const { counts, byPlayer } = getPartnershipData(t);
+      const needPairs = Math.floor(active.length / 2);
+
+      // Exact search for small fields (n <= 10): perfect matching minimizing rematches
+      if (active.length <= 10 && needPairs <= 5) {
+        const exact = exactFairPairing(active, counts, byPlayer, t);
+        if (exact && exact.length >= needPairs) {
+          try { logPairingDebug(t, exact, counts, 'exact'); } catch (e) {}
+          return exact;
+        }
+      }
+
       let best = null;
       let bestMetric = { forbidden: Infinity, rematches: Infinity, score: Infinity };
       // More trials for denser fields so "no rematch until full cycle" is realistic
-      const trials = Math.min(400, 40 + active.length * 20);
+      const trials = Math.min(800, 80 + active.length * 40);
       let zeroForbiddenFound = false;
+      let zeroRematchFound = false;
 
       for (let i = 0; i < trials; i++) {
         const pairs = buildOnePairing(t, active, counts, byPlayer);
-        if (pairs.length < Math.floor(active.length / 2)) continue;
+        if (pairs.length < needPairs) continue;
         let forbidden = 0;
         pairs.forEach(([a, b]) => {
           if (!isPartnerAllowed(t, counts, byPlayer, a.id, b.id)) forbidden++;
         });
-        if (forbidden === 0) zeroForbiddenFound = true;
-        // Hard rule: once a zero-forbidden pairing exists, never accept rematches
-        if (zeroForbiddenFound && forbidden > 0) continue;
         const metric = scorePairing(pairs, counts);
+        if (forbidden === 0) zeroForbiddenFound = true;
+        if (forbidden === 0 && metric.rematches === 0) zeroRematchFound = true;
+        // Hard rules: prefer zero-forbidden; once a zero-rematch exists, never accept rematches
+        if (zeroForbiddenFound && forbidden > 0) continue;
+        if (zeroRematchFound && metric.rematches > 0) continue;
         metric.forbidden = forbidden;
         if (
           forbidden < bestMetric.forbidden ||
@@ -7116,7 +7255,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
       }
 
-      if (best) return best;
+      if (best) {
+        try { logPairingDebug(t, best, counts, 'heuristic'); } catch (e) {}
+        return best;
+      }
 
       // Absolute fallback
       const ordered = shuffle([...active]);
@@ -7124,7 +7266,90 @@ function flipRankingMatchCoin(roundNum, matchId) {
       for (let i = 0; i < ordered.length - 1; i += 2) {
         pairs.push([ordered[i], ordered[i + 1]]);
       }
+      try { logPairingDebug(t, pairs, counts, 'fallback'); } catch (e) {}
       return pairs;
+    }
+
+    /**
+     * Exact minimum-rematch perfect matching for small active sets (n <= 10).
+     * Explores all perfect matchings; prefers zero forbidden, then fewest rematches, then lowest score.
+     */
+    function exactFairPairing(active, counts, byPlayer, t) {
+      const people = active.slice();
+      const n = people.length;
+      if (n < 2) return [];
+      let best = null;
+      let bestMetric = { forbidden: Infinity, rematches: Infinity, score: Infinity };
+      const used = new Array(n).fill(false);
+      const cur = [];
+
+      function scorePairs(pairs) {
+        let forbidden = 0, rematches = 0, score = 0;
+        pairs.forEach(([a, b]) => {
+          const c = counts[pairKey(a.id, b.id)] || 0;
+          score += c * 100;
+          if (c > 0) rematches++;
+          if (t && typeof isPartnerAllowed === 'function' && !isPartnerAllowed(t, counts, byPlayer, a.id, b.id)) {
+            forbidden++;
+          }
+        });
+        return { forbidden, rematches, score };
+      }
+
+      function dfs(start) {
+        if (bestMetric.forbidden === 0 && bestMetric.rematches === 0) return;
+        // find first free index
+        let i = start;
+        while (i < n && used[i]) i++;
+        if (i >= n) {
+          const metric = scorePairs(cur);
+          if (
+            metric.forbidden < bestMetric.forbidden ||
+            (metric.forbidden === bestMetric.forbidden && metric.rematches < bestMetric.rematches) ||
+            (metric.forbidden === bestMetric.forbidden && metric.rematches === bestMetric.rematches && metric.score < bestMetric.score)
+          ) {
+            bestMetric = metric;
+            best = cur.map(p => [p[0], p[1]]);
+          }
+          return;
+        }
+        used[i] = true;
+        for (let j = i + 1; j < n; j++) {
+          if (used[j]) continue;
+          used[j] = true;
+          cur.push([people[i], people[j]]);
+          dfs(i + 1);
+          cur.pop();
+          used[j] = false;
+          if (bestMetric.forbidden === 0 && bestMetric.rematches === 0) {
+            used[i] = false;
+            return;
+          }
+        }
+        used[i] = false;
+      }
+      dfs(0);
+      return best;
+    }
+
+    /** Operator debug: rematch count + sit histogram for last ranking draw. */
+    function logPairingDebug(t, pairs, counts, mode) {
+      if (!t) return;
+      let rematches = 0;
+      const pairList = [];
+      (pairs || []).forEach(([a, b]) => {
+        const c = counts[pairKey(a.id, b.id)] || 0;
+        if (c > 0) rematches++;
+        pairList.push({ a: a.name || a.id, b: b.name || b.id, prior: c });
+      });
+      const sitCounts = typeof getSitOutCounts === 'function' ? getSitOutCounts(t) : {};
+      t._lastPairingDebug = {
+        mode,
+        rematches,
+        pairs: pairList,
+        sitCounts: Object.assign({}, sitCounts),
+        at: Date.now()
+      };
     }
 
     function formatTeamDisplayName(playerIds, positions) {
@@ -10869,15 +11094,30 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return { added, updated };
     }
 
+    function stripTournamentRankingFields(t) {
+      if (!t || typeof t !== 'object') return t;
+      delete t.rankingApplied;
+      delete t.rankingAppliedAt;
+      delete t.rankingDeltas;
+      delete t.rankingDeltaDetail;
+      delete t.rankingBonusShare;
+      delete t.rankingBonusPool;
+      // Keep bonusPoolLocked so re-apply uses the night-of pool if operator re-ranks
+      return t;
+    }
+
     function importTournamentObject(t) {
       if (!t || !t.id) return false;
-      const idx = state.tournaments.findIndex(x => x.id === t.id);
+      if (!Array.isArray(t.playerIds)) t.playerIds = [];
+      if (t.name == null) t.name = 'Tournament';
+      const idx = state.tournaments.findIndex(x => x && x.id === t.id);
       if (idx >= 0) {
         if (!confirm(`Tournament "${t.name || t.id}" already exists. Replace it?`)) {
-          // Import as a copy with new id
+          // Import as a copy with new id — strip ranking so deltas are not double-counted (DISC-07)
           t = JSON.parse(JSON.stringify(t));
           t.id = uid();
           t.name = (t.name || 'Tournament') + ' (imported)';
+          stripTournamentRankingFields(t);
           state.tournaments.unshift(t);
           return true;
         }
@@ -13029,8 +13269,44 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     // ==================== UTIL & NAV ====================
     function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      if (str == null || str === '') return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /** Attribute-safe escape (includes single quotes). Use for any id/name in HTML attributes. */
+    function escapeAttr(str) {
+      if (str == null || str === '') return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    /** True when id is safe for HTML attributes / storage keys. */
+    function isSafeEntityId(id) {
+      return typeof id === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(id);
+    }
+
+    /** Coerce imported ids to a safe form; returns { id, mapped } */
+    function ensureSafeEntityId(id, used) {
+      used = used || new Set();
+      let s = (id == null ? '' : String(id)).trim();
+      if (isSafeEntityId(s) && !used.has(s)) {
+        used.add(s);
+        return { id: s, mapped: false };
+      }
+      let base = s.replace(/[^a-zA-Z0-9_-]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').slice(0, 60);
+      if (!base) base = 'id';
+      let candidate = isSafeEntityId(base) ? base : ('id_' + uid());
+      let n = 0;
+      while (used.has(candidate)) {
+        n += 1;
+        candidate = (base.slice(0, 50) + '_' + n).slice(0, 80);
+      }
+      used.add(candidate);
+      return { id: candidate, mapped: candidate !== s };
     }
 
     // ==================== PLAYER PROFILE & LAST 10 FORM ====================
@@ -15660,7 +15936,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const themes = LCFCTheme.list();
       const opt = (t) => {
         const on = cur.pref === t.id;
-        return `<button type="button" role="radio" aria-checked="${on}" onclick="chooseTheme('${t.id}')" class="theme-opt${on ? ' selected' : ''}">
+        return `<button type="button" role="radio" aria-checked="${on}" onclick="chooseTheme('${escapeAttr(t.id)}')" class="theme-opt${on ? ' selected' : ''}">
           ${themeSwatchHtml(LCFCTheme.preview(t))}
           <span class="theme-opt-name"><span>${t.name}</span>${on ? THEME_CHECK_SVG : ''}</span>
         </button>`;
@@ -15758,8 +16034,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
       window.speakTvMatchLine = speakTvMatchLine;
       window.playTvMatchChime = playTvMatchChime;
     } catch (e) { console.warn('TV announce export', e); }
-    loadState();
-    showView('home');
+    try { loadState(); } catch (e) { console.error('loadState init', e); state.players = state.players || []; state.tournaments = state.tournaments || []; }
+    // Auto-refresh must start even if first paint throws (DISC-08)
+    try { if (typeof ensureAppAutoRefresh === 'function') ensureAppAutoRefresh(); } catch (e) { console.warn('ensureAppAutoRefresh', e); }
+    try { showView('home'); } catch (e) { console.error('showView home', e); }
     // Always stamp watermark from APP_VERSION (HTML fallback can lag)
     (function stampVersionWatermark() {
       const vw = document.getElementById('home-version-watermark');
@@ -15772,15 +16050,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (bm) bm.setAttribute('content', APP_VERSION);
       } catch (e) {}
     })();
-    syncOperatorModeButton();
-    renderClubSnapshotStatus();
+    try { syncOperatorModeButton(); } catch (e) {}
+    try { renderClubSnapshotStatus(); } catch (e) {}
     // Fetch data/latest.json from GitHub Pages (or same host) for members
     if (typeof bootClubSnapshot === 'function') {
       bootClubSnapshot().catch(function () {});
     }
-    if (typeof ensureAppAutoRefresh === 'function') ensureAppAutoRefresh();
-    renderPlayers();
-    renderThemeMenu();
+    try { renderPlayers(); } catch (e) { console.warn('renderPlayers', e); }
+    try { renderThemeMenu(); } catch (e) {}
 
     ['score-a', 'score-b'].forEach(id => {
       document.getElementById(id)?.addEventListener('input', () => {
