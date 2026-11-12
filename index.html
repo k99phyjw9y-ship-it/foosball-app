@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.38 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.40 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.38" />
+  <meta name="lcfc-build" content="7.40" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.38 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.40 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3582,10 +3582,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.38';
+    const APP_VERSION = '7.40';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 16076;
+    const APP_LINES = 16111;
 
     let state = {
       players: [],
@@ -3876,7 +3876,8 @@
       let n = 0;
       sorted.forEach(t => {
         if (!t) return;
-        if (t.rankingApplied && t.rankingDeltas && typeof t.rankingDeltas === 'object') return;
+        // rankingApplied alone is enough (empty deltas still mean "do not apply")
+        if (t.rankingApplied || t.importedCopy) return;
         if (applyRankingPointsForTournament(t)) n++;
       });
       return n;
@@ -4356,6 +4357,8 @@
 
     function applyRankingPointsForTournament(t) {
       if (!t || t.rankingApplied) return false;
+      // Duplicate imports kept for history must never receive ranking again
+      if (t.importedCopy) return false;
       if (isSandboxTournament(t)) return false;
       if (!t.playoffs) return false;
       const placements = t.placements || t.playoffs.placements || {};
@@ -4598,6 +4601,14 @@
         p.rankingDelta = 0;
       });
       (state.tournaments || []).forEach(t => {
+        if (!t) return;
+        if (t.importedCopy) {
+          // Keep neutral: never re-rank duplicate imports
+          t.rankingApplied = true;
+          t.rankingDeltas = {};
+          delete t.rankingDeltaDetail;
+          return;
+        }
         delete t.rankingApplied;
         delete t.rankingAppliedAt;
         delete t.rankingDeltas;
@@ -4735,7 +4746,9 @@
           savedId = p.id;
         }
       } else {
-        const player = { id: uid(), name, skill, rankingPoints, rankingDelta: 0, region: geo || '', homeState: geo || '' };
+        let newId = uid();
+        if (typeof isSafeEntityId === 'function' && !isSafeEntityId(newId)) newId = uid();
+        const player = { id: newId, name, skill, rankingPoints, rankingDelta: 0, region: geo || '', homeState: geo || '' };
         state.players.push(player);
         savedId = player.id;
         if (state.quickAddMode && state.currentTournamentId) {
@@ -4830,7 +4843,7 @@
       }
       const sorted = state.players.slice().sort((a, b) => a.name.localeCompare(b.name));
       const opts = sorted.map(p =>
-        `<option value="${p.id}">${escapeHtml(p.name)}</option>`
+        `<option value="${escapeAttr(p.id)}">${escapeHtml(p.name)}</option>`
       ).join('');
       const keepSel = document.getElementById('merge-keep-id');
       const remSel = document.getElementById('merge-remove-id');
@@ -5025,30 +5038,26 @@
       if (state.profilePlayerId === removeId) state.profilePlayerId = keepId;
       if (state.editingPlayerId === removeId) state.editingPlayerId = null;
 
-      // DISC-14: final pass — no leftover references to removed id in serialised state
+      // DISC-14: structural pass only (===), never substring match on ids
       try {
-        const blob = JSON.stringify(state);
-        if (blob.includes(JSON.stringify(removeId)) || blob.includes('"' + removeId + '"')) {
-          const scrub = (obj) => {
-            if (!obj || typeof obj !== 'object') return;
-            if (Array.isArray(obj)) {
-              for (let i = obj.length - 1; i >= 0; i--) {
-                if (obj[i] === removeId) obj[i] = keepId;
-                else if (obj[i] && typeof obj[i] === 'object') scrub(obj[i]);
-              }
-              // dedupe id lists lightly
-            } else {
-              Object.keys(obj).forEach(k => {
-                if (obj[k] === removeId) obj[k] = keepId;
-                else if (k === removeId && keepId !== removeId) {
-                  if (obj[keepId] == null) obj[keepId] = obj[k];
-                  delete obj[k];
-                } else if (obj[k] && typeof obj[k] === 'object') scrub(obj[k]);
-              });
+        const scrub = (obj) => {
+          if (!obj || typeof obj !== 'object') return;
+          if (Array.isArray(obj)) {
+            for (let i = 0; i < obj.length; i++) {
+              if (obj[i] === removeId) obj[i] = keepId;
+              else if (obj[i] && typeof obj[i] === 'object') scrub(obj[i]);
             }
-          };
-          scrub(state);
-        }
+          } else {
+            Object.keys(obj).forEach(k => {
+              if (obj[k] === removeId) obj[k] = keepId;
+              else if (k === removeId && keepId !== removeId) {
+                if (obj[keepId] == null) obj[keepId] = obj[k];
+                delete obj[k];
+              } else if (obj[k] && typeof obj[k] === 'object') scrub(obj[k]);
+            });
+          }
+        };
+        scrub(state);
       } catch (e) { console.warn('merge scrub', e); }
 
       // Rebuild club ranking from bracket results so points are not double-counted
@@ -5601,7 +5610,7 @@
         const cardClick = finished ? '' : `onclick="openTournament('${escapeAttr(t.id)}')"`;
         const compactPad = finished && !expanded ? 'p-3.5' : 'p-5';
         return `
-        <div ${cardClick} class="${finished ? '' : 'card-interactive cursor-pointer '}surface-card rounded-2xl ${compactPad} ${band}${t.sandbox ? ' ring-1 ring-amber-300/80' : ''}" data-home-event="${t.id}" data-expanded="${expanded}">
+        <div ${cardClick} class="${finished ? '' : 'card-interactive cursor-pointer '}surface-card rounded-2xl ${compactPad} ${band}${t.sandbox ? ' ring-1 ring-amber-300/80' : ''}" data-home-event="${escapeAttr(t.id)}" data-expanded="${expanded}">
           <div ${headerClick} class="flex items-start justify-between gap-3 ${finished ? 'cursor-pointer' : ''}">
             <div class="flex items-start gap-3 min-w-0">
               <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${iconBg}">${typeIcon[t.type] || '⚽'}</div>
@@ -5754,6 +5763,9 @@
         });
         const missing = fieldIds.filter(id => expectedPlaceLocked[id] == null);
         if (missing.length) {
+          const seededVals = Object.values(expectedPlaceLocked).map(Number).filter(n => n > 0);
+          // Continue after highest existing seed so backfill does not collide with team seeds
+          let nextPlace = seededVals.length ? (Math.max.apply(null, seededVals) + 1) : 1;
           missing.slice().sort((a, b) => {
             const pa = typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(a) : 2000;
             const pb = typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(b) : 2000;
@@ -5761,8 +5773,8 @@
             const na = (state.players.find(p => p.id === a) || {}).name || '';
             const nb = (state.players.find(p => p.id === b) || {}).name || '';
             return String(na).localeCompare(String(nb));
-          }).forEach((id, i) => {
-            expectedPlaceLocked[id] = i + 1;
+          }).forEach((id) => {
+            expectedPlaceLocked[id] = nextPlace++;
           });
         }
         t.expectedPlaceLocked = expectedPlaceLocked;
@@ -6016,7 +6028,7 @@
           box.innerHTML = available.map(p => {
             const checked = prevChecked.has(p.id) ? 'checked' : '';
             return `<label class="flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-slate-50 transition select-none">
-              <input type="checkbox" class="add-player-cb accent-emerald-600 w-4 h-4 shrink-0" value="${p.id}" ${checked} onchange="updateAddPlayerSelectedCount()" />
+              <input type="checkbox" class="add-player-cb accent-emerald-600 w-4 h-4 shrink-0" value="${escapeAttr(p.id)}" ${checked} onchange="updateAddPlayerSelectedCount()" />
               <span class="text-sm font-medium text-slate-800 min-w-0 truncate">${escapeHtml(p.name)}</span>
             </label>`;
           }).join('');
@@ -6024,7 +6036,7 @@
       }
       if (select) {
         select.innerHTML = available.length
-          ? available.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
+          ? available.map(p => `<option value="${escapeAttr(p.id)}">${escapeHtml(p.name)}</option>`).join('')
           : '<option value="">No more players</option>';
       }
       updateAddPlayerSelectedCount();
@@ -6779,7 +6791,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         .filter(Boolean);
       const ids = new Set(unpaired.map(p => p.id));
       const opts = unpaired.length
-        ? unpaired.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
+        ? unpaired.map(p => `<option value="${escapeAttr(p.id)}">${escapeHtml(p.name)}</option>`).join('')
         : '<option value="">No unpaired players</option>';
       const a = document.getElementById('team-player-a');
       const b = document.getElementById('team-player-b');
@@ -7020,9 +7032,15 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const counts = getSitOutCounts(t);
       const played = getRankingPlayedCounts(t);
       const lastSit = new Set();
-      const lastRound = (t.rounds || [])[(t.rounds || []).length - 1];
+      const prevSit = new Set();
+      const roundsArr = t.rounds || [];
+      const lastRound = roundsArr[roundsArr.length - 1];
+      const prevRound = roundsArr[roundsArr.length - 2];
       if (lastRound && lastRound.sitOutIds && lastRound.sitOutIds.length) {
         lastRound.sitOutIds.forEach(id => lastSit.add(id));
+      }
+      if (prevRound && prevRound.sitOutIds && prevRound.sitOutIds.length) {
+        prevRound.sitOutIds.forEach(id => prevSit.add(id));
       }
       // Only active players stay in the rotation ring (absent / removed drop out)
       const activeIds = new Set(players.map(p => p.id));
@@ -7042,9 +7060,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const maxPlayed = Math.max.apply(null, tier.map(p => played[p.id] || 0));
         const highPlayed = tier.filter(p => (played[p.id] || 0) === maxPlayed);
         if (highPlayed.length) tier = highPlayed;
-        // Avoid back-to-back sits when possible
+        // Avoid back-to-back sits when possible; also prefer not sitting 2 of last 3 rounds
         const notLast = tier.filter(p => !lastSit.has(p.id));
         if (notLast.length) tier = notLast;
+        const notRecent = tier.filter(p => !prevSit.has(p.id));
+        if (notRecent.length) tier = notRecent;
         // Ring order: earlier in queue sits first
         tier.sort((a, b) => {
           const ia = queueIds.indexOf(a.id);
@@ -7226,7 +7246,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       let best = null;
       let bestMetric = { forbidden: Infinity, rematches: Infinity, score: Infinity };
       // More trials for denser fields so "no rematch until full cycle" is realistic
-      const trials = Math.min(800, 80 + active.length * 40);
+      const trials = Math.min(1200, 100 + active.length * 50);
       let zeroForbiddenFound = false;
       let zeroRematchFound = false;
 
@@ -7277,7 +7297,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
     function exactFairPairing(active, counts, byPlayer, t) {
       const people = active.slice();
       const n = people.length;
-      if (n < 2) return [];
+      // Perfect matching requires even count (sit-outs should already ensure this)
+      if (n < 2 || (n % 2) !== 0) return null;
       let best = null;
       let bestMetric = { forbidden: Infinity, rematches: Infinity, score: Infinity };
       const used = new Array(n).fill(false);
@@ -11081,6 +11102,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           updated++;
         } else {
           const geo = p.region || p.homeState || '';
+          // Keep original id so tournament playerIds in the same backup stay linked
           state.players.push({
             id: p.id,
             name: p.name || 'Player',
@@ -11110,14 +11132,27 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (!t || !t.id) return false;
       if (!Array.isArray(t.playerIds)) t.playerIds = [];
       if (t.name == null) t.name = 'Tournament';
+      // Tournament id only (player ids left intact so roster links stay valid)
+      if (typeof isSafeEntityId === 'function' && !isSafeEntityId(String(t.id))) {
+        const used = new Set((state.tournaments || []).map(x => x && x.id).filter(Boolean));
+        t.id = (typeof ensureSafeEntityId === 'function')
+          ? ensureSafeEntityId(t.id, used).id
+          : uid();
+      }
       const idx = state.tournaments.findIndex(x => x && x.id === t.id);
       if (idx >= 0) {
         if (!confirm(`Tournament "${t.name || t.id}" already exists. Replace it?`)) {
-          // Import as a copy with new id — strip ranking so deltas are not double-counted (DISC-07)
+          // Import as a copy with new id — mark ranking neutral so applyMissing
+          // does not re-apply the same podium (DISC-07)
           t = JSON.parse(JSON.stringify(t));
           t.id = uid();
           t.name = (t.name || 'Tournament') + ' (imported)';
-          stripTournamentRankingFields(t);
+          t.importedCopy = true;
+          t.rankingApplied = true;
+          t.rankingDeltas = {};
+          delete t.rankingDeltaDetail;
+          delete t.rankingBonusShare;
+          // Keep bonusPoolLocked / placements for display; contribute 0 to RP rebuild
           state.tournaments.unshift(t);
           return true;
         }
@@ -11644,7 +11679,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (!sel) return;
       const prev = selectedId || sel.value;
       const list = state.players.slice().sort((a, b) => a.name.localeCompare(b.name));
-      sel.innerHTML = list.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
+      sel.innerHTML = list.map(p => `<option value="${escapeAttr(p.id)}">${escapeHtml(p.name)}</option>`).join('')
         || '<option value="">No players</option>';
       if (prev && list.some(p => p.id === prev)) sel.value = prev;
       else if (list[0]) sel.value = list[0].id;
@@ -12433,7 +12468,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (select) {
         const prev = select.value;
         select.innerHTML = options.length
-          ? options.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('')
+          ? options.map(p => `<option value="${escapeAttr(p.id)}">${escapeHtml(p.name)}</option>`).join('')
           : '<option value="">No data</option>';
         if (prev && options.some(p => p.id === prev)) select.value = prev;
       }
@@ -14350,7 +14385,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         opts.push(`<option value="__all__">All active events (${active.length})</option>`);
       }
       active.forEach(t => {
-        opts.push(`<option value="${t.id}">${escapeHtml(t.name || 'Event')}</option>`);
+        opts.push(`<option value="${escapeAttr(t.id)}">${escapeHtml(t.name || 'Event')}</option>`);
       });
       sel.innerHTML = opts.join('') || '<option value="">No active events</option>';
 
