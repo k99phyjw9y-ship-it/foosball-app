@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.40 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.41 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.40" />
+  <meta name="lcfc-build" content="7.41" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.40 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.41 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3582,10 +3582,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.40';
+    const APP_VERSION = '7.41';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 16111;
+    const APP_LINES = 16214;
 
     let state = {
       players: [],
@@ -7042,10 +7042,29 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (prevRound && prevRound.sitOutIds && prevRound.sitOutIds.length) {
         prevRound.sitOutIds.forEach(id => prevSit.add(id));
       }
-      // Only active players stay in the rotation ring (absent / removed drop out)
+      // Sit ring: stable while active set unchanged; rebuild when join/leave
       const activeIds = new Set(players.map(p => p.id));
+      const ringKey = players.map(p => p.id).slice().sort().join('|');
       if (!Array.isArray(t.sitOutQueue)) t.sitOutQueue = [];
-      t.sitOutQueue = t.sitOutQueue.filter(id => activeIds.has(id));
+      if (t._sitRingKey !== ringKey) {
+        t._sitRingKey = ringKey;
+        // Rebuild ring: fewest sits first, then prior queue order, then name
+        const prevQ = t.sitOutQueue.filter(id => activeIds.has(id));
+        const ordered = players.slice().sort((a, b) => {
+          const ca = counts[a.id] || 0, cb = counts[b.id] || 0;
+          if (ca !== cb) return ca - cb;
+          const ia = prevQ.indexOf(a.id), ib = prevQ.indexOf(b.id);
+          const ra = ia < 0 ? 9999 : ia, rb = ib < 0 ? 9999 : ib;
+          if (ra !== rb) return ra - rb;
+          return String(a.name || '').localeCompare(String(b.name || ''));
+        });
+        t.sitOutQueue = ordered.map(p => p.id);
+      } else {
+        t.sitOutQueue = t.sitOutQueue.filter(id => activeIds.has(id));
+        players.forEach(p => {
+          if (!t.sitOutQueue.includes(p.id)) t.sitOutQueue.push(p.id);
+        });
+      }
       const queueIds = t.sitOutQueue.slice();
 
       const remaining = players.slice();
@@ -7056,13 +7075,13 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const minC = Math.min.apply(null, pool.map(p => counts[p.id] || 0));
         let tier = pool.filter(p => (counts[p.id] || 0) === minC);
         // Among equal sits: prefer players who have played more ranking matches
-        // (late joiners with 0 sits and 1 game played sit after long-time 0-sit players)
         const maxPlayed = Math.max.apply(null, tier.map(p => played[p.id] || 0));
         const highPlayed = tier.filter(p => (played[p.id] || 0) === maxPlayed);
         if (highPlayed.length) tier = highPlayed;
-        // Avoid back-to-back sits when possible; also prefer not sitting 2 of last 3 rounds
+        // HARD: no back-to-back sit if any min-tier player did not sit last round
         const notLast = tier.filter(p => !lastSit.has(p.id));
         if (notLast.length) tier = notLast;
+        // Soft: avoid sitting in 2 of last 3 rounds
         const notRecent = tier.filter(p => !prevSit.has(p.id));
         if (notRecent.length) tier = notRecent;
         // Ring order: earlier in queue sits first
@@ -7093,7 +7112,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const chosenIds = chosen.map(p => p.id);
       const restQ = queueIds.filter(id => !chosenIds.includes(id) && activeIds.has(id));
       const notInQueue = players.map(p => p.id).filter(id => !restQ.includes(id) && !chosenIds.includes(id));
-      // Rotate: unchosen keep order, new active players, then those who just sat
+      // Rotate: unchosen keep order, new active players, then those who just sat (end of ring)
       t.sitOutQueue = restQ.concat(notInQueue).concat(chosenIds);
       return chosen;
     }
@@ -7184,7 +7203,58 @@ function flipRankingMatchCoin(roundNum, matchId) {
     /**
      * Build one random greedy pairing preferring allowed / new partners.
      */
-    function buildOnePairing(t, active, counts, byPlayer) {
+    
+    /** Last ranking-round partner for each player (most recent round with teams/matches). */
+    function getLastPartnerMap(t) {
+      const map = {};
+      if (!t) return map;
+      const resolve = (ent) => {
+        if (!ent) return [];
+        let ids = (ent.playerIds || []).filter(Boolean);
+        if (ids.length >= 2) return ids.slice(0, 2);
+        if (typeof entityPlayerIds === 'function') {
+          ids = entityPlayerIds(ent) || [];
+          if (ids.length >= 2) return ids.slice(0, 2);
+        }
+        return [];
+      };
+      const rounds = t.rounds || [];
+      for (let i = rounds.length - 1; i >= 0; i--) {
+        const r = rounds[i];
+        let found = false;
+        const rec = (a, b) => {
+          if (!a || !b || a === b) return;
+          map[a] = b;
+          map[b] = a;
+          found = true;
+        };
+        (r.matches || []).forEach(m => {
+          if (!m || m.void) return;
+          const pa = resolve(m.entityA || m.a?.entity);
+          const pb = resolve(m.entityB || m.b?.entity);
+          if (pa.length >= 2) rec(pa[0], pa[1]);
+          if (pb.length >= 2) rec(pb[0], pb[1]);
+        });
+        (r.teams || []).forEach(team => {
+          const ids = resolve(team);
+          if (ids.length >= 2) rec(ids[0], ids[1]);
+        });
+        if (found) break;
+      }
+      return map;
+    }
+
+    function countConsecutivePartnerPairs(pairs, lastPartner) {
+      let n = 0;
+      (pairs || []).forEach(([a, b]) => {
+        if (!a || !b) return;
+        if (lastPartner[a.id] === b.id || lastPartner[b.id] === a.id) n++;
+      });
+      return n;
+    }
+
+    function buildOnePairing(t, active, counts, byPlayer, lastPartner) {
+      lastPartner = lastPartner || {};
       const remaining = [...active];
       const pairs = [];
       const used = new Set();
@@ -7198,13 +7268,26 @@ function flipRankingMatchCoin(roundNum, matchId) {
         return n;
       };
 
+      const isConsecutive = (a, b) => lastPartner[a] === b || lastPartner[b] === a;
+
       // Hardest-to-match first (fewest unused partners), shuffle within ties
       const order = shuffle([...remaining]).sort((a, b) => newPartnerCount(a) - newPartnerCount(b));
 
       for (const p of order) {
         if (used.has(p.id)) continue;
         let candidates = remaining.filter(o => o.id !== p.id && !used.has(o.id));
-        let pool = candidates.filter(o => (counts[pairKey(p.id, o.id)] || 0) === 0);
+        // Hard: prefer non-consecutive partners
+        let pool = candidates.filter(o => !isConsecutive(p.id, o.id) && (counts[pairKey(p.id, o.id)] || 0) === 0);
+        if (!pool.length) {
+          pool = candidates.filter(o => !isConsecutive(p.id, o.id) && isPartnerAllowed(t, counts, byPlayer, p.id, o.id));
+        }
+        if (!pool.length) {
+          pool = candidates.filter(o => !isConsecutive(p.id, o.id));
+        }
+        // Escape only if every remaining candidate is consecutive
+        if (!pool.length) {
+          pool = candidates.filter(o => (counts[pairKey(p.id, o.id)] || 0) === 0);
+        }
         if (!pool.length) {
           pool = candidates.filter(o => isPartnerAllowed(t, counts, byPlayer, p.id, o.id));
         }
@@ -7232,61 +7315,70 @@ function flipRankingMatchCoin(roundNum, matchId) {
     function fairPairPlayers(t, active) {
       if (active.length < 2) return [];
       const { counts, byPlayer } = getPartnershipData(t);
+      const lastPartner = getLastPartnerMap(t);
       const needPairs = Math.floor(active.length / 2);
 
-      // Exact search for small fields (n <= 10): perfect matching minimizing rematches
+      const better = (m, best) => {
+        if (m.consecutive < best.consecutive) return true;
+        if (m.consecutive > best.consecutive) return false;
+        if (m.forbidden < best.forbidden) return true;
+        if (m.forbidden > best.forbidden) return false;
+        if (m.rematches < best.rematches) return true;
+        if (m.rematches > best.rematches) return false;
+        return m.score < best.score;
+      };
+
+      // Exact search for small fields (n <= 10)
       if (active.length <= 10 && needPairs <= 5) {
-        const exact = exactFairPairing(active, counts, byPlayer, t);
+        const exact = exactFairPairing(active, counts, byPlayer, t, lastPartner);
         if (exact && exact.length >= needPairs) {
-          try { logPairingDebug(t, exact, counts, 'exact'); } catch (e) {}
+          try { logPairingDebug(t, exact, counts, 'exact', lastPartner); } catch (e) {}
           return exact;
         }
       }
 
       let best = null;
-      let bestMetric = { forbidden: Infinity, rematches: Infinity, score: Infinity };
-      // More trials for denser fields so "no rematch until full cycle" is realistic
+      let bestMetric = { consecutive: Infinity, forbidden: Infinity, rematches: Infinity, score: Infinity };
       const trials = Math.min(1200, 100 + active.length * 50);
+      let zeroConsecFound = false;
       let zeroForbiddenFound = false;
       let zeroRematchFound = false;
 
       for (let i = 0; i < trials; i++) {
-        const pairs = buildOnePairing(t, active, counts, byPlayer);
+        const pairs = buildOnePairing(t, active, counts, byPlayer, lastPartner);
         if (pairs.length < needPairs) continue;
         let forbidden = 0;
         pairs.forEach(([a, b]) => {
           if (!isPartnerAllowed(t, counts, byPlayer, a.id, b.id)) forbidden++;
         });
         const metric = scorePairing(pairs, counts);
+        metric.forbidden = forbidden;
+        metric.consecutive = countConsecutivePartnerPairs(pairs, lastPartner);
+        if (metric.consecutive === 0) zeroConsecFound = true;
         if (forbidden === 0) zeroForbiddenFound = true;
         if (forbidden === 0 && metric.rematches === 0) zeroRematchFound = true;
-        // Hard rules: prefer zero-forbidden; once a zero-rematch exists, never accept rematches
+        // Hard: once a zero-consecutive solution exists, reject consecutive rematches
+        if (zeroConsecFound && metric.consecutive > 0) continue;
         if (zeroForbiddenFound && forbidden > 0) continue;
         if (zeroRematchFound && metric.rematches > 0) continue;
-        metric.forbidden = forbidden;
-        if (
-          forbidden < bestMetric.forbidden ||
-          (forbidden === bestMetric.forbidden && metric.rematches < bestMetric.rematches) ||
-          (forbidden === bestMetric.forbidden && metric.rematches === bestMetric.rematches && metric.score < bestMetric.score)
-        ) {
+        if (!best || better(metric, bestMetric)) {
           bestMetric = metric;
           best = pairs;
-          if (forbidden === 0 && metric.rematches === 0) break;
+          if (metric.consecutive === 0 && forbidden === 0 && metric.rematches === 0) break;
         }
       }
 
       if (best) {
-        try { logPairingDebug(t, best, counts, 'heuristic'); } catch (e) {}
+        try { logPairingDebug(t, best, counts, 'heuristic', lastPartner); } catch (e) {}
         return best;
       }
 
-      // Absolute fallback
       const ordered = shuffle([...active]);
       const pairs = [];
       for (let i = 0; i < ordered.length - 1; i += 2) {
         pairs.push([ordered[i], ordered[i + 1]]);
       }
-      try { logPairingDebug(t, pairs, counts, 'fallback'); } catch (e) {}
+      try { logPairingDebug(t, pairs, counts, 'fallback', lastPartner); } catch (e) {}
       return pairs;
     }
 
@@ -7294,13 +7386,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
      * Exact minimum-rematch perfect matching for small active sets (n <= 10).
      * Explores all perfect matchings; prefers zero forbidden, then fewest rematches, then lowest score.
      */
-    function exactFairPairing(active, counts, byPlayer, t) {
+    function exactFairPairing(active, counts, byPlayer, t, lastPartner) {
+      lastPartner = lastPartner || {};
       const people = active.slice();
       const n = people.length;
       // Perfect matching requires even count (sit-outs should already ensure this)
       if (n < 2 || (n % 2) !== 0) return null;
       let best = null;
-      let bestMetric = { forbidden: Infinity, rematches: Infinity, score: Infinity };
+      let bestMetric = { consecutive: Infinity, forbidden: Infinity, rematches: Infinity, score: Infinity };
       const used = new Array(n).fill(false);
       const cur = [];
 
@@ -7314,20 +7407,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
             forbidden++;
           }
         });
-        return { forbidden, rematches, score };
+        const consecutive = countConsecutivePartnerPairs(pairs, lastPartner);
+        return { consecutive, forbidden, rematches, score };
       }
 
       function dfs(start) {
-        if (bestMetric.forbidden === 0 && bestMetric.rematches === 0) return;
+        if (bestMetric.consecutive === 0 && bestMetric.forbidden === 0 && bestMetric.rematches === 0) return;
         // find first free index
         let i = start;
         while (i < n && used[i]) i++;
         if (i >= n) {
           const metric = scorePairs(cur);
           if (
-            metric.forbidden < bestMetric.forbidden ||
-            (metric.forbidden === bestMetric.forbidden && metric.rematches < bestMetric.rematches) ||
-            (metric.forbidden === bestMetric.forbidden && metric.rematches === bestMetric.rematches && metric.score < bestMetric.score)
+            metric.consecutive < bestMetric.consecutive ||
+            (metric.consecutive === bestMetric.consecutive && metric.forbidden < bestMetric.forbidden) ||
+            (metric.consecutive === bestMetric.consecutive && metric.forbidden === bestMetric.forbidden && metric.rematches < bestMetric.rematches) ||
+            (metric.consecutive === bestMetric.consecutive && metric.forbidden === bestMetric.forbidden && metric.rematches === bestMetric.rematches && metric.score < bestMetric.score)
           ) {
             bestMetric = metric;
             best = cur.map(p => [p[0], p[1]]);
@@ -7342,7 +7437,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
           dfs(i + 1);
           cur.pop();
           used[j] = false;
-          if (bestMetric.forbidden === 0 && bestMetric.rematches === 0) {
+          if (bestMetric.consecutive === 0 && bestMetric.forbidden === 0 && bestMetric.rematches === 0) {
             used[i] = false;
             return;
           }
@@ -7354,23 +7449,30 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     /** Operator debug: rematch count + sit histogram for last ranking draw. */
-    function logPairingDebug(t, pairs, counts, mode) {
+    function logPairingDebug(t, pairs, counts, mode, lastPartner) {
       if (!t) return;
       let rematches = 0;
       const pairList = [];
+      lastPartner = lastPartner || {};
       (pairs || []).forEach(([a, b]) => {
         const c = counts[pairKey(a.id, b.id)] || 0;
         if (c > 0) rematches++;
         pairList.push({ a: a.name || a.id, b: b.name || b.id, prior: c });
       });
+      const consecutive = countConsecutivePartnerPairs(pairs, lastPartner);
       const sitCounts = typeof getSitOutCounts === 'function' ? getSitOutCounts(t) : {};
+      const lastSitN = (t.currentSitOutIds || []).length;
       t._lastPairingDebug = {
         mode,
         rematches,
+        consecutive,
         pairs: pairList,
         sitCounts: Object.assign({}, sitCounts),
         at: Date.now()
       };
+      t._fairnessSummary = 'Partners: ' + rematches + ' repeat' + (rematches === 1 ? '' : 's') +
+        ' · ' + consecutive + ' consecutive' +
+        (lastSitN ? (' · ' + lastSitN + ' sitting') : '');
     }
 
     function formatTeamDisplayName(playerIds, positions) {
@@ -8913,6 +9015,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
               <div>
                 <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Round ${round.number}${isLatest(round.number) ? ' · current' : ''}</h4>
                 ${(round.sitOutIds && round.sitOutIds.length) ? `<p class="text-[11px] text-amber-700 mt-0.5">Sitting out: ${escapeHtml(round.sitOutIds.map(id => state.players.find(p => p.id === id)?.name || '?').join(', '))}</p>` : ''}
+                ${(isLatest(round.number) && t._fairnessSummary) ? `<p class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(t._fairnessSummary)}</p>` : ''}
               </div>
               <button onclick="deleteRound(${round.number})" class="text-[11px] font-semibold text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-lg transition">Delete round</button>
             </div>

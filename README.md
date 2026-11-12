@@ -4,10 +4,10 @@
 
 | | |
 |--|--|
-| **Version** | **7.40** |
+| **Version** | **7.41** |
 | **Stack** | Single `index.html` (HTML / CSS / vanilla JS), Tailwind CDN, Chart.js |
 | **Storage** | Browser `localStorage` (operator); optional published `data/latest.json` for members |
-| **Lines (approx.)** | ~16,111 |
+| **Lines (approx.)** | ~16,214 |
 
 ---
 
@@ -143,13 +143,13 @@ No required backend. Optional future: Supabase / Firebase for shared live rooms.
 
 Home footer shows:
 
-- App **version** (e.g. v7.40)
+- App **version** (e.g. v7.41)
 - Approximate **lines of code**
 - Club file / backup timestamps when a snapshot is loaded
 
 ---
 
-## Recent integrity work (v7.40)
+## Recent integrity work (v7.41)
 
 - Safer HTML attribute escaping for ids; hardened load/boot path
 - Ranking rebuild after **event delete**; no double-count on **import-as-copy**
@@ -183,4 +183,4 @@ Built for **Lake Champlain Foosball Club** club operations. Adapt for other club
 
 ---
 
-*LCFC Manager v7.40 — Lake Champlain Foosball Club*
+*LCFC Manager v7.41 — Lake Champlain Foosball Club*
