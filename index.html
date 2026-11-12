@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.42 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.43 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.42" />
+  <meta name="lcfc-build" content="7.43" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.42 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.43 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3581,10 +3581,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.42';
+    const APP_VERSION = '7.43';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 16213;
+    const APP_LINES = 16273;
 
     let state = {
       players: [],
@@ -4498,16 +4498,35 @@
         (byPlace[pl] = byPlace[pl] || []).push(id);
       });
 
+      // Normalize: every playoff team forces the same expected seed on all partners
+      (t.playoffTeams || []).forEach(team => {
+        const ids = (team.playerIds || []).filter(Boolean);
+        if (!ids.length) return;
+        let seed = team.seed != null ? Number(team.seed) : null;
+        if (!(seed > 0)) {
+          const got = ids.map(id => teamExpected[id]).filter(s => s > 0);
+          if (got.length) seed = Math.min.apply(null, got);
+        }
+        if (seed > 0) {
+          ids.forEach(id => { teamExpected[id] = seed; });
+          if (team.seed == null) team.seed = seed;
+        }
+      });
+
       const deltas = {};
       const deltaDetail = {};
       Object.keys(byPlace).forEach(k => {
         const ids = byPlace[k];
         const actual = Number(k);
-        const exps = ids.map(id =>
-          teamExpected[id] != null ? teamExpected[id] : (expectedPlace[id] || actual)
-        );
-        // One expected place for the whole place-group (avg of partners / group)
-        const expected = Math.round(exps.reduce((s, x) => s + x, 0) / exps.length);
+        // Prefer bracket/team seed for the group — do NOT average mixed individual RP ranks
+        const seededExps = ids.map(id => teamExpected[id]).filter(s => s != null && s > 0);
+        let expected;
+        if (seededExps.length) {
+          expected = Math.min.apply(null, seededExps);
+        } else {
+          const exps = ids.map(id => expectedPlace[id] || actual);
+          expected = Math.round(exps.reduce((s, x) => s + x, 0) / exps.length);
+        }
         const seedDelta = (placementTierIndex(expected) - placementTierIndex(actual)) * SEED_POINTS_PER_TIER;
         let bonus = 0;
         if (actual === 1) bonus = bonusShare[0];
@@ -5760,6 +5779,30 @@
             });
           }
         });
+        // Bracket side seeds (team events where playoffTeams was incomplete)
+        try {
+          if (typeof collectBracketMatches === 'function' && t.playoffs) {
+            collectBracketMatches(t.playoffs).forEach(m => {
+              if (!m) return;
+              const sides = [
+                { ent: m.a?.entity || m.entityA, seed: m.a?.seed || m.entityA?.seed },
+                { ent: m.b?.entity || m.entityB, seed: m.b?.seed || m.entityB?.seed }
+              ];
+              sides.forEach(s => {
+                const seed = Number(s.seed);
+                if (!(seed > 0) || !s.ent) return;
+                let ids = [];
+                if (typeof rankingEntityPlayerIds === 'function') ids = rankingEntityPlayerIds(t, s.ent) || [];
+                if (!ids.length && typeof entityPlayerIds === 'function') ids = entityPlayerIds(s.ent) || [];
+                if (!ids.length && Array.isArray(s.ent.playerIds)) ids = s.ent.playerIds.slice();
+                if (!ids.length && s.ent.id && (state.players || []).some(p => p.id === s.ent.id)) ids = [s.ent.id];
+                ids.forEach(pid => {
+                  if (pid && expectedPlaceLocked[pid] == null) expectedPlaceLocked[pid] = seed;
+                });
+              });
+            });
+          }
+        } catch (e) {}
         const missing = fieldIds.filter(id => expectedPlaceLocked[id] == null);
         if (missing.length) {
           const seededVals = Object.values(expectedPlaceLocked).map(Number).filter(n => n > 0);
@@ -8350,6 +8393,23 @@ function flipRankingMatchCoin(roundNum, matchId) {
           entities = applyClubRankingSeeds(entities);
           shuffleSeeds = false;
           seedNote = ' · seeded by club ranking';
+        }
+        // Persist seeds on playoffTeams so ranking expected place uses bracket seed (not RP average)
+        if (t.type !== 'singles') {
+          t.playoffTeams = (entities || []).map(e => ({
+            id: e.id,
+            playerIds: (e.playerIds || []).slice(),
+            name: e.name,
+            seed: e.seed != null ? Number(e.seed) : null
+          }));
+        } else {
+          // Singles: one "team" row per player with seed for lock/apply
+          t.playoffTeams = (entities || []).map(e => ({
+            id: e.id,
+            playerIds: [e.id],
+            name: e.name,
+            seed: e.seed != null ? Number(e.seed) : null
+          }));
         }
         t.playoffs = buildBracket(entities, format, { shuffleSeeds });
         if (!t.playoffs) {
