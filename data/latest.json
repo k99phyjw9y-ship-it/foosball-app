@@ -1,7 +1,7 @@
 {
   "app": "LCFC Manager",
-  "version": "7.14",
-  "exportedAt": "2026-11-05T03:53:05.384Z",
+  "version": "7.37",
+  "exportedAt": "2026-11-12T03:10:13.492Z",
   "type": "full",
   "players": [
     {
@@ -17,8 +17,8 @@
       "id": "mt0nwvyixcpl7a",
       "name": "Todd Theofrastou",
       "skill": 3,
-      "rankingPoints": 2514,
-      "rankingDelta": 514,
+      "rankingPoints": 2591,
+      "rankingDelta": 591,
       "region": "VT",
       "homeState": "VT"
     },
@@ -26,8 +26,8 @@
       "id": "mt0nx3tat1qdas",
       "name": "Alan Feazelle",
       "skill": 3,
-      "rankingPoints": 2041,
-      "rankingDelta": 41,
+      "rankingPoints": 2025,
+      "rankingDelta": 25,
       "region": "NY",
       "homeState": "NY"
     },
@@ -35,8 +35,8 @@
       "id": "mt0nxay02r25zq",
       "name": "Travis Watts",
       "skill": 3,
-      "rankingPoints": 2268,
-      "rankingDelta": 268,
+      "rankingPoints": 2314,
+      "rankingDelta": 314,
       "region": "NY",
       "homeState": "NY"
     },
@@ -44,8 +44,8 @@
       "id": "mt0nxl7zmqfnkf",
       "name": "Cayden Garrand",
       "skill": 3,
-      "rankingPoints": 2390,
-      "rankingDelta": 390,
+      "rankingPoints": 2388,
+      "rankingDelta": 388,
       "region": "NY",
       "homeState": "NY"
     },
@@ -53,8 +53,8 @@
       "id": "mt0nxqh1l4i29f",
       "name": "Kayden Dupee",
       "skill": 3,
-      "rankingPoints": 2507,
-      "rankingDelta": 507,
+      "rankingPoints": 2545,
+      "rankingDelta": 545,
       "region": "NY",
       "homeState": "NY"
     },
@@ -71,8 +71,8 @@
       "id": "mt0ny0jxioo10e",
       "name": "John Friedrich",
       "skill": 3,
-      "rankingPoints": 2784,
-      "rankingDelta": 784,
+      "rankingPoints": 2869,
+      "rankingDelta": 869,
       "region": "NY",
       "homeState": "NY"
     },
@@ -80,8 +80,8 @@
       "id": "mt0oabvkv4ftoq",
       "name": "John Fairchild",
       "skill": 3,
-      "rankingPoints": 2040,
-      "rankingDelta": 40,
+      "rankingPoints": 2024,
+      "rankingDelta": 24,
       "region": "NY",
       "homeState": "NY"
     },
@@ -89,8 +89,8 @@
       "id": "mt0qmkfrn6n3xe",
       "name": "Ghost Dog",
       "skill": 3,
-      "rankingPoints": 2090,
-      "rankingDelta": 90,
+      "rankingPoints": 2112,
+      "rankingDelta": 112,
       "region": "NY",
       "homeState": "NY"
     },
@@ -107,8 +107,8 @@
       "id": "mtam67ye1sz0lm",
       "name": "Jared Ashline",
       "skill": 3,
-      "rankingPoints": 2358,
-      "rankingDelta": 358,
+      "rankingPoints": 2359,
+      "rankingDelta": 359,
       "region": "NY",
       "homeState": "NY"
     },
@@ -152,8 +152,8 @@
       "id": "mtuomtl3wnieej",
       "name": "Dennis Carman",
       "skill": 3,
-      "rankingPoints": 2254,
-      "rankingDelta": 254,
+      "rankingPoints": 2253,
+      "rankingDelta": 253,
       "region": "VT",
       "homeState": "VT"
     },
@@ -161,8 +161,8 @@
       "id": "mu4bkj50z5q8j1",
       "name": "Bill Pettis",
       "skill": 3,
-      "rankingPoints": 2000,
-      "rankingDelta": 0,
+      "rankingPoints": 2056,
+      "rankingDelta": 56,
       "region": "NY",
       "homeState": "NY"
     },
@@ -246,9 +246,3622 @@
       "rankingDelta": -8,
       "region": "VT",
       "homeState": "VT"
+    },
+    {
+      "id": "mwcoxn0fvf3hke",
+      "name": "Cole Dragoon",
+      "skill": 3,
+      "rankingPoints": 2000,
+      "rankingDelta": 0,
+      "region": "NY",
+      "homeState": "NY"
     }
   ],
   "tournaments": [
+    {
+      "id": "mwcoxxye6it8xp",
+      "name": "Monster",
+      "type": "monster",
+      "format": "swiss",
+      "raceTo": 5,
+      "bestOf": 1,
+      "tables": 3,
+      "drawStyle": "random",
+      "monsterPositions": false,
+      "colorBand": "spec-ec-monster",
+      "sandbox": false,
+      "playerIds": [
+        "mu4bkj50z5q8j1",
+        "mwcoxn0fvf3hke",
+        "mt0ny0jxioo10e",
+        "mt0nxay02r25zq",
+        "mt0nxl7zmqfnkf",
+        "mt0nxqh1l4i29f",
+        "mtuomtl3wnieej",
+        "mt0nwvyixcpl7a",
+        "mt0oabvkv4ftoq",
+        "mt0qmkfrn6n3xe"
+      ],
+      "absentIds": [
+        "mt0oabvkv4ftoq",
+        "mwcoxn0fvf3hke"
+      ],
+      "teams": [
+        {
+          "id": "mwcwkccqg9hvsz",
+          "playerIds": [
+            "mt0ny0jxioo10e",
+            "mt0nwvyixcpl7a"
+          ],
+          "name": "John Friedrich + Todd Theofrastou"
+        },
+        {
+          "id": "mwcwkccqls83t1",
+          "playerIds": [
+            "mt0nxay02r25zq",
+            "mu4bkj50z5q8j1"
+          ],
+          "name": "Travis Watts + Bill Pettis"
+        },
+        {
+          "id": "mwcwkccqptqnil",
+          "playerIds": [
+            "mt0nxl7zmqfnkf",
+            "mtuomtl3wnieej"
+          ],
+          "name": "Cayden Garrand + Dennis Carman"
+        },
+        {
+          "id": "mwcwkccqb7xd3q",
+          "playerIds": [
+            "mt0nxqh1l4i29f",
+            "mt0qmkfrn6n3xe"
+          ],
+          "name": "Kayden Dupee + Ghost Dog"
+        }
+      ],
+      "rounds": [
+        {
+          "number": 1,
+          "matches": [
+            {
+              "id": "mwcqpl63fuzejo",
+              "entityA": {
+                "id": "mwcqpl5krjz885",
+                "name": "John Fairchild + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcqpl5khqcta8",
+                "name": "Cole Dragoon + Cayden Garrand",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mt0nxl7zmqfnkf"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1794439102829
+              },
+              "timerStartAt": 1794439132829,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794439472805
+            },
+            {
+              "id": "mwcqpl63bnrnzo",
+              "entityA": {
+                "id": "mwcqpl5jlf0fh0",
+                "name": "Bill Pettis + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mu4bkj50z5q8j1",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcqpl5k8gyml2",
+                "name": "Todd Theofrastou + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1794439102829
+              },
+              "timerStartAt": 1794439132829,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794439560972
+            }
+          ],
+          "sitOutIds": [
+            "mt0nxqh1l4i29f"
+          ],
+          "teams": [
+            {
+              "id": "mwcqpl5jlf0fh0",
+              "playerIds": [
+                "mu4bkj50z5q8j1",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Bill Pettis + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mwcqpl5khqcta8",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mt0nxl7zmqfnkf"
+              ],
+              "name": "Cole Dragoon + Cayden Garrand",
+              "positions": null
+            },
+            {
+              "id": "mwcqpl5krjz885",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0nxay02r25zq"
+              ],
+              "name": "John Fairchild + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwcqpl5k8gyml2",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Todd Theofrastou + John Friedrich",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "matches": [
+            {
+              "id": "mwcqzg4k2mopmv",
+              "entityA": {
+                "id": "mwcqzg3n4yu2cc",
+                "name": "Cole Dragoon + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcqzg3n6okgkb",
+                "name": "Todd Theofrastou + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794439562867
+              },
+              "timerStartAt": 1794439592867,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794439833449
+            },
+            {
+              "id": "mwcqzg4zbi9j7k",
+              "entityA": {
+                "id": "mwcqzg3njjgi14",
+                "name": "Cayden Garrand + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcqzg3njw2w0h",
+                "name": "Travis Watts + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794439562867
+              },
+              "timerStartAt": 1794439592867,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794440114222
+            }
+          ],
+          "sitOutIds": [
+            "mu4bkj50z5q8j1"
+          ],
+          "teams": [
+            {
+              "id": "mwcqzg3njjgi14",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Cayden Garrand + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mwcqzg3n4yu2cc",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Cole Dragoon + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwcqzg3n6okgkb",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Todd Theofrastou + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mwcqzg3njw2w0h",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Travis Watts + Dennis Carman",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "matches": [
+            {
+              "id": "mwcrbc1o2buaj1",
+              "entityA": {
+                "id": "mwcrbc13hlcm35",
+                "name": "Travis Watts + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcrbc138ozxct",
+                "name": "John Friedrich + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1794440117436
+              },
+              "timerStartAt": 1794440147436,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794440623327
+            },
+            {
+              "id": "mwcrbc1ou5n4w6",
+              "entityA": {
+                "id": "mwcrbc134l7joe",
+                "name": "John Fairchild + Todd Theofrastou",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0nwvyixcpl7a"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcrbc13jrdqep",
+                "name": "Dennis Carman + Cayden Garrand",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nxl7zmqfnkf"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1794440117436
+              },
+              "timerStartAt": 1794440147436,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794440529250
+            }
+          ],
+          "sitOutIds": [
+            "mwcoxn0fvf3hke"
+          ],
+          "teams": [
+            {
+              "id": "mwcrbc134l7joe",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0nwvyixcpl7a"
+              ],
+              "name": "John Fairchild + Todd Theofrastou",
+              "positions": null
+            },
+            {
+              "id": "mwcrbc13hlcm35",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "Travis Watts + Bill Pettis",
+              "positions": null
+            },
+            {
+              "id": "mwcrbc13jrdqep",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nxl7zmqfnkf"
+              ],
+              "name": "Dennis Carman + Cayden Garrand",
+              "positions": null
+            },
+            {
+              "id": "mwcrbc138ozxct",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "John Friedrich + Kayden Dupee",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "matches": [
+            {
+              "id": "mwcrm85x9stshv",
+              "entityA": {
+                "id": "mwcrm83nst063b",
+                "name": "Bill Pettis + Todd Theofrastou",
+                "type": "team",
+                "playerIds": [
+                  "mu4bkj50z5q8j1",
+                  "mt0nwvyixcpl7a"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcrm83n3e1n9n",
+                "name": "Travis Watts + Cayden Garrand",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nxl7zmqfnkf"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794440625621
+              },
+              "timerStartAt": 1794440655621,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794441124111
+            },
+            {
+              "id": "mwcrm85xvzqha0",
+              "entityA": {
+                "id": "mwcrm83nq7yae6",
+                "name": "Cole Dragoon + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcrm83nv8svqr",
+                "name": "Dennis Carman + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1794440625621
+              },
+              "timerStartAt": 1794440655621,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794441175795
+            }
+          ],
+          "sitOutIds": [
+            "mt0ny0jxioo10e"
+          ],
+          "teams": [
+            {
+              "id": "mwcrm83nv8svqr",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Dennis Carman + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mwcrm83n3e1n9n",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nxl7zmqfnkf"
+              ],
+              "name": "Travis Watts + Cayden Garrand",
+              "positions": null
+            },
+            {
+              "id": "mwcrm83nst063b",
+              "playerIds": [
+                "mu4bkj50z5q8j1",
+                "mt0nwvyixcpl7a"
+              ],
+              "name": "Bill Pettis + Todd Theofrastou",
+              "positions": null
+            },
+            {
+              "id": "mwcrm83nq7yae6",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Cole Dragoon + Kayden Dupee",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "matches": [
+            {
+              "id": "mwcry2t2ty91a5",
+              "entityA": {
+                "id": "mwcry2s94m5ikj",
+                "name": "Todd Theofrastou + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcry2s98nc7v7",
+                "name": "John Friedrich + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794441178550
+              },
+              "timerStartAt": 1794441208550,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794441496124
+            },
+            {
+              "id": "mwcry2t2akjo6w",
+              "entityA": {
+                "id": "mwcry2s9dwqi0p",
+                "name": "Cayden Garrand + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcry2s9tlvlyl",
+                "name": "John Fairchild + Cole Dragoon",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mwcoxn0fvf3hke"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1794441178550
+              },
+              "timerStartAt": 1794441208550,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794441487042
+            }
+          ],
+          "sitOutIds": [
+            "mt0nxay02r25zq"
+          ],
+          "teams": [
+            {
+              "id": "mwcry2s94m5ikj",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Todd Theofrastou + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mwcry2s9dwqi0p",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Cayden Garrand + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mwcry2s9tlvlyl",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mwcoxn0fvf3hke"
+              ],
+              "name": "John Fairchild + Cole Dragoon",
+              "positions": null
+            },
+            {
+              "id": "mwcry2s98nc7v7",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "John Friedrich + Bill Pettis",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 6,
+          "matches": [
+            {
+              "id": "mwcs4xqfbwmlik",
+              "entityA": {
+                "id": "mwcs4xp5dzs3qy",
+                "name": "Todd Theofrastou + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcs4xp5holn1c",
+                "name": "John Fairchild + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 1,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794441498568
+              },
+              "timerStartAt": 1794441528568,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 1
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794441828965
+            },
+            {
+              "id": "mwcs4xqfn4ie2t",
+              "entityA": {
+                "id": "mwcs4xp5ijknbv",
+                "name": "Dennis Carman + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcs4xp5dtaaap",
+                "name": "Bill Pettis + Cole Dragoon",
+                "type": "team",
+                "playerIds": [
+                  "mu4bkj50z5q8j1",
+                  "mwcoxn0fvf3hke"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794441498568
+              },
+              "timerStartAt": 1794441528568,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794441813036
+            }
+          ],
+          "sitOutIds": [
+            "mt0nxl7zmqfnkf"
+          ],
+          "teams": [
+            {
+              "id": "mwcs4xp5dzs3qy",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Todd Theofrastou + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwcs4xp5dtaaap",
+              "playerIds": [
+                "mu4bkj50z5q8j1",
+                "mwcoxn0fvf3hke"
+              ],
+              "name": "Bill Pettis + Cole Dragoon",
+              "positions": null
+            },
+            {
+              "id": "mwcs4xp5holn1c",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "John Fairchild + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mwcs4xp5ijknbv",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Dennis Carman + John Friedrich",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 7,
+          "matches": [
+            {
+              "id": "mwcsc2nos26j0x",
+              "entityA": {
+                "id": "mwcsc2mxu3a3zx",
+                "name": "Todd Theofrastou + Cole Dragoon",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mwcoxn0fvf3hke"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcsc2mxyoeyav",
+                "name": "Cayden Garrand + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794441831540
+              },
+              "timerStartAt": 1794441861540,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794442303150
+            },
+            {
+              "id": "mwcsc2nonfd618",
+              "entityA": {
+                "id": "mwcsc2mx6wibw4",
+                "name": "John Fairchild + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcsc2mx2xge0m",
+                "name": "Kayden Dupee + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794441831540
+              },
+              "timerStartAt": 1794441861540,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794442159283
+            }
+          ],
+          "sitOutIds": [
+            "mtuomtl3wnieej"
+          ],
+          "teams": [
+            {
+              "id": "mwcsc2mxu3a3zx",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mwcoxn0fvf3hke"
+              ],
+              "name": "Todd Theofrastou + Cole Dragoon",
+              "positions": null
+            },
+            {
+              "id": "mwcsc2mx2xge0m",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Kayden Dupee + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwcsc2mx6wibw4",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "John Fairchild + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwcsc2mxyoeyav",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "Cayden Garrand + Bill Pettis",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 8,
+          "matches": [
+            {
+              "id": "mwcsmbtwsxli28",
+              "entityA": {
+                "id": "mwcsmbt0dikovs",
+                "name": "Kayden Dupee + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcsmbt0a1zl1o",
+                "name": "Cayden Garrand + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794442309989
+              },
+              "timerStartAt": 1794442339989,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794442752571
+            },
+            {
+              "id": "mwcsmbtxm3n3ja",
+              "entityA": {
+                "id": "mwcsmbt0rtvuy3",
+                "name": "Travis Watts + Cole Dragoon",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mwcoxn0fvf3hke"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcsmbt0m8mis9",
+                "name": "John Fairchild + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794442309989
+              },
+              "timerStartAt": 1794442339989,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794442914234
+            }
+          ],
+          "sitOutIds": [
+            "mt0nwvyixcpl7a"
+          ],
+          "teams": [
+            {
+              "id": "mwcsmbt0a1zl1o",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Cayden Garrand + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwcsmbt0m8mis9",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "John Fairchild + Bill Pettis",
+              "positions": null
+            },
+            {
+              "id": "mwcsmbt0rtvuy3",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mwcoxn0fvf3hke"
+              ],
+              "name": "Travis Watts + Cole Dragoon",
+              "positions": null
+            },
+            {
+              "id": "mwcsmbt0dikovs",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Kayden Dupee + Dennis Carman",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 9,
+          "matches": [
+            {
+              "id": "mwcszbw8c49plo",
+              "entityA": {
+                "id": "mwcszbup48r21y",
+                "name": "Travis Watts + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcszbup28q4th",
+                "name": "Cole Dragoon + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794442916603
+              },
+              "timerStartAt": 1794442946603,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794443272293
+            },
+            {
+              "id": "mwcszbw8oo6528",
+              "entityA": {
+                "id": "mwcszbupbziju9",
+                "name": "Bill Pettis + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mu4bkj50z5q8j1",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcszbup6ycdhs",
+                "name": "Cayden Garrand + Todd Theofrastou",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0nwvyixcpl7a"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794442916603
+              },
+              "timerStartAt": 1794442946603,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794443211077
+            }
+          ],
+          "sitOutIds": [
+            "mt0oabvkv4ftoq"
+          ],
+          "teams": [
+            {
+              "id": "mwcszbup6ycdhs",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0nwvyixcpl7a"
+              ],
+              "name": "Cayden Garrand + Todd Theofrastou",
+              "positions": null
+            },
+            {
+              "id": "mwcszbup28q4th",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Cole Dragoon + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mwcszbupbziju9",
+              "playerIds": [
+                "mu4bkj50z5q8j1",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Bill Pettis + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mwcszbup48r21y",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Travis Watts + John Friedrich",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 10,
+          "matches": [
+            {
+              "id": "mwct70f7mc1vrs",
+              "entityA": {
+                "id": "mwct70e6swymzt",
+                "name": "John Fairchild + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwct70e6xijhr8",
+                "name": "Bill Pettis + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mu4bkj50z5q8j1",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794443274979
+              },
+              "timerStartAt": 1794443304979,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794443726943
+            },
+            {
+              "id": "mwct70f7c005ea",
+              "entityA": {
+                "id": "mwct70e6d14938",
+                "name": "Cayden Garrand + Todd Theofrastou",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0nwvyixcpl7a"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwct70e6dgiqun",
+                "name": "Dennis Carman + Cole Dragoon",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mwcoxn0fvf3hke"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794443274979
+              },
+              "timerStartAt": 1794443304979,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794443786836
+            }
+          ],
+          "sitOutIds": [
+            "mt0nxqh1l4i29f"
+          ],
+          "teams": [
+            {
+              "id": "mwct70e6xijhr8",
+              "playerIds": [
+                "mu4bkj50z5q8j1",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Bill Pettis + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwct70e6d14938",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0nwvyixcpl7a"
+              ],
+              "name": "Cayden Garrand + Todd Theofrastou",
+              "positions": null
+            },
+            {
+              "id": "mwct70e6dgiqun",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mwcoxn0fvf3hke"
+              ],
+              "name": "Dennis Carman + Cole Dragoon",
+              "positions": null
+            },
+            {
+              "id": "mwct70e6swymzt",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0nxay02r25zq"
+              ],
+              "name": "John Fairchild + Travis Watts",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 11,
+          "matches": [
+            {
+              "id": "mwcti27x2vli82",
+              "entityA": {
+                "id": "mwcti26g7vf586",
+                "name": "John Friedrich + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcti26g7uszn6",
+                "name": "Cayden Garrand + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794443790525
+              },
+              "timerStartAt": 1794443820525,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794443986179
+            },
+            {
+              "id": "mwcti27x6zkiul",
+              "entityA": {
+                "id": "mwcti26gjzazw3",
+                "name": "Cole Dragoon + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcti26gq5kwer",
+                "name": "Dennis Carman + Todd Theofrastou",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nwvyixcpl7a"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794443790525
+              },
+              "timerStartAt": 1794443820525,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794444288343
+            }
+          ],
+          "sitOutIds": [
+            "mu4bkj50z5q8j1"
+          ],
+          "teams": [
+            {
+              "id": "mwcti26g7vf586",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mt0nxay02r25zq"
+              ],
+              "name": "John Friedrich + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwcti26gjzazw3",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Cole Dragoon + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mwcti26gq5kwer",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nwvyixcpl7a"
+              ],
+              "name": "Dennis Carman + Todd Theofrastou",
+              "positions": null
+            },
+            {
+              "id": "mwcti26g7uszn6",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Cayden Garrand + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 12,
+          "matches": [
+            {
+              "id": "mwctuakv1uzzz6",
+              "entityA": {
+                "id": "mwctuajqqli9wr",
+                "name": "Cayden Garrand + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwctuajqbd7yix",
+                "name": "Travis Watts + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1794444361232
+              },
+              "timerStartAt": 1794444391232,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794444945896
+            },
+            {
+              "id": "mwctuakv0p8rk2",
+              "entityA": {
+                "id": "mwctuajqxn63ao",
+                "name": "Todd Theofrastou + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwctuajqnmmtaw",
+                "name": "Kayden Dupee + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794444361232
+              },
+              "timerStartAt": 1794444391232,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794444934059
+            }
+          ],
+          "sitOutIds": [
+            "mwcoxn0fvf3hke"
+          ],
+          "teams": [
+            {
+              "id": "mwctuajqbd7yix",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "Travis Watts + Bill Pettis",
+              "positions": null
+            },
+            {
+              "id": "mwctuajqqli9wr",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Cayden Garrand + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mwctuajqxn63ao",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Todd Theofrastou + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mwctuajqnmmtaw",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Kayden Dupee + John Friedrich",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 13,
+          "matches": [
+            {
+              "id": "mwcu6vu3oxo8l9",
+              "entityA": {
+                "id": "mwcu6vt4cpoupt",
+                "name": "Cayden Garrand + Cole Dragoon",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mwcoxn0fvf3hke"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcu6vt4jx1nat",
+                "name": "Kayden Dupee + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794444948652
+              },
+              "timerStartAt": 1794444978652,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794445203283
+            },
+            {
+              "id": "mwcu6vu35518jl",
+              "entityA": {
+                "id": "mwcu6vt4hyvlfd",
+                "name": "John Fairchild + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcu6vt4pur2zp",
+                "name": "Todd Theofrastou + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1794444948652
+              },
+              "timerStartAt": 1794444978652,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794445359149
+            }
+          ],
+          "sitOutIds": [
+            "mt0ny0jxioo10e"
+          ],
+          "teams": [
+            {
+              "id": "mwcu6vt4jx1nat",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Kayden Dupee + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mwcu6vt4cpoupt",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mwcoxn0fvf3hke"
+              ],
+              "name": "Cayden Garrand + Cole Dragoon",
+              "positions": null
+            },
+            {
+              "id": "mwcu6vt4hyvlfd",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "John Fairchild + Bill Pettis",
+              "positions": null
+            },
+            {
+              "id": "mwcu6vt4pur2zp",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Todd Theofrastou + Travis Watts",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 14,
+          "matches": [
+            {
+              "id": "mwcufytzx9kmpl",
+              "entityA": {
+                "id": "mwcufysodoxqrg",
+                "name": "Kayden Dupee + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcufyso2skcw4",
+                "name": "Dennis Carman + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 1,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794445372439
+              },
+              "timerStartAt": 1794445402439,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 1
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794445874648
+            },
+            {
+              "id": "mwcufytzkleluq",
+              "entityA": {
+                "id": "mwcufysojjji76",
+                "name": "Cayden Garrand + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcufyso0v85gt",
+                "name": "Todd Theofrastou + Cole Dragoon",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mwcoxn0fvf3hke"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794445372439
+              },
+              "timerStartAt": 1794445402439,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794445879006
+            }
+          ],
+          "sitOutIds": [
+            "mt0nxay02r25zq"
+          ],
+          "teams": [
+            {
+              "id": "mwcufysodoxqrg",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Kayden Dupee + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mwcufysojjji76",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Cayden Garrand + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwcufyso0v85gt",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mwcoxn0fvf3hke"
+              ],
+              "name": "Todd Theofrastou + Cole Dragoon",
+              "positions": null
+            },
+            {
+              "id": "mwcufyso2skcw4",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "Dennis Carman + Bill Pettis",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 15,
+          "matches": [
+            {
+              "id": "mwcuqvrym2m9d4",
+              "entityA": {
+                "id": "mwcuqvr4wnuxvx",
+                "name": "Travis Watts + Cole Dragoon",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mwcoxn0fvf3hke"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcuqvr49naovz",
+                "name": "Todd Theofrastou + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 1,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794445881695
+              },
+              "timerStartAt": 1794445911695,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 1
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794446354278
+            },
+            {
+              "id": "mwcuqvryf1ghmd",
+              "entityA": {
+                "id": "mwcuqvr4nbklro",
+                "name": "Kayden Dupee + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcuqvr4v6anas",
+                "name": "Dennis Carman + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794445881695
+              },
+              "timerStartAt": 1794445911695,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794446335128
+            }
+          ],
+          "sitOutIds": [
+            "mt0nxl7zmqfnkf"
+          ],
+          "teams": [
+            {
+              "id": "mwcuqvr4nbklro",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "Kayden Dupee + Bill Pettis",
+              "positions": null
+            },
+            {
+              "id": "mwcuqvr4v6anas",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Dennis Carman + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mwcuqvr49naovz",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Todd Theofrastou + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwcuqvr4wnuxvx",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mwcoxn0fvf3hke"
+              ],
+              "name": "Travis Watts + Cole Dragoon",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 16,
+          "matches": [
+            {
+              "id": "mwcv11w3scqxwe",
+              "entityA": {
+                "id": "mwcv11uijfha2x",
+                "name": "John Fairchild + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcv11uiuowymm",
+                "name": "Cole Dragoon + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794446356179
+              },
+              "timerStartAt": 1794446386179,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794446787237
+            },
+            {
+              "id": "mwcv11w3zp6zk0",
+              "entityA": {
+                "id": "mwcv11ui9743gq",
+                "name": "Todd Theofrastou + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcv11uim74x1e",
+                "name": "Cayden Garrand + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794446356179
+              },
+              "timerStartAt": 1794446386179,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794446692962
+            }
+          ],
+          "sitOutIds": [
+            "mtuomtl3wnieej"
+          ],
+          "teams": [
+            {
+              "id": "mwcv11ui9743gq",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Todd Theofrastou + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mwcv11uijfha2x",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "John Fairchild + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwcv11uim74x1e",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Cayden Garrand + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwcv11uiuowymm",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "Cole Dragoon + Bill Pettis",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 17,
+          "matches": [
+            {
+              "id": "mwcvao82npe09e",
+              "entityA": {
+                "id": "mwcvao78gglhqs",
+                "name": "Cole Dragoon + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcvao797ivm0x",
+                "name": "Cayden Garrand + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794446805027
+              },
+              "timerStartAt": 1794446835027,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794447221472
+            },
+            {
+              "id": "mwcvao826puylb",
+              "entityA": {
+                "id": "mwcvao79e23uw4",
+                "name": "Bill Pettis + Todd Theofrastou",
+                "type": "team",
+                "playerIds": [
+                  "mu4bkj50z5q8j1",
+                  "mt0nwvyixcpl7a"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcvao79yrznh4",
+                "name": "Dennis Carman + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 0,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794446805027
+              },
+              "timerStartAt": 1794446835027,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 0
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794447060074
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwcvao78gglhqs",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Cole Dragoon + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwcvao79e23uw4",
+              "playerIds": [
+                "mu4bkj50z5q8j1",
+                "mt0nwvyixcpl7a"
+              ],
+              "name": "Bill Pettis + Todd Theofrastou",
+              "positions": null
+            },
+            {
+              "id": "mwcvao79yrznh4",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Dennis Carman + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwcvao797ivm0x",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Cayden Garrand + Kayden Dupee",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 18,
+          "matches": [
+            {
+              "id": "mwcvjmyfastqcl",
+              "entityA": {
+                "id": "mwcvjmxacjqkph",
+                "name": "Cole Dragoon + Todd Theofrastou",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mt0nwvyixcpl7a"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcvjmxagmxlfe",
+                "name": "Travis Watts + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794447223289
+              },
+              "timerStartAt": 1794447253289,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794447710990
+            },
+            {
+              "id": "mwcvjmygztt2s9",
+              "entityA": {
+                "id": "mwcvjmxa4zozkq",
+                "name": "Bill Pettis + Cayden Garrand",
+                "type": "team",
+                "playerIds": [
+                  "mu4bkj50z5q8j1",
+                  "mt0nxl7zmqfnkf"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcvjmxa8p0did",
+                "name": "John Friedrich + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "scoreA": 0,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1794447223289
+              },
+              "timerStartAt": 1794447253289,
+              "games": [
+                {
+                  "scoreA": 0,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794447522678
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwcvjmxa4zozkq",
+              "playerIds": [
+                "mu4bkj50z5q8j1",
+                "mt0nxl7zmqfnkf"
+              ],
+              "name": "Bill Pettis + Cayden Garrand",
+              "positions": null
+            },
+            {
+              "id": "mwcvjmxacjqkph",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mt0nwvyixcpl7a"
+              ],
+              "name": "Cole Dragoon + Todd Theofrastou",
+              "positions": null
+            },
+            {
+              "id": "mwcvjmxagmxlfe",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Travis Watts + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mwcvjmxa8p0did",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mtuomtl3wnieej"
+              ],
+              "name": "John Friedrich + Dennis Carman",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 19,
+          "matches": [
+            {
+              "id": "mwcvu6fbxyt0bd",
+              "entityA": {
+                "id": "mwcvu6e8mnd2sf",
+                "name": "Cole Dragoon + Dennis Carman",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mtuomtl3wnieej"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcvu6e80g2yhc",
+                "name": "Bill Pettis + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mu4bkj50z5q8j1",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794447715079
+              },
+              "timerStartAt": 1794447745079,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794448366574
+            },
+            {
+              "id": "mwcvu6fbdvws8l",
+              "entityA": {
+                "id": "mwcvu6e8z3z7nr",
+                "name": "John Friedrich + Cayden Garrand",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mt0nxl7zmqfnkf"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcvu6e8f1z9pu",
+                "name": "Kayden Dupee + Todd Theofrastou",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxqh1l4i29f",
+                  "mt0nwvyixcpl7a"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 1,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1794447715079
+              },
+              "timerStartAt": 1794447745079,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 1
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794448043800
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwcvu6e8mnd2sf",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mtuomtl3wnieej"
+              ],
+              "name": "Cole Dragoon + Dennis Carman",
+              "positions": null
+            },
+            {
+              "id": "mwcvu6e80g2yhc",
+              "playerIds": [
+                "mu4bkj50z5q8j1",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Bill Pettis + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwcvu6e8z3z7nr",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mt0nxl7zmqfnkf"
+              ],
+              "name": "John Friedrich + Cayden Garrand",
+              "positions": null
+            },
+            {
+              "id": "mwcvu6e8f1z9pu",
+              "playerIds": [
+                "mt0nxqh1l4i29f",
+                "mt0nwvyixcpl7a"
+              ],
+              "name": "Kayden Dupee + Todd Theofrastou",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 20,
+          "matches": [
+            {
+              "id": "mwcw8e6limysmq",
+              "entityA": {
+                "id": "mwcw8e5gm5k2tz",
+                "name": "Todd Theofrastou + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwvyixcpl7a",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcw8e5gg5atlh",
+                "name": "Dennis Carman + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mtuomtl3wnieej",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794448378318
+              },
+              "timerStartAt": 1794448408318,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1794448792880
+            },
+            {
+              "id": "mwcw8e6lkwi1by",
+              "entityA": {
+                "id": "mwcw8e5gmist7l",
+                "name": "Cole Dragoon + Bill Pettis",
+                "type": "team",
+                "playerIds": [
+                  "mwcoxn0fvf3hke",
+                  "mu4bkj50z5q8j1"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwcw8e5g84v2sn",
+                "name": "Cayden Garrand + Kayden Dupee",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxl7zmqfnkf",
+                  "mt0nxqh1l4i29f"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1794448378318
+              },
+              "timerStartAt": 1794448408318,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1794448882248
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwcw8e5g84v2sn",
+              "playerIds": [
+                "mt0nxl7zmqfnkf",
+                "mt0nxqh1l4i29f"
+              ],
+              "name": "Cayden Garrand + Kayden Dupee",
+              "positions": null
+            },
+            {
+              "id": "mwcw8e5gmist7l",
+              "playerIds": [
+                "mwcoxn0fvf3hke",
+                "mu4bkj50z5q8j1"
+              ],
+              "name": "Cole Dragoon + Bill Pettis",
+              "positions": null
+            },
+            {
+              "id": "mwcw8e5gm5k2tz",
+              "playerIds": [
+                "mt0nwvyixcpl7a",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Todd Theofrastou + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwcw8e5gg5atlh",
+              "playerIds": [
+                "mtuomtl3wnieej",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Dennis Carman + John Friedrich",
+              "positions": null
+            }
+          ]
+        }
+      ],
+      "currentRound": 20,
+      "playoffs": {
+        "type": "double-elim",
+        "size": 4,
+        "rounds": [
+          {
+            "number": 1,
+            "name": "Winners SF",
+            "matches": [
+              {
+                "id": "mwcwkccssffft6",
+                "a": {
+                  "seed": 1,
+                  "entity": {
+                    "id": "mwcwkccqg9hvsz",
+                    "name": "John Friedrich + Todd Theofrastou",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0ny0jxioo10e",
+                      "mt0nwvyixcpl7a"
+                    ],
+                    "seed": 1
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 4,
+                  "entity": {
+                    "id": "mwcwkccqb7xd3q",
+                    "name": "Kayden Dupee + Ghost Dog",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxqh1l4i29f",
+                      "mt0qmkfrn6n3xe"
+                    ],
+                    "seed": 4
+                  },
+                  "score": null
+                },
+                "winner": null,
+                "loser": null,
+                "scoreA": null,
+                "scoreB": null,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "ghost-dog",
+                  "serveSide": "b",
+                  "flippedAt": 1794448935820
+                },
+                "table": 1,
+                "onDeck": false,
+                "timerStartAt": 1794448965822
+              },
+              {
+                "id": "mwcwkccsqptf62",
+                "a": {
+                  "seed": 2,
+                  "entity": {
+                    "id": "mwcwkccqls83t1",
+                    "name": "Travis Watts + Bill Pettis",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxay02r25zq",
+                      "mu4bkj50z5q8j1"
+                    ],
+                    "seed": 2
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 3,
+                  "entity": {
+                    "id": "mwcwkccqptqnil",
+                    "name": "Cayden Garrand + Dennis Carman",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxl7zmqfnkf",
+                      "mtuomtl3wnieej"
+                    ],
+                    "seed": 3
+                  },
+                  "score": null
+                },
+                "winner": null,
+                "loser": null,
+                "scoreA": null,
+                "scoreB": null,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "heads",
+                  "serveSide": "a",
+                  "flippedAt": 1794448935820
+                },
+                "table": 2,
+                "onDeck": false,
+                "timerStartAt": 1794448965822
+              }
+            ]
+          },
+          {
+            "number": 2,
+            "name": "Winners Final",
+            "matches": [
+              {
+                "id": "mwcwkccsy13uzg",
+                "a": {
+                  "seed": 0,
+                  "entity": null,
+                  "score": null,
+                  "fromMatch": "mwcwkccssffft6",
+                  "fromLoser": false
+                },
+                "b": {
+                  "seed": 0,
+                  "entity": null,
+                  "score": null,
+                  "fromMatch": "mwcwkccsqptf62",
+                  "fromLoser": false
+                },
+                "winner": null,
+                "loser": null,
+                "scoreA": null,
+                "scoreB": null,
+                "bracket": "winners"
+              }
+            ]
+          }
+        ],
+        "winnersRounds": [
+          {
+            "number": 1,
+            "name": "Winners SF",
+            "matches": [
+              {
+                "id": "mwcwkccssffft6",
+                "a": {
+                  "seed": 1,
+                  "entity": {
+                    "id": "mwcwkccqg9hvsz",
+                    "name": "John Friedrich + Todd Theofrastou",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0ny0jxioo10e",
+                      "mt0nwvyixcpl7a"
+                    ],
+                    "seed": 1
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 4,
+                  "entity": {
+                    "id": "mwcwkccqb7xd3q",
+                    "name": "Kayden Dupee + Ghost Dog",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxqh1l4i29f",
+                      "mt0qmkfrn6n3xe"
+                    ],
+                    "seed": 4
+                  },
+                  "score": null
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 2,
+                "scoreB": 0,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "ghost-dog",
+                  "serveSide": "b",
+                  "flippedAt": 1794448935820
+                },
+                "table": 1,
+                "timerStartAt": 1794448965822,
+                "games": [
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  }
+                ],
+                "seriesA": 2,
+                "seriesB": 0,
+                "status": "done",
+                "timerEndedAt": 1794450028216
+              },
+              {
+                "id": "mwcwkccsqptf62",
+                "a": {
+                  "seed": 2,
+                  "entity": {
+                    "id": "mwcwkccqls83t1",
+                    "name": "Travis Watts + Bill Pettis",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxay02r25zq",
+                      "mu4bkj50z5q8j1"
+                    ],
+                    "seed": 2
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 3,
+                  "entity": {
+                    "id": "mwcwkccqptqnil",
+                    "name": "Cayden Garrand + Dennis Carman",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxl7zmqfnkf",
+                      "mtuomtl3wnieej"
+                    ],
+                    "seed": 3
+                  },
+                  "score": null
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 2,
+                "scoreB": 1,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "heads",
+                  "serveSide": "a",
+                  "flippedAt": 1794448935820
+                },
+                "table": 2,
+                "timerStartAt": 1794448965822,
+                "games": [
+                  {
+                    "scoreA": 5,
+                    "scoreB": 2
+                  },
+                  {
+                    "scoreA": 1,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  }
+                ],
+                "seriesA": 2,
+                "seriesB": 1,
+                "status": "done",
+                "timerEndedAt": 1794450936940
+              }
+            ]
+          },
+          {
+            "number": 2,
+            "name": "Winners Final",
+            "matches": [
+              {
+                "id": "mwcwkccsy13uzg",
+                "a": {
+                  "seed": 1,
+                  "entity": {
+                    "id": "mwcwkccqg9hvsz",
+                    "name": "John Friedrich + Todd Theofrastou",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0ny0jxioo10e",
+                      "mt0nwvyixcpl7a"
+                    ],
+                    "seed": 1
+                  },
+                  "score": null,
+                  "fromMatch": "mwcwkccssffft6",
+                  "fromLoser": false
+                },
+                "b": {
+                  "seed": 2,
+                  "entity": {
+                    "id": "mwcwkccqls83t1",
+                    "name": "Travis Watts + Bill Pettis",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxay02r25zq",
+                      "mu4bkj50z5q8j1"
+                    ],
+                    "seed": 2
+                  },
+                  "score": null,
+                  "fromMatch": "mwcwkccsqptf62",
+                  "fromLoser": false
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 2,
+                "scoreB": 0,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "tails",
+                  "serveSide": "b",
+                  "flippedAt": 1794450936941
+                },
+                "table": 1,
+                "timerStartAt": 1794450966942,
+                "games": [
+                  {
+                    "scoreA": 5,
+                    "scoreB": 2
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  }
+                ],
+                "seriesA": 2,
+                "seriesB": 0,
+                "status": "done",
+                "timerEndedAt": 1794451611885
+              }
+            ]
+          }
+        ],
+        "losersRounds": [
+          {
+            "number": 1,
+            "name": "Losers R1",
+            "matches": [
+              {
+                "id": "mwcwkccstudhpw",
+                "a": {
+                  "seed": 4,
+                  "entity": {
+                    "id": "mwcwkccqb7xd3q",
+                    "name": "Kayden Dupee + Ghost Dog",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxqh1l4i29f",
+                      "mt0qmkfrn6n3xe"
+                    ],
+                    "seed": 4
+                  },
+                  "score": null,
+                  "fromMatch": "mwcwkccssffft6",
+                  "fromLoser": true
+                },
+                "b": {
+                  "seed": 3,
+                  "entity": {
+                    "id": "mwcwkccqptqnil",
+                    "name": "Cayden Garrand + Dennis Carman",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxl7zmqfnkf",
+                      "mtuomtl3wnieej"
+                    ],
+                    "seed": 3
+                  },
+                  "score": null,
+                  "fromMatch": "mwcwkccsqptf62",
+                  "fromLoser": true
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 2,
+                "scoreB": 1,
+                "bracket": "losers",
+                "coinToss": {
+                  "headsSide": "b",
+                  "result": "ghost-dog",
+                  "serveSide": "a",
+                  "flippedAt": 1794450936941
+                },
+                "table": 2,
+                "timerStartAt": 1794450966942,
+                "games": [
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  },
+                  {
+                    "scoreA": 3,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  }
+                ],
+                "seriesA": 2,
+                "seriesB": 1,
+                "status": "done",
+                "timerEndedAt": 1794451761400
+              }
+            ]
+          },
+          {
+            "number": 2,
+            "name": "Losers Final",
+            "matches": [
+              {
+                "id": "mwcwkcctmrrjf8",
+                "a": {
+                  "seed": 4,
+                  "entity": {
+                    "id": "mwcwkccqb7xd3q",
+                    "name": "Kayden Dupee + Ghost Dog",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxqh1l4i29f",
+                      "mt0qmkfrn6n3xe"
+                    ],
+                    "seed": 4
+                  },
+                  "score": null,
+                  "fromMatch": "mwcwkccstudhpw",
+                  "fromLoser": false
+                },
+                "b": {
+                  "seed": 2,
+                  "entity": {
+                    "id": "mwcwkccqls83t1",
+                    "name": "Travis Watts + Bill Pettis",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxay02r25zq",
+                      "mu4bkj50z5q8j1"
+                    ],
+                    "seed": 2
+                  },
+                  "score": null,
+                  "fromMatch": "mwcwkccsy13uzg",
+                  "fromLoser": true
+                },
+                "winner": "b",
+                "loser": "a",
+                "scoreA": 0,
+                "scoreB": 2,
+                "bracket": "losers",
+                "coinToss": {
+                  "headsSide": "b",
+                  "result": "ghost-dog",
+                  "serveSide": "a",
+                  "flippedAt": 1794451761409
+                },
+                "table": 1,
+                "timerStartAt": 1794451791410,
+                "games": [
+                  {
+                    "scoreA": 4,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 2,
+                    "scoreB": 5
+                  }
+                ],
+                "seriesA": 0,
+                "seriesB": 2,
+                "status": "done",
+                "timerEndedAt": 1794452309829
+              }
+            ]
+          }
+        ],
+        "grandFinal": {
+          "id": "mwcwkcct6qy0e0",
+          "a": {
+            "seed": 1,
+            "entity": {
+              "id": "mwcwkccqg9hvsz",
+              "name": "John Friedrich + Todd Theofrastou",
+              "type": "team",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mt0nwvyixcpl7a"
+              ],
+              "seed": 1
+            },
+            "score": null,
+            "fromMatch": "mwcwkccsy13uzg",
+            "fromLoser": false
+          },
+          "b": {
+            "seed": 2,
+            "entity": {
+              "id": "mwcwkccqls83t1",
+              "name": "Travis Watts + Bill Pettis",
+              "type": "team",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mu4bkj50z5q8j1"
+              ],
+              "seed": 2
+            },
+            "score": null,
+            "fromMatch": "mwcwkcctmrrjf8",
+            "fromLoser": false
+          },
+          "winner": "a",
+          "loser": "b",
+          "scoreA": 2,
+          "scoreB": 0,
+          "bracket": "gf",
+          "isGrandFinal": true,
+          "coinToss": {
+            "headsSide": "a",
+            "result": "heads",
+            "serveSide": "a",
+            "flippedAt": 1794452309830
+          },
+          "table": 1,
+          "timerStartAt": 1794452339835,
+          "games": [
+            {
+              "scoreA": 5,
+              "scoreB": 2
+            },
+            {
+              "scoreA": 5,
+              "scoreB": 4
+            }
+          ],
+          "seriesA": 2,
+          "seriesB": 0,
+          "status": "done",
+          "timerEndedAt": 1794452931271
+        },
+        "grandFinal2": {
+          "id": "mwcwkcctxbpakc",
+          "a": {
+            "entity": null,
+            "fromMatch": null,
+            "fromLoser": false
+          },
+          "b": {
+            "entity": null,
+            "fromMatch": null,
+            "fromLoser": false
+          },
+          "winner": null,
+          "loser": null,
+          "scoreA": null,
+          "scoreB": null,
+          "bracket": "gf2",
+          "isGrandFinal": true,
+          "isReset": true,
+          "void": true
+        },
+        "bronze": null,
+        "placements": {
+          "first": {
+            "id": "mwcwkccqg9hvsz",
+            "name": "John Friedrich + Todd Theofrastou",
+            "type": "team",
+            "playerIds": [
+              "mt0ny0jxioo10e",
+              "mt0nwvyixcpl7a"
+            ],
+            "seed": 1
+          },
+          "second": {
+            "id": "mwcwkccqls83t1",
+            "name": "Travis Watts + Bill Pettis",
+            "type": "team",
+            "playerIds": [
+              "mt0nxay02r25zq",
+              "mu4bkj50z5q8j1"
+            ],
+            "seed": 2
+          },
+          "third": {
+            "id": "mwcwkccqb7xd3q",
+            "name": "Kayden Dupee + Ghost Dog",
+            "type": "team",
+            "playerIds": [
+              "mt0nxqh1l4i29f",
+              "mt0qmkfrn6n3xe"
+            ],
+            "seed": 4
+          }
+        },
+        "gfResetRequired": false,
+        "gfResetActive": false,
+        "tieredDraw": true,
+        "tieredPairs": [
+          "#1+#5",
+          "#2+#6",
+          "#3+#7",
+          "#4+#8"
+        ],
+        "bonusPoolLocked": {
+          "bonusPool": 188,
+          "fieldSize": 8,
+          "fieldPoints": 18807,
+          "shares": [
+            94,
+            56,
+            38
+          ],
+          "mode": "50-30-20",
+          "lockedAt": 1794448935822
+        },
+        "bestOf": 3
+      },
+      "createdAt": 1794436133414,
+      "status": "finished",
+      "currentSitOutIds": [],
+      "sitOutQueue": [
+        "mt0nwvyixcpl7a",
+        "mt0oabvkv4ftoq",
+        "mt0nxqh1l4i29f",
+        "mu4bkj50z5q8j1",
+        "mwcoxn0fvf3hke",
+        "mt0ny0jxioo10e",
+        "mt0nxay02r25zq",
+        "mt0nxl7zmqfnkf",
+        "mtuomtl3wnieej"
+      ],
+      "playoffTeams": [
+        {
+          "id": "mwcwkccqg9hvsz",
+          "playerIds": [
+            "mt0ny0jxioo10e",
+            "mt0nwvyixcpl7a"
+          ],
+          "name": "John Friedrich + Todd Theofrastou",
+          "seed": 1,
+          "tieredFrom": {
+            "top": "mt0ny0jxioo10e",
+            "bottom": "mt0nwvyixcpl7a",
+            "ranks": [
+              1,
+              5
+            ]
+          }
+        },
+        {
+          "id": "mwcwkccqls83t1",
+          "playerIds": [
+            "mt0nxay02r25zq",
+            "mu4bkj50z5q8j1"
+          ],
+          "name": "Travis Watts + Bill Pettis",
+          "seed": 2,
+          "tieredFrom": {
+            "top": "mt0nxay02r25zq",
+            "bottom": "mu4bkj50z5q8j1",
+            "ranks": [
+              2,
+              6
+            ]
+          }
+        },
+        {
+          "id": "mwcwkccqptqnil",
+          "playerIds": [
+            "mt0nxl7zmqfnkf",
+            "mtuomtl3wnieej"
+          ],
+          "name": "Cayden Garrand + Dennis Carman",
+          "seed": 3,
+          "tieredFrom": {
+            "top": "mt0nxl7zmqfnkf",
+            "bottom": "mtuomtl3wnieej",
+            "ranks": [
+              3,
+              7
+            ]
+          }
+        },
+        {
+          "id": "mwcwkccqb7xd3q",
+          "playerIds": [
+            "mt0nxqh1l4i29f",
+            "mt0qmkfrn6n3xe"
+          ],
+          "name": "Kayden Dupee + Ghost Dog",
+          "seed": 4,
+          "tieredFrom": {
+            "top": "mt0nxqh1l4i29f",
+            "bottom": "mt0qmkfrn6n3xe",
+            "ranks": [
+              4,
+              8
+            ]
+          }
+        }
+      ],
+      "bonusPoolLocked": {
+        "fieldIds": [
+          "mt0ny0jxioo10e",
+          "mt0nwvyixcpl7a",
+          "mt0nxay02r25zq",
+          "mu4bkj50z5q8j1",
+          "mt0nxl7zmqfnkf",
+          "mtuomtl3wnieej",
+          "mt0nxqh1l4i29f",
+          "mt0qmkfrn6n3xe"
+        ],
+        "fieldSize": 8,
+        "fieldPoints": 18807,
+        "bonusPool": 188,
+        "shares": [
+          94,
+          56,
+          38
+        ],
+        "fr": [
+          0.5,
+          0.3,
+          0.2
+        ],
+        "mode": "50-30-20",
+        "lockedAt": 1794448935822
+      },
+      "placements": {
+        "first": {
+          "id": "mwcwkccqg9hvsz",
+          "name": "John Friedrich + Todd Theofrastou",
+          "type": "team",
+          "playerIds": [
+            "mt0ny0jxioo10e",
+            "mt0nwvyixcpl7a"
+          ],
+          "seed": 1
+        },
+        "second": {
+          "id": "mwcwkccqls83t1",
+          "name": "Travis Watts + Bill Pettis",
+          "type": "team",
+          "playerIds": [
+            "mt0nxay02r25zq",
+            "mu4bkj50z5q8j1"
+          ],
+          "seed": 2
+        },
+        "third": {
+          "id": "mwcwkccqb7xd3q",
+          "name": "Kayden Dupee + Ghost Dog",
+          "type": "team",
+          "playerIds": [
+            "mt0nxqh1l4i29f",
+            "mt0qmkfrn6n3xe"
+          ],
+          "seed": 4
+        }
+      },
+      "rankingDeltaDetail": {
+        "mt0ny0jxioo10e": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 94,
+          "total": 94
+        },
+        "mt0nwvyixcpl7a": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 94,
+          "total": 94
+        },
+        "mt0nxay02r25zq": {
+          "place": 2,
+          "expected": 2,
+          "seedDelta": 0,
+          "bonus": 56,
+          "total": 56
+        },
+        "mu4bkj50z5q8j1": {
+          "place": 2,
+          "expected": 2,
+          "seedDelta": 0,
+          "bonus": 56,
+          "total": 56
+        },
+        "mt0nxqh1l4i29f": {
+          "place": 3,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 38,
+          "total": 38
+        },
+        "mt0qmkfrn6n3xe": {
+          "place": 3,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 38,
+          "total": 38
+        },
+        "mt0nxl7zmqfnkf": {
+          "place": 4,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        },
+        "mtuomtl3wnieej": {
+          "place": 4,
+          "expected": 3,
+          "seedDelta": 0,
+          "bonus": 0,
+          "total": 0
+        }
+      },
+      "rankingBonusShare": [
+        94,
+        56,
+        38
+      ],
+      "rankingBonusPool": 188,
+      "rankingApplied": true,
+      "rankingAppliedAt": 1794452960774,
+      "rankingDeltas": {
+        "mt0ny0jxioo10e": 94,
+        "mt0nwvyixcpl7a": 94,
+        "mt0nxay02r25zq": 56,
+        "mu4bkj50z5q8j1": 56,
+        "mt0nxqh1l4i29f": 38,
+        "mt0qmkfrn6n3xe": 38,
+        "mt0nxl7zmqfnkf": 0,
+        "mtuomtl3wnieej": 0
+      }
+    },
     {
       "id": "mw2o88j73rxav9",
       "name": "11/4/26",
@@ -4990,18 +8603,6 @@
           "seed": 3
         }
       },
-      "rankingApplied": true,
-      "rankingAppliedAt": 1793847899477,
-      "rankingDeltas": {
-        "mt0ny0jxioo10e": 102,
-        "mt0nxqh1l4i29f": 102,
-        "mt0nwn4xmpohds": 48,
-        "mt0nxv9u55yuou": 48,
-        "mtam67ye1sz0lm": 37,
-        "mtuomtl3wnieej": 37,
-        "mt0nxay02r25zq": 0,
-        "mt0qmkfrn6n3xe": 0
-      },
       "rankingDeltaDetail": {
         "mt0ny0jxioo10e": {
           "place": 1,
@@ -5065,7 +8666,19 @@
         56,
         37
       ],
-      "rankingBonusPool": 187
+      "rankingBonusPool": 187,
+      "rankingApplied": true,
+      "rankingAppliedAt": 1794452960772,
+      "rankingDeltas": {
+        "mt0ny0jxioo10e": 102,
+        "mt0nxqh1l4i29f": 102,
+        "mt0nwn4xmpohds": 48,
+        "mt0nxv9u55yuou": 48,
+        "mtam67ye1sz0lm": 37,
+        "mtuomtl3wnieej": 37,
+        "mt0nxay02r25zq": 0,
+        "mt0qmkfrn6n3xe": 0
+      }
     },
     {
       "id": "mvsm99law5zg6n",
@@ -9208,7 +12821,7 @@
         "lockedAt": 1793388209050
       },
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249992,
+      "rankingAppliedAt": 1794452960771,
       "rankingDeltas": {
         "mt0nwn4xmpohds": 132,
         "mt0nwvyixcpl7a": 132,
@@ -11999,7 +15612,7 @@
       ],
       "rankingBonusPool": 134,
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249991,
+      "rankingAppliedAt": 1794452960770,
       "rankingDeltas": {
         "mt0nwn4xmpohds": 83,
         "mt0ny0jxioo10e": 83,
@@ -15988,7 +19601,7 @@
       ],
       "rankingBonusPool": 183,
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249991,
+      "rankingAppliedAt": 1794452960769,
       "rankingDeltas": {
         "mt0nwvyixcpl7a": 92,
         "mt0nxl7zmqfnkf": 92,
@@ -22568,15 +26181,15 @@
           "place": 3,
           "expected": 3,
           "seedDelta": 0,
-          "bonus": 36,
-          "total": 36
+          "bonus": 35,
+          "total": 35
         },
         "mt0nxv9u55yuou": {
           "place": 3,
           "expected": 3,
           "seedDelta": 0,
-          "bonus": 36,
-          "total": 36
+          "bonus": 35,
+          "total": 35
         },
         "mt0nwn4xmpohds": {
           "place": 4,
@@ -22596,18 +26209,18 @@
       "rankingBonusShare": [
         90,
         54,
-        36
+        35
       ],
-      "rankingBonusPool": 180,
+      "rankingBonusPool": 179,
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249990,
+      "rankingAppliedAt": 1794452960769,
       "rankingDeltas": {
         "mt0nxl7zmqfnkf": 98,
         "mt0nwvyixcpl7a": 98,
         "mt0nxqh1l4i29f": 62,
         "mt0ny0jxioo10e": 62,
-        "mt0nxay02r25zq": 36,
-        "mt0nxv9u55yuou": 36,
+        "mt0nxay02r25zq": 35,
+        "mt0nxv9u55yuou": 35,
         "mt0nwn4xmpohds": -16,
         "mtam67ye1sz0lm": -16
       }
@@ -25917,7 +29530,7 @@
       ],
       "rankingBonusPool": 174,
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249990,
+      "rankingAppliedAt": 1794452960768,
       "rankingDeltas": {
         "muemob2o07rknp": 95,
         "mtam67ye1sz0lm": 95,
@@ -29942,15 +33555,15 @@
           "place": 3,
           "expected": 2,
           "seedDelta": -8,
-          "bonus": 51,
-          "total": 43
+          "bonus": 50,
+          "total": 42
         },
         "mtuomtl3wnieej": {
           "place": 3,
           "expected": 2,
           "seedDelta": -8,
-          "bonus": 51,
-          "total": 43
+          "bonus": 50,
+          "total": 42
         },
         "mt0nxay02r25zq": {
           "place": 4,
@@ -29998,18 +33611,18 @@
       "rankingBonusShare": [
         127,
         76,
-        51
+        50
       ],
-      "rankingBonusPool": 254,
+      "rankingBonusPool": 253,
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249989,
+      "rankingAppliedAt": 1794452960767,
       "rankingDeltas": {
         "mt0ny0jxioo10e": 127,
         "mtam67ye1sz0lm": 127,
         "mt0nwvyixcpl7a": 84,
         "mt0nxqh1l4i29f": 84,
-        "mt0nxl7zmqfnkf": 43,
-        "mtuomtl3wnieej": 43,
+        "mt0nxl7zmqfnkf": 42,
+        "mtuomtl3wnieej": 42,
         "mt0nxay02r25zq": 0,
         "mu4bkj50z5q8j1": 0,
         "mt0nwn4xmpohds": 0,
@@ -32864,7 +36477,7 @@
       ],
       "rankingBonusPool": 208,
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249987,
+      "rankingAppliedAt": 1794452960762,
       "rankingDeltas": {
         "mt0ny0jxioo10e": 112,
         "mt0nxqh1l4i29f": 112,
@@ -34907,60 +38520,60 @@
           "place": 1,
           "expected": 3,
           "seedDelta": 16,
-          "bonus": 63,
-          "total": 79
+          "bonus": 62,
+          "total": 78
         },
         "mt0ny0jxioo10e": {
           "place": 1,
           "expected": 3,
           "seedDelta": 16,
-          "bonus": 63,
-          "total": 79
+          "bonus": 62,
+          "total": 78
         },
         "mt0nxl7zmqfnkf": {
           "place": 2,
           "expected": 1,
           "seedDelta": -8,
-          "bonus": 38,
-          "total": 30
+          "bonus": 37,
+          "total": 29
         },
         "mt0nwvyixcpl7a": {
           "place": 2,
           "expected": 1,
           "seedDelta": -8,
-          "bonus": 38,
-          "total": 30
+          "bonus": 37,
+          "total": 29
         },
         "mt0nxv9u55yuou": {
           "place": 3,
           "expected": 2,
           "seedDelta": -8,
-          "bonus": 24,
-          "total": 16
+          "bonus": 25,
+          "total": 17
         },
         "mtam67ye1sz0lm": {
           "place": 3,
           "expected": 2,
           "seedDelta": -8,
-          "bonus": 24,
-          "total": 16
+          "bonus": 25,
+          "total": 17
         }
       },
       "rankingBonusShare": [
-        63,
-        38,
-        24
+        62,
+        37,
+        25
       ],
-      "rankingBonusPool": 125,
+      "rankingBonusPool": 124,
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249986,
+      "rankingAppliedAt": 1794452960761,
       "rankingDeltas": {
-        "mt0nxay02r25zq": 79,
-        "mt0ny0jxioo10e": 79,
-        "mt0nxl7zmqfnkf": 30,
-        "mt0nwvyixcpl7a": 30,
-        "mt0nxv9u55yuou": 16,
-        "mtam67ye1sz0lm": 16
+        "mt0nxay02r25zq": 78,
+        "mt0ny0jxioo10e": 78,
+        "mt0nxl7zmqfnkf": 29,
+        "mt0nwvyixcpl7a": 29,
+        "mt0nxv9u55yuou": 17,
+        "mtam67ye1sz0lm": 17
       }
     },
     {
@@ -35664,73 +39277,73 @@
       "rankingDeltaDetail": {
         "mt0nxl7zmqfnkf": {
           "place": 1,
-          "expected": 4,
+          "expected": 3,
           "seedDelta": 16,
           "bonus": 100,
           "total": 116
         },
         "mt0nxqh1l4i29f": {
           "place": 1,
-          "expected": 4,
+          "expected": 3,
           "seedDelta": 16,
           "bonus": 100,
           "total": 116
         },
         "mt0nwn4xmpohds": {
           "place": 2,
-          "expected": 8,
+          "expected": 5,
           "seedDelta": 16,
           "bonus": 60,
           "total": 76
         },
         "mt0nxv9u55yuou": {
           "place": 2,
-          "expected": 8,
+          "expected": 5,
           "seedDelta": 16,
           "bonus": 60,
           "total": 76
         },
         "mt0oabvkv4ftoq": {
           "place": 3,
-          "expected": 4,
-          "seedDelta": 0,
+          "expected": 1,
+          "seedDelta": -16,
           "bonus": 40,
-          "total": 40
+          "total": 24
         },
         "mt0qmkfrn6n3xe": {
           "place": 3,
-          "expected": 4,
-          "seedDelta": 0,
+          "expected": 1,
+          "seedDelta": -16,
           "bonus": 40,
-          "total": 40
+          "total": 24
         },
         "mt0nwvyixcpl7a": {
           "place": 4,
-          "expected": 5,
-          "seedDelta": 8,
+          "expected": 2,
+          "seedDelta": -8,
           "bonus": 0,
-          "total": 8
+          "total": -8
         },
         "mt0nx3tat1qdas": {
           "place": 4,
-          "expected": 5,
-          "seedDelta": 8,
+          "expected": 2,
+          "seedDelta": -8,
           "bonus": 0,
-          "total": 8
+          "total": -8
         },
         "mt0nxay02r25zq": {
           "place": 5,
-          "expected": 8,
-          "seedDelta": 0,
+          "expected": 4,
+          "seedDelta": -8,
           "bonus": 0,
-          "total": 0
+          "total": -8
         },
         "mt0ny0jxioo10e": {
           "place": 5,
-          "expected": 8,
-          "seedDelta": 0,
+          "expected": 4,
+          "seedDelta": -8,
           "bonus": 0,
-          "total": 0
+          "total": -8
         }
       },
       "rankingBonusShare": [
@@ -35740,18 +39353,18 @@
       ],
       "rankingBonusPool": 200,
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249980,
+      "rankingAppliedAt": 1794452960756,
       "rankingDeltas": {
         "mt0nxl7zmqfnkf": 116,
         "mt0nxqh1l4i29f": 116,
         "mt0nwn4xmpohds": 76,
         "mt0nxv9u55yuou": 76,
-        "mt0oabvkv4ftoq": 40,
-        "mt0qmkfrn6n3xe": 40,
-        "mt0nwvyixcpl7a": 8,
-        "mt0nx3tat1qdas": 8,
-        "mt0nxay02r25zq": 0,
-        "mt0ny0jxioo10e": 0
+        "mt0oabvkv4ftoq": 24,
+        "mt0qmkfrn6n3xe": 24,
+        "mt0nwvyixcpl7a": -8,
+        "mt0nx3tat1qdas": -8,
+        "mt0nxay02r25zq": -8,
+        "mt0ny0jxioo10e": -8
       }
     },
     {
@@ -38612,7 +42225,7 @@
       ],
       "rankingBonusPool": 164,
       "rankingApplied": true,
-      "rankingAppliedAt": 1793388249984,
+      "rankingAppliedAt": 1794452960760,
       "rankingDeltas": {
         "mt0ny0jxioo10e": 82,
         "mt0nxay02r25zq": 82,
