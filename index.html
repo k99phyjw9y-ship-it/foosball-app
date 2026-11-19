@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.43 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.44 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.43" />
+  <meta name="lcfc-build" content="7.44" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.43 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.44 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3581,10 +3581,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.43';
+    const APP_VERSION = '7.44';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 16273;
+    const APP_LINES = 16300;
 
     let state = {
       players: [],
@@ -12927,6 +12927,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
       let slowestMs = null;
       let timerSumMs = 0;
       let timerCount = 0;
+      let tableLoadSum = 0;
+      let tableLoadN = 0;
+      let playoffSeeded = 0;
+      let playoffUpsets = 0;
 
       (state.tournaments || []).forEach(t => {
         if (isSandboxTournament(t)) return;
@@ -12939,7 +12943,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         } catch (e) {}
         let eventMatches = 0;
 
-        const handle = (m) => {
+        const handle = (m, isPlayoff) => {
           if (!m) return;
           let outcome = null;
           try {
@@ -12950,6 +12954,18 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (!outcome) return;
           eventMatches++;
           totalMatches++;
+          // Upset: lower seed (worse seed number) beats higher seed in playoffs
+          if (isPlayoff) {
+            try {
+              const sa = Number(m.a?.seed != null ? m.a.seed : (m.entityA && m.entityA.seed));
+              const sb = Number(m.b?.seed != null ? m.b.seed : (m.entityB && m.entityB.seed));
+              if (sa > 0 && sb > 0 && sa !== sb) {
+                playoffSeeded++;
+                const underdogWon = (outcome.aWin && sa > sb) || (!outcome.aWin && sb > sa);
+                if (underdogWon) playoffUpsets++;
+              }
+            } catch (e) {}
+          }
           const gfA = Number(outcome.gfA) || 0;
           const gfB = Number(outcome.gfB) || 0;
           totalGoals += gfA + gfB;
@@ -12987,15 +13003,20 @@ function flipRankingMatchCoin(roundNum, matchId) {
         };
 
         try {
-          (t.rounds || []).forEach(r => (r.matches || []).forEach(handle));
+          (t.rounds || []).forEach(r => (r.matches || []).forEach(m => handle(m, false)));
           if (t.playoffs && typeof collectBracketMatches === 'function') {
-            collectBracketMatches(t.playoffs).forEach(handle);
+            collectBracketMatches(t.playoffs).forEach(m => handle(m, true));
           }
         } catch (e) {
           console.error('Club DNA match walk', e);
         }
 
-        if (eventMatches > 0) eventsWithMatches++;
+        if (eventMatches > 0) {
+          eventsWithMatches++;
+          const tables = Math.max(1, parseInt(t.tables, 10) || 2);
+          tableLoadSum += eventMatches / tables;
+          tableLoadN++;
+        }
         if (typeKey && byType[typeKey]) {
           byType[typeKey].events++;
           byType[typeKey].matches += eventMatches;
@@ -13095,7 +13116,11 @@ function flipRankingMatchCoin(roundNum, matchId) {
         rankLow,
         hare: fmtTimer(fastestMs),
         tortoise: fmtTimer(slowestMs),
-        avgMatchLength: timerCount ? fmtTimer(timerSumMs / timerCount) : null
+        avgMatchLength: timerCount ? fmtTimer(timerSumMs / timerCount) : null,
+        tableLoad: tableLoadN ? (tableLoadSum / tableLoadN) : null,
+        upsetRate: playoffSeeded ? (playoffUpsets / playoffSeeded) : null,
+        upsetCount: playoffUpsets,
+        upsetSample: playoffSeeded
       };
     }
 
@@ -13192,6 +13217,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Avg / match</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + (Number(d.avgGoals) || 0).toFixed(1) + '</p><p class="text-[11px] text-slate-500 mt-1">goals both sides</p></div>' +
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Playoffs</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.playoffs + '</p><p class="text-[11px] text-slate-500 mt-1">brackets run</p></div>' +
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Weeks</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + d.weeks + '</p><p class="text-[11px] text-slate-500 mt-1">active ISO weeks</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Table load</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + (d.tableLoad != null ? d.tableLoad.toFixed(1) : '—') + '</p><p class="text-[11px] text-slate-500 mt-1">avg matches per table / night</p></div>' +
+        '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Upset rate</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + (d.upsetRate != null ? Math.round(d.upsetRate * 100) + '%' : '—') + '</p><p class="text-[11px] text-slate-500 mt-1">lower seed wins playoff' + (d.upsetSample ? (' · ' + d.upsetCount + '/' + d.upsetSample) : '') + '</p></div>' +
         '</div>' +
         '<div class="grid grid-cols-2 lg:grid-cols-3 gap-3">' +
         '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Avg match length</p><p class="text-2xl font-bold text-slate-900 mt-1 tabular-nums">' + (d.avgMatchLength || '—') + '</p><p class="text-[11px] text-slate-500 mt-1">' + (d.timedMatches ? (d.timedMatches + ' timed') : 'no timers yet') + '</p></div>' +
