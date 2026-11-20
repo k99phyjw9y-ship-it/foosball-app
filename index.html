@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.44 | 2026-11-12 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.45 | 2026-11-20 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.44" />
+  <meta name="lcfc-build" content="7.45" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.44 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.45 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2653,7 +2653,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.32</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.45</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2778,7 +2778,7 @@
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div class="min-w-0">
           <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Club stats</h2>
-          <p class="text-sm text-slate-500 mt-1">Week · Career · Ranking · Club DNA · Awards</p>
+          <p class="text-sm text-slate-500 mt-1">Week · Career · Ranking · Club DNA · Teams · Awards</p>
         </div>
         <div id="stats-week-controls" class="flex items-center gap-2">
           <label class="text-xs font-medium text-slate-500 uppercase tracking-wider" for="stats-week-select">Week</label>
@@ -2791,6 +2791,7 @@
         <button type="button" data-stats-tab="career" onclick="setStatsTab('career')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Career</button>
         <button type="button" data-stats-tab="ranking" onclick="setStatsTab('ranking')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Ranking</button>
         <button type="button" data-stats-tab="club-dna" onclick="setStatsTab('club-dna')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Club DNA</button>
+        <button type="button" data-stats-tab="teams" onclick="setStatsTab('teams')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Teams</button>
         <button type="button" data-stats-tab="awards" onclick="setStatsTab('awards')" class="stats-tab-btn shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition">Awards</button>
       </div>
 
@@ -2997,6 +2998,50 @@
         <div id="club-dna-content" class="space-y-4">
           <p class="text-sm text-slate-500 text-center py-8">Loading…</p>
         </div>
+      </div>
+
+      <div id="stats-tab-teams" class="stats-tab-panel space-y-4 hidden">
+        <div class="surface-card rounded-2xl px-5 py-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Teams &amp; partnerships</h3>
+            <p class="text-sm text-slate-500 mt-0.5">All-time appearances for the same two players playing together</p>
+          </div>
+          <p class="text-[11px] text-slate-400 font-medium">Completed matches only · ranking and playoffs separate</p>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="teams-summary-cards"></div>
+        <div class="surface-card rounded-2xl p-4 flex flex-wrap items-end gap-3">
+          <div class="flex-1 min-w-[190px]">
+            <label for="teams-player-filter" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Find a player</label>
+            <select id="teams-player-filter" onchange="renderPartnershipStats()" class="input-field w-full rounded-xl px-3 py-2 text-sm text-slate-800">
+              <option value="">All players</option>
+            </select>
+          </div>
+          <div class="text-xs text-slate-500">A partnership is identified by player IDs, so swapping left/right sides does not create a new team.</div>
+        </div>
+        <div class="surface-card rounded-2xl overflow-hidden">
+          <div class="px-4 py-3.5 border-b border-slate-200">
+            <h4 class="text-sm font-semibold text-slate-800">Partnership leaderboard</h4>
+            <p class="text-xs text-slate-500 mt-0.5">One appearance per completed match or best-of series</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="border-b border-slate-200">
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Team</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Together</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Ranking</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Playoffs</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">W-L</th>
+                <th class="text-center px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">WR%</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">First played</th>
+                <th class="text-left px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Last played</th>
+                <th class="text-right px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">History</th>
+              </tr></thead>
+              <tbody id="teams-leaderboard-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="teams-history" class="space-y-3"></div>
+        <p class="text-[11px] text-slate-400 px-1">Singles matches and sides that do not resolve to exactly two roster players are excluded. Sandbox events, byes, void matches, and unfinished matches are excluded. This is a read-only statistic and does not feed ranking or playoff calculations.</p>
       </div>
 
       <div id="stats-tab-awards" class="stats-tab-panel space-y-4 hidden">
@@ -3581,7 +3626,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.44';
+    const APP_VERSION = '7.45';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 16300;
@@ -13247,9 +13292,132 @@ function flipRankingMatchCoin(roundNum, matchId) {
         '</div></div>';
     }
 
+    let teamsSelectedPairKey = '';
+
+    function computeTeamPartnershipStats() {
+      const pairs = new Map();
+      const addMatch = (t, m, aEnt, bEnt, section) => {
+        if (!m || m.void) return;
+        const outcome = resolveMatchOutcome(m, t);
+        if (!outcome) return;
+        const sides = [entityPlayerIds(aEnt), entityPlayerIds(bEnt)];
+        const dateValue = t.createdAt || t.date || null;
+        const date = dateValue ? new Date(dateValue) : null;
+        sides.forEach((ids, sideIndex) => {
+          const unique = [...new Set(ids || [])];
+          if (unique.length !== 2) return;
+          const sorted = unique.slice().sort((a, b) => String(a).localeCompare(String(b)));
+          const key = sorted.join('::');
+          if (!pairs.has(key)) pairs.set(key, {
+            key, ids: sorted, names: sorted.map(playerDisplayName), ranking: 0, playoffs: 0,
+            wins: 0, losses: 0, matches: []
+          });
+          const row = pairs.get(key);
+          const won = sideIndex === 0 ? outcome.aWin : !outcome.aWin;
+          if (section === 'ranking') row.ranking++;
+          else row.playoffs++;
+          if (won) row.wins++; else row.losses++;
+          const gf = sideIndex === 0 ? outcome.gfA : outcome.gfB;
+          const ga = sideIndex === 0 ? outcome.gfB : outcome.gfA;
+          row.matches.push({
+            date: date && !Number.isNaN(date.getTime()) ? date : null,
+            event: t.name || t.title || 'Club event',
+            type: t.type || 'event', section, won, gf, ga,
+            matchId: m.id || ''
+          });
+        });
+      };
+
+      (state.tournaments || []).forEach(t => {
+        if (!t || isSandboxTournament(t)) return;
+        (t.rounds || []).forEach(round => (round.matches || []).forEach(m => {
+          addMatch(t, m, m.entityA, m.entityB, 'ranking');
+        }));
+        collectBracketMatches(t.playoffs).forEach(m => {
+          if (!m) return;
+          addMatch(t, m, m.a?.entity || m.entityA, m.b?.entity || m.entityB, 'playoffs');
+        });
+      });
+
+      return [...pairs.values()].map(row => {
+        row.matches.sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0));
+        row.total = row.ranking + row.playoffs;
+        row.winRate = row.total ? row.wins / row.total : 0;
+        row.lastPlayed = row.matches[0]?.date || null;
+        row.firstPlayed = row.matches[row.matches.length - 1]?.date || null;
+        return row;
+      }).sort((a, b) => b.total - a.total || b.wins - a.wins || a.names.join(' + ').localeCompare(b.names.join(' + ')));
+    }
+
+    function renderPartnershipStats() {
+      const body = document.getElementById('teams-leaderboard-body');
+      if (!body) return;
+      const filter = document.getElementById('teams-player-filter');
+      const selected = filter ? filter.value : '';
+      if (filter) {
+        const current = filter.value;
+        const options = ['<option value="">All players</option>'].concat(
+          (state.players || []).slice().sort((a,b) => a.name.localeCompare(b.name)).map(p =>
+            '<option value="' + escapeHtml(String(p.id)) + '"' + (String(p.id) === current ? ' selected' : '') + '>' + escapeHtml(p.name) + '</option>')
+        );
+        filter.innerHTML = options.join('');
+        if ([...filter.options].some(o => o.value === current)) filter.value = current;
+      }
+      const all = computeTeamPartnershipStats();
+      const filtered = selected ? all.filter(r => r.ids.includes(selected)) : all;
+      const rankingTotal = all.reduce((n,r) => n + r.ranking, 0);
+      const playoffTotal = all.reduce((n,r) => n + r.playoffs, 0);
+      const activePairs = all.length;
+      const summary = document.getElementById('teams-summary-cards');
+      if (summary) summary.innerHTML = [
+        ['Partnerships', activePairs], ['Together appearances', rankingTotal + playoffTotal],
+        ['Ranking matches', rankingTotal], ['Playoff matches', playoffTotal]
+      ].map(([label,value]) => '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">' + label + '</p><p class="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">' + value.toLocaleString() + '</p></div>').join('');
+
+      if (!filtered.length) {
+        body.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-sm text-slate-500">No completed two-player partnerships found' + (selected ? ' for this player' : '') + ' yet.</td></tr>';
+      } else {
+        body.innerHTML = filtered.map(r => {
+          const name = r.names.map(n => n || 'Unknown player').join(' + ');
+          const first = r.firstPlayed ? r.firstPlayed.toLocaleDateString() : '—';
+          const last = r.lastPlayed ? r.lastPlayed.toLocaleDateString() : '—';
+          return '<tr class="border-b border-slate-100 hover:bg-slate-50/70">' +
+            '<td class="px-3 py-3 font-semibold text-slate-800 whitespace-nowrap">' + escapeHtml(name) + '</td>' +
+            '<td class="px-2 py-3 text-center font-bold tabular-nums">' + r.total + '</td>' +
+            '<td class="px-2 py-3 text-center tabular-nums">' + r.ranking + '</td>' +
+            '<td class="px-2 py-3 text-center tabular-nums">' + r.playoffs + '</td>' +
+            '<td class="px-2 py-3 text-center tabular-nums">' + r.wins + '-' + r.losses + '</td>' +
+            '<td class="px-2 py-3 text-center tabular-nums">' + (r.winRate * 100).toFixed(1) + '%</td>' +
+            '<td class="px-3 py-3 text-xs text-slate-500 whitespace-nowrap">' + first + '</td>' +
+            '<td class="px-3 py-3 text-xs text-slate-500 whitespace-nowrap">' + last + '</td>' +
+            '<td class="px-3 py-3 text-right"><button type="button" class="text-xs font-bold text-sky-700 hover:text-sky-900" data-pair-key="' + escapeHtml(r.key) + '" onclick="showPartnershipHistory(this)">View</button></td>' +
+            '</tr>';
+        }).join('');
+      }
+      if (teamsSelectedPairKey && !filtered.some(r => r.key === teamsSelectedPairKey)) teamsSelectedPairKey = '';
+      renderPartnershipHistory(filtered);
+    }
+
+    function showPartnershipHistory(button) {
+      teamsSelectedPairKey = button?.getAttribute('data-pair-key') || '';
+      renderPartnershipStats();
+    }
+
+    function renderPartnershipHistory(rows) {
+      const el = document.getElementById('teams-history');
+      if (!el) return;
+      const row = (rows || []).find(r => r.key === teamsSelectedPairKey);
+      if (!row) { el.innerHTML = ''; return; }
+      const name = row.names.map(n => n || 'Unknown player').join(' + ');
+      el.innerHTML = '<div class="surface-card rounded-2xl overflow-hidden"><div class="px-4 py-3.5 border-b border-slate-200"><h4 class="text-sm font-semibold text-slate-800">' + escapeHtml(name) + ' · match history</h4><p class="text-xs text-slate-500 mt-0.5">' + row.total + ' completed appearances, with ranking and playoff matches labeled separately</p></div>' +
+        '<div class="divide-y divide-slate-100">' + row.matches.map(m =>
+          '<div class="px-4 py-3 flex flex-wrap items-center justify-between gap-2"><div class="min-w-0"><p class="text-sm font-semibold text-slate-800">' + escapeHtml(m.event) + '</p><p class="text-xs text-slate-500">' + (m.date ? m.date.toLocaleDateString() : 'Date unavailable') + ' · ' + escapeHtml(String(m.type).toUpperCase()) + ' · ' + (m.section === 'ranking' ? 'Ranking' : 'Playoffs') + '</p></div><div class="text-right shrink-0"><p class="text-sm font-bold tabular-nums ' + (m.won ? 'text-emerald-700' : 'text-slate-700') + '">' + (m.won ? 'W' : 'L') + ' ' + m.gf + '–' + m.ga + '</p></div></div>'
+        ).join('') + '</div></div>';
+    }
+
         function setStatsTab(tab) {
       statsActiveTab = tab || 'week';
-      ['week', 'career', 'ranking', 'club-dna', 'awards'].forEach(id => {
+      ['week', 'career', 'ranking', 'club-dna', 'teams', 'awards'].forEach(id => {
         const panel = document.getElementById('stats-tab-' + id);
         if (panel) panel.classList.toggle('hidden', id !== statsActiveTab);
       });
@@ -13260,6 +13428,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       if (weekCtrl) weekCtrl.classList.toggle('hidden', statsActiveTab !== 'week');
       if (statsActiveTab === 'club-dna' && typeof renderClubDNA === 'function') {
         try { renderClubDNA(); } catch (e) { console.error(e); }
+      }
+      if (statsActiveTab === 'teams' && typeof renderPartnershipStats === 'function') {
+        try { renderPartnershipStats(); } catch (e) { console.error('Teams stats render failed', e); }
       }
       // Charts need visible canvas to size correctly when opening Awards
       if (statsActiveTab === 'awards' && typeof renderStatsCharts === 'function') {
