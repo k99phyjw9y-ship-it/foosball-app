@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.45 | 2026-11-20 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.46 | 2026-11-23 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.45" />
+  <meta name="lcfc-build" content="7.46" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.45 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.46 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3004,7 +3004,7 @@
         <div class="surface-card rounded-2xl px-5 py-4 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h3 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Teams &amp; partnerships</h3>
-            <p class="text-sm text-slate-500 mt-0.5">All-time appearances for the same two players playing together</p>
+            <p class="text-sm text-slate-500 mt-0.5">Partners only · 5+ matches together across all events</p>
           </div>
           <p class="text-[11px] text-slate-400 font-medium">Completed matches only · ranking and playoffs separate</p>
         </div>
@@ -3016,7 +3016,7 @@
               <option value="">All players</option>
             </select>
           </div>
-          <div class="text-xs text-slate-500">A partnership is identified by player IDs, so swapping left/right sides does not create a new team.</div>
+          <div class="text-xs text-slate-500">Partners only · minimum 5 matches together. Identity uses sorted player IDs (side order does not matter).</div>
         </div>
         <div class="surface-card rounded-2xl overflow-hidden">
           <div class="px-4 py-3.5 border-b border-slate-200">
@@ -3626,10 +3626,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.45';
+    const APP_VERSION = '7.46';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 16300;
+    const APP_LINES = 16472;
 
     let state = {
       players: [],
@@ -13346,7 +13346,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
         row.lastPlayed = row.matches[0]?.date || null;
         row.firstPlayed = row.matches[row.matches.length - 1]?.date || null;
         return row;
-      }).sort((a, b) => b.total - a.total || b.wins - a.wins || a.names.join(' + ').localeCompare(b.names.join(' + ')));
+      }).filter(row => row.total >= 5)
+        .sort((a, b) => b.total - a.total || b.wins - a.wins || a.names.join(' + ').localeCompare(b.names.join(' + ')));
     }
 
     function renderPartnershipStats() {
@@ -13375,7 +13376,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       ].map(([label,value]) => '<div class="surface-card rounded-2xl p-4"><p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">' + label + '</p><p class="text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">' + value.toLocaleString() + '</p></div>').join('');
 
       if (!filtered.length) {
-        body.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-sm text-slate-500">No completed two-player partnerships found' + (selected ? ' for this player' : '') + ' yet.</td></tr>';
+        body.innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-sm text-slate-500">No partnerships with 5+ matches found' + (selected ? ' for this player' : '') + ' yet.</td></tr>';
       } else {
         body.innerHTML = filtered.map(r => {
           const name = r.names.map(n => n || 'Unknown player').join(' + ');
