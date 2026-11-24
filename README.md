@@ -1,8 +1,10 @@
-# LCFC Manager v7.46
+# LCFC Manager v7.47
+
+LCFC Manager v7.47
 
 Lake Champlain Foosball Club manager and TV-board app.
 
-## What's new in v7.46
+## What's new in v7.47
 
 ### Teams filter
 - Partnership leaderboard now requires **at least 5 matches together** (partners only).
@@ -26,6 +28,6 @@ Lake Champlain Foosball Club manager and TV-board app.
 
 ## Version
 
-- App version: **7.46**
+- App version: **7.47**
 - Build date: **November 23, 2026**
 - Main file: `index.html`
