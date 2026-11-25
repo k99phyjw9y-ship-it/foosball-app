@@ -1,29 +1,40 @@
-# LCFC Manager v7.49
+# LCFC Manager v7.50
 
 Lake Champlain Foosball Club manager and TV-board app.
+
+## What's new in v7.50
+
+### Unified tournament-aware player attribution
+- Added a shared `resolveMatchPlayerIds(tournament, entity)` resolver for player-stat calculations.
+- Resolution prefers valid explicit player IDs, then roster IDs resolved from the tournament's saved teams / playoff teams by team ID, and finally the existing entity/name resolution fallback.
+- This fixes historical team-name spelling drift where a team ID was valid but one partner's name failed to match the current roster.
+- Applied to player career, weekly, and event-type match stats; designated forward/goalie stats; best-single-night totals; close-win/loss and streak stats; and playoff win counts.
+- Player attribution uses existing saved rosters and IDs. It does not change match outcomes or scores.
+
+### Scope and safeguards
+- No changes to ranking points, bonus points, standings, seeding, scoring, or playoff rules.
+- Existing tournament data is not rewritten; stats are resolved when displayed/calculated.
+- The earlier v7.49 Awards podium fix remains in place.
 
 ## What's new in v7.49
 
 ### Awards podium resolution fix
-- Awards podium aggregation now resolves historical team placements through the tournament's saved team roster by team ID.
-- This handles placement records containing only `{id, name}` and avoids losing team members when historical names have spelling variations.
-- The fix is limited to Club Stats podium/playoff appearance aggregation and does not alter ranking points, bonus points, seeding, match results, or playoff calculations.
+- Awards podium aggregation resolves historical team placements through saved tournament team rosters by team ID.
+- Handles placement records containing only `{id, name}` and spelling variations in historical team names.
 
 ## What's new in v7.45
 
 ### Teams statistics
 - Added a **Teams** section beside Club DNA and Awards in Club Stats.
-- Tracks all-time partnerships where the same two roster players appear together on one side of a completed match.
-- Partnership identity uses the two player IDs in sorted order, so reversing the team-side order does not create a second partnership.
-- Shows total appearances, ranking-match appearances, playoff appearances, wins, losses, win percentage, first played, and last played.
-- Includes a player filter and a match-history view for each partnership.
-- Best-of series count once as one partnership appearance, not once per game.
+- Tracks all-time partnerships using roster player IDs, independent of the order players appear on a team.
+- Shows appearances, ranking-match and playoff appearances, wins, losses, win percentage, first played, and last played.
+- Includes a player filter and match-history view.
+- Best-of series count as one partnership appearance.
 
 ### Separation and counting rules
-- Ranking / Swiss-round matches and bracket / playoff matches are counted and displayed separately.
-- Only completed, non-void matches with a valid result are included. Byes, unfinished matches, sandbox events, singles sides, and sides that do not resolve to exactly two roster players are excluded.
-- Team statistics are read-only and derived from existing tournament records. They do **not** change ranking points, bonus points, seeding, standings, or playoff calculations.
-- The Teams page summary counts partnership appearances across all qualifying sides. A completed doubles match can therefore add one appearance to each of its two partnerships.
+- Ranking / Swiss-round matches and bracket / playoff matches are counted separately.
+- Only completed, non-void matches with valid results are included. Byes, unfinished matches, sandbox events, singles sides, and sides that do not resolve to exactly two roster players are excluded.
+- Team stats are read-only and derived from existing tournament records. They do not change ranking points, bonus points, seeding, standings, or playoff calculations.
 
 ## Run the app
 
@@ -35,6 +46,6 @@ The app is a single-page HTML application. No separate build step is required.
 
 ## Version
 
-- App version: **7.49**
+- App version: **7.50**
 - Build date: **November 25, 2026**
 - Main file: `index.html`

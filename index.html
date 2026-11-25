@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.49 | 2026-11-25 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.50 | 2026-11-25 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
@@ -3626,7 +3626,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.49';
+    const APP_VERSION = '7.50';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 16681;
@@ -11555,6 +11555,38 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return [];
     }
 
+    /**
+     * Tournament-aware player resolution. When a match entity carries a team ID
+     * but its display name has spelling drift, resolve against saved team rosters
+     * before attempting name parsing. This is attribution-only, not score logic.
+     */
+    function resolveMatchPlayerIds(t, ent) {
+      if (!ent) return [];
+      const valid = (ids) => Array.isArray(ids) ? ids.filter(pid => state.players.some(p => p.id === pid)) : [];
+      const explicit = valid(ent.playerIds);
+      if (explicit.length) return explicit;
+      const direct = entityPlayerIds(ent);
+      if (direct.length) return direct;
+      if (ent.id && t) {
+        const saved = [...(Array.isArray(t.teams) ? t.teams : []), ...(Array.isArray(t.playoffTeams) ? t.playoffTeams : [])];
+        const team = saved.find(x => x && x.id === ent.id && Array.isArray(x.playerIds));
+        if (team) {
+          const ids = valid(team.playerIds);
+          if (ids.length) return ids;
+        }
+        // Some historical team rosters are attached to the rounds themselves.
+        for (const round of (t.rounds || [])) {
+          const teams = Array.isArray(round.teams) ? round.teams : [];
+          const match = teams.find(x => x && x.id === ent.id && Array.isArray(x.playerIds));
+          if (match) {
+            const ids = valid(match.playerIds);
+            if (ids.length) return ids;
+          }
+        }
+      }
+      return direct;
+    }
+
     function playerDisplayName(pid) {
       const p = state.players.find(x => x.id === pid);
       if (p) return p.name;
@@ -11671,8 +11703,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
             if (!outcome) return;
             applyResult(
               t, weekKey, typeKey,
-              entityPlayerIds(m.entityA),
-              entityPlayerIds(m.entityB),
+              resolveMatchPlayerIds(t, m.entityA),
+              resolveMatchPlayerIds(t, m.entityB),
               outcome.gfA, outcome.gfB, outcome.aWin
             );
           });
@@ -11688,8 +11720,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (!outcome) return;
           applyResult(
             t, weekKey, typeKey,
-            entityPlayerIds(aEnt),
-            entityPlayerIds(bEnt),
+            resolveMatchPlayerIds(t, aEnt),
+            resolveMatchPlayerIds(t, bEnt),
             outcome.gfA, outcome.gfB, outcome.aWin
           );
         });
@@ -12010,7 +12042,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
               aWin = m.scoreA > m.scoreB;
             }
             const applySide = (ent, gf, ga, win) => {
-              const ids = entityPlayerIds(ent);
+              const ids = resolveMatchPlayerIds(t, ent);
               const positions = ent?.positions || null;
               if (!positions) return; // only count when F/G was assigned
               ids.forEach(pid => {
@@ -12107,8 +12139,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
           if (!m || m.void) return;
           if (m.scoreA == null || m.scoreB == null || m.scoreA === m.scoreB) return;
           if (m.scoreA === 0 && m.scoreB === 0) return;
-          const aIds = entityPlayerIds(entA);
-          const bIds = entityPlayerIds(entB);
+          const aIds = resolveMatchPlayerIds(t, entA);
+          const bIds = resolveMatchPlayerIds(t, entB);
           if (!aIds.length || !bIds.length) return;
           bump(aIds, m.scoreA > m.scoreB);
           bump(bIds, m.scoreB > m.scoreA);
@@ -12153,8 +12185,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
               if (scoreA === 0 && scoreB === 0) return;
               const margin = Math.abs(scoreA - scoreB);
               const aWin = scoreA > scoreB;
-              entityPlayerIds(m.entityA).forEach(pid => pushResult(pid, aWin, margin));
-              entityPlayerIds(m.entityB).forEach(pid => pushResult(pid, !aWin, margin));
+              resolveMatchPlayerIds(t, m.entityA).forEach(pid => pushResult(pid, aWin, margin));
+              resolveMatchPlayerIds(t, m.entityB).forEach(pid => pushResult(pid, !aWin, margin));
             };
             if (games.length) games.forEach(g => applyGame(g.scoreA, g.scoreB));
             else applyGame(m.scoreA, m.scoreB);
@@ -12172,8 +12204,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
             if (scoreA === 0 && scoreB === 0) return;
             const margin = Math.abs(scoreA - scoreB);
             const aWin = scoreA > scoreB;
-            entityPlayerIds(entA).forEach(pid => pushResult(pid, aWin, margin));
-            entityPlayerIds(entB).forEach(pid => pushResult(pid, !aWin, margin));
+            resolveMatchPlayerIds(t, entA).forEach(pid => pushResult(pid, aWin, margin));
+            resolveMatchPlayerIds(t, entB).forEach(pid => pushResult(pid, !aWin, margin));
           };
           if (games.length) games.forEach(g => applyGame(g.scoreA, g.scoreB));
           else applyGame(m.scoreA, m.scoreB);
@@ -12214,7 +12246,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
             if (m.scoreA === 0 && m.scoreB === 0) return;
             aWin = m.scoreA > m.scoreB;
           } else return;
-          entityPlayerIds(aWin ? entA : entB).forEach(pid => {
+          resolveMatchPlayerIds(t, aWin ? entA : entB).forEach(pid => {
             wins[pid] = (wins[pid] || 0) + 1;
           });
         });
