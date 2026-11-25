@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.48 | 2026-11-24 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.49 | 2026-11-25 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.48" />
+  <meta name="lcfc-build" content="7.49" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.48 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.49 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2653,7 +2653,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.45</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.49</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3626,7 +3626,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.48';
+    const APP_VERSION = '7.49';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 16681;
@@ -11714,11 +11714,22 @@ function flipRankingMatchCoin(roundNum, matchId) {
         map[p.id] = { playoffs: 0, first: 0, second: 0, third: 0 };
       });
 
-      const credit = (ent, place) => {
-        if (!ent) return;
+      // Resolve historical placement/team entities using the tournament's saved
+      // team roster first. Placement objects may contain only {id,name}, and
+      // their display names can drift from the current roster spelling.
+      const resolveForTournament = (t, ent) => {
+        if (!ent) return [];
         const ids = entityPlayerIds(ent);
-        // Fallback: singles entity is often {id, name}
-        const list = ids.length ? ids : (ent.id && state.players.some(p => p.id === ent.id) ? [ent.id] : []);
+        if (ids.length) return ids;
+        const savedTeams = [...(Array.isArray(t.teams) ? t.teams : []), ...(Array.isArray(t.playoffTeams) ? t.playoffTeams : [])];
+        const team = savedTeams.find(x => x && ent.id && x.id === ent.id);
+        if (team && Array.isArray(team.playerIds)) return team.playerIds.filter(pid => state.players.some(p => p.id === pid));
+        return ent.id && state.players.some(p => p.id === ent.id) ? [ent.id] : [];
+      };
+
+      const credit = (t, ent, place) => {
+        if (!ent) return;
+        const list = resolveForTournament(t, ent);
         list.forEach(pid => {
           if (!map[pid]) map[pid] = { playoffs: 0, first: 0, second: 0, third: 0 };
           if (place === 'first') map[pid].first++;
@@ -11733,8 +11744,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         const seen = new Set();
         const note = (ent) => {
           if (!ent) return;
-          const ids = entityPlayerIds(ent);
-          const list = ids.length ? ids : (ent.id && state.players.some(p => p.id === ent.id) ? [ent.id] : []);
+          const list = resolveForTournament(t, ent);
           list.forEach(pid => {
             if (!seen.has(pid)) {
               seen.add(pid);
@@ -11764,9 +11774,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
         if (!t.playoffs) return;
         countPlayoffAppearance(t);
         if (p) {
-          credit(p.first, 'first');
-          credit(p.second, 'second');
-          credit(p.third, 'third');
+          credit(t, p.first, 'first');
+          credit(t, p.second, 'second');
+          credit(t, p.third, 'third');
         }
       });
 
