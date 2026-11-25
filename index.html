@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.47 | 2026-11-24 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.48 | 2026-11-24 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.47" />
+  <meta name="lcfc-build" content="7.48" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.47 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.48 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -3626,10 +3626,10 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.47';
+    const APP_VERSION = '7.48';
     const APP_UPDATED = 'Nov 11, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
-    const APP_LINES = 16512;
+    const APP_LINES = 16681;
 
     let state = {
       players: [],
@@ -12273,6 +12273,168 @@ function flipRankingMatchCoin(roundNum, matchId) {
       return { hare: pack(byShort[0]), tortoise: pack(byLong[0]) };
     }
 
+    
+    /** Extra crazy awards: Blitzes, Table Ghost, Giant Killer, Serve Luck (display only). */
+    function computeExtraCrazyAwardHolders() {
+      const blitz = {}; // pid -> { sumMs, n, name }
+      const tableStats = {}; // pid -> { tableNum: { played, wins } }
+      const giant = {}; // pid -> underdog playoff wins
+      const serve = {}; // pid -> { played, wins }
+
+      const bump = (map, pid, name) => {
+        if (!map[pid]) map[pid] = { name: name || '?', played: 0, wins: 0 };
+        return map[pid];
+      };
+
+      const sideIds = (t, ent) => {
+        let ids = [];
+        try {
+          if (typeof entityPlayerIds === 'function') ids = entityPlayerIds(ent) || [];
+        } catch (e) {}
+        if (!ids.length && ent && Array.isArray(ent.playerIds)) ids = ent.playerIds.slice();
+        if (!ids.length && ent && ent.id && (state.players || []).some(p => p.id === ent.id)) ids = [ent.id];
+        return (ids || []).filter(Boolean);
+      };
+
+      const walkMatch = (t, m, isPlayoff) => {
+        if (!m || m.void) return;
+        let outcome = null;
+        try { outcome = resolveMatchOutcome(m, t); } catch (e) { return; }
+        if (!outcome) return;
+        const entA = isPlayoff ? (m.a?.entity || m.entityA) : m.entityA;
+        const entB = isPlayoff ? (m.b?.entity || m.entityB) : m.entityB;
+        const aIds = sideIds(t, entA);
+        const bIds = sideIds(t, entB);
+        if (!aIds.length || !bIds.length) return;
+
+        // Blitzes: avg timed duration
+        const tStart = m.timerStartAt != null ? m.timerStartAt : m.timerStartedAt;
+        if (m.timerEndedAt != null && tStart != null) {
+          const ms = Number(m.timerEndedAt) - Number(tStart);
+          if (isFinite(ms) && ms >= 0 && ms <= 3 * 60 * 60 * 1000) {
+            const all = aIds.concat(bIds);
+            all.forEach(pid => {
+              const p = state.players.find(x => x.id === pid);
+              if (!blitz[pid]) blitz[pid] = { name: p?.name || '?', sumMs: 0, n: 0 };
+              blitz[pid].sumMs += ms;
+              blitz[pid].n++;
+            });
+          }
+        }
+
+        // Table Ghost: WR by table number
+        const tableNum = parseInt(m.table, 10);
+        if (tableNum >= 1) {
+          const applyTable = (ids, won) => {
+            ids.forEach(pid => {
+              const p = state.players.find(x => x.id === pid);
+              if (!tableStats[pid]) tableStats[pid] = { name: p?.name || '?', byTable: {} };
+              if (!tableStats[pid].byTable[tableNum]) tableStats[pid].byTable[tableNum] = { played: 0, wins: 0 };
+              const row = tableStats[pid].byTable[tableNum];
+              row.played++;
+              if (won) row.wins++;
+            });
+          };
+          applyTable(aIds, outcome.aWin);
+          applyTable(bIds, !outcome.aWin);
+        }
+
+        // Serve Luck
+        const ct = m.coinToss;
+        const serveSide = ct && ct.serveSide;
+        if (serveSide === 'a' || serveSide === 'b') {
+          const serveIds = serveSide === 'a' ? aIds : bIds;
+          const serveWon = serveSide === 'a' ? outcome.aWin : !outcome.aWin;
+          serveIds.forEach(pid => {
+            const p = state.players.find(x => x.id === pid);
+            const row = bump(serve, pid, p?.name);
+            row.played++;
+            if (serveWon) row.wins++;
+          });
+        }
+
+        // Giant Killer: playoff underdog wins only
+        if (isPlayoff) {
+          const sa = Number(m.a?.seed != null ? m.a.seed : (entA && entA.seed));
+          const sb = Number(m.b?.seed != null ? m.b.seed : (entB && entB.seed));
+          if (sa > 0 && sb > 0 && sa !== sb) {
+            if (outcome.aWin && sa > sb) {
+              aIds.forEach(pid => {
+                const p = state.players.find(x => x.id === pid);
+                if (!giant[pid]) giant[pid] = { name: p?.name || '?', wins: 0 };
+                giant[pid].wins++;
+              });
+            } else if (!outcome.aWin && sb > sa) {
+              bIds.forEach(pid => {
+                const p = state.players.find(x => x.id === pid);
+                if (!giant[pid]) giant[pid] = { name: p?.name || '?', wins: 0 };
+                giant[pid].wins++;
+              });
+            }
+          }
+        }
+      };
+
+      (state.tournaments || []).forEach(t => {
+        if (!t || (typeof isSandboxTournament === 'function' && isSandboxTournament(t))) return;
+        (t.rounds || []).forEach(r => (r.matches || []).forEach(m => walkMatch(t, m, false)));
+        if (t.playoffs && typeof collectBracketMatches === 'function') {
+          try {
+            collectBracketMatches(t.playoffs).forEach(m => walkMatch(t, m, true));
+          } catch (e) {}
+        }
+      });
+
+      // Blitzes: lowest avg ms, min 3 timed
+      let blitzer = null;
+      Object.keys(blitz).forEach(pid => {
+        const row = blitz[pid];
+        if (row.n < 3) return;
+        const avg = row.sumMs / row.n;
+        const cand = { name: row.name, avgMs: avg, n: row.n, avgLabel: (typeof formatTimerMs === 'function') ? formatTimerMs(avg) : (Math.floor(avg/60000) + ':' + String(Math.floor((avg%60000)/1000)).padStart(2,'0')) };
+        if (!blitzer || avg < blitzer.avgMs || (avg === blitzer.avgMs && row.name.localeCompare(blitzer.name) < 0)) blitzer = cand;
+      });
+
+      // Table Ghost: best WR on a single table with ≥5 matches on that table
+      let ghost = null;
+      Object.keys(tableStats).forEach(pid => {
+        const info = tableStats[pid];
+        Object.keys(info.byTable).forEach(tn => {
+          const st = info.byTable[tn];
+          if (st.played < 5) return;
+          const wr = st.wins / st.played;
+          const cand = { name: info.name, table: Number(tn), played: st.played, wins: st.wins, wr };
+          if (!ghost || wr > ghost.wr || (wr === ghost.wr && st.played > ghost.played) || (wr === ghost.wr && st.played === ghost.played && info.name.localeCompare(ghost.name) < 0)) {
+            ghost = cand;
+          }
+        });
+      });
+
+      // Giant Killer
+      let killer = null;
+      Object.keys(giant).forEach(pid => {
+        const row = giant[pid];
+        if (row.wins < 1) return;
+        const cand = { name: row.name, wins: row.wins };
+        if (!killer || row.wins > killer.wins || (row.wins === killer.wins && row.name.localeCompare(killer.name) < 0)) killer = cand;
+      });
+
+      // Serve Luck: best WR when serving, min 5 serve matches
+      let serveLuck = null;
+      Object.keys(serve).forEach(pid => {
+        const row = serve[pid];
+        if (row.played < 5) return;
+        const wr = row.wins / row.played;
+        const cand = { name: row.name, played: row.played, wins: row.wins, wr };
+        if (!serveLuck || wr > serveLuck.wr || (wr === serveLuck.wr && row.played > serveLuck.played) || (wr === serveLuck.wr && row.played === serveLuck.played && row.name.localeCompare(serveLuck.name) < 0)) {
+          serveLuck = cand;
+        }
+      });
+
+      return { blitzer, ghost, killer, serveLuck };
+    }
+
+
     function computeCrazyAwards() {
 
       const { career } = computeAllPlayerStats();
@@ -12283,6 +12445,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const drama = computeDramaAndStreakStats();
       const playoffWins = computePlayoffWinCounts();
       const speed = computeSpeedAwards();
+      const extra = (typeof computeExtraCrazyAwardHolders === 'function')
+        ? computeExtraCrazyAwardHolders()
+        : { blitzer: null, ghost: null, killer: null, serveLuck: null };
 
       const players = state.players.map(p => {
         const s = career[p.id] || emptyPlayerStat();
@@ -12383,6 +12548,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
         // Match clocks (need timerStartAt / timerEndedAt on completed matches)
         { emoji: '🐇', label: 'Hare', desc: 'Shortest timed match', holder: speed.hare, detail: p => `${p.time} · ${p.eventName}`, isMatch: true },
         { emoji: '🐢', label: 'Tortoise', desc: 'Longest timed match', holder: speed.tortoise, detail: p => `${p.time} · ${p.eventName}`, isMatch: true },
+        { emoji: '⚡', label: 'Blitzes', desc: 'Fastest average match (3+ timed)', holder: extra.blitzer, detail: p => `${p.avgLabel} avg · ${p.n} timed`, isMatch: true },
+        { emoji: '👻', label: 'Table Ghost', desc: 'Best win rate on one table (5+ there)', holder: extra.ghost, detail: p => `T${p.table} · ${(p.wr*100).toFixed(0)}% · ${p.wins}-${p.played - p.wins}`, isMatch: true },
+        { emoji: '🗡️', label: 'Giant Killer', desc: 'Most underdog playoff wins', holder: extra.killer, detail: p => `${p.wins} lower-seed wins`, isMatch: true },
+        { emoji: '🎲', label: 'Serve Luck', desc: 'Best win rate when serving (5+)', holder: extra.serveLuck, detail: p => `${(p.wr*100).toFixed(0)}% · ${p.wins}-${p.played - p.wins} on serve`, isMatch: true },
       ];
       return awards;
     }
