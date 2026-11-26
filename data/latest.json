@@ -1,15 +1,15 @@
 {
   "app": "LCFC Manager",
-  "version": "7.46",
-  "exportedAt": "2026-11-24T15:51:00.866Z",
+  "version": "7.50",
+  "exportedAt": "2026-11-26T03:33:15.127Z",
   "type": "full",
   "players": [
     {
       "id": "mt0nwn4xmpohds",
       "name": "Mark Drollette",
       "skill": 3,
-      "rankingPoints": 2404,
-      "rankingDelta": 404,
+      "rankingPoints": 2495,
+      "rankingDelta": 495,
       "region": "NY",
       "homeState": "NY"
     },
@@ -35,8 +35,8 @@
       "id": "mt0nxay02r25zq",
       "name": "Travis Watts",
       "skill": 3,
-      "rankingPoints": 2389,
-      "rankingDelta": 389,
+      "rankingPoints": 2425,
+      "rankingDelta": 425,
       "region": "NY",
       "homeState": "NY"
     },
@@ -62,8 +62,8 @@
       "id": "mt0nxv9u55yuou",
       "name": "Luke Bolton",
       "skill": 3,
-      "rankingPoints": 2390,
-      "rankingDelta": 390,
+      "rankingPoints": 2382,
+      "rankingDelta": 382,
       "region": "VT",
       "homeState": "VT"
     },
@@ -71,8 +71,8 @@
       "id": "mt0ny0jxioo10e",
       "name": "John Friedrich",
       "skill": 3,
-      "rankingPoints": 2944,
-      "rankingDelta": 944,
+      "rankingPoints": 3035,
+      "rankingDelta": 1035,
       "region": "NY",
       "homeState": "NY"
     },
@@ -125,8 +125,8 @@
       "id": "mtums36hfqfz2g",
       "name": "Greg Dimoulas",
       "skill": 3,
-      "rankingPoints": 2000,
-      "rankingDelta": 0,
+      "rankingPoints": 2036,
+      "rankingDelta": 36,
       "region": "ME",
       "homeState": "ME"
     },
@@ -134,8 +134,8 @@
       "id": "mtums9xsjyy1m5",
       "name": "Arlo Halloran",
       "skill": 3,
-      "rankingPoints": 2000,
-      "rankingDelta": 0,
+      "rankingPoints": 2062,
+      "rankingDelta": 62,
       "region": "NY",
       "homeState": "NY"
     },
@@ -255,9 +255,3561 @@
       "rankingDelta": 0,
       "region": "NY",
       "homeState": "NY"
+    },
+    {
+      "id": "mwwubqllweemr3",
+      "name": "Rich Burnett",
+      "skill": 3,
+      "rankingPoints": 2062,
+      "rankingDelta": 62,
+      "region": "NY",
+      "homeState": "NY"
+    },
+    {
+      "id": "mwwucua4u4kmf9",
+      "name": "Nick Burnett",
+      "skill": 3,
+      "rankingPoints": 1992,
+      "rankingDelta": -8,
+      "region": "NY",
+      "homeState": "NY"
     }
   ],
   "tournaments": [
+    {
+      "id": "mwwov0ye58p5m0",
+      "name": "11/25/26",
+      "type": "monster",
+      "format": "swiss",
+      "raceTo": 5,
+      "bestOf": 1,
+      "tables": 3,
+      "drawStyle": "random",
+      "monsterPositions": false,
+      "colorBand": "spec-ec-monster",
+      "sandbox": false,
+      "playerIds": [
+        "mt0nx3tat1qdas",
+        "mt0ny0jxioo10e",
+        "mtam60ss4h296q",
+        "mtam7vy29u3ef7",
+        "mt0nwn4xmpohds",
+        "mt0nxay02r25zq",
+        "mt0nxv9u55yuou",
+        "mt0qmkfrn6n3xe",
+        "mtums9xsjyy1m5",
+        "mtums36hfqfz2g",
+        "mt0oabvkv4ftoq",
+        "mwwubqllweemr3",
+        "mwwucua4u4kmf9"
+      ],
+      "absentIds": [
+        "mt0nx3tat1qdas",
+        "mt0oabvkv4ftoq",
+        "mt0qmkfrn6n3xe",
+        "mtam7vy29u3ef7",
+        "mtam60ss4h296q"
+      ],
+      "teams": [
+        {
+          "id": "mwwwmhbruk7id2",
+          "playerIds": [
+            "mt0ny0jxioo10e",
+            "mt0nwn4xmpohds"
+          ],
+          "name": "John Friedrich + Mark Drollette"
+        },
+        {
+          "id": "mwwwmhbrjzmd7y",
+          "playerIds": [
+            "mt0nxv9u55yuou",
+            "mwwucua4u4kmf9"
+          ],
+          "name": "Luke Bolton + Nick Burnett"
+        },
+        {
+          "id": "mwwwmhbroyev8k",
+          "playerIds": [
+            "mtums9xsjyy1m5",
+            "mwwubqllweemr3"
+          ],
+          "name": "Arlo Halloran + Rich Burnett"
+        },
+        {
+          "id": "mwwwmhbri46od4",
+          "playerIds": [
+            "mt0nxay02r25zq",
+            "mtums36hfqfz2g"
+          ],
+          "name": "Travis Watts + Greg Dimoulas"
+        }
+      ],
+      "rounds": [
+        {
+          "number": 1,
+          "matches": [
+            {
+              "id": "mwwqsx2dfu16x6",
+              "entityA": {
+                "id": "mwwqsx1lqxtaw5",
+                "name": "Alan Feazelle + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwqsx1l5awudt",
+                "name": "Keith Podolak + Lucas St. Denis",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mtam7vy29u3ef7"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1795648581733
+              },
+              "timerStartAt": 1795648611734,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795649083426
+            },
+            {
+              "id": "mwwqsx2dxfs082",
+              "entityA": {
+                "id": "mwwqsx1lzkvkim",
+                "name": "Mark Drollette + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwqsx1le24chz",
+                "name": "Luke Bolton + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxv9u55yuou",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "ghost-dog",
+                "serveSide": "b",
+                "flippedAt": 1795648581734
+              },
+              "timerStartAt": 1795648611734,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795649089540
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwwqsx1lqxtaw5",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Alan Feazelle + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwwqsx1l5awudt",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mtam7vy29u3ef7"
+              ],
+              "name": "Keith Podolak + Lucas St. Denis",
+              "positions": null
+            },
+            {
+              "id": "mwwqsx1lzkvkim",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Mark Drollette + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwwqsx1le24chz",
+              "playerIds": [
+                "mt0nxv9u55yuou",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Luke Bolton + Ghost Dog",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "matches": [
+            {
+              "id": "mwwr4h94fvyufq",
+              "entityA": {
+                "id": "mwwr4h8doc96e8",
+                "name": "John Friedrich + Keith Podolak",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mtam60ss4h296q"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwr4h8elkrole",
+                "name": "Travis Watts + Luke Bolton",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nxv9u55yuou"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795649121112
+              },
+              "timerStartAt": 1795649151112,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795649460143
+            },
+            {
+              "id": "mwwr4h94ivuyls",
+              "entityA": {
+                "id": "mwwr4h8e4fjny3",
+                "name": "Lucas St. Denis + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mtam7vy29u3ef7",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwr4h8e5y8alw",
+                "name": "Arlo Halloran + Greg Dimoulas",
+                "type": "team",
+                "playerIds": [
+                  "mtums9xsjyy1m5",
+                  "mtums36hfqfz2g"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1795649121112
+              },
+              "timerStartAt": 1795649151112,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795649848782
+            }
+          ],
+          "sitOutIds": [
+            "mt0nx3tat1qdas"
+          ],
+          "teams": [
+            {
+              "id": "mwwr4h8doc96e8",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mtam60ss4h296q"
+              ],
+              "name": "John Friedrich + Keith Podolak",
+              "positions": null
+            },
+            {
+              "id": "mwwr4h8e4fjny3",
+              "playerIds": [
+                "mtam7vy29u3ef7",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Lucas St. Denis + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mwwr4h8elkrole",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nxv9u55yuou"
+              ],
+              "name": "Travis Watts + Luke Bolton",
+              "positions": null
+            },
+            {
+              "id": "mwwr4h8e5y8alw",
+              "playerIds": [
+                "mtums9xsjyy1m5",
+                "mtums36hfqfz2g"
+              ],
+              "name": "Arlo Halloran + Greg Dimoulas",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "matches": [
+            {
+              "id": "mwwrk9idbgvgba",
+              "entityA": {
+                "id": "mwwrk9hmcr7hwa",
+                "name": "Greg Dimoulas + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mtums36hfqfz2g",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwrk9hmdesl5g",
+                "name": "Travis Watts + Arlo Halloran",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mtums9xsjyy1m5"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795649857573
+              },
+              "timerStartAt": 1795649887573,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795650429412
+            },
+            {
+              "id": "mwwrk9idavcv68",
+              "entityA": {
+                "id": "mwwrk9hmaabag7",
+                "name": "Alan Feazelle + Lucas St. Denis",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mtam7vy29u3ef7"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwrk9hmpwmu3a",
+                "name": "Mark Drollette + Luke Bolton",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mt0nxv9u55yuou"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1795649857573
+              },
+              "timerStartAt": 1795649887573,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795650401285
+            }
+          ],
+          "sitOutIds": [
+            "mt0ny0jxioo10e",
+            "mtam60ss4h296q"
+          ],
+          "teams": [
+            {
+              "id": "mwwrk9hmaabag7",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mtam7vy29u3ef7"
+              ],
+              "name": "Alan Feazelle + Lucas St. Denis",
+              "positions": null
+            },
+            {
+              "id": "mwwrk9hmpwmu3a",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mt0nxv9u55yuou"
+              ],
+              "name": "Mark Drollette + Luke Bolton",
+              "positions": null
+            },
+            {
+              "id": "mwwrk9hmdesl5g",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mtums9xsjyy1m5"
+              ],
+              "name": "Travis Watts + Arlo Halloran",
+              "positions": null
+            },
+            {
+              "id": "mwwrk9hmcr7hwa",
+              "playerIds": [
+                "mtums36hfqfz2g",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Greg Dimoulas + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 4,
+          "matches": [
+            {
+              "id": "mwwrwokd9poqnu",
+              "entityA": {
+                "id": "mwwrwoip6ry3of",
+                "name": "Arlo Halloran + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mtums9xsjyy1m5",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwrwoipclh89u",
+                "name": "Alan Feazelle + Keith Podolak",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mtam60ss4h296q"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1795650436957
+              },
+              "timerStartAt": 1795650466957,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795650989228
+            },
+            {
+              "id": "mwwrwokd6vpm3n",
+              "entityA": {
+                "id": "mwwrwoip6uq645",
+                "name": "John Friedrich + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwrwoipwsmbb5",
+                "name": "Travis Watts + Greg Dimoulas",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mtums36hfqfz2g"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1795650436957
+              },
+              "timerStartAt": 1795650466957,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795650864652
+            }
+          ],
+          "sitOutIds": [
+            "mtam7vy29u3ef7",
+            "mt0nxv9u55yuou"
+          ],
+          "teams": [
+            {
+              "id": "mwwrwoipclh89u",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mtam60ss4h296q"
+              ],
+              "name": "Alan Feazelle + Keith Podolak",
+              "positions": null
+            },
+            {
+              "id": "mwwrwoip6uq645",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "John Friedrich + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mwwrwoipwsmbb5",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mtums36hfqfz2g"
+              ],
+              "name": "Travis Watts + Greg Dimoulas",
+              "positions": null
+            },
+            {
+              "id": "mwwrwoip6ry3of",
+              "playerIds": [
+                "mtums9xsjyy1m5",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Arlo Halloran + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "matches": [
+            {
+              "id": "mwws8otbdn6b29",
+              "entityA": {
+                "id": "mwws8osecmwn5g",
+                "name": "Lucas St. Denis + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mtam7vy29u3ef7",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwws8ose5d7yh2",
+                "name": "Keith Podolak + Greg Dimoulas",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mtums36hfqfz2g"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1795650997151
+              },
+              "timerStartAt": 1795651027151,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795651489640
+            },
+            {
+              "id": "mwws8otbkszoe7",
+              "entityA": {
+                "id": "mwws8osetjhplk",
+                "name": "John Friedrich + Arlo Halloran",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mtums9xsjyy1m5"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwws8osevesq6l",
+                "name": "Alan Feazelle + Luke Bolton",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mt0nxv9u55yuou"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1795650997151
+              },
+              "timerStartAt": 1795651027151,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795651409397
+            }
+          ],
+          "sitOutIds": [
+            "mt0nwn4xmpohds",
+            "mt0nxay02r25zq"
+          ],
+          "teams": [
+            {
+              "id": "mwws8osevesq6l",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mt0nxv9u55yuou"
+              ],
+              "name": "Alan Feazelle + Luke Bolton",
+              "positions": null
+            },
+            {
+              "id": "mwws8osetjhplk",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mtums9xsjyy1m5"
+              ],
+              "name": "John Friedrich + Arlo Halloran",
+              "positions": null
+            },
+            {
+              "id": "mwws8ose5d7yh2",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mtums36hfqfz2g"
+              ],
+              "name": "Keith Podolak + Greg Dimoulas",
+              "positions": null
+            },
+            {
+              "id": "mwws8osecmwn5g",
+              "playerIds": [
+                "mtam7vy29u3ef7",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Lucas St. Denis + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 6,
+          "matches": [
+            {
+              "id": "mwwsjd8hf19f46",
+              "entityA": {
+                "id": "mwwsjd78khqz67",
+                "name": "Luke Bolton + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxv9u55yuou",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwsjd78rbneg5",
+                "name": "John Friedrich + Lucas St. Denis",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mtam7vy29u3ef7"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1795651495361
+              },
+              "timerStartAt": 1795651525361,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795651954993
+            },
+            {
+              "id": "mwwsjd8hignbxl",
+              "entityA": {
+                "id": "mwwsjd78ztm72g",
+                "name": "Alan Feazelle + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwsjd78r5ctxe",
+                "name": "Keith Podolak + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1795651495361
+              },
+              "timerStartAt": 1795651525361,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795652107791
+            }
+          ],
+          "sitOutIds": [
+            "mtums9xsjyy1m5",
+            "mtums36hfqfz2g"
+          ],
+          "teams": [
+            {
+              "id": "mwwsjd78ztm72g",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Alan Feazelle + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mwwsjd78rbneg5",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mtam7vy29u3ef7"
+              ],
+              "name": "John Friedrich + Lucas St. Denis",
+              "positions": null
+            },
+            {
+              "id": "mwwsjd78r5ctxe",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Keith Podolak + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwwsjd78khqz67",
+              "playerIds": [
+                "mt0nxv9u55yuou",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Luke Bolton + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 7,
+          "matches": [
+            {
+              "id": "mwwsx6ykywthh0",
+              "entityA": {
+                "id": "mwwsx6xvqzyjso",
+                "name": "Lucas St. Denis + Arlo Halloran",
+                "type": "team",
+                "playerIds": [
+                  "mtam7vy29u3ef7",
+                  "mtums9xsjyy1m5"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwsx6xvok8fm6",
+                "name": "John Friedrich + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1795652140413
+              },
+              "timerStartAt": 1795652170413,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795652709853
+            },
+            {
+              "id": "mwwsx6yk5yjkru",
+              "entityA": {
+                "id": "mwwsx6xvrt8czw",
+                "name": "Keith Podolak + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwsx6xvxm8eqp",
+                "name": "Luke Bolton + Greg Dimoulas",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxv9u55yuou",
+                  "mtums36hfqfz2g"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795652140413
+              },
+              "timerStartAt": 1795652170413,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795652729527
+            }
+          ],
+          "sitOutIds": [
+            "mt0oabvkv4ftoq",
+            "mt0nx3tat1qdas"
+          ],
+          "teams": [
+            {
+              "id": "mwwsx6xvok8fm6",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mt0nxay02r25zq"
+              ],
+              "name": "John Friedrich + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwwsx6xvrt8czw",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Keith Podolak + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mwwsx6xvqzyjso",
+              "playerIds": [
+                "mtam7vy29u3ef7",
+                "mtums9xsjyy1m5"
+              ],
+              "name": "Lucas St. Denis + Arlo Halloran",
+              "positions": null
+            },
+            {
+              "id": "mwwsx6xvxm8eqp",
+              "playerIds": [
+                "mt0nxv9u55yuou",
+                "mtums36hfqfz2g"
+              ],
+              "name": "Luke Bolton + Greg Dimoulas",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 8,
+          "matches": [
+            {
+              "id": "mwwt9vsulaf0l7",
+              "entityA": {
+                "id": "mwwt9vrgwslxig",
+                "name": "Lucas St. Denis + Greg Dimoulas",
+                "type": "team",
+                "playerIds": [
+                  "mtam7vy29u3ef7",
+                  "mtums36hfqfz2g"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwt9vrguduz4s",
+                "name": "Alan Feazelle + Travis Watts",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mt0nxay02r25zq"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795652732478
+              },
+              "timerStartAt": 1795652762478,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795653438104
+            },
+            {
+              "id": "mwwt9vsumdki4q",
+              "entityA": {
+                "id": "mwwt9vrgpe79pz",
+                "name": "Luke Bolton + Arlo Halloran",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxv9u55yuou",
+                  "mtums9xsjyy1m5"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwt9vrg7im8ej",
+                "name": "Mark Drollette + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1795652732478
+              },
+              "timerStartAt": 1795652762478,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795653327101
+            }
+          ],
+          "sitOutIds": [
+            "mt0ny0jxioo10e",
+            "mtam60ss4h296q"
+          ],
+          "teams": [
+            {
+              "id": "mwwt9vrguduz4s",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mt0nxay02r25zq"
+              ],
+              "name": "Alan Feazelle + Travis Watts",
+              "positions": null
+            },
+            {
+              "id": "mwwt9vrgwslxig",
+              "playerIds": [
+                "mtam7vy29u3ef7",
+                "mtums36hfqfz2g"
+              ],
+              "name": "Lucas St. Denis + Greg Dimoulas",
+              "positions": null
+            },
+            {
+              "id": "mwwt9vrg7im8ej",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Mark Drollette + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mwwt9vrgpe79pz",
+              "playerIds": [
+                "mt0nxv9u55yuou",
+                "mtums9xsjyy1m5"
+              ],
+              "name": "Luke Bolton + Arlo Halloran",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 9,
+          "matches": [
+            {
+              "id": "mwwtp5q3ppn6sr",
+              "entityA": {
+                "id": "mwwtp5ooju2ktc",
+                "name": "Travis Watts + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwtp5ooprytov",
+                "name": "Alan Feazelle + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 1,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1795653445180
+              },
+              "timerStartAt": 1795653475180,
+              "games": [
+                {
+                  "scoreA": 1,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795653758309
+            },
+            {
+              "id": "mwwtp5q43ewf2y",
+              "entityA": {
+                "id": "mwwtp5oo4b7y3v",
+                "name": "Keith Podolak + Arlo Halloran",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mtums9xsjyy1m5"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwtp5oom7ww41",
+                "name": "Mark Drollette + Greg Dimoulas",
+                "type": "team",
+                "playerIds": [
+                  "mt0nwn4xmpohds",
+                  "mtums36hfqfz2g"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795653445180
+              },
+              "timerStartAt": 1795653475180,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795653903425
+            }
+          ],
+          "sitOutIds": [
+            "mtam7vy29u3ef7",
+            "mt0nxv9u55yuou"
+          ],
+          "teams": [
+            {
+              "id": "mwwtp5ooprytov",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Alan Feazelle + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwwtp5oo4b7y3v",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mtums9xsjyy1m5"
+              ],
+              "name": "Keith Podolak + Arlo Halloran",
+              "positions": null
+            },
+            {
+              "id": "mwwtp5oom7ww41",
+              "playerIds": [
+                "mt0nwn4xmpohds",
+                "mtums36hfqfz2g"
+              ],
+              "name": "Mark Drollette + Greg Dimoulas",
+              "positions": null
+            },
+            {
+              "id": "mwwtp5ooju2ktc",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Travis Watts + John Fairchild",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 10,
+          "matches": [
+            {
+              "id": "mwwtz3nkzui40l",
+              "entityA": {
+                "id": "mwwtz3mc4fm4d4",
+                "name": "Lucas St. Denis + Luke Bolton",
+                "type": "team",
+                "playerIds": [
+                  "mtam7vy29u3ef7",
+                  "mt0nxv9u55yuou"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwtz3mc6a4nor",
+                "name": "Alan Feazelle + Arlo Halloran",
+                "type": "team",
+                "playerIds": [
+                  "mt0nx3tat1qdas",
+                  "mtums9xsjyy1m5"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1795653909057
+              },
+              "timerStartAt": 1795653939057,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795654478071
+            },
+            {
+              "id": "mwwtz3nk2snnmj",
+              "entityA": {
+                "id": "mwwtz3mcu9yphk",
+                "name": "John Friedrich + Greg Dimoulas",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mtums36hfqfz2g"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwtz3mcpewdiy",
+                "name": "Keith Podolak + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1795653909057
+              },
+              "timerStartAt": 1795653939057,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795654468017
+            }
+          ],
+          "sitOutIds": [
+            "mt0nwn4xmpohds",
+            "mt0nxay02r25zq"
+          ],
+          "teams": [
+            {
+              "id": "mwwtz3mc6a4nor",
+              "playerIds": [
+                "mt0nx3tat1qdas",
+                "mtums9xsjyy1m5"
+              ],
+              "name": "Alan Feazelle + Arlo Halloran",
+              "positions": null
+            },
+            {
+              "id": "mwwtz3mcu9yphk",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mtums36hfqfz2g"
+              ],
+              "name": "John Friedrich + Greg Dimoulas",
+              "positions": null
+            },
+            {
+              "id": "mwwtz3mcpewdiy",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Keith Podolak + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mwwtz3mc4fm4d4",
+              "playerIds": [
+                "mtam7vy29u3ef7",
+                "mt0nxv9u55yuou"
+              ],
+              "name": "Lucas St. Denis + Luke Bolton",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 11,
+          "matches": [
+            {
+              "id": "mwwudzxciuo54s",
+              "entityA": {
+                "id": "mwwudzw7rqiudh",
+                "name": "Greg Dimoulas + Alan Feazelle",
+                "type": "team",
+                "playerIds": [
+                  "mtums36hfqfz2g",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwudzw81s8a40",
+                "name": "John Friedrich + Nick Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mwwucua4u4kmf9"
+                ],
+                "positions": null
+              },
+              "scoreA": 3,
+              "scoreB": 5,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1795654604065
+              },
+              "timerStartAt": 1795654634065,
+              "games": [
+                {
+                  "scoreA": 3,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795655032378
+            },
+            {
+              "id": "mwwudzxdm9cxrg",
+              "entityA": {
+                "id": "mwwudzw8g3fqw8",
+                "name": "John Fairchild + Rich Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mwwubqllweemr3"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwudzw8nqbk15",
+                "name": "Travis Watts + Lucas St. Denis",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mtam7vy29u3ef7"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795654604065
+              },
+              "timerStartAt": 1795654634065,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795655205810
+            },
+            {
+              "id": "mwwudzxdr12h3v",
+              "entityA": {
+                "id": "mwwudzw8ze98ga",
+                "name": "Keith Podolak + Luke Bolton",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mt0nxv9u55yuou"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwudzw823cmtt",
+                "name": "Arlo Halloran + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mtums9xsjyy1m5",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 3,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "heads",
+                "serveSide": "a",
+                "flippedAt": 1795654604065
+              },
+              "timerStartAt": 1795654634065,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795655043377
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwwudzw7rqiudh",
+              "playerIds": [
+                "mtums36hfqfz2g",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "Greg Dimoulas + Alan Feazelle",
+              "positions": null
+            },
+            {
+              "id": "mwwudzw823cmtt",
+              "playerIds": [
+                "mtums9xsjyy1m5",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Arlo Halloran + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mwwudzw8ze98ga",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mt0nxv9u55yuou"
+              ],
+              "name": "Keith Podolak + Luke Bolton",
+              "positions": null
+            },
+            {
+              "id": "mwwudzw8nqbk15",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mtam7vy29u3ef7"
+              ],
+              "name": "Travis Watts + Lucas St. Denis",
+              "positions": null
+            },
+            {
+              "id": "mwwudzw81s8a40",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mwwucua4u4kmf9"
+              ],
+              "name": "John Friedrich + Nick Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwwudzw8g3fqw8",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mwwubqllweemr3"
+              ],
+              "name": "John Fairchild + Rich Burnett",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 12,
+          "matches": [
+            {
+              "id": "mwwur3braid6lp",
+              "entityA": {
+                "id": "mwwur3anag2ebe",
+                "name": "John Friedrich + Luke Bolton",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mt0nxv9u55yuou"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwur3angfvrf6",
+                "name": "Greg Dimoulas + Rich Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mtums36hfqfz2g",
+                  "mwwubqllweemr3"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 1,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795655214999
+              },
+              "timerStartAt": 1795655244999,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 1
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795655460614
+            },
+            {
+              "id": "mwwur3brxeznti",
+              "entityA": {
+                "id": "mwwur3ania4hsj",
+                "name": "Travis Watts + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwur3an1dps4d",
+                "name": "Keith Podolak + Nick Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mwwucua4u4kmf9"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795655214999
+              },
+              "timerStartAt": 1795655244999,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795655563107
+            },
+            {
+              "id": "mwwur3brp8tzbc",
+              "entityA": {
+                "id": "mwwur3an8g9uxg",
+                "name": "Arlo Halloran + Lucas St. Denis",
+                "type": "team",
+                "playerIds": [
+                  "mtums9xsjyy1m5",
+                  "mtam7vy29u3ef7"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwur3anvyht1g",
+                "name": "John Fairchild + Alan Feazelle",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0nx3tat1qdas"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 3,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1795655214999
+              },
+              "timerStartAt": 1795655244999,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795656043871
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwwur3an1dps4d",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mwwucua4u4kmf9"
+              ],
+              "name": "Keith Podolak + Nick Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwwur3angfvrf6",
+              "playerIds": [
+                "mtums36hfqfz2g",
+                "mwwubqllweemr3"
+              ],
+              "name": "Greg Dimoulas + Rich Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwwur3ania4hsj",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Travis Watts + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mwwur3an8g9uxg",
+              "playerIds": [
+                "mtums9xsjyy1m5",
+                "mtam7vy29u3ef7"
+              ],
+              "name": "Arlo Halloran + Lucas St. Denis",
+              "positions": null
+            },
+            {
+              "id": "mwwur3anvyht1g",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0nx3tat1qdas"
+              ],
+              "name": "John Fairchild + Alan Feazelle",
+              "positions": null
+            },
+            {
+              "id": "mwwur3anag2ebe",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mt0nxv9u55yuou"
+              ],
+              "name": "John Friedrich + Luke Bolton",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 13,
+          "matches": [
+            {
+              "id": "mwwv9kiyklfaaw",
+              "entityA": {
+                "id": "mwwv9khw498eyy",
+                "name": "Luke Bolton + Nick Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxv9u55yuou",
+                  "mwwucua4u4kmf9"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwv9khw5mvc0g",
+                "name": "Greg Dimoulas + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mtums36hfqfz2g",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 2,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "ghost-dog",
+                "serveSide": "b",
+                "flippedAt": 1795656077099
+              },
+              "timerStartAt": 1795656107099,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 2
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795656330812
+            },
+            {
+              "id": "mwwv9kiyunjy00",
+              "entityA": {
+                "id": "mwwv9khwdeqp39",
+                "name": "Lucas St. Denis + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mtam7vy29u3ef7",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwv9khwacnf9k",
+                "name": "John Fairchild + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 1,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1795656077099
+              },
+              "timerStartAt": 1795656107099,
+              "games": [
+                {
+                  "scoreA": 1,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795656382733
+            },
+            {
+              "id": "mwwv9kizatu0xp",
+              "entityA": {
+                "id": "mwwv9khwz3f88z",
+                "name": "Travis Watts + Arlo Halloran",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mtums9xsjyy1m5"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwv9khwlqmin2",
+                "name": "Keith Podolak + Rich Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mwwubqllweemr3"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 1,
+              "table": 3,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1795656077099
+              },
+              "timerStartAt": 1795656107099,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 1
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795656395468
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwwv9khw498eyy",
+              "playerIds": [
+                "mt0nxv9u55yuou",
+                "mwwucua4u4kmf9"
+              ],
+              "name": "Luke Bolton + Nick Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwwv9khwlqmin2",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mwwubqllweemr3"
+              ],
+              "name": "Keith Podolak + Rich Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwwv9khw5mvc0g",
+              "playerIds": [
+                "mtums36hfqfz2g",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Greg Dimoulas + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mwwv9khwacnf9k",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "John Fairchild + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwwv9khwz3f88z",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mtums9xsjyy1m5"
+              ],
+              "name": "Travis Watts + Arlo Halloran",
+              "positions": null
+            },
+            {
+              "id": "mwwv9khwdeqp39",
+              "playerIds": [
+                "mtam7vy29u3ef7",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Lucas St. Denis + Mark Drollette",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 14,
+          "matches": [
+            {
+              "id": "mwwvgja7ylvrbu",
+              "entityA": {
+                "id": "mwwvgj9ancvtbv",
+                "name": "Travis Watts + Lucas St. Denis",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mtam7vy29u3ef7"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwvgj9apfr7bj",
+                "name": "Greg Dimoulas + Nick Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mtums36hfqfz2g",
+                  "mwwucua4u4kmf9"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1795656402080
+              },
+              "timerStartAt": 1795656432080,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795656902859
+            },
+            {
+              "id": "mwwvgja7f6a0o5",
+              "entityA": {
+                "id": "mwwvgj9apkkk9j",
+                "name": "John Fairchild + Arlo Halloran",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mtums9xsjyy1m5"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwvgj9aufdm8f",
+                "name": "Keith Podolak + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "ghost-dog",
+                "serveSide": "b",
+                "flippedAt": 1795656402080
+              },
+              "timerStartAt": 1795656432080,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795656868999
+            },
+            {
+              "id": "mwwvgja7w0vxdx",
+              "entityA": {
+                "id": "mwwvgj9a48d2of",
+                "name": "John Friedrich + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwvgj9adr6tun",
+                "name": "Luke Bolton + Rich Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxv9u55yuou",
+                  "mwwubqllweemr3"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 1,
+              "table": 3,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "tails",
+                "serveSide": "a",
+                "flippedAt": 1795656402080
+              },
+              "timerStartAt": 1795656432080,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 1
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795656741887
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwwvgj9aufdm8f",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Keith Podolak + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mwwvgj9adr6tun",
+              "playerIds": [
+                "mt0nxv9u55yuou",
+                "mwwubqllweemr3"
+              ],
+              "name": "Luke Bolton + Rich Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwwvgj9apfr7bj",
+              "playerIds": [
+                "mtums36hfqfz2g",
+                "mwwucua4u4kmf9"
+              ],
+              "name": "Greg Dimoulas + Nick Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwwvgj9a48d2of",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "John Friedrich + Mark Drollette",
+              "positions": null
+            },
+            {
+              "id": "mwwvgj9apkkk9j",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mtums9xsjyy1m5"
+              ],
+              "name": "John Fairchild + Arlo Halloran",
+              "positions": null
+            },
+            {
+              "id": "mwwvgj9ancvtbv",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mtam7vy29u3ef7"
+              ],
+              "name": "Travis Watts + Lucas St. Denis",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 15,
+          "matches": [
+            {
+              "id": "mwwvrccna10x6m",
+              "entityA": {
+                "id": "mwwvrcbhgdg8p3",
+                "name": "John Friedrich + Rich Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mt0ny0jxioo10e",
+                  "mwwubqllweemr3"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwvrcbhptjdx4",
+                "name": "Lucas St. Denis + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mtam7vy29u3ef7",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 1,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "ghost-dog",
+                "serveSide": "b",
+                "flippedAt": 1795656906311
+              },
+              "timerStartAt": 1795656936312,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 1
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795657192364
+            },
+            {
+              "id": "mwwvrccn2mwz47",
+              "entityA": {
+                "id": "mwwvrcbh955ann",
+                "name": "Arlo Halloran + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mtums9xsjyy1m5",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwvrcbhcz66ec",
+                "name": "Travis Watts + Nick Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mwwucua4u4kmf9"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795656906312
+              },
+              "timerStartAt": 1795656936312,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795657427800
+            },
+            {
+              "id": "mwwvrccnf77rgv",
+              "entityA": {
+                "id": "mwwvrcbhnmcjh3",
+                "name": "Luke Bolton + Keith Podolak",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxv9u55yuou",
+                  "mtam60ss4h296q"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwwvrcbhgmhtku",
+                "name": "Greg Dimoulas + John Fairchild",
+                "type": "team",
+                "playerIds": [
+                  "mtums36hfqfz2g",
+                  "mt0oabvkv4ftoq"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 4,
+              "table": 3,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1795656906312
+              },
+              "timerStartAt": 1795656936312,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 4
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795657387829
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwwvrcbhnmcjh3",
+              "playerIds": [
+                "mt0nxv9u55yuou",
+                "mtam60ss4h296q"
+              ],
+              "name": "Luke Bolton + Keith Podolak",
+              "positions": null
+            },
+            {
+              "id": "mwwvrcbhgmhtku",
+              "playerIds": [
+                "mtums36hfqfz2g",
+                "mt0oabvkv4ftoq"
+              ],
+              "name": "Greg Dimoulas + John Fairchild",
+              "positions": null
+            },
+            {
+              "id": "mwwvrcbhgdg8p3",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mwwubqllweemr3"
+              ],
+              "name": "John Friedrich + Rich Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwwvrcbhcz66ec",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mwwucua4u4kmf9"
+              ],
+              "name": "Travis Watts + Nick Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwwvrcbhptjdx4",
+              "playerIds": [
+                "mtam7vy29u3ef7",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Lucas St. Denis + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mwwvrcbh955ann",
+              "playerIds": [
+                "mtums9xsjyy1m5",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Arlo Halloran + Mark Drollette",
+              "positions": null
+            }
+          ]
+        },
+        {
+          "number": 16,
+          "matches": [
+            {
+              "id": "mwww2pdcdzgax8",
+              "entityA": {
+                "id": "mwww2pcdj9cdcn",
+                "name": "Arlo Halloran + Mark Drollette",
+                "type": "team",
+                "playerIds": [
+                  "mtums9xsjyy1m5",
+                  "mt0nwn4xmpohds"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwww2pcdt4dqg7",
+                "name": "Lucas St. Denis + Rich Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mtam7vy29u3ef7",
+                  "mwwubqllweemr3"
+                ],
+                "positions": null
+              },
+              "scoreA": 5,
+              "scoreB": 3,
+              "table": 1,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "a",
+                "result": "tails",
+                "serveSide": "b",
+                "flippedAt": 1795657436401
+              },
+              "timerStartAt": 1795657466401,
+              "games": [
+                {
+                  "scoreA": 5,
+                  "scoreB": 3
+                }
+              ],
+              "seriesA": 1,
+              "seriesB": 0,
+              "winner": "a",
+              "loser": "b",
+              "timerEndedAt": 1795657975082
+            },
+            {
+              "id": "mwww2pdd1kif46",
+              "entityA": {
+                "id": "mwww2pcdabkj5b",
+                "name": "Greg Dimoulas + Luke Bolton",
+                "type": "team",
+                "playerIds": [
+                  "mtums36hfqfz2g",
+                  "mt0nxv9u55yuou"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwww2pcdyfhkg1",
+                "name": "Travis Watts + Ghost Dog",
+                "type": "team",
+                "playerIds": [
+                  "mt0nxay02r25zq",
+                  "mt0qmkfrn6n3xe"
+                ],
+                "positions": null
+              },
+              "scoreA": 4,
+              "scoreB": 5,
+              "table": 2,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "ghost-dog",
+                "serveSide": "b",
+                "flippedAt": 1795657436401
+              },
+              "timerStartAt": 1795657466401,
+              "games": [
+                {
+                  "scoreA": 4,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795657864809
+            },
+            {
+              "id": "mwww2pddffg8v9",
+              "entityA": {
+                "id": "mwww2pcd0e47o1",
+                "name": "John Fairchild + Nick Burnett",
+                "type": "team",
+                "playerIds": [
+                  "mt0oabvkv4ftoq",
+                  "mwwucua4u4kmf9"
+                ],
+                "positions": null
+              },
+              "entityB": {
+                "id": "mwww2pcd4abofy",
+                "name": "Keith Podolak + John Friedrich",
+                "type": "team",
+                "playerIds": [
+                  "mtam60ss4h296q",
+                  "mt0ny0jxioo10e"
+                ],
+                "positions": null
+              },
+              "scoreA": 2,
+              "scoreB": 5,
+              "table": 3,
+              "status": "done",
+              "coinToss": {
+                "headsSide": "b",
+                "result": "heads",
+                "serveSide": "b",
+                "flippedAt": 1795657436401
+              },
+              "timerStartAt": 1795657466401,
+              "games": [
+                {
+                  "scoreA": 2,
+                  "scoreB": 5
+                }
+              ],
+              "seriesA": 0,
+              "seriesB": 1,
+              "winner": "b",
+              "loser": "a",
+              "timerEndedAt": 1795657685149
+            }
+          ],
+          "sitOutIds": [],
+          "teams": [
+            {
+              "id": "mwww2pcdabkj5b",
+              "playerIds": [
+                "mtums36hfqfz2g",
+                "mt0nxv9u55yuou"
+              ],
+              "name": "Greg Dimoulas + Luke Bolton",
+              "positions": null
+            },
+            {
+              "id": "mwww2pcd4abofy",
+              "playerIds": [
+                "mtam60ss4h296q",
+                "mt0ny0jxioo10e"
+              ],
+              "name": "Keith Podolak + John Friedrich",
+              "positions": null
+            },
+            {
+              "id": "mwww2pcdt4dqg7",
+              "playerIds": [
+                "mtam7vy29u3ef7",
+                "mwwubqllweemr3"
+              ],
+              "name": "Lucas St. Denis + Rich Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwww2pcd0e47o1",
+              "playerIds": [
+                "mt0oabvkv4ftoq",
+                "mwwucua4u4kmf9"
+              ],
+              "name": "John Fairchild + Nick Burnett",
+              "positions": null
+            },
+            {
+              "id": "mwww2pcdyfhkg1",
+              "playerIds": [
+                "mt0nxay02r25zq",
+                "mt0qmkfrn6n3xe"
+              ],
+              "name": "Travis Watts + Ghost Dog",
+              "positions": null
+            },
+            {
+              "id": "mwww2pcdj9cdcn",
+              "playerIds": [
+                "mtums9xsjyy1m5",
+                "mt0nwn4xmpohds"
+              ],
+              "name": "Arlo Halloran + Mark Drollette",
+              "positions": null
+            }
+          ]
+        }
+      ],
+      "currentRound": 16,
+      "playoffs": {
+        "type": "double-elim",
+        "size": 4,
+        "rounds": [
+          {
+            "number": 1,
+            "name": "Winners SF",
+            "matches": [
+              {
+                "id": "mwwwmhbvvadh1f",
+                "a": {
+                  "seed": 1,
+                  "entity": {
+                    "id": "mwwwmhbruk7id2",
+                    "name": "John Friedrich + Mark Drollette",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0ny0jxioo10e",
+                      "mt0nwn4xmpohds"
+                    ],
+                    "seed": 1
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 4,
+                  "entity": {
+                    "id": "mwwwmhbri46od4",
+                    "name": "Travis Watts + Greg Dimoulas",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxay02r25zq",
+                      "mtums36hfqfz2g"
+                    ],
+                    "seed": 4
+                  },
+                  "score": null
+                },
+                "winner": null,
+                "loser": null,
+                "scoreA": null,
+                "scoreB": null,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "b",
+                  "result": "tails",
+                  "serveSide": "a",
+                  "flippedAt": 1795658359100
+                },
+                "table": 1,
+                "onDeck": false,
+                "timerStartAt": 1795658389102
+              },
+              {
+                "id": "mwwwmhbwo21htf",
+                "a": {
+                  "seed": 2,
+                  "entity": {
+                    "id": "mwwwmhbrjzmd7y",
+                    "name": "Luke Bolton + Nick Burnett",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxv9u55yuou",
+                      "mwwucua4u4kmf9"
+                    ],
+                    "seed": 2
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 3,
+                  "entity": {
+                    "id": "mwwwmhbroyev8k",
+                    "name": "Arlo Halloran + Rich Burnett",
+                    "type": "team",
+                    "playerIds": [
+                      "mtums9xsjyy1m5",
+                      "mwwubqllweemr3"
+                    ],
+                    "seed": 3
+                  },
+                  "score": null
+                },
+                "winner": null,
+                "loser": null,
+                "scoreA": null,
+                "scoreB": null,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "tails",
+                  "serveSide": "b",
+                  "flippedAt": 1795658359100
+                },
+                "table": 2,
+                "onDeck": false,
+                "timerStartAt": 1795658389102
+              }
+            ]
+          },
+          {
+            "number": 2,
+            "name": "Winners Final",
+            "matches": [
+              {
+                "id": "mwwwmhbw2hkpfr",
+                "a": {
+                  "seed": 0,
+                  "entity": null,
+                  "score": null,
+                  "fromMatch": "mwwwmhbvvadh1f",
+                  "fromLoser": false
+                },
+                "b": {
+                  "seed": 0,
+                  "entity": null,
+                  "score": null,
+                  "fromMatch": "mwwwmhbwo21htf",
+                  "fromLoser": false
+                },
+                "winner": null,
+                "loser": null,
+                "scoreA": null,
+                "scoreB": null,
+                "bracket": "winners"
+              }
+            ]
+          }
+        ],
+        "winnersRounds": [
+          {
+            "number": 1,
+            "name": "Winners SF",
+            "matches": [
+              {
+                "id": "mwwwmhbvvadh1f",
+                "a": {
+                  "seed": 1,
+                  "entity": {
+                    "id": "mwwwmhbruk7id2",
+                    "name": "John Friedrich + Mark Drollette",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0ny0jxioo10e",
+                      "mt0nwn4xmpohds"
+                    ],
+                    "seed": 1
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 4,
+                  "entity": {
+                    "id": "mwwwmhbri46od4",
+                    "name": "Travis Watts + Greg Dimoulas",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxay02r25zq",
+                      "mtums36hfqfz2g"
+                    ],
+                    "seed": 4
+                  },
+                  "score": null
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 2,
+                "scoreB": 0,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "b",
+                  "result": "tails",
+                  "serveSide": "a",
+                  "flippedAt": 1795658359100
+                },
+                "table": 1,
+                "timerStartAt": 1795658389102,
+                "games": [
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  }
+                ],
+                "seriesA": 2,
+                "seriesB": 0,
+                "status": "done",
+                "timerEndedAt": 1795659690641
+              },
+              {
+                "id": "mwwwmhbwo21htf",
+                "a": {
+                  "seed": 2,
+                  "entity": {
+                    "id": "mwwwmhbrjzmd7y",
+                    "name": "Luke Bolton + Nick Burnett",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxv9u55yuou",
+                      "mwwucua4u4kmf9"
+                    ],
+                    "seed": 2
+                  },
+                  "score": null
+                },
+                "b": {
+                  "seed": 3,
+                  "entity": {
+                    "id": "mwwwmhbroyev8k",
+                    "name": "Arlo Halloran + Rich Burnett",
+                    "type": "team",
+                    "playerIds": [
+                      "mtums9xsjyy1m5",
+                      "mwwubqllweemr3"
+                    ],
+                    "seed": 3
+                  },
+                  "score": null
+                },
+                "winner": "b",
+                "loser": "a",
+                "scoreA": 1,
+                "scoreB": 2,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "tails",
+                  "serveSide": "b",
+                  "flippedAt": 1795658359100
+                },
+                "table": 2,
+                "timerStartAt": 1795658389102,
+                "games": [
+                  {
+                    "scoreA": 2,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 4
+                  },
+                  {
+                    "scoreA": 6,
+                    "scoreB": 8
+                  }
+                ],
+                "seriesA": 1,
+                "seriesB": 2,
+                "status": "done",
+                "timerEndedAt": 1795660151251
+              }
+            ]
+          },
+          {
+            "number": 2,
+            "name": "Winners Final",
+            "matches": [
+              {
+                "id": "mwwwmhbw2hkpfr",
+                "a": {
+                  "seed": 1,
+                  "entity": {
+                    "id": "mwwwmhbruk7id2",
+                    "name": "John Friedrich + Mark Drollette",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0ny0jxioo10e",
+                      "mt0nwn4xmpohds"
+                    ],
+                    "seed": 1
+                  },
+                  "score": null,
+                  "fromMatch": "mwwwmhbvvadh1f",
+                  "fromLoser": false
+                },
+                "b": {
+                  "seed": 3,
+                  "entity": {
+                    "id": "mwwwmhbroyev8k",
+                    "name": "Arlo Halloran + Rich Burnett",
+                    "type": "team",
+                    "playerIds": [
+                      "mtums9xsjyy1m5",
+                      "mwwubqllweemr3"
+                    ],
+                    "seed": 3
+                  },
+                  "score": null,
+                  "fromMatch": "mwwwmhbwo21htf",
+                  "fromLoser": false
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 2,
+                "scoreB": 1,
+                "bracket": "winners",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "heads",
+                  "serveSide": "a",
+                  "flippedAt": 1795660151252
+                },
+                "table": 1,
+                "timerStartAt": 1795660181253,
+                "games": [
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  },
+                  {
+                    "scoreA": 4,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  }
+                ],
+                "seriesA": 2,
+                "seriesB": 1,
+                "status": "done",
+                "timerEndedAt": 1795661048730
+              }
+            ]
+          }
+        ],
+        "losersRounds": [
+          {
+            "number": 1,
+            "name": "Losers R1",
+            "matches": [
+              {
+                "id": "mwwwmhbw2sq345",
+                "a": {
+                  "seed": 4,
+                  "entity": {
+                    "id": "mwwwmhbri46od4",
+                    "name": "Travis Watts + Greg Dimoulas",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxay02r25zq",
+                      "mtums36hfqfz2g"
+                    ],
+                    "seed": 4
+                  },
+                  "score": null,
+                  "fromMatch": "mwwwmhbvvadh1f",
+                  "fromLoser": true
+                },
+                "b": {
+                  "seed": 2,
+                  "entity": {
+                    "id": "mwwwmhbrjzmd7y",
+                    "name": "Luke Bolton + Nick Burnett",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxv9u55yuou",
+                      "mwwucua4u4kmf9"
+                    ],
+                    "seed": 2
+                  },
+                  "score": null,
+                  "fromMatch": "mwwwmhbwo21htf",
+                  "fromLoser": true
+                },
+                "winner": "a",
+                "loser": "b",
+                "scoreA": 2,
+                "scoreB": 1,
+                "bracket": "losers",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "tails",
+                  "serveSide": "b",
+                  "flippedAt": 1795660151252
+                },
+                "table": 2,
+                "timerStartAt": 1795660181253,
+                "games": [
+                  {
+                    "scoreA": 2,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 3
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 1
+                  }
+                ],
+                "seriesA": 2,
+                "seriesB": 1,
+                "status": "done",
+                "timerEndedAt": 1795661377224
+              }
+            ]
+          },
+          {
+            "number": 2,
+            "name": "Losers Final",
+            "matches": [
+              {
+                "id": "mwwwmhbwjysyem",
+                "a": {
+                  "seed": 4,
+                  "entity": {
+                    "id": "mwwwmhbri46od4",
+                    "name": "Travis Watts + Greg Dimoulas",
+                    "type": "team",
+                    "playerIds": [
+                      "mt0nxay02r25zq",
+                      "mtums36hfqfz2g"
+                    ],
+                    "seed": 4
+                  },
+                  "score": null,
+                  "fromMatch": "mwwwmhbw2sq345",
+                  "fromLoser": false
+                },
+                "b": {
+                  "seed": 3,
+                  "entity": {
+                    "id": "mwwwmhbroyev8k",
+                    "name": "Arlo Halloran + Rich Burnett",
+                    "type": "team",
+                    "playerIds": [
+                      "mtums9xsjyy1m5",
+                      "mwwubqllweemr3"
+                    ],
+                    "seed": 3
+                  },
+                  "score": null,
+                  "fromMatch": "mwwwmhbw2hkpfr",
+                  "fromLoser": true
+                },
+                "winner": "b",
+                "loser": "a",
+                "scoreA": 1,
+                "scoreB": 2,
+                "bracket": "losers",
+                "coinToss": {
+                  "headsSide": "a",
+                  "result": "heads",
+                  "serveSide": "a",
+                  "flippedAt": 1795661377225
+                },
+                "table": 1,
+                "timerStartAt": 1795661407229,
+                "games": [
+                  {
+                    "scoreA": 1,
+                    "scoreB": 5
+                  },
+                  {
+                    "scoreA": 5,
+                    "scoreB": 4
+                  },
+                  {
+                    "scoreA": 3,
+                    "scoreB": 5
+                  }
+                ],
+                "seriesA": 1,
+                "seriesB": 2,
+                "status": "done",
+                "timerEndedAt": 1795662274539
+              }
+            ]
+          }
+        ],
+        "grandFinal": {
+          "id": "mwwwmhbw77td9d",
+          "a": {
+            "seed": 1,
+            "entity": {
+              "id": "mwwwmhbruk7id2",
+              "name": "John Friedrich + Mark Drollette",
+              "type": "team",
+              "playerIds": [
+                "mt0ny0jxioo10e",
+                "mt0nwn4xmpohds"
+              ],
+              "seed": 1
+            },
+            "score": null,
+            "fromMatch": "mwwwmhbw2hkpfr",
+            "fromLoser": false
+          },
+          "b": {
+            "seed": 3,
+            "entity": {
+              "id": "mwwwmhbroyev8k",
+              "name": "Arlo Halloran + Rich Burnett",
+              "type": "team",
+              "playerIds": [
+                "mtums9xsjyy1m5",
+                "mwwubqllweemr3"
+              ],
+              "seed": 3
+            },
+            "score": null,
+            "fromMatch": "mwwwmhbwjysyem",
+            "fromLoser": false
+          },
+          "winner": "a",
+          "loser": "b",
+          "scoreA": 2,
+          "scoreB": 1,
+          "bracket": "gf",
+          "isGrandFinal": true,
+          "coinToss": {
+            "headsSide": "a",
+            "result": "tails",
+            "serveSide": "b",
+            "flippedAt": 1795662274542
+          },
+          "table": 1,
+          "timerStartAt": 1795662304543,
+          "games": [
+            {
+              "scoreA": 5,
+              "scoreB": 2
+            },
+            {
+              "scoreA": 4,
+              "scoreB": 5
+            },
+            {
+              "scoreA": 5,
+              "scoreB": 3
+            }
+          ],
+          "seriesA": 2,
+          "seriesB": 1,
+          "status": "done",
+          "timerEndedAt": 1795663333636
+        },
+        "grandFinal2": {
+          "id": "mwwwmhbwe86c7n",
+          "a": {
+            "entity": null,
+            "fromMatch": null,
+            "fromLoser": false
+          },
+          "b": {
+            "entity": null,
+            "fromMatch": null,
+            "fromLoser": false
+          },
+          "winner": null,
+          "loser": null,
+          "scoreA": null,
+          "scoreB": null,
+          "bracket": "gf2",
+          "isGrandFinal": true,
+          "isReset": true,
+          "void": true
+        },
+        "bronze": null,
+        "placements": {
+          "first": {
+            "id": "mwwwmhbruk7id2",
+            "name": "John Friedrich + Mark Drollette",
+            "type": "team",
+            "playerIds": [
+              "mt0ny0jxioo10e",
+              "mt0nwn4xmpohds"
+            ],
+            "seed": 1
+          },
+          "second": {
+            "id": "mwwwmhbroyev8k",
+            "name": "Arlo Halloran + Rich Burnett",
+            "type": "team",
+            "playerIds": [
+              "mtums9xsjyy1m5",
+              "mwwubqllweemr3"
+            ],
+            "seed": 3
+          },
+          "third": {
+            "id": "mwwwmhbri46od4",
+            "name": "Travis Watts + Greg Dimoulas",
+            "type": "team",
+            "playerIds": [
+              "mt0nxay02r25zq",
+              "mtums36hfqfz2g"
+            ],
+            "seed": 4
+          }
+        },
+        "gfResetRequired": false,
+        "gfResetActive": false,
+        "tieredDraw": true,
+        "tieredPairs": [
+          "#1+#5",
+          "#2+#6",
+          "#3+#7",
+          "#4+#8"
+        ],
+        "bonusPoolLocked": {
+          "bonusPool": 181,
+          "fieldSize": 8,
+          "fieldPoints": 18127,
+          "shares": [
+            91,
+            54,
+            36
+          ],
+          "mode": "50-30-20",
+          "lockedAt": 1795658359101
+        },
+        "expectedPlaceLocked": {
+          "mt0ny0jxioo10e": 1,
+          "mt0nwn4xmpohds": 1,
+          "mt0nxv9u55yuou": 2,
+          "mwwucua4u4kmf9": 2,
+          "mtums9xsjyy1m5": 3,
+          "mwwubqllweemr3": 3,
+          "mt0nxay02r25zq": 4,
+          "mtums36hfqfz2g": 4
+        },
+        "bestOf": 3
+      },
+      "createdAt": 1795645320854,
+      "status": "finished",
+      "currentSitOutIds": [],
+      "_lastPairingDebug": {
+        "mode": "heuristic",
+        "rematches": 3,
+        "consecutive": 1,
+        "pairs": [
+          {
+            "a": "Greg Dimoulas",
+            "b": "Luke Bolton",
+            "prior": 2
+          },
+          {
+            "a": "Keith Podolak",
+            "b": "John Friedrich",
+            "prior": 2
+          },
+          {
+            "a": "Lucas St. Denis",
+            "b": "Rich Burnett",
+            "prior": 0
+          },
+          {
+            "a": "John Fairchild",
+            "b": "Nick Burnett",
+            "prior": 0
+          },
+          {
+            "a": "Travis Watts",
+            "b": "Ghost Dog",
+            "prior": 0
+          },
+          {
+            "a": "Arlo Halloran",
+            "b": "Mark Drollette",
+            "prior": 4
+          }
+        ],
+        "sitCounts": {
+          "mt0nx3tat1qdas": 2,
+          "mt0ny0jxioo10e": 2,
+          "mtam60ss4h296q": 2,
+          "mtam7vy29u3ef7": 2,
+          "mt0nwn4xmpohds": 2,
+          "mt0nxay02r25zq": 2,
+          "mt0nxv9u55yuou": 2,
+          "mt0qmkfrn6n3xe": 0,
+          "mtums9xsjyy1m5": 1,
+          "mtums36hfqfz2g": 1,
+          "mt0oabvkv4ftoq": 1,
+          "mwwubqllweemr3": 0,
+          "mwwucua4u4kmf9": 0
+        },
+        "at": 1795657436365
+      },
+      "_fairnessSummary": "Partners: 3 repeats · 1 consecutive",
+      "sitOutQueue": [
+        "mtums9xsjyy1m5",
+        "mtums36hfqfz2g",
+        "mt0oabvkv4ftoq",
+        "mt0nx3tat1qdas",
+        "mt0ny0jxioo10e",
+        "mtam60ss4h296q",
+        "mtam7vy29u3ef7",
+        "mt0nxv9u55yuou",
+        "mt0nwn4xmpohds",
+        "mt0nxay02r25zq"
+      ],
+      "_sitRingKey": "mt0nwn4xmpohds|mt0nx3tat1qdas|mt0nxay02r25zq|mt0nxv9u55yuou|mt0ny0jxioo10e|mt0oabvkv4ftoq|mtam60ss4h296q|mtam7vy29u3ef7|mtums36hfqfz2g|mtums9xsjyy1m5",
+      "playoffTeams": [
+        {
+          "id": "mwwwmhbruk7id2",
+          "playerIds": [
+            "mt0ny0jxioo10e",
+            "mt0nwn4xmpohds"
+          ],
+          "name": "John Friedrich + Mark Drollette",
+          "seed": 1,
+          "tieredFrom": {
+            "top": "mt0ny0jxioo10e",
+            "bottom": "mt0nwn4xmpohds",
+            "ranks": [
+              1,
+              5
+            ]
+          }
+        },
+        {
+          "id": "mwwwmhbrjzmd7y",
+          "playerIds": [
+            "mt0nxv9u55yuou",
+            "mwwucua4u4kmf9"
+          ],
+          "name": "Luke Bolton + Nick Burnett",
+          "seed": 2,
+          "tieredFrom": {
+            "top": "mt0nxv9u55yuou",
+            "bottom": "mwwucua4u4kmf9",
+            "ranks": [
+              2,
+              6
+            ]
+          }
+        },
+        {
+          "id": "mwwwmhbroyev8k",
+          "playerIds": [
+            "mtums9xsjyy1m5",
+            "mwwubqllweemr3"
+          ],
+          "name": "Arlo Halloran + Rich Burnett",
+          "seed": 3,
+          "tieredFrom": {
+            "top": "mtums9xsjyy1m5",
+            "bottom": "mwwubqllweemr3",
+            "ranks": [
+              3,
+              7
+            ]
+          }
+        },
+        {
+          "id": "mwwwmhbri46od4",
+          "playerIds": [
+            "mt0nxay02r25zq",
+            "mtums36hfqfz2g"
+          ],
+          "name": "Travis Watts + Greg Dimoulas",
+          "seed": 4,
+          "tieredFrom": {
+            "top": "mt0nxay02r25zq",
+            "bottom": "mtums36hfqfz2g",
+            "ranks": [
+              4,
+              8
+            ]
+          }
+        }
+      ],
+      "bonusPoolLocked": {
+        "fieldIds": [
+          "mt0ny0jxioo10e",
+          "mt0nwn4xmpohds",
+          "mt0nxv9u55yuou",
+          "mwwucua4u4kmf9",
+          "mtums9xsjyy1m5",
+          "mwwubqllweemr3",
+          "mt0nxay02r25zq",
+          "mtums36hfqfz2g"
+        ],
+        "fieldSize": 8,
+        "fieldPoints": 18127,
+        "bonusPool": 181,
+        "shares": [
+          91,
+          54,
+          36
+        ],
+        "fr": [
+          0.5,
+          0.3,
+          0.2
+        ],
+        "mode": "50-30-20",
+        "lockedAt": 1795658359101
+      },
+      "expectedPlaceLocked": {
+        "mt0ny0jxioo10e": 1,
+        "mt0nwn4xmpohds": 1,
+        "mt0nxv9u55yuou": 2,
+        "mwwucua4u4kmf9": 2,
+        "mtums9xsjyy1m5": 3,
+        "mwwubqllweemr3": 3,
+        "mt0nxay02r25zq": 4,
+        "mtums36hfqfz2g": 4
+      },
+      "placements": {
+        "first": {
+          "id": "mwwwmhbruk7id2",
+          "name": "John Friedrich + Mark Drollette",
+          "type": "team",
+          "playerIds": [
+            "mt0ny0jxioo10e",
+            "mt0nwn4xmpohds"
+          ],
+          "seed": 1
+        },
+        "second": {
+          "id": "mwwwmhbroyev8k",
+          "name": "Arlo Halloran + Rich Burnett",
+          "type": "team",
+          "playerIds": [
+            "mtums9xsjyy1m5",
+            "mwwubqllweemr3"
+          ],
+          "seed": 3
+        },
+        "third": {
+          "id": "mwwwmhbri46od4",
+          "name": "Travis Watts + Greg Dimoulas",
+          "type": "team",
+          "playerIds": [
+            "mt0nxay02r25zq",
+            "mtums36hfqfz2g"
+          ],
+          "seed": 4
+        }
+      },
+      "rankingDeltaDetail": {
+        "mt0ny0jxioo10e": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 91,
+          "total": 91
+        },
+        "mt0nwn4xmpohds": {
+          "place": 1,
+          "expected": 1,
+          "seedDelta": 0,
+          "bonus": 91,
+          "total": 91
+        },
+        "mtums9xsjyy1m5": {
+          "place": 2,
+          "expected": 3,
+          "seedDelta": 8,
+          "bonus": 54,
+          "total": 62
+        },
+        "mwwubqllweemr3": {
+          "place": 2,
+          "expected": 3,
+          "seedDelta": 8,
+          "bonus": 54,
+          "total": 62
+        },
+        "mt0nxay02r25zq": {
+          "place": 3,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 36,
+          "total": 36
+        },
+        "mtums36hfqfz2g": {
+          "place": 3,
+          "expected": 4,
+          "seedDelta": 0,
+          "bonus": 36,
+          "total": 36
+        },
+        "mt0nxv9u55yuou": {
+          "place": 4,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        },
+        "mwwucua4u4kmf9": {
+          "place": 4,
+          "expected": 2,
+          "seedDelta": -8,
+          "bonus": 0,
+          "total": -8
+        }
+      },
+      "rankingBonusShare": [
+        91,
+        54,
+        36
+      ],
+      "rankingBonusPool": 181,
+      "rankingApplied": true,
+      "rankingAppliedAt": 1795663333677,
+      "rankingDeltas": {
+        "mt0ny0jxioo10e": 91,
+        "mt0nwn4xmpohds": 91,
+        "mtums9xsjyy1m5": 62,
+        "mwwubqllweemr3": 62,
+        "mt0nxay02r25zq": 36,
+        "mtums36hfqfz2g": 36,
+        "mt0nxv9u55yuou": -8,
+        "mwwucua4u4kmf9": -8
+      }
+    },
     {
       "id": "mwmqdir3m7mo4y",
       "name": "11/18/26",
