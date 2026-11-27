@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.52 | 2026-11-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.53 | 2026-11-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.52" />
+  <meta name="lcfc-build" content="7.53" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -3633,7 +3633,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.52';
+    const APP_VERSION = '7.53';
     const APP_UPDATED = 'Nov 27, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 16722;
@@ -13708,15 +13708,26 @@ function flipRankingMatchCoin(roundNum, matchId) {
       });
       const weekCtrl = document.getElementById('stats-week-controls');
       if (weekCtrl) weekCtrl.classList.toggle('hidden', statsActiveTab !== 'week');
-      if (statsActiveTab === 'club-dna' && typeof renderClubDNA === 'function') {
-        try { renderClubDNA(); } catch (e) { console.error(e); }
-      }
-      if (statsActiveTab === 'teams' && typeof renderPartnershipStats === 'function') {
-        try { renderPartnershipStats(); } catch (e) { console.error('Teams stats render failed', e); }
-      }
-      // Charts need visible canvas to size correctly when opening Awards
-      if (statsActiveTab === 'awards' && typeof renderStatsCharts === 'function') {
-        try { requestAnimationFrame(() => renderStatsCharts()); } catch (e) {}
+      // Re-render these panels after their visibility has settled. Published/read-only
+      // mode can enter Stats before the snapshot state and panel layout are ready.
+      const renderSelectedStatsPanel = () => {
+        try {
+          if (statsActiveTab === 'club-dna' && typeof renderClubDNA === 'function') renderClubDNA();
+          if (statsActiveTab === 'teams' && typeof renderPartnershipStats === 'function') renderPartnershipStats();
+          if (statsActiveTab === 'awards') {
+            if (typeof renderPodiumStats === 'function') renderPodiumStats();
+            if (typeof renderStatsCharts === 'function') renderStatsCharts();
+          }
+        } catch (e) {
+          console.error('Stats panel render failed (' + statsActiveTab + ')', e);
+          const targetId = statsActiveTab === 'club-dna' ? 'club-dna-content' :
+            statsActiveTab === 'teams' ? 'teams-leaderboard-body' : null;
+          const target = targetId ? document.getElementById(targetId) : null;
+          if (target) target.innerHTML = '<tr><td colspan="9" class="px-4 py-8 text-center text-sm text-red-600">Panel failed to render. Check console for details.</td></tr>';
+        }
+      };
+      if (['club-dna', 'teams', 'awards'].includes(statsActiveTab)) {
+        requestAnimationFrame(renderSelectedStatsPanel);
       }
     }
 
