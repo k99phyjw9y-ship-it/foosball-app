@@ -1,11 +1,51 @@
-# LCFC Manager v7.54
+# LCFC Manager v7.50
 
-## Fixes
-- Corrected static browser-title and visible watermark fallback values that still displayed v7.51 on initial refresh. Dynamic metadata and `APP_VERSION` stamps are v7.54.
-- Added lifetime Singles and Doubles category ranking-point cards to each player's Career profile tab, reusing recorded event ranking deltas (Option A). Singles events count toward Singles; Doubles, DYP, and Monster DYP variants count toward Doubles. Imported-copy and sandbox tournaments are excluded.
-- Changed Club DNA, Teams, and Awards tab render scheduling to a short delayed callback to allow published/read-only layout and state transitions to settle.
+Lake Champlain Foosball Club manager and TV-board app.
 
-## Validation
-- Static build-stamp references updated and inspected.
-- Permanent snapshot `index_v7.54.html` copied from `index.html`.
-- JavaScript syntax/runtime and live GitHub Pages behavior are not independently browser-tested in this release.
+## What's new in v7.50
+
+### Unified tournament-aware player attribution
+- Added a shared `resolveMatchPlayerIds(tournament, entity)` resolver for player-stat calculations.
+- Resolution prefers valid explicit player IDs, then roster IDs resolved from the tournament's saved teams / playoff teams by team ID, and finally the existing entity/name resolution fallback.
+- This fixes historical team-name spelling drift where a team ID was valid but one partner's name failed to match the current roster.
+- Applied to player career, weekly, and event-type match stats; designated forward/goalie stats; best-single-night totals; close-win/loss and streak stats; and playoff win counts.
+- Player attribution uses existing saved rosters and IDs. It does not change match outcomes or scores.
+
+### Scope and safeguards
+- No changes to ranking points, bonus points, standings, seeding, scoring, or playoff rules.
+- Existing tournament data is not rewritten; stats are resolved when displayed/calculated.
+- The earlier v7.49 Awards podium fix remains in place.
+
+## What's new in v7.49
+
+### Awards podium resolution fix
+- Awards podium aggregation resolves historical team placements through saved tournament team rosters by team ID.
+- Handles placement records containing only `{id, name}` and spelling variations in historical team names.
+
+## What's new in v7.45
+
+### Teams statistics
+- Added a **Teams** section beside Club DNA and Awards in Club Stats.
+- Tracks all-time partnerships using roster player IDs, independent of the order players appear on a team.
+- Shows appearances, ranking-match and playoff appearances, wins, losses, win percentage, first played, and last played.
+- Includes a player filter and match-history view.
+- Best-of series count as one partnership appearance.
+
+### Separation and counting rules
+- Ranking / Swiss-round matches and bracket / playoff matches are counted separately.
+- Only completed, non-void matches with valid results are included. Byes, unfinished matches, sandbox events, singles sides, and sides that do not resolve to exactly two roster players are excluded.
+- Team stats are read-only and derived from existing tournament records. They do not change ranking points, bonus points, seeding, standings, or playoff calculations.
+
+## Run the app
+
+1. Download `index.html`.
+2. Open it in a modern browser, or replace the existing app's `index.html` with this file where the app is hosted.
+3. Use the app's existing backup/export workflow before replacing a live copy.
+
+The app is a single-page HTML application. No separate build step is required.
+
+## Version
+
+- App version: **7.50**
+- Build date: **November 25, 2026**
+- Main file: `index.html`
