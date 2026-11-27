@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.53 | 2026-11-27 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.54 | 2026-11-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.53" />
+  <meta name="lcfc-build" content="7.54" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.51 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.54 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2653,7 +2653,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.51</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.54</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -3633,7 +3633,7 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.53';
+    const APP_VERSION = '7.54';
     const APP_UPDATED = 'Nov 27, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 16722;
@@ -13727,7 +13727,9 @@ function flipRankingMatchCoin(roundNum, matchId) {
         }
       };
       if (['club-dna', 'teams', 'awards'].includes(statsActiveTab)) {
-        requestAnimationFrame(renderSelectedStatsPanel);
+        // Published snapshots may swap state/layout after the tab is activated;
+        // allow that transition to settle before populating the panel.
+        window.setTimeout(renderSelectedStatsPanel, 120);
       }
     }
 
@@ -14366,6 +14368,19 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const rankMin = rankHistory.length ? Math.min(...rankHistory.map(h => h.pts)) : 0;
       const rankMax = rankHistory.length ? Math.max(...rankHistory.map(h => h.pts)) : 0;
 
+      // Lifetime category points reuse stored event ranking deltas (Option A).
+      const profileCategoryPoints = { singles: 0, doubles: 0 };
+      (state.tournaments || []).forEach(t => {
+        if (!t || t.importedCopy || isSandboxTournament(t)) return;
+        const type = String(t.type || '').toLowerCase().trim();
+        const eligible = type === 'singles' ? 'singles' :
+          (['doubles','dyp','monster','monster dyp','monst dyp'].includes(type) ? 'doubles' : null);
+        if (!eligible || !t.rankingDeltas || typeof t.rankingDeltas !== 'object') return;
+        const key = Object.keys(t.rankingDeltas).find(k => String(k) === String(playerId));
+        if (key == null) return;
+        profileCategoryPoints[eligible] += Number(t.rankingDeltas[key]) || 0;
+      });
+
       const tab = state.profileTab || 'recent';
 
       body.innerHTML = `
@@ -14446,6 +14461,10 @@ function flipRankingMatchCoin(roundNum, matchId) {
             <div class="profile-stat-pill"><div class="text-[10px] text-slate-500 uppercase">Goals</div><div class="text-base font-extrabold">${s.gf} – ${s.ga}</div><div class="text-[11px] text-slate-500">GD ${s.gd > 0 ? '+' : ''}${s.gd}</div></div>
             <div class="profile-stat-pill"><div class="text-[10px] text-slate-500 uppercase">Events</div><div class="text-base font-extrabold">${eventCount}</div><div class="text-[11px] text-slate-500">Playoffs ${podium.playoffs || 0}</div></div>
             <div class="profile-stat-pill"><div class="text-[10px] text-slate-500 uppercase">Rank Δ</div><div class="text-base font-extrabold ${delta >= 0 ? 'text-emerald-600' : 'text-rose-500'}">${delta > 0 ? '+' : ''}${delta}</div><div class="text-[11px] text-slate-500">Lifetime club ranking</div></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="profile-stat-pill"><div class="text-[10px] text-slate-500 uppercase">Singles ranking</div><div class="text-xl font-extrabold tabular-nums">${Math.round(profileCategoryPoints.singles)}</div><div class="text-[10px] text-slate-500">Lifetime awarded points</div></div>
+            <div class="profile-stat-pill"><div class="text-[10px] text-slate-500 uppercase">Doubles ranking</div><div class="text-xl font-extrabold tabular-nums">${Math.round(profileCategoryPoints.doubles)}</div><div class="text-[10px] text-slate-500">Doubles · DYP · Monster DYP</div></div>
           </div>
           <div class="profile-stat-pill">
             <div class="text-[10px] text-slate-500 uppercase mb-1">Podiums</div>
