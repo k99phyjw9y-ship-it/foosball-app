@@ -4267,6 +4267,23 @@
       return { skill: 6, label: 'Master', min: 5000, max: 99999 };
     }
 
+    /**
+     * Display band for a player: higher of Singles vs Doubles points.
+     * Combined sum is still shown as the points total; the band label is never
+     * derived from the sum (S 2000 + D 3035 → Expert, not Master).
+     */
+    function rankingBandForPlayer(p) {
+      if (!p) return rankingBandFromPoints(RANK_START_POINTS);
+      ensurePlayerRanking(p);
+      const s = Number(p.rankingPointsSingles);
+      const d = Number(p.rankingPointsDoubles);
+      const maxPts = Math.max(
+        Number.isFinite(s) ? s : RANK_START_POINTS,
+        Number.isFinite(d) ? d : RANK_START_POINTS
+      );
+      return rankingBandFromPoints(maxPts);
+    }
+
     /** Placement tier index (0 = champion), mirrors bracket seed bands. */
     function placementTierIndex(place) {
       if (place <= 1) return 0;
@@ -4823,7 +4840,10 @@
       const rows = state.players.map(p => {
         ensurePlayerRanking(p);
         const pts = getPlayerRankingPoints(p.id, disc);
-        const band = rankingBandFromPoints(pts);
+        // Band from higher of S/D when Combined; otherwise from the selected discipline points
+        const band = (disc === 'combined')
+          ? rankingBandForPlayer(p)
+          : rankingBandFromPoints(pts);
         const pid = String(p.id);
         let weekDelta = 0;
         if (Object.prototype.hasOwnProperty.call(weekDeltas, pid)) weekDelta = weekDeltas[pid];
@@ -5340,7 +5360,7 @@
       tbody.innerHTML = sorted.map((p, idx) => {
         ensurePlayerRanking(p);
         const rank = idx + 1;
-        const band = rankingBandFromPoints(p.rankingPoints);
+        const band = rankingBandForPlayer(p);
         const form = formatLast10FormHtml(p.id);
         const rankCls = rank <= 3
           ? 'text-emerald-600 font-extrabold'
@@ -13154,7 +13174,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       migratePlayerRankings();
       const rows = state.players.map(p => {
         ensurePlayerRanking(p);
-        const band = rankingBandFromPoints(p.rankingPoints);
+        const band = rankingBandForPlayer(p);
         return { name: p.name, pts: p.rankingPoints, label: band.label };
       }).sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name))
         .slice(0, 12);
@@ -14331,7 +14351,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
       state.profilePlayerId = playerId;
       ensurePlayerRanking(p);
 
-      const band = rankingBandFromPoints(p.rankingPoints);
+      const band = rankingBandForPlayer(p);
       const skillLabel = (typeof SKILL_BAND_LABEL !== 'undefined' ? SKILL_BAND_LABEL[normalizeSkill(p.skill)] : null) || band.label || 'Amateur';
       const pts = Math.round(Number(p.rankingPoints) || (RANK_START_POINTS * 2));
       const ptsS = Math.round(Number(p.rankingPointsSingles) || RANK_START_POINTS);
@@ -14373,11 +14393,12 @@ function flipRankingMatchCoin(roundNum, matchId) {
         ? form.map(r => `<span class="profile-form-dot ${r.won ? 'win' : 'loss'}" title="${r.won ? 'Win' : 'Loss'}"></span>`).join('')
         : '<span class="text-xs text-slate-500">No matches yet</span>';
 
-      // Next ranking band meter
+      // Next ranking band meter — progress uses the higher of S/D (same basis as the band)
+      const bandPts = Math.max(ptsS, ptsD);
       const nextBandMin = band.max >= 99999 ? null : (band.max + 1);
       const span = nextBandMin != null ? Math.max(1, nextBandMin - band.min) : 1;
       const progress = nextBandMin != null
-        ? Math.max(0, Math.min(100, ((pts - band.min) / span) * 100))
+        ? Math.max(0, Math.min(100, ((bandPts - band.min) / span) * 100))
         : 100;
       const nextBandLabel = nextBandMin == null
         ? 'Master band'
@@ -14770,7 +14791,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     function buildProfileShareText(p) {
       ensurePlayerRanking(p);
-      const band = rankingBandFromPoints(p.rankingPoints);
+      const band = rankingBandForPlayer(p);
       const { career } = computeAllPlayerStats();
       const s = career[p.id] || emptyPlayerStat();
       const podium = computePodiumStats()[p.id] || {};
@@ -14811,7 +14832,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
     function renderAndShareProfileImage(p) {
       ensurePlayerRanking(p);
-      const band = rankingBandFromPoints(p.rankingPoints);
+      const band = rankingBandForPlayer(p);
       const { career } = computeAllPlayerStats();
       const s = career[p.id] || emptyPlayerStat();
       const podium = computePodiumStats()[p.id] || {};
