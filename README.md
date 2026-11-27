@@ -1,6 +1,21 @@
-# LCFC Manager v7.50
+# LCFC Manager v7.51
 
 Lake Champlain Foosball Club manager and TV-board app.
+
+## What's new in v7.51
+
+### Separate Singles and Doubles ranking points
+- Each player now has independent **Singles** and **Doubles** ranking points (both start at 2,000).
+- **Combined** ranking = Singles + Doubles (shown on player list, profile, and the Combined ranking tab).
+- Event mapping:
+  - **Singles** events → Singles points only
+  - **Doubles / DYP / Monster** events → Doubles points only
+- Club Ranking tab has Combined / Singles / Doubles toggles.
+- Seed order and bonus pool for an event use that event's discipline ranking list.
+- Player add/edit modal has separate Singles and Doubles point fields.
+- Recalculate from events resets both disciplines to 2,000 and replays history with the split rules.
+- Existing single-pool totals are migrated into both disciplines on first load; run **Recalculate from events** (operator mode) to re-attribute historical results correctly by event type.
+- No changes to match outcomes, standings, seeding rules inside an event, or playoff bracket structure.
 
 ## What's new in v7.50
 
@@ -41,11 +56,12 @@ Lake Champlain Foosball Club manager and TV-board app.
 1. Download `index.html`.
 2. Open it in a modern browser, or replace the existing app's `index.html` with this file where the app is hosted.
 3. Use the app's existing backup/export workflow before replacing a live copy.
+4. After upgrading to v7.51, open **Stats → Ranking** in operator mode and run **Recalculate from events** so historical Singles vs Doubles results are split correctly.
 
 The app is a single-page HTML application. No separate build step is required.
 
 ## Version
 
-- App version: **7.50**
-- Build date: **November 25, 2026**
+- App version: **7.51**
+- Build date: **November 27, 2026**
 - Main file: `index.html`

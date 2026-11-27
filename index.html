@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- LCFC_MANAGER_BUILD v7.50 | 2026-11-25 | if you see an older version, check the deployed file/cache -->
+<!-- LCFC_MANAGER_BUILD v7.51 | 2026-11-27 | if you see an older version, check the deployed file/cache -->
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#f4f7f5" />
   <meta name="application-name" content="LCFC Manager" />
-  <meta name="lcfc-build" content="7.50" />
+  <meta name="lcfc-build" content="7.51" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>LCFC Manager v7.50 – Lake Champlain Foosball Club</title>
+  <title>LCFC Manager v7.51 – Lake Champlain Foosball Club</title>
   <script>
     /* ===== LCFC color themes — applied before first paint so there is no flash ===== */
     (function () {
@@ -2653,7 +2653,7 @@
 
       <div id="home-meta" class="mt-6 sm:mt-0 sm:fixed sm:bottom-6 sm:right-6 sm:pointer-events-none z-10 flex flex-col items-end gap-0.5 text-right text-[11px] font-medium tracking-wide leading-tight select-none">
         <div class="home-wm-stack text-[10px] leading-snug text-slate-400/90 select-none" aria-hidden="true">
-          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.50</div>
+          <div id="home-version-watermark" class="font-semibold text-slate-500/90 tabular-nums">v7.51</div>
           <div class="home-wm-row mt-0.5">
             <span class="home-wm-label">Backup</span>
             <span id="home-backup-status" class="home-wm-value tabular-nums">—</span>
@@ -2954,7 +2954,7 @@
         <div class="px-4 py-3.5 border-b border-slate-200 flex flex-wrap items-start justify-between gap-2">
           <div>
             <h3 class="text-sm font-semibold text-slate-800">Club Ranking</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Starts at 2,000 · brackets/playoffs only · Last week = prior ISO week Δ only · seed ±8 · pool 1% of field</p>
+            <p class="text-xs text-slate-500 mt-0.5">Separate Singles &amp; Doubles · starts at 2,000 each · brackets/playoffs only · seed ±8 · pool 1% of field</p>
           </div>
           <div class="flex flex-wrap items-center gap-2 shrink-0">
             <label id="bonus-split-wrap" class="hidden items-center gap-1.5 text-[11px] font-semibold text-slate-600">
@@ -2968,6 +2968,12 @@
             </label>
             <button type="button" onclick="onRecalculateClubRanking()" class="btn-ghost px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 shrink-0">Recalculate from events</button>
           </div>
+        </div>
+        <div class="px-4 py-2.5 border-b border-slate-100 flex flex-wrap gap-1.5">
+          <button type="button" data-rank-disc="combined" onclick="setRankingViewDiscipline('combined')" class="px-3 py-1.5 rounded-full text-xs font-bold border bg-emerald-600 text-white">Combined</button>
+          <button type="button" data-rank-disc="singles" onclick="setRankingViewDiscipline('singles')" class="px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 bg-white text-slate-700">Singles</button>
+          <button type="button" data-rank-disc="doubles" onclick="setRankingViewDiscipline('doubles')" class="px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 bg-white text-slate-700">Doubles</button>
+          <span class="text-[11px] text-slate-400 self-center ml-1 hidden sm:inline">Singles events → S · Doubles/DYP/Monster → D</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -3460,11 +3466,19 @@
           <option value="6">Master</option>
         </select>
       </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Ranking points</label>
-        <input id="player-ranking-points" type="number" min="0" max="99999" step="1" value="2000" class="input-field w-full rounded-xl px-4 py-3 text-slate-800" />
-        <p class="text-[11px] text-slate-500 mt-1">Club ranking · new players start at 2,000 (Amateur)</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Singles pts</label>
+          <input id="player-ranking-points-singles" type="number" min="0" max="99999" step="1" value="2000" class="input-field w-full rounded-xl px-4 py-3 text-slate-800" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Doubles pts</label>
+          <input id="player-ranking-points-doubles" type="number" min="0" max="99999" step="1" value="2000" class="input-field w-full rounded-xl px-4 py-3 text-slate-800" />
+        </div>
       </div>
+      <p class="text-[11px] text-slate-500 -mt-1">Club ranking · new players start at 2,000 each (Amateur). Combined = S + D.</p>
+      <!-- Legacy single field kept hidden for any residual scripts -->
+      <input id="player-ranking-points" type="hidden" value="2000" />
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">State / Region</label>
         <select id="player-state" class="input-field w-full rounded-xl px-4 py-3 text-slate-800">
@@ -3626,8 +3640,8 @@
   <script>
     // ==================== DATA LAYER ====================
     const STORAGE_KEY = 'foosmanager_v1';
-    const APP_VERSION = '7.50';
-    const APP_UPDATED = 'Nov 11, 2026';
+    const APP_VERSION = '7.51';
+    const APP_UPDATED = 'Nov 27, 2026';
     /* Lines of code in this file. Updated each release by: ./update_loc.sh index.html (edits in place, never changes line count). */
     const APP_LINES = 16722;
 
@@ -3927,10 +3941,14 @@
       return n;
     }
 
-    /** Set each player's rankingPoints / rankingDelta from stored event deltas (createdAt order). */
+    /** Set each player's ranking points from stored event deltas (createdAt order), split by discipline. */
     function rebuildPlayerRankingPointsFromEventDeltas() {
       (state.players || []).forEach(p => {
-        p.rankingPoints = RANK_START_POINTS;
+        p.rankingPointsSingles = RANK_START_POINTS;
+        p.rankingPointsDoubles = RANK_START_POINTS;
+        p.rankingDeltaSingles = 0;
+        p.rankingDeltaDoubles = 0;
+        p.rankingPoints = RANK_START_POINTS * 2;
         p.rankingDelta = 0;
       });
       const sorted = (state.tournaments || []).slice().sort(
@@ -3939,13 +3957,20 @@
       sorted.forEach(t => {
         const rd = t && t.rankingDeltas;
         if (!rd || typeof rd !== 'object') return;
+        const disc = rankingDisciplineForTournament(t);
         Object.entries(rd).forEach(([id, d]) => {
           const p = state.players.find(x => x.id === id);
           if (!p) return;
           const delta = Number(d) || 0;
           ensurePlayerRanking(p);
-          p.rankingPoints = Math.max(0, Math.round((Number(p.rankingPoints) || RANK_START_POINTS) + delta));
-          p.rankingDelta = Math.round((Number(p.rankingDelta) || 0) + delta);
+          if (disc === 'singles') {
+            p.rankingPointsSingles = Math.max(0, Math.round((Number(p.rankingPointsSingles) || RANK_START_POINTS) + delta));
+            p.rankingDeltaSingles = Math.round((Number(p.rankingDeltaSingles) || 0) + delta);
+          } else {
+            p.rankingPointsDoubles = Math.max(0, Math.round((Number(p.rankingPointsDoubles) || RANK_START_POINTS) + delta));
+            p.rankingDeltaDoubles = Math.round((Number(p.rankingDeltaDoubles) || 0) + delta);
+          }
+          syncCombinedRanking(p);
         });
       });
     }
@@ -4179,18 +4204,52 @@
 
     const SEED_POINTS_PER_TIER = 8;
 
+    /**
+     * Map tournament type → ranking discipline.
+     * Singles events feed Singles points; Doubles / DYP / Monster feed Doubles points.
+     */
+    function rankingDisciplineForTournament(t) {
+      if (!t) return 'doubles';
+      if (t.rankingDiscipline === 'singles' || t.rankingDiscipline === 'doubles') return t.rankingDiscipline;
+      return t.type === 'singles' ? 'singles' : 'doubles';
+    }
+
+    function rankingDisciplineForType(type) {
+      return type === 'singles' ? 'singles' : 'doubles';
+    }
+
+    /** Sync combined rankingPoints / rankingDelta from the two discipline fields. */
+    function syncCombinedRanking(p) {
+      if (!p) return;
+      const s = Math.round(Number(p.rankingPointsSingles) || RANK_START_POINTS);
+      const d = Math.round(Number(p.rankingPointsDoubles) || RANK_START_POINTS);
+      p.rankingPoints = Math.max(0, s + d);
+      p.rankingDelta = Math.round((Number(p.rankingDeltaSingles) || 0) + (Number(p.rankingDeltaDoubles) || 0));
+    }
+
     function ensurePlayerRanking(p) {
       if (!p) return;
-      if (p.rankingPoints == null || isNaN(Number(p.rankingPoints))) {
-        p.rankingPoints = RANK_START_POINTS;
+      // Migrate legacy single-pool points into both disciplines once
+      const hasLegacy = p.rankingPoints != null && !isNaN(Number(p.rankingPoints));
+      const legacyPts = hasLegacy ? Math.round(Number(p.rankingPoints)) : RANK_START_POINTS;
+      // Upgrade previous default start (900) to 2000 if no ranking results applied yet
+      const upgraded = (legacyPts === 900 && !p.rankingDelta) ? RANK_START_POINTS : legacyPts;
+
+      if (p.rankingPointsSingles == null || isNaN(Number(p.rankingPointsSingles))) {
+        p.rankingPointsSingles = upgraded;
       } else {
-        p.rankingPoints = Math.round(Number(p.rankingPoints));
-        // Upgrade previous default start (900) to 2000 if no ranking results applied yet
-        if (p.rankingPoints === 900 && !p.rankingDelta) {
-          p.rankingPoints = RANK_START_POINTS;
-        }
+        p.rankingPointsSingles = Math.round(Number(p.rankingPointsSingles));
       }
+      if (p.rankingPointsDoubles == null || isNaN(Number(p.rankingPointsDoubles))) {
+        p.rankingPointsDoubles = upgraded;
+      } else {
+        p.rankingPointsDoubles = Math.round(Number(p.rankingPointsDoubles));
+      }
+      if (p.rankingDeltaSingles == null) p.rankingDeltaSingles = 0;
+      if (p.rankingDeltaDoubles == null) p.rankingDeltaDoubles = 0;
+      // If only legacy delta exists, leave discipline deltas at 0 until rebuild; combined tracks lifetime
       if (p.rankingDelta == null) p.rankingDelta = 0;
+      syncCombinedRanking(p);
     }
 
     function migratePlayerRankings() {
@@ -4219,11 +4278,19 @@
       return 6;
     }
 
-    function getPlayerRankingPoints(pid) {
+    /**
+     * Get ranking points for a player.
+     * @param {string} pid
+     * @param {'singles'|'doubles'|'combined'} [discipline='combined']
+     */
+    function getPlayerRankingPoints(pid, discipline) {
       const p = state.players.find(x => x.id === pid);
       if (!p) return RANK_START_POINTS;
       ensurePlayerRanking(p);
-      return p.rankingPoints;
+      const disc = discipline || 'combined';
+      if (disc === 'singles') return p.rankingPointsSingles;
+      if (disc === 'doubles') return p.rankingPointsDoubles;
+      return p.rankingPoints; // combined (sum)
     }
 
     /** Player IDs that appeared in bracket / playoff matches (not ranking rounds only). */
@@ -4414,9 +4481,12 @@
       // Prefer places frozen at playoff create (stable across rebuilds)
       const lockedExpected = t.expectedPlaceLocked || t.playoffs?.expectedPlaceLocked || null;
 
-      // Individual ranking order (for singles / fallback)
+      // Discipline for this event: singles → Singles points; doubles/dyp/monster → Doubles points
+      const disc = rankingDisciplineForTournament(t);
+
+      // Individual ranking order within the event's discipline
       const seeded = fieldIds.slice().sort((a, b) => {
-        const pa = getPlayerRankingPoints(a), pb = getPlayerRankingPoints(b);
+        const pa = getPlayerRankingPoints(a, disc), pb = getPlayerRankingPoints(b, disc);
         if (pb !== pa) return pb - pa;
         const na = state.players.find(p => p.id === a)?.name || '';
         const nb = state.players.find(p => p.id === b)?.name || '';
@@ -4528,7 +4598,9 @@
             : [Math.round(bonusPool * fr[0]), Math.round(bonusPool * fr[1]), Math.round(bonusPool * fr[2])];
         }
       } else {
-        fieldPoints = fieldIds.reduce((s, id) => s + getPlayerRankingPoints(id), 0);
+        // Bonus pool uses the discipline-specific ranking points of the field
+        const discForPool = rankingDisciplineForTournament(t);
+        fieldPoints = fieldIds.reduce((s, id) => s + getPlayerRankingPoints(id, discForPool), 0);
         bonusPool = Math.round(fieldPoints * 0.01);
         fr = (typeof getBonusShareFractions === 'function')
           ? getBonusShareFractions()
@@ -4588,14 +4660,22 @@
         const p = state.players.find(x => x.id === id);
         if (!p) return;
         ensurePlayerRanking(p);
-        p.rankingPoints = Math.max(0, Math.round(p.rankingPoints + d));
-        p.rankingDelta = Math.round((p.rankingDelta || 0) + d);
-        const band = rankingBandFromPoints(p.rankingPoints);
+        // Apply delta only to the event's discipline
+        if (disc === 'singles') {
+          p.rankingPointsSingles = Math.max(0, Math.round((Number(p.rankingPointsSingles) || RANK_START_POINTS) + d));
+          p.rankingDeltaSingles = Math.round((Number(p.rankingDeltaSingles) || 0) + d);
+        } else {
+          p.rankingPointsDoubles = Math.max(0, Math.round((Number(p.rankingPointsDoubles) || RANK_START_POINTS) + d));
+          p.rankingDeltaDoubles = Math.round((Number(p.rankingDeltaDoubles) || 0) + d);
+        }
+        syncCombinedRanking(p);
+        const band = rankingBandFromPoints(getPlayerRankingPoints(id, disc));
         if (p.skill == null) p.skill = band.skill;
       });
 
       t.rankingApplied = true;
       t.rankingAppliedAt = Date.now();
+      t.rankingDiscipline = disc;
       t.rankingDeltas = deltas;
       t.rankingDeltaDetail = deltaDetail;
       t.rankingBonusShare = bonusShare.slice();
@@ -4655,12 +4735,17 @@
 
     /**
      * Rebuild club ranking from scratch using all tournaments with bracket/playoff results
-     * (including imports). Resets everyone to 2,000 then replays events in date order.
+     * (including imports). Resets everyone to 2,000 per discipline then replays events in date order.
+     * Singles events feed Singles points; Doubles/DYP/Monster feed Doubles points.
      */
     function recalculateClubRankingsFromEvents() {
       migratePlayerRankings();
       (state.players || []).forEach(p => {
-        p.rankingPoints = RANK_START_POINTS;
+        p.rankingPointsSingles = RANK_START_POINTS;
+        p.rankingPointsDoubles = RANK_START_POINTS;
+        p.rankingDeltaSingles = 0;
+        p.rankingDeltaDoubles = 0;
+        p.rankingPoints = RANK_START_POINTS * 2;
         p.rankingDelta = 0;
       });
       (state.tournaments || []).forEach(t => {
@@ -4675,6 +4760,7 @@
         delete t.rankingApplied;
         delete t.rankingAppliedAt;
         delete t.rankingDeltas;
+        delete t.rankingDiscipline;
       });
       const sorted = (state.tournaments || []).slice().sort(
         (a, b) => (a.createdAt || 0) - (b.createdAt || 0)
@@ -4693,11 +4779,29 @@
         return;
       }
       const split = getBonusSplitMode().replace(/-/g, '/');
-      if (!confirm('Rebuild club ranking from all events with finished brackets/playoffs?\n\nEveryone resets to 2,000 first.\nBonus split: ' + split + '\n\nThis overwrites stored event ranking deltas.')) return;
+      if (!confirm('Rebuild club ranking from all events with finished brackets/playoffs?\n\nEveryone resets to 2,000 Singles + 2,000 Doubles.\nSingles events → Singles points · Doubles/DYP/Monster → Doubles points.\nBonus split: ' + split + '\n\nThis overwrites stored event ranking deltas.')) return;
       const n = recalculateClubRankingsFromEvents();
       renderClubRanking();
       renderPlayers();
-      toast(n ? `Ranking rebuilt from ${n} event(s) · bonus ${split}` : 'No bracket/playoff results found to apply', n ? 'success' : 'info');
+      toast(n ? `Ranking rebuilt from ${n} event(s) · S/D split · bonus ${split}` : 'No bracket/playoff results found to apply', n ? 'success' : 'info');
+    }
+
+    // Active ranking list discipline for the Club Ranking tab
+    let rankingViewDiscipline = 'combined'; // 'singles' | 'doubles' | 'combined'
+
+    function setRankingViewDiscipline(disc) {
+      rankingViewDiscipline = (disc === 'singles' || disc === 'doubles') ? disc : 'combined';
+      try {
+        document.querySelectorAll('[data-rank-disc]').forEach(btn => {
+          const on = btn.getAttribute('data-rank-disc') === rankingViewDiscipline;
+          btn.classList.toggle('bg-emerald-600', on);
+          btn.classList.toggle('text-white', on);
+          btn.classList.toggle('bg-white', !on);
+          btn.classList.toggle('text-slate-700', !on);
+          btn.classList.toggle('border-slate-200', !on);
+        });
+      } catch (e) {}
+      renderClubRanking();
     }
 
     function renderClubRanking() {
@@ -4708,16 +4812,18 @@
       if (filled > 0) saveState();
       const body = document.getElementById('stats-ranking-body');
       if (!body) return;
-      // Δ column = previous ISO week only (not lifetime rankingDelta)
+      const disc = rankingViewDiscipline || 'combined';
+      // Δ column = previous ISO week only (not lifetime rankingDelta), filtered by discipline
       const prevWeekKey = (typeof getPreviousISOWeekKey === 'function')
         ? getPreviousISOWeekKey()
         : null;
       const weekDeltas = (typeof rankingDeltasForISOWeek === 'function' && prevWeekKey)
-        ? rankingDeltasForISOWeek(prevWeekKey)
+        ? rankingDeltasForISOWeek(prevWeekKey, disc)
         : {};
       const rows = state.players.map(p => {
         ensurePlayerRanking(p);
-        const band = rankingBandFromPoints(p.rankingPoints);
+        const pts = getPlayerRankingPoints(p.id, disc);
+        const band = rankingBandFromPoints(pts);
         const pid = String(p.id);
         let weekDelta = 0;
         if (Object.prototype.hasOwnProperty.call(weekDeltas, pid)) weekDelta = weekDeltas[pid];
@@ -4725,7 +4831,9 @@
         return {
           id: p.id,
           name: p.name,
-          pts: p.rankingPoints,
+          pts: pts,
+          ptsS: p.rankingPointsSingles,
+          ptsD: p.rankingPointsDoubles,
           delta: weekDelta,
           label: band.label,
           weekKey: prevWeekKey
@@ -4744,11 +4852,14 @@
         const dHtml = d === 0 ? '<span class="text-slate-400">—</span>'
           : d > 0 ? `<span class="text-emerald-600 font-semibold">+${d}</span>`
           : `<span class="text-red-500 font-semibold">${d}</span>`;
+        const ptsLabel = disc === 'combined'
+          ? `${r.pts}<span class="block text-[10px] font-normal text-slate-400">S ${r.ptsS} · D ${r.ptsD}</span>`
+          : String(r.pts);
         return `<tr class="border-t border-slate-200 table-row">
           <td class="px-3 py-2.5 text-slate-500 font-medium">${i + 1}</td>
           <td class="px-3 py-2.5 font-medium text-slate-900">${escapeHtml(r.name)}</td>
           <td class="px-2 py-2.5 text-center"><span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-600 text-xs">${escapeHtml(r.label)}</span></td>
-          <td class="px-2 py-2.5 text-center font-bold text-slate-900">${r.pts}</td>
+          <td class="px-2 py-2.5 text-center font-bold text-slate-900">${ptsLabel}</td>
           <td class="px-2 py-2.5 text-center hidden sm:table-cell">${dHtml}</td>
         </tr>`;
       }).join('');
@@ -4761,8 +4872,12 @@
       document.getElementById('player-modal-title').textContent = 'Add Player';
       document.getElementById('player-name').value = '';
       document.getElementById('player-skill').value = '3';
+      const rpS = document.getElementById('player-ranking-points-singles');
+      const rpD = document.getElementById('player-ranking-points-doubles');
+      if (rpS) rpS.value = String(RANK_START_POINTS);
+      if (rpD) rpD.value = String(RANK_START_POINTS);
       const rp = document.getElementById('player-ranking-points');
-      if (rp) rp.value = String(RANK_START_POINTS);
+      if (rp) rp.value = String(RANK_START_POINTS * 2);
       if (typeof fillPlayerStateSelect === 'function') fillPlayerStateSelect('');
       document.getElementById('player-modal').classList.remove('hidden');
       document.getElementById('player-name').focus();
@@ -4793,8 +4908,11 @@
         return;
       }
       const skill = parseInt(document.getElementById('player-skill').value, 10);
-      let rankingPoints = parseInt(document.getElementById('player-ranking-points')?.value, 10);
-      if (isNaN(rankingPoints)) rankingPoints = RANK_START_POINTS;
+      let ptsS = parseInt(document.getElementById('player-ranking-points-singles')?.value, 10);
+      let ptsD = parseInt(document.getElementById('player-ranking-points-doubles')?.value, 10);
+      if (isNaN(ptsS)) ptsS = RANK_START_POINTS;
+      if (isNaN(ptsD)) ptsD = RANK_START_POINTS;
+      const rankingPoints = Math.max(0, ptsS + ptsD);
 
       const sel = document.getElementById('player-state');
       let rawState = '';
@@ -4815,6 +4933,8 @@
         if (p) {
           p.name = name;
           p.skill = skill;
+          p.rankingPointsSingles = ptsS;
+          p.rankingPointsDoubles = ptsD;
           p.rankingPoints = rankingPoints;
           setPlayerGeoCode(p, geo);
           ensurePlayerRanking(p);
@@ -4823,7 +4943,16 @@
       } else {
         let newId = uid();
         if (typeof isSafeEntityId === 'function' && !isSafeEntityId(newId)) newId = uid();
-        const player = { id: newId, name, skill, rankingPoints, rankingDelta: 0, region: geo || '', homeState: geo || '' };
+        const player = {
+          id: newId, name, skill,
+          rankingPointsSingles: ptsS,
+          rankingPointsDoubles: ptsD,
+          rankingPoints,
+          rankingDelta: 0,
+          rankingDeltaSingles: 0,
+          rankingDeltaDoubles: 0,
+          region: geo || '', homeState: geo || ''
+        };
         state.players.push(player);
         savedId = player.id;
         if (state.quickAddMode && state.currentTournamentId) {
@@ -4877,6 +5006,10 @@
       document.getElementById('player-name').value = p.name;
       document.getElementById('player-skill').value = String(normalizeSkill(p.skill));
       ensurePlayerRanking(p);
+      const rpS = document.getElementById('player-ranking-points-singles');
+      const rpD = document.getElementById('player-ranking-points-doubles');
+      if (rpS) rpS.value = String(p.rankingPointsSingles);
+      if (rpD) rpD.value = String(p.rankingPointsDoubles);
       const rp = document.getElementById('player-ranking-points');
       if (rp) rp.value = String(p.rankingPoints);
       const geoNow = (typeof getPlayerGeoCode === 'function') ? getPlayerGeoCode(p) : (p.region || p.homeState || '');
@@ -5218,7 +5351,11 @@
           <td class="px-4 py-3.5">
             <button type="button" onclick="openPlayerProfile('${escapeAttr(p.id)}')" class="font-medium text-slate-900 hover:text-emerald-700 text-left">${escapeHtml(p.name)}</button>
           </td>
-          <td class="px-4 py-3.5 text-slate-500 hidden sm:table-cell"><span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">${escapeHtml(band.label)}</span> <span class="text-xs text-slate-400 ml-1">${p.rankingPoints}</span></td>
+          <td class="px-4 py-3.5 text-slate-500 hidden sm:table-cell">
+            <span class="badge px-2 py-0.5 rounded-md bg-slate-50 text-slate-500">${escapeHtml(band.label)}</span>
+            <span class="text-xs text-slate-400 ml-1" title="Combined (S+D)">${p.rankingPoints}</span>
+            <span class="block text-[10px] text-slate-400 mt-0.5">S ${p.rankingPointsSingles} · D ${p.rankingPointsDoubles}</span>
+          </td>
           <td class="px-4 py-3.5 hidden md:table-cell">${form}</td>
           <td class="px-4 py-3.5 text-right space-x-2 sm:space-x-3">
             <button onclick="openPlayerProfile('${escapeAttr(p.id)}')" class="text-slate-500 hover:text-emerald-600 text-sm font-medium">Profile</button>
@@ -5782,8 +5919,9 @@
       if (typeof isSandboxTournament === 'function' && isSandboxTournament(t)) return null;
       const fieldIds = [...collectPlayoffFieldIds(t)];
       if (fieldIds.length < 2) return null;
+      const disc = rankingDisciplineForTournament(t);
       const fieldPoints = fieldIds.reduce(
-        (s, id) => s + (typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(id) : 2000),
+        (s, id) => s + (typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(id, disc) : 2000),
         0
       );
       const bonusPool = Math.round(fieldPoints * 0.01);
@@ -5865,9 +6003,10 @@
           const seededVals = Object.values(expectedPlaceLocked).map(Number).filter(n => n > 0);
           // Continue after highest existing seed so backfill does not collide with team seeds
           let nextPlace = seededVals.length ? (Math.max.apply(null, seededVals) + 1) : 1;
+          const discLock = rankingDisciplineForTournament(t);
           missing.slice().sort((a, b) => {
-            const pa = typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(a) : 2000;
-            const pb = typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(b) : 2000;
+            const pa = typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(a, discLock) : 2000;
+            const pb = typeof getPlayerRankingPoints === 'function' ? getPlayerRankingPoints(b, discLock) : 2000;
             if (pb !== pa) return pb - pa;
             const na = (state.players.find(p => p.id === a) || {}).name || '';
             const nb = (state.players.find(p => p.id === b) || {}).name || '';
@@ -11488,14 +11627,24 @@ function flipRankingMatchCoin(roundNum, matchId) {
     }
 
     /** Sum rankingDeltas for each player from events in a given ISO week (non-sandbox, applied). */
-    function rankingDeltasForISOWeek(weekKey) {
+    /**
+     * Sum ranking deltas for each player from events in a given ISO week.
+     * @param {string} weekKey
+     * @param {'singles'|'doubles'|'combined'} [discipline='combined'] — when not combined, only events of that discipline count
+     */
+    function rankingDeltasForISOWeek(weekKey, discipline) {
       const out = {};
       if (!weekKey) return out;
+      const discFilter = (discipline === 'singles' || discipline === 'doubles') ? discipline : null;
       (state.tournaments || []).forEach(t => {
         if (!t || (typeof isSandboxTournament === 'function' && isSandboxTournament(t))) return;
         if (t.importedCopy) return;
         const rd = t.rankingDeltas;
         if (!rd || typeof rd !== 'object') return;
+        if (discFilter) {
+          const tDisc = rankingDisciplineForTournament(t);
+          if (tDisc !== discFilter) return;
+        }
         let wk;
         try { wk = getISOWeekKey(t.createdAt || t.date || Date.now()); } catch (e) { return; }
         if (wk !== weekKey) return;
@@ -14184,12 +14333,14 @@ function flipRankingMatchCoin(roundNum, matchId) {
 
       const band = rankingBandFromPoints(p.rankingPoints);
       const skillLabel = (typeof SKILL_BAND_LABEL !== 'undefined' ? SKILL_BAND_LABEL[normalizeSkill(p.skill)] : null) || band.label || 'Amateur';
-      const pts = Math.round(Number(p.rankingPoints) || RANK_START_POINTS);
+      const pts = Math.round(Number(p.rankingPoints) || (RANK_START_POINTS * 2));
+      const ptsS = Math.round(Number(p.rankingPointsSingles) || RANK_START_POINTS);
+      const ptsD = Math.round(Number(p.rankingPointsDoubles) || RANK_START_POINTS);
       const delta = Math.round(Number(p.rankingDelta) || 0);
 
-      // Club rank by ranking points (display only — does not change stored ranking)
+      // Club rank by combined ranking points (display only — does not change stored ranking)
       const rankedPlayers = (state.players || []).slice().sort((a, b) => {
-        const pa = getPlayerRankingPoints(a.id), pb = getPlayerRankingPoints(b.id);
+        const pa = getPlayerRankingPoints(a.id, 'combined'), pb = getPlayerRankingPoints(b.id, 'combined');
         if (pb !== pa) return pb - pa;
         return (a.name || '').localeCompare(b.name || '');
       });
@@ -14203,7 +14354,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
       document.getElementById('profile-name').textContent = p.name;
       document.getElementById('profile-sub').textContent = [
         `#${clubRank} · ${band.label}`,
-        `${pts} pts`,
+        `${pts} combined`,
+        `S ${ptsS} · D ${ptsD}`,
         delta ? `${delta > 0 ? '↑' : '↓'} ${delta > 0 ? '+' : ''}${delta} lifetime` : null,
         stLabel || null
       ].filter(Boolean).join(' · ');
@@ -14624,7 +14776,8 @@ function flipRankingMatchCoin(roundNum, matchId) {
       const podium = computePodiumStats()[p.id] || {};
       return [
         `${p.name} · LCFC`,
-        `${band.label} · ${Math.round(p.rankingPoints || 0)} rank pts`,
+        `${band.label} · ${Math.round(p.rankingPoints || 0)} combined`,
+        `Singles ${Math.round(p.rankingPointsSingles || 0)} · Doubles ${Math.round(p.rankingPointsDoubles || 0)}`,
         `Record ${s.wins}W-${s.losses}L · GD ${s.gd > 0 ? '+' : ''}${s.gd}`,
         `Podiums 🥇${podium.first || 0} 🥈${podium.second || 0} 🥉${podium.third || 0}`
       ].join('\n');
@@ -14731,7 +14884,7 @@ function flipRankingMatchCoin(roundNum, matchId) {
         ctx.fillText(String(p.name || 'Player').slice(0, 22), 180, 168);
         ctx.fillStyle = '#6ee7b7';
         ctx.font = '700 20px system-ui,sans-serif';
-        ctx.fillText(`${band.label} · ${Math.round(p.rankingPoints || 0)} pts`, 180, 202);
+        ctx.fillText(`${band.label} · S ${Math.round(p.rankingPointsSingles || 0)} · D ${Math.round(p.rankingPointsDoubles || 0)}`, 180, 202);
 
         // Stats panel
         const boxY = 280;
